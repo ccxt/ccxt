@@ -1300,7 +1300,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                Boolean result = (Boolean) this.safeBool(response, "result", false);
+                Boolean result = this.safeBool(response, "result", false);
                 if (!Boolean.TRUE.equals(result))
                 {
                     throw new ExchangeError((this.id + " failed to get subscribe key")) ;

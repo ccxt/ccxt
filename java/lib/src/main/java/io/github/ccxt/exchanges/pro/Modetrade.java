@@ -626,7 +626,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> trade = this.parseWsTrade(this.extend(data, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
         }}), market);
@@ -689,7 +689,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = this.safeBool(trade, "maker", null);
         if (!java.util.Objects.equals(maker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";
@@ -732,7 +732,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //     }
         //
         String messageHash = "authenticated";
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             // client.resolve (message, messageHash);
@@ -874,7 +874,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         String topic = "executionreport";
         if (Boolean.TRUE.equals(trigger))
         {
@@ -928,7 +928,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         String topic = "executionreport";
         if (Boolean.TRUE.equals(trigger))
         {
@@ -1571,7 +1571,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             return false;

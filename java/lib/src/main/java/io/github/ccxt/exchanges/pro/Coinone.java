@@ -415,7 +415,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
         Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
-        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", null);
+        Boolean isSellerMaker = this.safeBool(trade, "is_seller_maker", null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {

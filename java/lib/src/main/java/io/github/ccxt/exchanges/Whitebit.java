@@ -845,8 +845,8 @@ public class Whitebit extends WhitebitApi
         {
             return null;
         }
-        Boolean active = (Boolean) this.safeBool(market, "tradesEnabled", null);
-        Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral", false);
+        Boolean active = this.safeBool(market, "tradesEnabled", null);
+        Boolean isCollateral = this.safeBool(market, "isCollateral", false);
         String typeId = this.safeString(market, "type");
         String type = null;
         String settle = null;
@@ -1897,8 +1897,8 @@ public class Whitebit extends WhitebitApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         // Extract control parameters from params
-        Boolean checkActive = (Boolean) this.safeBool(parameters, "checkActive", true);
-        Boolean checkExecuted = (Boolean) this.safeBool(parameters, "checkExecuted", true);
+        Boolean checkActive = this.safeBool(parameters, "checkActive", true);
+        Boolean checkExecuted = this.safeBool(parameters, "checkExecuted", true);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("checkActive", "checkExecuted")));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );
@@ -3390,8 +3390,8 @@ public class Whitebit extends WhitebitApi
         }
         Long timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         Long lastTradeTimestamp = this.safeTimestamp(order, "ftime");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
-        Boolean ioc = (Boolean) this.safeBool(order, "ioc", false);
+        Boolean postOnly = this.safeBool(order, "postOnly", null);
+        Boolean ioc = this.safeBool(order, "ioc", false);
         String timeInForce = null;
         if (Boolean.TRUE.equals(ioc))
         {
@@ -5407,7 +5407,7 @@ public class Whitebit extends WhitebitApi
                 throw new ExchangeError(feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
-            Boolean success = (Boolean) this.safeBool(response, "success", true);
+            Boolean success = this.safeBool(response, "success", true);
             if (!Boolean.TRUE.equals(success))
             {
                 Map<String, Object> errMsg = this.safeDict(response, "message", new HashMap<String, Object>() {{}});

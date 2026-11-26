@@ -396,7 +396,7 @@ public class Predictfun extends PredictfunApi
     private Object fetchEventsCore(Map<String, Object> parameters)
     {
 
-        Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        Boolean allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
         if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
         {
             this.requireEventQuery(parameters);
@@ -1940,7 +1940,7 @@ public class Predictfun extends PredictfunApi
     {
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        Boolean wasSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean wasSandbox = this.safeBool(this.options, "sandboxMode", false);
         super.setSandboxMode(enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -2260,9 +2260,9 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> marketRow = this.safeDict(marketObj, "info", new HashMap<String, Object>() {{}});
         String marketFeeRateBps = this.safeString(marketRow, "feeRateBps", "200"); // should be at least 200
         String feeRateBps = this.safeString(paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", marketFeeRateBps);
-        Boolean marketIsNegRisk = (Boolean) this.safeBool(marketRow, "isNegRisk", false);
+        Boolean marketIsNegRisk = this.safeBool(marketRow, "isNegRisk", false);
         Boolean isNegRisk = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", marketIsNegRisk), true));
-        Boolean marketIsYieldBearing = (Boolean) this.safeBool(marketRow, "isYieldBearing", false);
+        Boolean marketIsYieldBearing = this.safeBool(marketRow, "isYieldBearing", false);
         Boolean isYieldBearing = (java.util.Objects.equals(this.safeBool(paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", marketIsYieldBearing), true));
         Long defaultExpiration = this.safeInteger(this.options, "defaultExpiration", 3600); // 1 hour
         Long expirationDelta = defaultExpiration;
@@ -2304,7 +2304,7 @@ public class Predictfun extends PredictfunApi
         data.put("order", orderPayload);
         data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
         data.put("strategy", strategy);
-        Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
+        Boolean postOnly = this.safeBool(paramsTaker, "isPostOnly", false);
         Pair<Boolean, Map<String, Object>> postOnlyOptionparamsPostOnlyVariable = this.handlePostOnly(isMarket, java.util.Objects.equals(postOnly, true), paramsTaker);
         Boolean postOnlyOption = postOnlyOptionparamsPostOnlyVariable.first();
         Map<String, Object> paramsPostOnly = postOnlyOptionparamsPostOnlyVariable.second();
@@ -3049,7 +3049,7 @@ public class Predictfun extends PredictfunApi
         {
             return null;
         }
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         if (Boolean.TRUE.equals(success))
         {
             return null;
@@ -3261,7 +3261,7 @@ public class Predictfun extends PredictfunApi
             {
                 throw new ArgumentsRequired(((this.id + " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ") + chainKey)) ;
             }
-            Boolean approved = (Boolean) this.safeBool(parameters, "approved", true);
+            Boolean approved = this.safeBool(parameters, "approved", true);
             String approvedHex = "0000000000000000000000000000000000000000000000000000000000000000";
             if (Boolean.TRUE.equals(approved))
             {
@@ -4319,7 +4319,7 @@ public class Predictfun extends PredictfunApi
         String price = Precise.stringDiv(this.safeString(fill, "executedPriceWei"), "1000000000000000000");
         String amount = Precise.stringDiv(this.safeString(fill, "executedSizeWei"), "1000000000000000000");
         String cost = Precise.stringDiv(this.safeString(fill, "executedValueWei"), "1000000000000000000");
-        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker", null);
+        Boolean isMaker = this.safeBool(eventVar, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -4432,7 +4432,7 @@ public class Predictfun extends PredictfunApi
             String id = this.safeString(message, "requestId");
             Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Map<String, Object> subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-            Boolean success = (Boolean) this.safeBool(message, "success", false);
+            Boolean success = this.safeBool(message, "success", false);
             if (!Boolean.TRUE.equals(success))
             {
                 this.handleSubscriptionError(client, message, subscription);
@@ -4488,7 +4488,7 @@ public class Predictfun extends PredictfunApi
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
-        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         String apiKey = this.apiKey;
         if ((java.util.Objects.equals(apiKey, null)) && !Boolean.TRUE.equals(sandboxMode))
         {

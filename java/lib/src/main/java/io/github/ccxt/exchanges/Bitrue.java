@@ -1608,8 +1608,8 @@ public class Bitrue extends BitrueApi
         }
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-        Object response = null;
-        Object data = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> response = null;
+        List<Object> data = new ArrayList<Object>(Arrays.asList());
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             Map<String, Object> timeframesFuture = this.safeDict(timeframes, "future", new HashMap<String, Object>() {{}});
@@ -1623,12 +1623,11 @@ public class Bitrue extends BitrueApi
             }
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                response = (this.fapiV1PublicGetKlines(this.extend(request, parameters))).join();
+                data = (this.fapiV1PublicGetKlines(this.extend(request, parameters))).join();
             } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
-                response = (this.dapiV1PublicGetKlines(this.extend(request, parameters))).join();
+                data = (this.dapiV1PublicGetKlines(this.extend(request, parameters))).join();
             }
-            data = response;
         } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             Map<String, Object> timeframesSpot = this.safeDict(timeframes, "spot", new HashMap<String, Object>() {{}});
@@ -1647,7 +1646,7 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
             response = (this.spotV1PublicGetMarketKline(this.extend(request, paramsOmitted))).join();
-            data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         } else
         {
             throw new NotSupported((this.id + " fetchOHLCV only support spot & swap markets")) ;
@@ -1974,8 +1973,8 @@ public class Bitrue extends BitrueApi
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
         String side = null;
-        Boolean buyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", null); // ignore "m" until Bitrue fixes api
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
+        Boolean buyerMaker = this.safeBool(trade, "isBuyerMaker", null); // ignore "m" until Bitrue fixes api
+        Boolean isBuyer = this.safeBool(trade, "isBuyer", null);
         if (!java.util.Objects.equals(buyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy";
@@ -1993,7 +1992,7 @@ public class Bitrue extends BitrueApi
             }};
         }
         String takerOrMaker = null;
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -2350,7 +2349,7 @@ public class Bitrue extends BitrueApi
                 request.put("volume", this.parseToNumeric(amount));
             }
             request.put("positionType", 1);
-            Boolean reduceOnly = (Boolean) this.safeBool2(paramsNoCost, "reduceOnly", "reduce_only", null);
+            Boolean reduceOnly = this.safeBool2(paramsNoCost, "reduceOnly", "reduce_only", null);
             request.put("open", (((java.util.Objects.equals(reduceOnly, true)))) ? "CLOSE" : "OPEN");
             String leverage = this.safeString(paramsNoCost, "leverage", "1");
             request.put("leverage", this.parseToNumeric(leverage));
@@ -3850,7 +3849,7 @@ public class Bitrue extends BitrueApi
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         Object parsedMessage = null;
         if (!Boolean.TRUE.equals(success))
         {

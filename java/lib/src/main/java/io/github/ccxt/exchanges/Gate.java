@@ -2000,7 +2000,7 @@ public class Gate extends GateApi
     private Boolean loadUnifiedStatusCore(Map<String, Object> parameters)
     {
 
-        Boolean unifiedAccount = (Boolean) this.safeBool(this.options, "unifiedAccount", null);
+        Boolean unifiedAccount = this.safeBool(this.options, "unifiedAccount", null);
         if (java.util.Objects.equals(unifiedAccount, null))
         {
             try
@@ -2553,7 +2553,7 @@ public class Gate extends GateApi
         }
         String status = this.safeString(market, "status", "trading"); // or "suspend"
         Double amountPrecision = this.parseNumber("1");
-        Boolean enableDecimal = (Boolean) this.safeBool(market, "enable_decimal", false);
+        Boolean enableDecimal = this.safeBool(market, "enable_decimal", false);
         String orderSizeMin = this.safeString(market, "order_size_min");
         Boolean swap = java.util.Objects.equals(marketType, "swap");
         Double minAmount = this.parseNumber(orderSizeMin);
@@ -2686,7 +2686,7 @@ public class Gate extends GateApi
                 }
                 Long expiry = this.safeTimestamp(market, "expiration_time");
                 String strike = this.safeString(market, "strike_price", "");
-                Boolean isCall = (Boolean) this.safeBool(market, "is_call", false);
+                Boolean isCall = this.safeBool(market, "is_call", false);
                 String optionLetter = "P";
                 if (Boolean.TRUE.equals(isCall))
                 {
@@ -3577,7 +3577,7 @@ public class Gate extends GateApi
         //        "futures_maker_fee": "0"
         //    }
         //
-        Boolean gtDiscount = (Boolean) this.safeBool(info, "gt_discount", false);
+        Boolean gtDiscount = this.safeBool(info, "gt_discount", false);
         String taker = "taker_fee";
         if (Boolean.TRUE.equals(gtDiscount))
         {
@@ -3588,7 +3588,7 @@ public class Gate extends GateApi
         {
             maker = "gt_maker_fee";
         }
-        Boolean contract = (Boolean) this.safeBool(market, "contract", false);
+        Boolean contract = this.safeBool(market, "contract", false);
         String takerKey = taker;
         if (Boolean.TRUE.equals(contract))
         {
@@ -3829,7 +3829,7 @@ public class Gate extends GateApi
         {
             market = this.market(symbol);
         }
-        String symbolResolved = (String) ((((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null);
+        String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, null);
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
@@ -5824,7 +5824,7 @@ public class Gate extends GateApi
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", null);
+        Boolean trigger = this.safeBool(parameters, "trigger", null);
         Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice", null);
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", triggerPrice);
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -6023,8 +6023,8 @@ public class Gate extends GateApi
     public Boolean isGateFuturesContractWithDecimalSize(Map<String, Object> market)
     {
         Map<String, Object> info = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
-        Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
-        Boolean enableDecimal = (Boolean) this.safeBool(info, "enable_decimal", false);
+        Boolean isSwap = this.safeBool(market, "swap", false);
+        Boolean enableDecimal = this.safeBool(info, "enable_decimal", false);
         return Boolean.TRUE.equals(isSwap) && Boolean.TRUE.equals(enableDecimal);
     }
 
@@ -6050,7 +6050,7 @@ public class Gate extends GateApi
         }
         Map<String, Object> market = this.market(symbol);
         Boolean contract = (Boolean) market.get("contract");
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", null);
+        Boolean trigger = this.safeBool(parameters, "trigger", null);
         Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice", null);
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", triggerPrice);
         Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", null);
@@ -6061,7 +6061,7 @@ public class Gate extends GateApi
         {
             throw new ExchangeError((this.id + " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", null);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", null);
         String exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "tif", "time_in_force")));
         Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(exchangeSpecificTimeInForce, "poc"), parameters);
         Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
@@ -6108,7 +6108,7 @@ public class Gate extends GateApi
         Boolean useGateFuturesDecimalSize = false;
         if (java.util.Objects.equals(contract, true))
         {
-            Boolean isClose = (Boolean) this.safeBool(query, "close", false);
+            Boolean isClose = this.safeBool(query, "close", false);
             if (!Boolean.TRUE.equals(isClose))
             {
                 signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
@@ -6214,7 +6214,7 @@ public class Gate extends GateApi
                     request.put("time_in_force", timeInForce);
                 }
             }
-            Boolean textIsRequired = (Boolean) this.safeBool(query, "textIsRequired", false);
+            Boolean textIsRequired = this.safeBool(query, "textIsRequired", false);
             if (!java.util.Objects.equals(clientOrderIdRaw, null))
             {
                 // user-defined, must follow the rules if not empty
@@ -6747,7 +6747,7 @@ public class Gate extends GateApi
         //         "amend_text": "-"
         //     }
         //
-        Boolean succeeded = (Boolean) this.safeBool(order, "succeeded", true);
+        Boolean succeeded = this.safeBool(order, "succeeded", true);
         if (!Boolean.TRUE.equals(succeeded))
         {
             // cancelOrders response
@@ -6888,7 +6888,7 @@ public class Gate extends GateApi
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
         Map<String, Object> initial = this.safeDict(order, "initial", new HashMap<String, Object>() {{}});
-        Boolean reduceOnlyInitial = (Boolean) this.safeBool(initial, "is_reduce_only", null);
+        Boolean reduceOnlyInitial = this.safeBool(initial, "is_reduce_only", null);
         Boolean reduceOnly = (Boolean) this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
         String clientOrderId = this.safeString(order, "text");
         if (java.util.Objects.equals(clientOrderId, null))
@@ -6936,7 +6936,7 @@ public class Gate extends GateApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
+        Boolean trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
         String clientOrderIdRaw = this.safeString2(paramsOmitted, "text", "clientOrderId");
         String orderId = id;
@@ -7014,7 +7014,7 @@ public class Gate extends GateApi
             market = this.market(symbol);
         }
         String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters, null)).get(0);
-        Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
+        Boolean trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("trigger", "is_stop_order", "stop")), false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((List<Object>) requestrequestParamsVariable).get(0);
         var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
@@ -7239,7 +7239,7 @@ public class Gate extends GateApi
             market = this.market(symbol);
         }
         String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean trigger = this.safeBool2(parameters, "trigger", "stop", null);
         String type = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters, null)).get(0);
         // don't omit here, omits done in prepareOrdersByStatusRequest
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, parameters);
@@ -7488,7 +7488,7 @@ public class Gate extends GateApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
+        Boolean trigger = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")), false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("is_stop_order", "stop", "trigger")));
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted, null);
         String type = typequeryVariable.first();
@@ -7778,7 +7778,7 @@ public class Gate extends GateApi
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted, null);
         String type = typequeryVariable.first();
@@ -10485,7 +10485,7 @@ public class Gate extends GateApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
-        Boolean isUnified = (Boolean) this.safeBool(parameters, "unified", false);
+        Boolean isUnified = this.safeBool(parameters, "unified", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "unified");
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
@@ -10532,7 +10532,7 @@ public class Gate extends GateApi
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<Object> response = null;
-        Boolean isUnified = (Boolean) this.safeBool(parameters, "unified", false);
+        Boolean isUnified = this.safeBool(parameters, "unified", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "unified");
         String marketIdRequest = "id";
         if (Boolean.TRUE.equals(isUnified))

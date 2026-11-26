@@ -505,10 +505,10 @@ public class Upbit extends UpbitApi
         Map<String, Object> memberInfo = this.safeDict(response, "member_level", new HashMap<String, Object>() {{}});
         Map<String, Object> currencyInfo = this.safeDict(response, "currency", new HashMap<String, Object>() {{}});
         Map<String, Object> withdrawLimits = this.safeDict(response, "withdraw_limit", new HashMap<String, Object>() {{}});
-        Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw", null);
+        Boolean canWithdraw = this.safeBool(withdrawLimits, "can_withdraw", null);
         String walletState = this.safeString(currencyInfo, "wallet_state");
-        Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", null);
-        Boolean locked = (Boolean) this.safeBool(memberInfo, "locked", null);
+        Boolean walletLocked = this.safeBool(memberInfo, "wallet_locked", null);
+        Boolean locked = this.safeBool(memberInfo, "locked", null);
         Boolean active = true;
         if ((!java.util.Objects.equals(canWithdraw, null)) && (!Boolean.TRUE.equals(canWithdraw)))
         {
@@ -1536,7 +1536,7 @@ public class Upbit extends UpbitApi
     public String calcOrderPrice(String symbol, Object amount, Object price, Map<String, Object> parameters)
     {
         String quoteAmount = null;
-        Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false);
+        Boolean createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false);
         String cost = this.safeString(parameters, "cost");
         if (!java.util.Objects.equals(cost, null))
         {
@@ -1605,7 +1605,7 @@ public class Upbit extends UpbitApi
         Boolean postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
         String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
-        Boolean test = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean test = this.safeBool(parameters, "test", false);
         if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
         {
             throw new ExchangeError((this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;

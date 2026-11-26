@@ -239,8 +239,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         if (java.util.Objects.requireNonNullElse(isPrivate, false))
         {
             List<Object> unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
-            Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
+            Boolean isUnifiedMargin = this.safeBool(unified, 0, false);
+            Boolean isUnifiedAccount = this.safeBool(unified, 1, false);
             if (Boolean.TRUE.equals(isUsdcSettled) && (!Boolean.TRUE.equals(isUnifiedMargin)) && (!Boolean.TRUE.equals(isUnifiedAccount)))
             {
                 url = accessibilityUrls.get("usdc");
@@ -1087,7 +1087,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //         "timestamp": 1670363219614
         //     }
         //
-        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
+        Boolean isInverse = this.safeBool(market, "inverse", false);
         String volumeIndex = "volume";
         if (Boolean.TRUE.equals(isInverse))
         {
@@ -2582,8 +2582,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         List<Object> unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-        Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
-        Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
+        Boolean isUnifiedMargin = this.safeBool(unified, 0, false);
+        Boolean isUnifiedAccount = this.safeBool(unified, 1, false);
         String url = (this.getUrlByMarketType(null, true, method, paramsSubType)).join();
         (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
         if (Boolean.TRUE.equals(isUnifiedAccount))
@@ -3093,7 +3093,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
-            Boolean success = (Boolean) this.safeBool(message, "success", null);
+            Boolean success = this.safeBool(message, "success", null);
             if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg", "");
@@ -3393,7 +3393,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //        "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //    }
         //
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         Long code = this.safeInteger(message, "retCode");
         String messageHash = "authenticated";
         if (Boolean.TRUE.equals(success) || ((code != null && code == 0)))

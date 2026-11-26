@@ -1808,7 +1808,7 @@ public class Kraken extends KrakenApi
             symbol = resolvedSymbol;
         }
         String cost = this.safeString(trade, "cost");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
@@ -2384,7 +2384,7 @@ public class Kraken extends KrakenApi
         //         "oflags": "fciq"
         //     }
         //
-        Boolean isUsingCost = (Boolean) this.safeBool(order, "usingCost", false);
+        Boolean isUsingCost = this.safeBool(order, "usingCost", false);
         Map<String, Object> orderOmitted = this.omit(order, "usingCost");
         Map<String, Object> description = this.safeDict(orderOmitted, "descr", new HashMap<String, Object>() {{}});
         Map<String, Object> orderDescriptionObj = this.safeDict(orderOmitted, "descr", null); // can be null
@@ -2638,7 +2638,7 @@ public class Kraken extends KrakenApi
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
-        Boolean reduceOnly = (Boolean) this.safeBool2(paramsOmitted2, "reduceOnly", "reduce_only", null);
+        Boolean reduceOnly = this.safeBool2(paramsOmitted2, "reduceOnly", "reduce_only", null);
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
             if (Boolean.TRUE.equals(isStopLossTriggerOrder))

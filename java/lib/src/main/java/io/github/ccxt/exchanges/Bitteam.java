@@ -549,12 +549,12 @@ public class Bitteam extends BitteamApi
         {
             return null;
         }
-        Boolean active = (Boolean) this.safeBool(market, "active", null);
+        Boolean active = this.safeBool(market, "active", null);
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
         Double minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new HashMap<String, Object>() {{}});
-        Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
+        Boolean quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (Boolean.TRUE.equals(quoteInUsd))
         {
             Map<String, Object> settings = this.safeDict(market, "settings", new HashMap<String, Object>() {{}});
@@ -757,7 +757,7 @@ public class Bitteam extends BitteamApi
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
         String code = this.safeCurrencyCode(id, null);
-        Boolean active = (Boolean) this.safeBool(currency, "active", false);
+        Boolean active = this.safeBool(currency, "active", false);
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Map<String, Object> txLimits = this.safeDict(currency, "txLimits", new HashMap<String, Object>() {{}});
         String minWithdraw = this.safeString(txLimits, "minWithdraw");
@@ -777,8 +777,8 @@ public class Bitteam extends BitteamApi
             feesByNetworkId = this.extend(withdrawCommissionFixed, new HashMap<String, Object>() {{}});
         }
         Map<String, Object> statuses = this.safeDict(statusesResponse, numericId, new HashMap<String, Object>() {{}});
-        Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus", null);
-        Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus", null);
+        Boolean deposit = this.safeBool(statuses, "depositStatus", null);
+        Boolean withdraw = this.safeBool(statuses, "withdrawStatus", null);
         List<String> networkIds = new ArrayList<String>(feesByNetworkId.keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Double networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));

@@ -392,7 +392,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             Map<String, Object> order = this.safeDict(results, i, new HashMap<String, Object>() {{}});
             String error = this.safeString(order, "error");
-            Boolean success = (Boolean) this.safeBool(order, "success", false);
+            Boolean success = this.safeBool(order, "success", false);
             String marketId = this.safeString(order, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String orderId = this.safeString(order, "i");

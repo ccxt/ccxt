@@ -1241,7 +1241,7 @@ public class Toobit extends ToobitApi
         Map<String, Object> minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         String symbol = ((base + "/") + quote);
         Boolean isContract = (!java.util.Objects.equals(this.safeString(market, "contractMultiplier"), null));
-        Boolean inverse = (Boolean) this.safeBool2(market, "isInverse", "inverse", null);
+        Boolean inverse = this.safeBool2(market, "isInverse", "inverse", null);
         if (Boolean.TRUE.equals(isContract))
         {
             symbol = ((((base + "/") + quote) + ":") + settle);
@@ -1459,10 +1459,10 @@ public class Toobit extends ToobitApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", false);
+        Boolean isBuyer = this.safeBool(trade, "isBuyer", false);
         String side = null;
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", null);
-        Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isBuyerMaker = this.safeBool(trade, "ibm", null);
+        Boolean isBuyerTaker = this.safeBool(trade, "m", null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
@@ -1491,7 +1491,7 @@ public class Toobit extends ToobitApi
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -3237,7 +3237,7 @@ public class Toobit extends ToobitApi
             results.add(this.extend(this.parseTransactionWithType(this.safeDict(response, i, new HashMap<String, Object>() {{}}), currency, transactType), paramsUntil));
         }
         List<Object> sorted = this.sortBy(results, "timestamp");
-        String currencyCode = java.util.Objects.toString((((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null, null);
+        String currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.safeString(currency, "code") : null;
         return this.filterByCurrencySinceLimit(sorted, currencyCode, since, limit, false);
 
     }
@@ -3315,7 +3315,7 @@ public class Toobit extends ToobitApi
         String addressTo = this.safeString(transaction, "address");
         String addressFrom = this.safeString(transaction, "fromAddress");
         String arriveQuantity = this.safeString(transaction, "arriveQuantity");
-        Boolean success = (Boolean) this.safeBool(transaction, "success", null);
+        Boolean success = this.safeBool(transaction, "success", null);
         Boolean isWithdraw = (!java.util.Objects.equals(arriveQuantity, null)) || (!java.util.Objects.equals(success, null));
         String type = ((Boolean.TRUE.equals(isWithdraw))) ? "withdrawal" : "deposit";
         {

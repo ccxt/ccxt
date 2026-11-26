@@ -1113,7 +1113,7 @@ public class Zaif extends ZaifApi
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
             throw new ExchangeError(feedback) ;
         }
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Boolean success = this.safeBool(response, "success", true);
         if (!Boolean.TRUE.equals(success))
         {
             throw new ExchangeError(feedback) ;

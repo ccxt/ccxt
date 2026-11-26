@@ -1569,10 +1569,10 @@ public class Bittrade extends BittradeApi
     {
         String id = this.safeString(currency, "name");
         String code = this.safeCurrencyCode(id, null);
-        Boolean depositEnabled = (Boolean) this.safeBool(currency, "deposit-enabled", null);
-        Boolean withdrawEnabled = (Boolean) this.safeBool(currency, "withdraw-enabled", null);
-        Boolean countryDisabled = (Boolean) this.safeBool(currency, "country-disabled", false);
-        Boolean visible = (Boolean) this.safeBool(currency, "visible", false);
+        Boolean depositEnabled = this.safeBool(currency, "deposit-enabled", null);
+        Boolean withdrawEnabled = this.safeBool(currency, "withdraw-enabled", null);
+        Boolean countryDisabled = this.safeBool(currency, "country-disabled", false);
+        Boolean visible = this.safeBool(currency, "visible", false);
         String state = this.safeString(currency, "state");
         Boolean active = Boolean.TRUE.equals(visible) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
         String name = this.safeString(currency, "display-name");

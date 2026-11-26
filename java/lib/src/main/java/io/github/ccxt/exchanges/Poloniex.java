@@ -947,7 +947,7 @@ public class Poloniex extends PoloniexApi
             // so end the window at the start of the limit-th candle from the first one at or after since
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
             Long firstCandle = (this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) since) / ((double) duration)))))) * duration);
-            Long endTimeByLimit = (Long) this.sum(firstCandle, (duration * ((limit - 1L))));
+            Long endTimeByLimit = this.sum(firstCandle, (duration * ((limit - 1L))));
             ((Map<String, Object>)requestUntil).put(keyEnd, Math.min(endTimeByLimit, this.milliseconds()));
         }
         if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
@@ -2193,7 +2193,7 @@ public class Poloniex extends PoloniexApi
         }
         String clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
         String marginMode = this.safeStringLower(order, "mgnMode");
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
+        Boolean reduceOnly = this.safeBool(order, "reduceOnly", null);
         Long leverage = this.safeInteger(order, "lever");
         Boolean hedged = !java.util.Objects.equals(this.safeString(order, "posSide"), "BOTH");
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
@@ -2296,7 +2296,7 @@ public class Poloniex extends PoloniexApi
                 request.put("limit", Math.max(limit, 100));
             }
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(paramsMarketType, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         List<Object> response = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(marketType, "spot"))
@@ -2878,7 +2878,7 @@ public class Poloniex extends PoloniexApi
         String clientOrderId = this.safeString(parameters, "clientOrderId");
         Object idValue = (((!java.util.Objects.equals(clientOrderId, null)))) ? clientOrderId : id;
         request.put("id", idValue);
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "trigger", "stop")));
         Map<String, Object> response = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(isTrigger, true))
@@ -3035,7 +3035,7 @@ public class Poloniex extends PoloniexApi
             response = (List<Object>) this.safeList(raw, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(response, market, null, null, new HashMap<String, Object>() {{}});
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(paramsMarketType, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         if (java.util.Objects.equals(isTrigger, true))
         {
@@ -3103,7 +3103,7 @@ public class Poloniex extends PoloniexApi
         {
             throw new NotSupported((((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(paramsMarketType, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(paramsMarketType, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         Object response = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(isTrigger, true))
@@ -3661,17 +3661,15 @@ public class Poloniex extends PoloniexApi
             throw new BadSymbol((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
         Map<String, Object> currency = this.currency(code);
-        String networkCode = null;
-        Map<String, Object> query = null;
-        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
-        networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
-        query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-        if (java.util.Objects.equals(networkCode, null))
+        List<Object> networkCodeRawqueryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
+        String networkCodeRaw = (String) ((List<Object>) networkCodeRawqueryVariable).get(0);
+        Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodeRawqueryVariable).get(1);
+        if (java.util.Objects.equals(networkCodeRaw, null))
         {
             throw new ArgumentsRequired((((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
         }
         String exchangeNetworkId = null;
-        networkCode = this.networkIdToCode(networkCode, code);
+        String networkCode = this.networkIdToCode(networkCodeRaw, code);
         Map<String, Object> networkEntry = (Map<String, Object>) ((((java.util.Objects.equals(networkCode, null)))) ? null : this.safeDict(currency.get("networks"), networkCode, null));
         if (!java.util.Objects.equals(networkEntry, null))
         {

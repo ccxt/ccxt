@@ -1990,7 +1990,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         if (!java.util.Objects.equals(id, null))
         {
             Map<String, Object> subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             if (Boolean.TRUE.equals(unsubscribe))
             {
                 this.handleUnSubscription(client, subscription);

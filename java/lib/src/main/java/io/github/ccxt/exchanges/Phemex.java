@@ -3079,7 +3079,7 @@ public class Phemex extends PhemexApi
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         String triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
+        Boolean reduceOnly = this.safeBool(order, "reduceOnly", null);
         String execInst = this.safeString(order, "execInst");
         if (java.util.Objects.equals(execInst, "ReduceOnly"))
         {
@@ -3137,7 +3137,7 @@ public class Phemex extends PhemexApi
 
     public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
     {
-        Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
+        Boolean isSwap = this.safeBool(market, "swap", false);
         Boolean hasPnl = (order.containsKey("closedPnl")) || (order.containsKey("closedPnlRv")) || (order.containsKey("totalPnlRv"));
         if (Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(hasPnl))
         {
@@ -3270,7 +3270,7 @@ public class Phemex extends PhemexApi
             }
         } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
-            Boolean hedged = (Boolean) this.safeBool(orderParams, "hedged", false);
+            Boolean hedged = this.safeBool(orderParams, "hedged", false);
             orderParams = this.omit(orderParams, "hedged");
             String posSide = this.safeStringLower(orderParams, "posSide");
             // a hedged reduceOnly order without posSide closes the opposite side
@@ -3709,7 +3709,7 @@ public class Phemex extends PhemexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
@@ -4945,7 +4945,7 @@ public class Phemex extends PhemexApi
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         String apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
         String marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
-        Boolean isCross = (Boolean) this.safeBool(position, "crossMargin", false);
+        Boolean isCross = this.safeBool(position, "crossMargin", false);
         Long timestamp = this.safeInteger(position, "openedTimeNs");
         Long lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
@@ -5285,7 +5285,7 @@ public class Phemex extends PhemexApi
         //     }
         //
         Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
-        Boolean inverse = (Boolean) this.safeBool(marketResolved, "inverse", false);
+        Boolean inverse = this.safeBool(marketResolved, "inverse", false);
         String codeCurrency = ((Boolean.TRUE.equals(inverse))) ? "base" : "quote";
         return new HashMap<String, Object>() {{
             put( "info", data );
@@ -5585,7 +5585,7 @@ public class Phemex extends PhemexApi
             this.checkRequiredCredentials(true);
             Long timestamp = this.seconds();
             Long xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
-            Object expiry = this.sum(timestamp, xPhemexRequestExpiry);
+            Long expiry = this.sum(timestamp, xPhemexRequestExpiry);
             String expiryString = String.valueOf(expiry);
             privateHeaders.put("x-phemex-access-token", this.apiKey);
             privateHeaders.put("x-phemex-request-expiry", expiryString);
@@ -5668,7 +5668,7 @@ public class Phemex extends PhemexApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        Boolean isHedged = this.safeBool(parameters, "hedged", false);
         Long longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
         Long shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
         Map<String, Object> market = this.market(symbol);
@@ -5781,7 +5781,7 @@ public class Phemex extends PhemexApi
             transfer = this.parseTransfer(response, null);
         }
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             if (java.util.Objects.equals(this.safeString(transfer, "fromAccount"), null))

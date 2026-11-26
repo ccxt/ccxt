@@ -1036,7 +1036,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
         } else
         {
-            Boolean isCancel = (Boolean) this.safeBool(message, "is_cancel", false);
+            Boolean isCancel = this.safeBool(message, "is_cancel", false);
             if (Boolean.TRUE.equals(isCancel))
             {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
@@ -1248,7 +1248,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "reduce_only": false
         //    }
         //
-        Boolean isCancelled = (Boolean) this.safeBool(order, "is_cancel", null);
+        Boolean isCancelled = this.safeBool(order, "is_cancel", null);
         Map<String, Object> unparsedOrder = order;
         String status = null;
         if (!java.util.Objects.equals(isCancelled, null))
@@ -1907,7 +1907,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(trade, "time");
         String marketId = this.safeString(trade, "instrument");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean isBuy = (Boolean) this.safeBool(trade, "buy", false);
+        Boolean isBuy = this.safeBool(trade, "buy", false);
         String feeCurrencyId = this.safeString(trade, "fee_currency");
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );

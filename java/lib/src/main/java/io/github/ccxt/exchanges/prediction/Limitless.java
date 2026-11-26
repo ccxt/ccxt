@@ -573,7 +573,7 @@ public class Limitless extends LimitlessApi
         Map<String, Object> tokens = this.safeDict(raw, "tokens", new HashMap<String, Object>() {{}});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
-        Boolean isExpired = (Boolean) this.safeBool(raw, "expired", false);
+        Boolean isExpired = this.safeBool(raw, "expired", false);
         String marketStatus = this.safeString(raw, "status");
         Boolean active = (!Boolean.TRUE.equals(isExpired)) && (java.util.Objects.equals(marketStatus, "FUNDED"));
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist

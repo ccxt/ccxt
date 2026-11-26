@@ -597,7 +597,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     private Object watchSpotPublicCore(String channel, String messageHash, Map<String, Object> parameters)
     {
 
-        Boolean unsubscribed = (Boolean) this.safeBool(parameters, "unsubscribed", false);
+        Boolean unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("unsubscribed")));
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
         String method = "SUBSCRIPTION";
@@ -2401,7 +2401,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         String spotUrl = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
         Client client = this.client(spotUrl);
         String messageHash = "authenticate:listenKey";
-        Boolean isFetching = (Boolean) this.safeBool(this.options, "listenKeyFetching", false);
+        Boolean isFetching = this.safeBool(this.options, "listenKeyFetching", false);
         if (Boolean.TRUE.equals(isFetching))
         {
             client.future(messageHash).getFuture().join();

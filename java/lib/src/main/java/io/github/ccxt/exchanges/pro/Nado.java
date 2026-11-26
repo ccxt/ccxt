@@ -1257,7 +1257,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         if (java.util.Objects.equals(trigger, true))
         {
             throw new NotSupported((this.id + " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")) ;
@@ -1323,7 +1323,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             market = this.market(symbol);
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         if (java.util.Objects.equals(trigger, true))
         {
             throw new NotSupported((this.id + " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")) ;
@@ -1687,7 +1687,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.parseWsTimestamp(trade, "timestamp");
-        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", null);
+        Boolean isTakerBuyer = this.safeBool(trade, "is_taker_buyer", null);
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
@@ -1734,13 +1734,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.parseWsTimestamp(trade, "timestamp");
-        Boolean isBid = (Boolean) this.safeBool(trade, "is_bid", null);
+        Boolean isBid = this.safeBool(trade, "is_bid", null);
         String side = null;
         if (!java.util.Objects.equals(isBid, null))
         {
             side = ((Boolean.TRUE.equals(isBid))) ? "buy" : "sell";
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", null);
+        Boolean isTaker = this.safeBool(trade, "is_taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {

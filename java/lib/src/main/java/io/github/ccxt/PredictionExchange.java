@@ -263,7 +263,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
             Map<String, Object> eventVar = this.safeDict(events, i, null);
-            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", null);
+            Boolean isActive = this.safeBool(eventVar, "active", null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
             {
@@ -903,7 +903,7 @@ public Map<String, Object> describe()
         if (!java.util.Objects.equals(outcomes, null))
         {
             Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
-            Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+            Boolean loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
             {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
@@ -1007,7 +1007,7 @@ public Map<String, Object> describe()
                     return this.safeOutcome(outcomeSymbol, null);
                 }
             }
-            Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+            Boolean loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm))
             {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
@@ -1709,7 +1709,7 @@ public Map<String, Object> describe()
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
         // the venue flag and the derived one are each written once, so neither local widens
-        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", null);
+        Boolean postOnlyValue = this.safeBool(outcomeOrder, "postOnly", null);
         Boolean derivedPostOnly = null;
         if (java.util.Objects.equals(timeInForce, null))
         {

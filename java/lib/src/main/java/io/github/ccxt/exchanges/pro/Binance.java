@@ -41,7 +41,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return this.deepExtend(super.describe(), this.describeData());
     }
 
-    public Object describeData()
+    public Map<String, Object> describeData()
     {
         return new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -1488,7 +1488,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
-        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSubMessage))
         {
             this.handleUnSubscription(client, subscription);
@@ -1932,7 +1932,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isMaker = this.safeBool(trade, "m", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
@@ -2385,7 +2385,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> market = this.safeMarket(marketId, null, null, marketType);
         String symbol = this.safeString(market, "symbol", "");
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
-        Boolean inverse = (Boolean) this.safeBool(market, "inverse", null);
+        Boolean inverse = this.safeBool(market, "inverse", null);
         String volumeKey = (((java.util.Objects.equals(inverse, true)))) ? "q" : "v";
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, volumeKey)));
         String messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
@@ -3704,7 +3704,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 // Step 1: Create listenToken via REST API
                 String symbol = this.safeString(parameters, "symbol");
-                Boolean isIsolated = (Boolean) this.safeBool(parameters, "isIsolated", false);
+                Boolean isIsolated = this.safeBool(parameters, "isIsolated", false);
                 Long validity = this.safeInteger(parameters, "validity");
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
                 if (Boolean.TRUE.equals(isIsolated))
@@ -3788,7 +3788,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String type = this.safeString(parameters, "type", "margin");
         Map<String, Object> options = this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
         String symbol = this.safeString(options, "symbol");
-        Boolean isIsolated = (Boolean) this.safeBool(options, "isIsolated", false);
+        Boolean isIsolated = this.safeBool(options, "isIsolated", false);
         Long validity = this.safeInteger(options, "validity");
         Map<String, Object> renewParams = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbol, null))
@@ -4109,7 +4109,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             return;
         }
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
@@ -4482,7 +4482,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 urlType = "papi";
             } else if (java.util.Objects.equals(type, "option"))
             {
-                Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
+                Boolean demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported((this.id + " watchBalance() does not support option markets in demo/testnet mode")) ;
@@ -4496,8 +4496,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, null, isPortfolioMargin);
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
         {
             client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
@@ -4748,7 +4748,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Long requestId = this.requestId(url);
         String messageHash = String.valueOf(requestId);
-        Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
+        Boolean sor = this.safeBool2(parameters, "sor", "SOR", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "sor", "SOR");
         Boolean isConditional = this.isConditionalOrder(paramsOmitted);
         if (Boolean.TRUE.equals((this.safeBool(market, "inverse", false))) && Boolean.TRUE.equals(isConditional))
@@ -4763,7 +4763,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
         Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
         payload.put("returnRateLimits", returnRateLimits);
-        Boolean test = (Boolean) this.safeBool(paramsReturnRateLimits, "test", false);
+        Boolean test = this.safeBool(paramsReturnRateLimits, "test", false);
         Map<String, Object> paramsOmitted2 = this.omit(paramsReturnRateLimits, "test");
         if (Boolean.TRUE.equals(isAlgoOrder))
         {
@@ -5129,7 +5129,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> payload = new HashMap<String, Object>();
         payload.put("symbol", this.marketId(symbol));
         payload.put("returnRateLimits", returnRateLimits);
-        Boolean isConditional = (Boolean) this.safeBoolN(paramsReturnRateLimits, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), null);
+        Boolean isConditional = this.safeBoolN(paramsReturnRateLimits, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")), null);
         String clientOrderId = this.safeStringN(paramsReturnRateLimits, new ArrayList<Object>(Arrays.asList("clientAlgoId", "origClientOrderId", "clientOrderId")));
         Boolean shouldUseAlgoOrder = (java.util.Objects.equals(market.get("linear"), true)) && ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true))) && (java.util.Objects.equals(isConditional, true));
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -5573,7 +5573,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 urlType = "papi";
             } else if (java.util.Objects.equals(type, "option"))
             {
-                Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
+                Boolean demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported((this.id + " watchOrders() does not support option markets in demo/testnet mode")) ;
@@ -6272,7 +6272,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             urlType = "papi";
         } else if (java.util.Objects.equals(type, "option"))
         {
-            Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
+            Boolean demoMode = this.safeBool(this.options, "enableDemoTrading", false);
             if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
             {
                 throw new NotSupported((this.id + " watchPositions() does not support option markets in demo/testnet mode")) ;
@@ -6831,7 +6831,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 urlType = "papi";
             } else if (java.util.Objects.equals(type, "option"))
             {
-                Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
+                Boolean demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (Boolean.TRUE.equals(demoMode) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported((this.id + " watchMyTrades() does not support option markets in demo/testnet mode")) ;

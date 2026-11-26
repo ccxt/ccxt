@@ -1075,7 +1075,7 @@ public class Kalshi extends KalshiApi
         //
         //     { "exchange_active": true, "trading_active": true }
         //
-        Boolean tradingActive = (Boolean) this.safeBool(response, "trading_active", false);
+        Boolean tradingActive = this.safeBool(response, "trading_active", false);
         return new HashMap<String, Object>() {{
             put( "status", ((Boolean.TRUE.equals(tradingActive))) ? "ok" : "maintenance" );
             put( "updated", null );
@@ -1876,7 +1876,7 @@ public class Kalshi extends KalshiApi
         {
             cost = ((price == null || amount == null) ? null : (((double) price) * ((double) amount)));
         }
-        Boolean isTaker = (Boolean) this.safeBool(fill, "is_taker", true);
+        Boolean isTaker = this.safeBool(fill, "is_taker", true);
         String takerOrMaker = "maker";
         if (Boolean.TRUE.equals(isTaker))
         {

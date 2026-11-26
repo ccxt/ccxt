@@ -680,7 +680,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = this.safeBool(trade, "maker", null);
         if (!java.util.Objects.equals(maker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";
@@ -723,7 +723,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         String messageHash = "authenticated";
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             // client.resolve (message, messageHash);
@@ -844,7 +844,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         String topic = "executionreport";
         if (Boolean.TRUE.equals(trigger))
         {
@@ -901,7 +901,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", false);
         String topic = "executionreport";
         if (Boolean.TRUE.equals(trigger))
         {
@@ -1552,7 +1552,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success", false);
+        Boolean success = this.safeBool(message, "success", false);
         if (Boolean.TRUE.equals(success))
         {
             return false;

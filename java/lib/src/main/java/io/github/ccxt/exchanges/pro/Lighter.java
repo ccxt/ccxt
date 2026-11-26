@@ -689,7 +689,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String tradeId = this.safeString(trade, "trade_id");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", false);
+        Boolean isMakerAsk = this.safeBool(trade, "is_maker_ask", false);
         String side = "sell";
         if (Boolean.TRUE.equals(isMakerAsk))
         {
@@ -879,7 +879,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         String costString = this.safeString(trade, "usd_amount");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", false);
+        Boolean isMakerAsk = this.safeBool(trade, "is_maker_ask", false);
         Long accountIndex = this.safeInteger(trade, "accountIndex");
         Long bidAccountId = this.safeInteger(trade, "bid_account_id");
         Long askAccountId = this.safeInteger(trade, "ask_account_id");
@@ -1132,7 +1132,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Long timestamp = this.safeInteger(liquidation, "timestamp");
-        Boolean isMakerAsk = (Boolean) this.safeBool(liquidation, "is_maker_ask", false);
+        Boolean isMakerAsk = this.safeBool(liquidation, "is_maker_ask", false);
         String side = "sell";
         if (Boolean.TRUE.equals(isMakerAsk))
         {

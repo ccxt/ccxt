@@ -796,7 +796,7 @@ public class Deepcoin extends DeepcoinApi
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
-            Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
+            Boolean isSwap = this.safeBool(market, "swap", false);
             if (Boolean.TRUE.equals(isSwap))
             {
                 String additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
@@ -919,7 +919,7 @@ public class Deepcoin extends DeepcoinApi
         {
             request.put("after", until);
         }
-        Boolean calculateUntil = (Boolean) this.safeBool(paramsPaginate, "calculateUntil", false);
+        Boolean calculateUntil = this.safeBool(paramsPaginate, "calculateUntil", false);
         List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList("price", "until"));
         if (Boolean.TRUE.equals(calculateUntil))
         {
@@ -1833,7 +1833,7 @@ public class Deepcoin extends DeepcoinApi
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> transfer = this.parseTransfer(data, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             transfer.put("fromAccount", fromAccount);
@@ -2088,7 +2088,7 @@ public class Deepcoin extends DeepcoinApi
             paramsRequest = paramsMrgPosition;
             request.put("mrgPosition", mrgPosition);
             String posSide = null;
-            Boolean reduceOnly = (Boolean) this.safeBool(paramsMrgPosition, "reduceOnly", false);
+            Boolean reduceOnly = this.safeBool(paramsMrgPosition, "reduceOnly", false);
             if (Boolean.TRUE.equals(reduceOnly))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -2173,7 +2173,7 @@ public class Deepcoin extends DeepcoinApi
         {
             isCrossMargin = 0;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(paramsMarginMode, "reduceOnly", false);
         Map<String, Object> paramsOmitted = this.omit(paramsMarginMode, "reduceOnly");
         request.put("isCrossMargin", isCrossMargin);
         request.put("tdMode", marginModeOption);
@@ -2461,7 +2461,7 @@ public class Deepcoin extends DeepcoinApi
         {
             return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, paramsPaginate, null, true)).join();
         }
-        Boolean trigger = (Boolean) this.safeBool(paramsPaginate, "trigger", false);
+        Boolean trigger = this.safeBool(paramsPaginate, "trigger", false);
         String methodName = this.safeString(paramsPaginate, "methodName", "fetchCanceledAndClosedOrders");
         Map<String, Object> paramsMethodName = this.omit(paramsPaginate, "methodName");
         Map<String, Object> market = null;
@@ -2677,7 +2677,7 @@ public class Deepcoin extends DeepcoinApi
         {
             request.put("limit", limit);
         }
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Boolean trigger = this.safeBool(parameters, "trigger", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "trigger");
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(trigger))
@@ -2806,7 +2806,7 @@ public class Deepcoin extends DeepcoinApi
             put( "ordId", id );
         }};
         Map<String, Object> response = null;
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Boolean trigger = this.safeBool(parameters, "trigger", false);
         if (Boolean.TRUE.equals(trigger))
         {
             Map<String, Object> paramsOmitted = this.omit(parameters, "trigger");
@@ -2913,7 +2913,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new NotSupported((this.id + " editOrder() is not supported for spot markets")) ;
             }
-            symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", null);
         Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", null);

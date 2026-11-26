@@ -891,7 +891,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //     }
         //
         Integer volumeIndex = 5;
-        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
+        Boolean isInverse = this.safeBool(market, "inverse", false);
         if (Boolean.TRUE.equals(isInverse))
         {
             volumeIndex = 6;
@@ -3123,7 +3123,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     {
 
         Object url = (((java.util.Objects.equals(uta, true)))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Boolean sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Boolean.TRUE.equals(sandboxMode))
         {
             String instType = this.safeString(args, "instType");
@@ -3156,7 +3156,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     {
 
         Object url = (((java.util.Objects.equals(uta, true)))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Boolean sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Boolean.TRUE.equals(sandboxMode))
         {
             String instType = this.safeString(args, "instType");
@@ -3190,7 +3190,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         Boolean isUta = (java.util.Objects.equals(uta, true));
         Object url = ((Boolean.TRUE.equals(isUta))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPrivate") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Boolean sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Boolean.TRUE.equals(sandboxMode))
         {
             String instType = this.safeString(args, "instType");
@@ -3226,7 +3226,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     {
 
         Object url = (((java.util.Objects.equals(uta, true)))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Boolean sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Boolean.TRUE.equals(sandboxMode))
         {
             Map<String, Object> argsArrayFirst = this.safeDict(argsArray, 0, new HashMap<String, Object>() {{}});
@@ -3289,7 +3289,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     {
 
         Object url = (((java.util.Objects.equals(uta, true)))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPrivate") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Boolean sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Boolean.TRUE.equals(sandboxMode))
         {
             String instType = this.safeString(args, "instType");

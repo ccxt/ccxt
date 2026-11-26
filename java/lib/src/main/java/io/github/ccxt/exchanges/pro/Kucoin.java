@@ -251,7 +251,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String action = "subscribe";
         if (!java.util.Objects.equals(subscription, null))
         {
-            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((Boolean.TRUE.equals(unsubscribe))) ? "unsubscribe" : action;
         }
         Map<String, Object> request = new HashMap<String, Object>();
@@ -284,7 +284,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String action = "subscribe";
         if (!java.util.Objects.equals(subscription, null))
         {
-            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((Boolean.TRUE.equals(unsubscribe))) ? "unsubscribe" : action;
         }
         Map<String, Object> request = new HashMap<String, Object>();
@@ -668,7 +668,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
         String requestId = String.valueOf(this.requestId());
         Map<String, Object> market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
-        Boolean isContract = (Boolean) this.safeBool(market, "contract", false);
+        Boolean isContract = this.safeBool(market, "contract", false);
         String urlType = "spot";
         if (Boolean.TRUE.equals(isContract))
         {
@@ -678,7 +678,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String action = "subscribe";
         if (!java.util.Objects.equals(subscription, null))
         {
-            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((Boolean.TRUE.equals(unsubscribe))) ? "unsubscribe" : action;
         }
         Map<String, Object> request = new HashMap<String, Object>();
@@ -971,7 +971,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-        Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
+        Boolean isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         String channelName = "/spotMarket/level1:";
         if (Boolean.TRUE.equals(isFuturesMethod))
         {
@@ -1438,7 +1438,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-        Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
+        Boolean isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         List<String> marketIds = this.marketIds(symbolsNormalized);
         String url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1493,7 +1493,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         List<String> marketIds = this.marketIds(symbolsNormalized);
         Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-        Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
+        Boolean isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         String url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
         List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
@@ -1864,7 +1864,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
         List<String> marketIds = this.marketIds(symbolsNormalized);
         Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-        Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
+        Boolean isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         String url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
         String defaultMethod = "/market/level2";
         if (Boolean.TRUE.equals(isFuturesMethod))
@@ -1949,7 +1949,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, true, false);
         List<String> marketIds = this.marketIds(symbolsNormalized);
         Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-        Boolean isFuturesMethod = (Boolean) this.safeBool(firstMarket, "contract", false);
+        Boolean isFuturesMethod = this.safeBool(firstMarket, "contract", false);
         String url = (this.negotiate(false, isFuturesMethod, new HashMap<String, Object>() {{}})).join();
         String defaultMethod = "/market/level2";
         if (Boolean.TRUE.equals(isFuturesMethod))
@@ -2313,7 +2313,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             this.handleOrderBookSubscription(client, message, subscription);
         }
-        Boolean isUnSub = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSub = this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSub))
         {
             List<Object> messageHashes = this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
@@ -2438,7 +2438,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             orders = (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), messageHash, channel, symbolResolved, paramsExtended, null)).join();
         } else
         {
-            Boolean trigger = (Boolean) this.safeBool2(paramsUta, "stop", "trigger", null);
+            Boolean trigger = this.safeBool2(paramsUta, "stop", "trigger", null);
             Map<String, Object> paramsOmitted = this.omit(paramsUta, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
@@ -2578,7 +2578,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
         String triggerPrice = this.safeString(order, "stopPrice");
-        Boolean triggerSuccess = (Boolean) this.safeBool(order, "triggerSuccess", null);
+        Boolean triggerSuccess = this.safeBool(order, "triggerSuccess", null);
         Boolean triggerFail = (!java.util.Objects.equals(triggerSuccess, true)) && (!java.util.Objects.equals(triggerSuccess, null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if ((java.util.Objects.equals(status, "triggered")) && Boolean.TRUE.equals(triggerFail))
         {
@@ -3178,8 +3178,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Client client = this.client(url);
         this.setBalanceCache(client, uniformType);
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
         {
             client.future((uniformType + ":fetchBalanceSnapshot")).getFuture().join();
@@ -3217,7 +3217,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             return;
         }
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
@@ -4308,7 +4308,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.handleSubject(client, message);
         } else if (message.containsKey("result"))
         {
-            Boolean result = (Boolean) this.safeBool(message, "result", true);
+            Boolean result = this.safeBool(message, "result", true);
             if (!Boolean.TRUE.equals(result))
             {
                 this.handleErrorMessage(client, message);

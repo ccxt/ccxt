@@ -640,7 +640,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 client.subscriptions.remove(requestedHash);
             }
         }
-        Boolean prefix = (Boolean) this.safeBool(subscription, "prefix", false);
+        Boolean prefix = this.safeBool(subscription, "prefix", false);
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < subMessageHashes.size(); j++)
         {
@@ -934,7 +934,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
-        Boolean isSbe = (Boolean) this.safeBool(message, "sbe", false);
+        Boolean isSbe = this.safeBool(message, "sbe", false);
         if (Boolean.TRUE.equals(isSbe) && (!java.util.Objects.equals(messageHash, "trades.ALL")))
         {
             client.resolve(stored, "trades.ALL");
@@ -3296,15 +3296,16 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     public void handleMessage(Client client, Map<String, Object> message)
     {
+        // error replies are JSON text frames only, the binary frames never carry one
+        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
+        {
+            return;
+        }
         this.handleStreamMessage(client, message);
     }
 
     public void handleStreamMessage(Client client, Map<String, Object> message)
     {
-        if (!java.util.Objects.equals(this.handleErrorMessage(client, message), true))
-        {
-            return;
-        }
         //
         // auth response
         //

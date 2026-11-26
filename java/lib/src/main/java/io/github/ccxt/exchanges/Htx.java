@@ -2978,7 +2978,7 @@ public class Htx extends HtxApi
             }
             String marketBase = this.safeString(market, "base", "");
             String marketQuote = this.safeString(market, "quote", "");
-            Boolean marketLinear = (Boolean) this.safeBool(market, "linear", false);
+            Boolean marketLinear = this.safeBool(market, "linear", false);
             String marketSymbol = this.safeString(market, "symbol", "");
             // see comment on formats a bit above
             String constructedId = ((marketBase + "_") + contractSuffix);
@@ -5012,11 +5012,11 @@ public class Htx extends HtxApi
             }
         } else
         {
-            Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-            Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", false);
-            Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", false);
-            Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
+            Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+            Boolean stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
+            Boolean takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
+            Boolean trailing = this.safeBool(paramsMarketType, "trailing", false);
             Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
             Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
@@ -5341,11 +5341,11 @@ public class Htx extends HtxApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> paramsUntil = null;
         Map<String, Object> response = null;
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit", false);
-        Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", false);
-        Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", false);
-        Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit", false);
+        Boolean stopLoss = this.safeBool(parameters, "stopLoss", false);
+        Boolean takeProfit = this.safeBool(parameters, "takeProfit", false);
+        Boolean trailing = this.safeBool(parameters, "trailing", false);
         Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
         if (!java.util.Objects.equals(since, null))
@@ -5457,11 +5457,11 @@ public class Htx extends HtxApi
         Map<String, Object> market = this.market(symbol);
         if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit", false);
-            Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", false);
-            Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", false);
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit", false);
+            Boolean stopLoss = this.safeBool(parameters, "stopLoss", false);
+            Boolean takeProfit = this.safeBool(parameters, "takeProfit", false);
+            Boolean trailing = this.safeBool(parameters, "trailing", false);
             Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
             if (Boolean.TRUE.equals(isAlgo))
             {
@@ -5592,11 +5592,11 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", null);
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-                Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", false);
-                Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", false);
-                Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
+                Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+                Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+                Boolean stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
+                Boolean takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
+                Boolean trailing = this.safeBool(paramsMarketType, "trailing", false);
                 Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
                 if (Boolean.TRUE.equals(isAlgo))
                 {
@@ -5762,11 +5762,11 @@ public class Htx extends HtxApi
                     request.put("page_size", limit);
                 }
             }
-            Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
-            Boolean stopLoss = (Boolean) this.safeBool(paramsSubType, "stopLoss", false);
-            Boolean takeProfit = (Boolean) this.safeBool(paramsSubType, "takeProfit", false);
-            Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+            Boolean trigger = this.safeBool2(paramsSubType, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+            Boolean stopLoss = this.safeBool(paramsSubType, "stopLoss", false);
+            Boolean takeProfit = this.safeBool(paramsSubType, "takeProfit", false);
+            Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
             Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (Boolean.TRUE.equals(isLinear))
             {
@@ -6742,8 +6742,8 @@ public class Htx extends HtxApi
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Map<String, Object> query = paramsSubType;
         Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
-        Boolean reduceOnly = (Boolean) this.safeBool2(query, "reduceOnly", "reduce_only", false);
-        Boolean hedged = (Boolean) this.safeBool(query, "hedged", false);
+        Boolean reduceOnly = this.safeBool2(query, "reduceOnly", "reduce_only", false);
+        Boolean hedged = this.safeBool(query, "hedged", false);
         String timeInForce = this.safeStringLower2(query, "timeInForce", "time_in_force", "gtc");
         if (Boolean.TRUE.equals(isLinear))
         {
@@ -7409,9 +7409,9 @@ public class Htx extends HtxApi
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
         Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBoolN(paramsSubType, new ArrayList<Object>(Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")), null);
-        Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsSubType, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBoolN(paramsSubType, new ArrayList<Object>(Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")), null);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
         Map<String, Object> query = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
         Map<String, Object> response = null;
         if (java.util.Objects.equals(marketType, "spot"))
@@ -7617,8 +7617,8 @@ public class Htx extends HtxApi
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+        Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
         Map<String, Object> query = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
         Map<String, Object> response = null;
         if (java.util.Objects.equals(marketType, "spot"))
@@ -7951,9 +7951,9 @@ public class Htx extends HtxApi
                 request.put("symbol", this.safeString(market, "settleId"));
             }
             request.put("contract_code", this.safeString(market, "id"));
-            Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", null);
-            Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
-            Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
+            Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
+            Boolean stopLossTakeProfit = this.safeBool(paramsMarketType, "stopLossTakeProfit", false);
+            Boolean trailing = this.safeBool(paramsMarketType, "trailing", false);
             Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
@@ -8527,7 +8527,7 @@ public class Htx extends HtxApi
         }
         Double amountValue = this.parseNumber(amountPrecision);
         Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-        Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
+        Boolean includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         Map<String, Object> paramsFee = paramsNetwork;
         if (Boolean.TRUE.equals(includeFee))
         {

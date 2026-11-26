@@ -797,7 +797,7 @@ public class Coinsph extends CoinsphApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id, null);
-        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", false);
+        Boolean isFiat = this.safeBool(rawCurrency, "isLegalMoney", false);
         List<Object> networkList = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < networkList.size(); j++)
@@ -1590,7 +1590,7 @@ public class Coinsph extends CoinsphApi
                 fee = hx4NewMap0;
             }
         }
-        Boolean isBuyer = (Boolean) this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
+        Boolean isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker", null);
         String side = null;
         if (!java.util.Objects.equals(isBuyer, null))
         {
@@ -1723,7 +1723,7 @@ public class Coinsph extends CoinsphApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean testOrder = this.safeBool(parameters, "test", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "test");
         String orderType = this.safeString(paramsOmitted, "type", type);
         orderType = this.encodeOrderType(orderType);
@@ -2357,7 +2357,7 @@ public class Coinsph extends CoinsphApi
         String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
         Map<String, Object> options = this.safeDict(this.options, "withdraw", null);
-        Boolean warning = (Boolean) this.safeBool(options, "warning", true);
+        Boolean warning = this.safeBool(options, "warning", true);
         if (Boolean.TRUE.equals(warning))
         {
             throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;

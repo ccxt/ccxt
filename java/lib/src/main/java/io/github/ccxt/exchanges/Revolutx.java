@@ -1588,7 +1588,7 @@ public class Revolutx extends RevolutxApi
         {
             request.put("order_states", String.join(",", orderStates));
         }
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Boolean trigger = this.safeBool(parameters, "trigger", false);
         Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", null);
         if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
         {
@@ -1687,7 +1687,7 @@ public class Revolutx extends RevolutxApi
         {
             request.put("order_states", String.join(",", orderStates));
         }
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
+        Boolean trigger = this.safeBool(parameters, "trigger", false);
         Object orderTypes = this.safeList2(parameters, "orderTypes", "order_types", null);
         if ((java.util.Objects.equals(orderTypes, null)) && Boolean.TRUE.equals(trigger))
         {
@@ -1755,7 +1755,7 @@ public class Revolutx extends RevolutxApi
         Double amount = this.parseNumber(amountString);
         String side = this.safeStringLower(trade, "s");
         Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "im", false);
+        Boolean isMaker = this.safeBool(trade, "im", false);
         String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         Double cost = null;
         if (!java.util.Objects.equals(priceString, null) && !java.util.Objects.equals(amountString, null))

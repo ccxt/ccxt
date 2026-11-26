@@ -1053,7 +1053,7 @@ public class Coinmate extends CoinmateApi
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(data, currency);
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             transaction.put("amount", amount);

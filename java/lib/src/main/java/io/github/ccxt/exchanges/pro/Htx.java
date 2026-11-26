@@ -1273,7 +1273,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             subType = this.safeString2(this.options, "subType", "defaultSubType", "linear");
             subType = this.safeString(parameters, "subType", subType);
         }
-        Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+        String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
         Map<String, Object> paramsRequest = (((!java.util.Objects.equals(symbol, null)))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType")));
         Boolean linear = (java.util.Objects.equals(subType, "linear"));
         Boolean swap = (java.util.Objects.equals(type, "swap"));
@@ -1846,7 +1846,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
+        Boolean aggressor = this.safeBool(trade, "aggressor", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
@@ -2142,7 +2142,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", null, paramsMarketType, "linear");
         var subType = subTypeparamsSubTypeVariable.first();
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean isUnifiedAccount = (Boolean) this.safeBool2(paramsSubType, "isUnifiedAccount", "unified", false);
+        Boolean isUnifiedAccount = this.safeBool2(paramsSubType, "isUnifiedAccount", "unified", false);
         Map<String, Object> paramsOmitted = this.omit(paramsSubType, new ArrayList<Object>(Arrays.asList("isUnifiedAccount", "unified")));
         Map<String, Object> paramsRequest = (((!java.util.Objects.equals(type, "spot")))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin"))) : paramsOmitted;
         if (java.util.Objects.equals(this.markets, null))
@@ -3281,7 +3281,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String order = this.safeString2(trade, "orderId", "order_id");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("tradeTime", "updated_time", "created_time")));
         String orderType = this.safeString2(trade, "orderType", "type");
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
+        Boolean aggressor = this.safeBool(trade, "aggressor", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
@@ -3476,7 +3476,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }};
         }
         Boolean isLinear = java.util.Objects.equals(subtype, "linear");
-        Boolean isV5 = (Boolean) this.safeBool(subscriptionParams, "isV5", false);
+        Boolean isV5 = this.safeBool(subscriptionParams, "isV5", false);
         String url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         Map<String, Object> hostnames = this.safeDict(this.urls, "hostnames", new HashMap<String, Object>() {{}});
         String hostname = null;

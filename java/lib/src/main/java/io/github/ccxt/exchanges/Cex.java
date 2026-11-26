@@ -455,7 +455,7 @@ public class Cex extends CexApi
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, null);
-        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "fiat", false);
+        Boolean isFiat = this.safeBool(rawCurrency, "fiat", false);
         String type = "crypto";
         if (Boolean.TRUE.equals(isFiat))
         {

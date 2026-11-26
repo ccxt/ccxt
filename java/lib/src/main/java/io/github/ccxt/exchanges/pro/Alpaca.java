@@ -320,7 +320,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         String symbol = this.safeSymbol(marketId, null, null, null);
         String datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
-        Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
+        Boolean isSnapshot = this.safeBool(message, "r", false);
         if (!(this.orderbooks.containsKey(symbol)))
         {
             this.orderbooks.put(symbol, this.orderBook());

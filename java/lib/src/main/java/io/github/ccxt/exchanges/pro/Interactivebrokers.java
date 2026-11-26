@@ -121,7 +121,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
+        Boolean useGateway = this.safeBool(this.options, "useGateway", false);
         String url = null;
         String wsUrl = this.safeString(this.urls.get("api"), "ws", "");
         if (Boolean.TRUE.equals(useGateway))
@@ -183,8 +183,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             this.scheduleCallback(tickleInterval, "ibkrKeepAliveSession", newClient);
         }
         Client client = this.client(url);
-        Boolean awaitAuthenticated = (Boolean) this.safeBool(this.options, "awaitAuthenticated", true);
-        Boolean isAuthenticated = (Boolean) this.safeBool(client.subscriptions, "ibkrAuthenticated", false);
+        Boolean awaitAuthenticated = this.safeBool(this.options, "awaitAuthenticated", true);
+        Boolean isAuthenticated = this.safeBool(client.subscriptions, "ibkrAuthenticated", false);
         // watch () dials the connection, the raw sends (ibkrSubscribe, ibkrUnsubscribe) need it open
         if (Boolean.TRUE.equals(awaitAuthenticated) && !Boolean.TRUE.equals(isAuthenticated))
         {
@@ -608,7 +608,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("+"))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         // the updates are deltas (only the changed fields are sent), they are merged into the previous raw ticker,
         // the bidsasks cache is the fallback in case the tickers cache was cleaned by unWatchTickers
         Map<String, Object> previous = this.safeDict(this.tickers, symbol, null);
@@ -1189,7 +1189,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         Integer bidsLength = bids.size();
         Integer asksLength = asks.size();
         Boolean isEmpty = (java.util.Objects.equals(bidsLength, 0)) && (java.util.Objects.equals(asksLength, 0));
-        Boolean emitted = (Boolean) this.safeBool(subscription, "emitted", false);
+        Boolean emitted = this.safeBool(subscription, "emitted", false);
         if (Boolean.TRUE.equals(isEmpty) && !Boolean.TRUE.equals(emitted))
         {
             client.subscriptions.put(messageHash, subscription);
@@ -1200,7 +1200,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (!Boolean.TRUE.equals(emitted))
         {
             Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
-            Boolean skipFirstItem = (Boolean) this.safeBool(options, "skipFirstItem", true);
+            Boolean skipFirstItem = this.safeBool(options, "skipFirstItem", true);
             Boolean isTopOfBookOnly = ((bidsLength == null || bidsLength <= 1)) && ((asksLength == null || asksLength <= 1));
             if (Boolean.TRUE.equals(skipFirstItem) && Boolean.TRUE.equals(isTopOfBookOnly))
             {
@@ -1259,7 +1259,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> watchOrdersOptions = this.safeDict(this.options, "watchOrders", new HashMap<String, Object>() {{}});
-            Boolean warnIfWithoutSymbol = (Boolean) this.safeBool(watchOrdersOptions, "warnIfWithoutSymbol", true);
+            Boolean warnIfWithoutSymbol = this.safeBool(watchOrdersOptions, "warnIfWithoutSymbol", true);
             if (Boolean.TRUE.equals(warnIfWithoutSymbol))
             {
                 throw new ExchangeError((this.id + " watchOrders() with a symbol argument can miss order updates: the orders from previous sessions are not fetched, and the sor updates of the orders not created on this connection carry only the orderId and the status (no conid), so they can not be matched to a symbol. It is recommended to call watchOrders() without the symbol argument and filter the results by symbol. To proceed with the symbol argument anyway and acknowledge this, set exchange.options[\"watchOrders\"][\"warnIfWithoutSymbol\"] = false")) ;
@@ -1275,7 +1275,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (!(client.subscriptions.containsKey("sor")))
         {
             Map<String, Object> options = this.safeDict(this.options, "watchOrders", new HashMap<String, Object>() {{}});
-            Boolean fetchOrdersSnapshot = (Boolean) this.safeBool(options, "fetchOrdersSnapshot", true);
+            Boolean fetchOrdersSnapshot = this.safeBool(options, "fetchOrdersSnapshot", true);
             if (Boolean.TRUE.equals(fetchOrdersSnapshot))
             {
                 List<Object> snapshot = (this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}})).join();
@@ -1534,7 +1534,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
         Map<String, Object> subscription = this.safeDict(client.subscriptions, "str", new HashMap<String, Object>() {{}});
-        Boolean realtimeUpdatesOnly = (Boolean) this.safeBool(subscription, "realtimeUpdatesOnly", false);
+        Boolean realtimeUpdatesOnly = this.safeBool(subscription, "realtimeUpdatesOnly", false);
         Long threshold = null;
         if (Boolean.TRUE.equals(realtimeUpdatesOnly))
         {
@@ -1547,7 +1547,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         // the same execution can be sent several times, first without the commission, then with it, then again unchanged,
         // an execution identical to the cached one with the same id is not emitted again
         Map<String, Object> options = this.safeDict(this.options, "watchMyTrades", new HashMap<String, Object>() {{}});
-        Boolean skipDuplicates = (Boolean) this.safeBool(options, "skipDuplicates", true);
+        Boolean skipDuplicates = this.safeBool(options, "skipDuplicates", true);
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < args.size(); i++)
         {
@@ -1616,7 +1616,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (!(client.subscriptions.containsKey(subscribeHash)))
         {
             Map<String, Object> options = this.safeDict(this.options, "watchBalance", new HashMap<String, Object>() {{}});
-            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
             if (Boolean.TRUE.equals(fetchBalanceSnapshot))
             {
                 Map<String, Object> snapshotRequest = new HashMap<String, Object>() {{
@@ -1721,7 +1721,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
         //
         Map<String, Object> args = this.safeDict(message, "args", new HashMap<String, Object>() {{}});
-        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", null);
+        Boolean authenticated = this.safeBool(args, "authenticated", null);
         if (java.util.Objects.equals(authenticated, null))
         {
             return;

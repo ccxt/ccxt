@@ -902,8 +902,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        Boolean isSpot = (Boolean) this.safeBool(market, "spot", false);
-        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
+        Boolean isSpot = this.safeBool(market, "spot", false);
+        Boolean isInverse = this.safeBool(market, "inverse", false);
         String timestamp = "T";
         if (Boolean.TRUE.equals(isSpot))
         {
@@ -2324,7 +2324,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         String id = this.safeString(message, "id");
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(isUnSubMessage))
         {
             this.handleUnSubscription(client, subscription);

@@ -1225,7 +1225,7 @@ public class Latoken extends LatokenApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");
         String costString = this.safeString(trade, "cost");
-        Boolean makerBuyer = (Boolean) this.safeBool(trade, "makerBuyer", false);
+        Boolean makerBuyer = this.safeBool(trade, "makerBuyer", false);
         String side = this.safeString(trade, "direction");
         if (java.util.Objects.equals(side, null))
         {
@@ -1682,7 +1682,7 @@ public class Latoken extends LatokenApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> response = null;
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Map<String, Object> market = this.market(symbol);
@@ -1752,7 +1752,7 @@ public class Latoken extends LatokenApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1834,7 +1834,7 @@ public class Latoken extends LatokenApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "id", id );
         }};
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> response = null;
         if (java.util.Objects.equals(isTrigger, true))
@@ -1969,7 +1969,7 @@ public class Latoken extends LatokenApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "id", id );
         }};
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> response = null;
         if (java.util.Objects.equals(isTrigger, true))
@@ -2017,7 +2017,7 @@ public class Latoken extends LatokenApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = null;
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> response = null;
         if (!java.util.Objects.equals(symbol, null))

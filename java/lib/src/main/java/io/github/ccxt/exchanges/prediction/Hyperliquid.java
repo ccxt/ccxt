@@ -1473,8 +1473,8 @@ public class Hyperliquid extends HyperliquidApi
         Boolean isMarket = (java.util.Objects.equals(type.toUpperCase(), "MARKET"));
         Long assetId = this.safeInteger(outcomeInfo, "assetId");
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         String defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         String slippage = this.safeString(parameters, "slippage", defaultSlippage);
         String defaultTif = "Gtc";
@@ -1978,7 +1978,7 @@ public class Hyperliquid extends HyperliquidApi
         String tifRaw = this.safeString(entry, "tif");
         String tif = this.parseTimeInForce(tifRaw);
         Boolean postOnly = (java.util.Objects.equals(tif, "PO"));
-        Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
+        Boolean isTrigger = this.safeBool(entry, "isTrigger", false);
         Double triggerPrice = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", null) : null;
         HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
         mapLiteral12.put("id", this.safeString(entry, "oid"));
@@ -2215,7 +2215,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
-        Boolean crossed = (Boolean) this.safeBool(trade, "crossed", false);
+        Boolean crossed = this.safeBool(trade, "crossed", false);
         String takerOrMaker = "maker";
         if (Boolean.TRUE.equals(crossed))
         {
@@ -2534,7 +2534,7 @@ public class Hyperliquid extends HyperliquidApi
     {
         this.checkRequiredCredentials(true);
         Object hash = this.actionHash(action, vaultAddress, nonce);
-        Boolean isTestnet = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isTestnet = this.safeBool(this.options, "sandboxMode", false);
         Map<String, Object> phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         String zeroAddress = this.safeString(this.options, "zeroAddress");
         Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -2609,7 +2609,7 @@ public class Hyperliquid extends HyperliquidApi
     {
 
         Long nonce = this.incrementingNonce();
-        Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "hyperliquidChain", ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet" );
             put( "maxFeeRate", maxFeeRate );
@@ -2647,7 +2647,7 @@ public class Hyperliquid extends HyperliquidApi
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", false);
+        Boolean buildFee = this.safeBool(this.options, "builderFee", false);
         if (!Boolean.TRUE.equals(buildFee))
         {
             return null;
@@ -2707,7 +2707,7 @@ public class Hyperliquid extends HyperliquidApi
     public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
-        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         String baseUrl = null;
         if (Boolean.TRUE.equals(sandboxMode))
         {

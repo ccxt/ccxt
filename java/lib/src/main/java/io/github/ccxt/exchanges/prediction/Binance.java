@@ -341,7 +341,7 @@ public class Binance extends BinanceApi
             {
                 collected.add((pageTopics == null || i < 0 || i >= pageTopics.size() ? null : pageTopics.get(i)));
             }
-            Boolean hasMore = (Boolean) this.safeBool(response, "hasMore", false);
+            Boolean hasMore = this.safeBool(response, "hasMore", false);
             if ((!Boolean.TRUE.equals(hasMore)) || ((reqLimit != null && (pageTopicsLength == null || pageTopicsLength < reqLimit))))
             {
                 break;
@@ -451,7 +451,7 @@ public class Binance extends BinanceApi
     private Object fetchEventsCore(Map<String, Object> parameters)
     {
 
-        Boolean allowUnscopedFetchEvents = (Boolean) this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        Boolean allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
         if (!Boolean.TRUE.equals(allowUnscopedFetchEvents))
         {
             this.requireEventQuery(parameters);

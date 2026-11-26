@@ -3718,7 +3718,7 @@ public class Bitget extends BitgetApi
         Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
         if (!java.util.Objects.equals(uta, null))
         {
-            Boolean utaFlag = (Boolean) this.safeBool(new ArrayList<Object>(Arrays.asList(uta)), 0, null);
+            Boolean utaFlag = this.safeBool(new ArrayList<Object>(Arrays.asList(uta)), 0, null);
             return new ArrayList<Object>(Arrays.asList((java.util.Objects.equals(utaFlag, true)), paramsUta));
         }
         if (this.checkRequiredCredentials(false))
@@ -3793,7 +3793,7 @@ public class Bitget extends BitgetApi
     private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        Boolean adjustForTimeDifference = (Boolean) this.safeBool(this.options, "adjustForTimeDifference", false);
+        Boolean adjustForTimeDifference = this.safeBool(this.options, "adjustForTimeDifference", false);
         if (Boolean.TRUE.equals(adjustForTimeDifference))
         {
             (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
@@ -3882,7 +3882,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> res = this.safeDict(results, i, null);
             List<Object> data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> firstData = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Boolean isBorrowable = (Boolean) this.safeBool(firstData, "isBorrowable", null);
+            Boolean isBorrowable = this.safeBool(firstData, "isBorrowable", null);
             if (Boolean.TRUE.equals(fetchMargins) && !java.util.Objects.equals(isBorrowable, null))
             {
                 // cross and isolated availability are per-symbol - a coin can be listed by
@@ -3895,14 +3895,14 @@ public class Bitget extends BitgetApi
                 {
                     Map<String, Object> entry = this.safeDict(data, j, new HashMap<String, Object>() {{}});
                     String entrySymbol = this.safeString(entry, "symbol");
-                    Boolean entryBorrowable = (Boolean) this.safeBool(entry, "isBorrowable", true);
-                    Boolean isCrossBorrowable = (Boolean) this.safeBool(entry, "isCrossBorrowable", true);
+                    Boolean entryBorrowable = this.safeBool(entry, "isBorrowable", true);
+                    Boolean isCrossBorrowable = this.safeBool(entry, "isCrossBorrowable", true);
                     if (Boolean.TRUE.equals(entryBorrowable) && Boolean.TRUE.equals(isCrossBorrowable))
                     {
                         crossKeys.add(entrySymbol);
                     }
-                    Boolean isolatedBase = (Boolean) this.safeBool(entry, "isIsolatedBaseBorrowable", true);
-                    Boolean isolatedQuote = (Boolean) this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                    Boolean isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                    Boolean isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
                     if (Boolean.TRUE.equals(entryBorrowable) && (Boolean.TRUE.equals(isolatedBase) || Boolean.TRUE.equals(isolatedQuote)))
                     {
                         isolatedKeys.add(entrySymbol);
@@ -5100,7 +5100,7 @@ public class Bitget extends BitgetApi
         Map<String, Object> result = this.parseTransaction(data, currency);
         result.put("type", "withdrawal");
         Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             result.put("currency", code);
@@ -6066,7 +6066,7 @@ public class Bitget extends BitgetApi
             {
                 String symbol = (allSymbols == null || i < 0 || i >= allSymbols.size() ? null : allSymbols.get(i));
                 Map<String, Object> entry = this.market(symbol);
-                Boolean isStockMarket = (Boolean) this.safeBool(entry, "stock", false);
+                Boolean isStockMarket = this.safeBool(entry, "stock", false);
                 if (Boolean.TRUE.equals(isStockMarket))
                 {
                     String marketSymbol = this.safeString(entry, "symbol");
@@ -6693,7 +6693,7 @@ public class Bitget extends BitgetApi
         paramsMarginMode = (Map<String, Object>) ((List<Object>) utaparamsMarginModeVariable).get(1);
         if (java.util.Objects.equals(uta, true))
         {
-            Boolean utaMargin = (Boolean) this.safeBool(paramsMarginMode, "margin", false);
+            Boolean utaMargin = this.safeBool(paramsMarginMode, "margin", false);
             paramsMarginMode = this.omit(paramsMarginMode, "margin");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(marketType, "spot"))
@@ -6753,7 +6753,7 @@ public class Bitget extends BitgetApi
         }
         if (java.util.Objects.equals(marketType, "spot"))
         {
-            Boolean margin = (Boolean) this.safeBool(paramsMarginMode, "margin", false);
+            Boolean margin = this.safeBool(paramsMarginMode, "margin", false);
             paramsMarginMode = this.omit(paramsMarginMode, "margin");
             if ((!java.util.Objects.equals(marginMode, null)) || Boolean.TRUE.equals(margin))
             {
@@ -6888,7 +6888,7 @@ public class Bitget extends BitgetApi
         //         "1399132.341"
         //     ]
         //
-        Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
+        Boolean inverse = this.safeBool(market, "inverse", false);
         Integer volumeIndex = ((Boolean.TRUE.equals(inverse))) ? 6 : 5;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, null), this.safeNumber(ohlcv, 2, null), this.safeNumber(ohlcv, 3, null), this.safeNumber(ohlcv, 4, null), this.safeNumber(ohlcv, volumeIndex, null)));
     }
@@ -6933,8 +6933,8 @@ public class Bitget extends BitgetApi
         Long defaultLimit = 100L; // default 100, max 1000
         Long maxLimitForRecentEndpoint = 1000L;
         Long maxLimitForHistoryEndpoint = 200L; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-        Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
-        Boolean useHistoryEndpointForPagination = (Boolean) this.safeBool(parameters, "useHistoryEndpointForPagination", true);
+        Boolean useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        Boolean useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
@@ -8202,7 +8202,7 @@ public class Bitget extends BitgetApi
                 request.put("timeInForce", "ioc");
             }
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsProductType, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(paramsProductType, "reduceOnly", false);
         Boolean hedged = null;
         List<Object> hedgedparamsProductTypeVariable = (List<Object>) this.handleParamBool(paramsProductType, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparamsProductTypeVariable).get(0);
@@ -8305,7 +8305,7 @@ public class Bitget extends BitgetApi
             request.put("price", this.priceToPrecision(symbol, price));
         }
         String triggerPriceType = this.safeString2(paramsMarketType, "triggerPriceType", "triggerType", "mark_price");
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsMarketType, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(paramsMarketType, "reduceOnly", false);
         String clientOrderId = this.safeString2(paramsMarketType, "clientOid", "clientOrderId");
         String exchangeSpecificTifParam = this.safeString2(paramsMarketType, "force", "timeInForce");
         Boolean postOnly = null;
@@ -8907,7 +8907,7 @@ public class Bitget extends BitgetApi
         {
             String cost = this.safeString(paramsOmitted, "cost");
             paramsOmitted = this.omit(paramsOmitted, "cost");
-            Boolean editMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
+            Boolean editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if ((Boolean.TRUE.equals(editMarketBuyOrderRequiresPrice) || (!java.util.Objects.equals(cost, null))) && Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
             {
                 if (java.util.Objects.equals(price, null) && java.util.Objects.equals(cost, null))
@@ -9105,8 +9105,8 @@ public class Bitget extends BitgetApi
         Boolean isStockSpot = Boolean.TRUE.equals(isStock) && (java.util.Objects.equals(market.get("spot"), true));
         paramsMarginMode = this.omit(paramsMarginMode, "stock");
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Boolean trailing = (Boolean) this.safeBool(paramsMarginMode, "trailing", false);
-        Boolean trigger = (Boolean) this.safeBool2(paramsMarginMode, "stop", "trigger", null);
+        Boolean trailing = this.safeBool(paramsMarginMode, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsMarginMode, "stop", "trigger", null);
         paramsMarginMode = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "trigger", "trailing")));
         if (!(Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (java.util.Objects.equals(trigger, true))))
         {
@@ -9373,7 +9373,7 @@ public class Bitget extends BitgetApi
         Pair<String, Map<String, Object>> marginModeparamsUTAVariable = this.handleMarginModeAndParams("cancelOrders", paramsUTA, null);
         marginMode = marginModeparamsUTAVariable.first();
         paramsUTA = marginModeparamsUTAVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsUTA, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsUTA, "stop", "trigger", null);
         paramsUTA = this.omit(paramsUTA, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ids.size(); i++)
@@ -9492,7 +9492,7 @@ public class Bitget extends BitgetApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        Boolean trigger = (Boolean) this.safeBool2(paramsMarginMode, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsMarginMode, "stop", "trigger", null);
         paramsMarginMode = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         Map<String, Object> response = null;
         Boolean uta = false;
@@ -9863,8 +9863,8 @@ public class Bitget extends BitgetApi
             return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, paramsMarginMode, cursorReceived, cursorSent, null, null)).join();
         }
         Map<String, Object> response = null;
-        Boolean trailing = (Boolean) this.safeBool(paramsMarginMode, "trailing", false);
-        Boolean trigger = (Boolean) this.safeBool2(paramsMarginMode, "stop", "trigger", null);
+        Boolean trailing = this.safeBool(paramsMarginMode, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsMarginMode, "stop", "trigger", null);
         String planTypeValue = this.safeString(paramsMarginMode, "planType");
         Boolean planTypeDefined = (!java.util.Objects.equals(planTypeValue, null));
         Boolean isTrigger = (java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(planTypeDefined);
@@ -10400,8 +10400,8 @@ public class Bitget extends BitgetApi
             return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, paramsUTA, cursorReceived, "idLessThan", null, null)).join();
         }
         Object response = null;
-        Boolean trailing = (Boolean) this.safeBool(paramsUTA, "trailing", false);
-        Boolean trigger = (Boolean) this.safeBool2(paramsUTA, "stop", "trigger", null);
+        Boolean trailing = this.safeBool(paramsUTA, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsUTA, "stop", "trigger", null);
         paramsUTA = this.omit(paramsUTA, new ArrayList<Object>(Arrays.asList("stop", "trigger", "trailing")));
         Pair<Map<String, Object>, Map<String, Object>> requestparamsUTAVariable = this.handleUntilOption("endTime", request, paramsUTA, 1);
         request = requestparamsUTAVariable.first();
@@ -10743,7 +10743,7 @@ public class Bitget extends BitgetApi
             request.put("limit", limit);
         }
         Map<String, Object> response = null;
-        Boolean trigger = (Boolean) this.safeBool2(paramsProductType, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(paramsProductType, "stop", "trigger", null);
         paramsProductType = this.omit(paramsProductType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         if (java.util.Objects.equals(trigger, true))
         {
@@ -11775,7 +11775,7 @@ public class Bitget extends BitgetApi
             return (this.fetchPaginatedCallCursor("fetchPositions", null, null, null, paramsPaginate, "endId", "idLessThan", null, null)).join();
         }
         String method = null;
-        Boolean useHistoryEndpoint = (Boolean) this.safeBool(paramsPaginate, "useHistoryEndpoint", false);
+        Boolean useHistoryEndpoint = this.safeBool(paramsPaginate, "useHistoryEndpoint", false);
         if (Boolean.TRUE.equals(useHistoryEndpoint))
         {
             method = "privateMixGetV2MixPositionHistoryPosition";
@@ -15340,7 +15340,7 @@ public class Bitget extends BitgetApi
             }
         }
         Map<String, Object> headersResult = requestHeaders;
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Boolean sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Boolean.TRUE.equals(sandboxMode) && (!java.util.Objects.equals(path, "v2/public/time")) && (!java.util.Objects.equals(path, "v3/market/current-fund-rate")))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336

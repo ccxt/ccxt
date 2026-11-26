@@ -2285,7 +2285,7 @@ public class Bithumb extends BithumbApi
         {
             market = this.market(symbol);
         }
-        Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+        Boolean twap = this.safeBool(paramsGeneration, "twap", false);
         Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
@@ -2710,7 +2710,7 @@ public class Bithumb extends BithumbApi
         Map<String, Object> response = null;
         if ((generation != null && generation == 2))
         {
-            Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+            Boolean twap = this.safeBool(paramsGeneration, "twap", false);
             List<Order> orders = (this.fetchOrders(symbol, since, limit, this.extend(paramsGeneration, new HashMap<String, Object>() {{
                 put( "state", ((Boolean.TRUE.equals(twap))) ? "progress" : "wait" );
             }}))).join();
@@ -2772,7 +2772,7 @@ public class Bithumb extends BithumbApi
             throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+        Boolean twap = this.safeBool(paramsGeneration, "twap", false);
         Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
         List<Object> clientOrderIds = null;
         if (Boolean.TRUE.equals(twap))
@@ -2953,7 +2953,7 @@ public class Bithumb extends BithumbApi
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> response = null;
-        Boolean twap = (Boolean) this.safeBool(paramsGeneration, "twap", false);
+        Boolean twap = this.safeBool(paramsGeneration, "twap", false);
         Map<String, Object> paramsOmitted = this.omit(paramsGeneration, "twap");
         String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
         Boolean useClientOrderId = !Boolean.TRUE.equals(twap) && ((generation != null && generation == 2)) && (!java.util.Objects.equals(clientOrderId, null));

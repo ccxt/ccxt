@@ -1401,7 +1401,7 @@ public class Derive extends DeriveApi
         Map<String, Object> stats = this.safeDict(interest, "stats", new HashMap<String, Object>() {{}});
         String amount = this.safeString(stats, "oi");
         String value = null;
-        Boolean isOption = (Boolean) this.safeBool(market, "option", false);
+        Boolean isOption = this.safeBool(market, "option", false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if ((!java.util.Objects.equals(market, null)) && !Boolean.TRUE.equals(isOption))
         {
@@ -2365,7 +2365,7 @@ public class Derive extends DeriveApi
     public String hashOrderMessage(List<Object> order)
     {
         Object accountHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
-        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         String DOMAIN_SEPARATOR = "da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19";
         if (Boolean.TRUE.equals(sandboxMode))
@@ -2473,10 +2473,10 @@ public class Derive extends DeriveApi
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-        Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
-        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
+        Boolean test = this.safeBool(paramsDeriveSubaccountId, "test", false);
+        Boolean reduceOnly = this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
+        Boolean postOnly = this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
         String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -2651,9 +2651,9 @@ public class Derive extends DeriveApi
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("editOrder", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-        Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
+        Boolean reduceOnly = this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
+        Boolean postOnly = this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
         String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -2824,7 +2824,7 @@ public class Derive extends DeriveApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("cancelOrder", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
@@ -3160,7 +3160,7 @@ public class Derive extends DeriveApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("fetchOpenOrders", paramsOmitted);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
@@ -3373,7 +3373,7 @@ public class Derive extends DeriveApi
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
         String orderType = this.safeStringLower(order, "order_type");
-        Boolean isBid = (Boolean) this.safeBool(order, "is_bid", false);
+        Boolean isBid = this.safeBool(order, "is_bid", false);
         String side = this.safeString(order, "direction");
         if (java.util.Objects.equals(side, null))
         {
@@ -4379,7 +4379,7 @@ public class Derive extends DeriveApi
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         Map<String, Object> transferEntry = this.parseTransfer(result, currency);
         Map<String, Object> transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
@@ -4712,7 +4712,7 @@ public class Derive extends DeriveApi
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("withdraw", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
-        Boolean forceBatch = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false);
+        Boolean forceBatch = this.safeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false);
         String defaultMaxFee = ((Boolean.TRUE.equals(forceBatch))) ? "10" : "1";
         String maxFeeUsd = this.safeString2(paramsDeriveSubaccountId, "max_fee_usd", "maxFeeUsd", defaultMaxFee);
         Object paramsOmitted = this.omit(paramsDeriveSubaccountId, new ArrayList<Object>(Arrays.asList("max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch")));
@@ -4749,7 +4749,7 @@ public class Derive extends DeriveApi
         Map<String, Object> transaction = (Map<String, Object>) this.parseTransaction(result, currency);
         transaction.put("type", "withdrawal");
         Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-        Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        Boolean fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (Boolean.TRUE.equals(fillResponseFromRequest))
         {
             // the response carries only the operation ids, the known request values fill the rest

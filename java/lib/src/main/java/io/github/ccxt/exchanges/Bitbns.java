@@ -938,7 +938,7 @@ public class Bitbns extends BitbnsApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "entry_id", id );
@@ -986,7 +986,7 @@ public class Bitbns extends BitbnsApi
             put( "symbol", market.get("id") );
             put( "entry_id", id );
         }};
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean trigger = this.safeBool2(parameters, "trigger", "stop", null);
         if (java.util.Objects.equals(trigger, true))
         {
             throw new BadRequest((this.id + " fetchOrder cannot fetch stop orders")) ;
@@ -1053,7 +1053,7 @@ public class Bitbns extends BitbnsApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", null);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         String quoteSide = "listOpen";
         if (java.util.Objects.equals(market.get("quoteId"), "USDT"))

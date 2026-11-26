@@ -924,7 +924,7 @@ public class Hitbtc extends HitbtcApi
             Long expiry = this.safeInteger(market, "expiry");
             Boolean contract = (java.util.Objects.equals(marketType, "futures"));
             Boolean spot = (java.util.Objects.equals(marketType, "spot"));
-            Boolean marginTrading = (Boolean) this.safeBool(market, "margin_trading", false);
+            Boolean marginTrading = this.safeBool(market, "margin_trading", false);
             Boolean margin = Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(marginTrading);
             Boolean future = (!java.util.Objects.equals(expiry, null));
             Boolean swap = (Boolean.TRUE.equals(contract) && !Boolean.TRUE.equals(future));
@@ -1678,7 +1678,7 @@ public class Hitbtc extends HitbtcApi
         String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
-        Boolean taker = (Boolean) this.safeBool(trade, "taker", null);
+        Boolean taker = this.safeBool(trade, "taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
@@ -2973,7 +2973,7 @@ public class Hitbtc extends HitbtcApi
     public Pair<Map<String, Object>, Map<String, Object>> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Double amount, Double price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", null);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", null);
         String timeInForce = this.safeString(parameters, "timeInForce");
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
         Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters);
@@ -3148,7 +3148,7 @@ public class Hitbtc extends HitbtcApi
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeSymbol(marketId, marketResolved, null, null);
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Boolean postOnly = this.safeBool(order, "post_only", null);
         String timeInForce = this.safeString(order, "time_in_force");
         List<Object> rawTrades = this.safeList(order, "trades", null);
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
@@ -3416,7 +3416,7 @@ public class Hitbtc extends HitbtcApi
             paramsOmitted = this.omit(paramsWithdrawTag, "network");
         }
         Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-        Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
+        Boolean includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if (Boolean.TRUE.equals(includeFee))
         {
             request.put("include_fee", true);
@@ -4513,7 +4513,7 @@ public class Hitbtc extends HitbtcApi
                 networkCode = this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper);
             }
             Double withdrawFee = this.safeNumber(networkEntry, "payout_fee", null);
-            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "default", false);
+            Boolean isDefault = this.safeBool(networkEntry, "default", false);
             Map<String, Object> withdrawResult = new HashMap<String, Object>();
             withdrawResult.put("fee", withdrawFee);
             withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
@@ -4598,7 +4598,7 @@ public class Hitbtc extends HitbtcApi
          * @returns {Array} the marginMode in lowercase
          */
         String defaultType = this.safeString(this.options, "defaultType");
-        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
+        Boolean isMargin = this.safeBool(parameters, "margin", false);
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();

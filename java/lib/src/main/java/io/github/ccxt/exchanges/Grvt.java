@@ -874,7 +874,7 @@ public class Grvt extends GrvtApi
         {
             return false;  // skip if builder fee is not enabled
         }
-        Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
+        Boolean approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (Boolean.TRUE.equals(approvedBuilderFee))
         {
             return true;  // skip if builder fee is already approved
@@ -931,7 +931,7 @@ public class Grvt extends GrvtApi
                 // }
                 //
                 Map<String, Object> authResult = this.safeDict(authResponse, "result", null);
-                Boolean ack = (Boolean) this.safeBool(authResult, "ack", false);
+                Boolean ack = this.safeBool(authResult, "ack", false);
                 if (!Boolean.TRUE.equals(ack))
                 {
                     throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
@@ -1476,7 +1476,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         String takerOrMaker = null;
-        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", null);
+        Boolean isTakerBuyer = this.safeBool(trade, "is_taker_buyer", null);
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
@@ -1484,8 +1484,8 @@ public class Grvt extends GrvtApi
             takerOrMaker = "taker";
         } else
         {
-            Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", false);
-            Boolean isBuyer = (Boolean) this.safeBool(trade, "is_buyer", false);
+            Boolean isTaker = this.safeBool(trade, "is_taker", false);
+            Boolean isBuyer = this.safeBool(trade, "is_buyer", false);
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
@@ -1872,7 +1872,7 @@ public class Grvt extends GrvtApi
         Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
         Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
         Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
-        Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+        Boolean useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (Boolean.TRUE.equals(useTransfersEndpoint))
         {
             Object transfers = (this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)).join();
@@ -1944,7 +1944,7 @@ public class Grvt extends GrvtApi
         Pair<Map<String, Object>, Map<String, Object>> requestUntilOptionStringparamsUntilOptionStringVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000L);
         Map<String, Object> requestUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.first();
         Map<String, Object> paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable.second();
-        Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+        Boolean useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (Boolean.TRUE.equals(useTransfersEndpoint))
         {
             Object transfers = (this.internalFetchTransfers(this.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)).join();
@@ -2022,7 +2022,7 @@ public class Grvt extends GrvtApi
         //    }
         //
         List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-        Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+        List<Object> transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         return transfers;
 
     }
@@ -2222,7 +2222,7 @@ public class Grvt extends GrvtApi
         //    }
         //
         List<Object> rows = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-        Object transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+        List<Object> transfers = this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         return this.toArray(this.safeList(this.filterTransfersByType(transfers, "internal", false), 1, new ArrayList<Object>(Arrays.asList())));
 
     }
@@ -2580,7 +2580,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> paramsOmitted3 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         String subAccountId = this.getSubAccountId(paramsOmitted3);
-        Boolean isReduceOnly = (Boolean) this.safeBool(paramsOmitted3, "reduceOnly", false);
+        Boolean isReduceOnly = this.safeBool(paramsOmitted3, "reduceOnly", false);
         Map<String, Object> orderMetadata = new HashMap<String, Object>();
         orderMetadata.put("client_order_id", clientOrderId);
         Map<String, Object> orderRequest = new HashMap<String, Object>() {{
@@ -3701,14 +3701,14 @@ public class Grvt extends GrvtApi
                 put( "id", null );
             }}, null);
         }
-        Boolean isMarket = (Boolean) this.safeBool(order, "is_market", false);
+        Boolean isMarket = this.safeBool(order, "is_market", false);
         String orderType = "limit";
         if (Boolean.TRUE.equals(isMarket))
         {
             orderType = "market";
         }
-        Boolean isPostOnly = (Boolean) this.safeBool(order, "post_only", null);
-        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduce_only", null);
+        Boolean isPostOnly = this.safeBool(order, "post_only", null);
+        Boolean isReduceOnly = this.safeBool(order, "reduce_only", null);
         String timeInForceRaw = this.safeString(order, "time_in_force");
         String timeInForce = (((java.util.Objects.equals(isPostOnly, true)))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         String size = null;
@@ -3728,7 +3728,7 @@ public class Grvt extends GrvtApi
         if (!java.util.Objects.equals(firstLeg, null))
         {
             size = this.safeString(firstLeg, "size");
-            Boolean isBuyingAsset = (Boolean) this.safeBool(firstLeg, "is_buying_asset", false);
+            Boolean isBuyingAsset = this.safeBool(firstLeg, "is_buying_asset", false);
             side = ((Boolean.TRUE.equals(isBuyingAsset))) ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);
@@ -3900,7 +3900,7 @@ public class Grvt extends GrvtApi
 
     public Long feeAmountMultiplier()
     {
-        return ((Long) (switch ((Object) (this.convertToBigIntCustom("10000"))) { case null -> (Long) null; case Long hx4J40v0 -> hx4J40v0; case Number hx4J40v0 -> Long.valueOf(hx4J40v0.longValue()); case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v0.getClass().getName()); }));  // multiply needed https://t.me/c/3396937126/88
+        return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
     public Map<String, Object> createSignedRequest(Map<String, Object> request, String structureType, Map<String, Object> currencyObj, String signerAddress)

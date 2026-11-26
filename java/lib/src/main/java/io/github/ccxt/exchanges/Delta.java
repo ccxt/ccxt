@@ -2369,7 +2369,7 @@ public class Delta extends DeltaApi
         {
             request.put("client_order_id", clientOrderId);
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted, "reduceOnly", null);
+        Boolean reduceOnly = this.safeBool(paramsOmitted, "reduceOnly", null);
         if (java.util.Objects.equals(reduceOnly, true))
         {
             request.put("reduce_only", reduceOnly);

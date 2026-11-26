@@ -2177,7 +2177,7 @@ public class Gemini extends GeminiApi
                     request.put("options", new ArrayList<Object>(Arrays.asList("maker-or-cancel")));
                 }
             }
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = this.safeBool(parameters, "postOnly", false);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("options", new ArrayList<Object>(Arrays.asList("maker-or-cancel")));

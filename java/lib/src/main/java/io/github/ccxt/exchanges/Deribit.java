@@ -1389,7 +1389,7 @@ public class Deribit extends DeribitApi
                     inverse = (!java.util.Objects.equals(quote, settle));
                     linear = (java.util.Objects.equals(settle, quote));
                 }
-                Boolean parsedMarketValue = (Boolean) this.safeBool(parsedMarkets, symbol, null);
+                Boolean parsedMarketValue = this.safeBool(parsedMarkets, symbol, null);
                 if (!java.util.Objects.equals(parsedMarketValue, null))
                 {
                     continue;
@@ -2535,7 +2535,7 @@ public class Deribit extends DeribitApi
         // injected in createOrder
         List<Object> trades = this.safeList(order, "trades", null);
         String timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Boolean postOnly = this.safeBool(order, "post_only", null);
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", order);
         mapLiteral4.put("id", id);
@@ -2660,7 +2660,7 @@ public class Deribit extends DeribitApi
         request.put("type", type);
         String trigger = this.safeString(parameters, "trigger", "last_price");
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         // only stop loss sell orders are allowed when price crossed from above
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         // only take profit buy orders are allowed when price crossed from below
@@ -2680,7 +2680,7 @@ public class Deribit extends DeribitApi
         Boolean isStopOrder = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isTakeLimit);
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Boolean.TRUE.equals(isStopMarket) || Boolean.TRUE.equals(isTakeMarket);
-        Boolean exchangeSpecificPostOnly = (Boolean) this.safeBool(parameters, "post_only", null);
+        Boolean exchangeSpecificPostOnly = this.safeBool(parameters, "post_only", null);
         Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
         if (Boolean.TRUE.equals(isLimitOrder))
         {
@@ -4109,7 +4109,7 @@ public class Deribit extends DeribitApi
             endTimestamp = this.parseToInt(until);
         }
         request.put("end_timestamp", endTimestamp);
-        Boolean isPaginationCall = (Boolean) this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
+        Boolean isPaginationCall = this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
         Map<String, Object> paramsOmitted = paramsUntil;
         if (Boolean.TRUE.equals(isPaginationCall))
         {

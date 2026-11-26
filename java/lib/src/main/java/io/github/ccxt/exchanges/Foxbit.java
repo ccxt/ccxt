@@ -1160,7 +1160,7 @@ public class Foxbit extends FoxbitApi
             throw new InvalidOrder((("Invalid order type: " + typeValue) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         Double triggerPrice = this.safeNumber(parameters, "triggerPrice", null);
         this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> request = new HashMap<String, Object>();
@@ -1253,7 +1253,7 @@ public class Foxbit extends FoxbitApi
                 throw new InvalidOrder((("Invalid order type: " + type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
-            Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
+            Boolean postOnly = this.safeBool(orderParams, "postOnly", false);
             Double triggerPrice = this.safeNumber(orderParams, "triggerPrice", null);
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market_symbol", market.get("id"));

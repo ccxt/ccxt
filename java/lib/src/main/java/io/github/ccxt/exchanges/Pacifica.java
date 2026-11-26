@@ -785,12 +785,12 @@ public class Pacifica extends PacificaApi
         {
             return false;
         }
-        Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
+        Boolean buildFee = this.safeBool(this.options, "builderFee", true);
         if (!Boolean.TRUE.equals(buildFee))
         {
             return false;  // skip if builder fee is not enabled
         }
-        Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
+        Boolean approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (Boolean.TRUE.equals(approvedBuilderFee))
         {
             return true;  // skip if builder fee is already approved
@@ -949,7 +949,7 @@ public class Pacifica extends PacificaApi
             List<Object> idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
             quoteId = this.safeString(idParts, 1, quoteId);
         }
-        Boolean isolatedOnly = (Boolean) this.safeBool(market, "isolated_only", false);
+        Boolean isolatedOnly = this.safeBool(market, "isolated_only", false);
         if (Boolean.TRUE.equals(isSwap))
         {
             settleId = quoteId;
@@ -1188,7 +1188,7 @@ public class Pacifica extends PacificaApi
         //       "updated_at": 1758086074002
         //    },
         // }
-        Boolean isIsolated = (Boolean) this.safeBool(setting, "isolated", false);
+        Boolean isIsolated = this.safeBool(setting, "isolated", false);
         Long leverage = this.safeInteger(setting, "leverage");
         String marginMode = "cross";
         if (Boolean.TRUE.equals(isIsolated))
@@ -1366,7 +1366,7 @@ public class Pacifica extends PacificaApi
         //       "updated_at": 1758086074002
         //
         // }
-        Boolean isIsolated = (Boolean) this.safeBool(setting, "isolated", false);
+        Boolean isIsolated = this.safeBool(setting, "isolated", false);
         String marginMode = "cross";
         if (Boolean.TRUE.equals(isIsolated))
         {
@@ -1949,7 +1949,7 @@ public class Pacifica extends PacificaApi
         //    },
         // }
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", false);
+        Boolean success = this.safeBool(response, "success", false);
         String status = null;
         if (!Boolean.TRUE.equals(success))
         {
@@ -2009,7 +2009,7 @@ public class Pacifica extends PacificaApi
         sigPayload.put("symbol", market.get("id"));
         sigPayload.put("side", this.mapSide(side));
         String operationType = "create_order";
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        Boolean reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String orderType = type.toUpperCase();
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -2222,7 +2222,7 @@ public class Pacifica extends PacificaApi
         {
             Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
             String error = this.safeString(order, "error");
-            Boolean success = (Boolean) this.safeBool(order, "success", false);
+            Boolean success = this.safeBool(order, "success", false);
             String status = null;
             if ((!java.util.Objects.equals(error, null)) || (!Boolean.TRUE.equals(success)))
             {
@@ -2300,7 +2300,7 @@ public class Pacifica extends PacificaApi
         {
             Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
             String error = this.safeString(order, "error");
-            Boolean success = (Boolean) this.safeBool(order, "success", false);
+            Boolean success = this.safeBool(order, "success", false);
             String status = null;
             if ((!java.util.Objects.equals(error, null)) || (!Boolean.TRUE.equals(success)))
             {
@@ -2397,7 +2397,7 @@ public class Pacifica extends PacificaApi
     {
         String operationType = "cancel_all_orders";
         Map<String, Object> sigPayload = new HashMap<String, Object>() {{}};
-        Boolean excludeReduceOnly = (Boolean) this.safeBool(parameters, "excludeReduceOnly", false);
+        Boolean excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
         sigPayload.put("exclude_reduce_only", excludeReduceOnly);
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -2444,7 +2444,7 @@ public class Pacifica extends PacificaApi
             throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);
-        Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(isStopOrder))
@@ -2461,7 +2461,7 @@ public class Pacifica extends PacificaApi
         //   "data": null
         // }
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", false);
+        Boolean success = this.safeBool(response, "success", false);
         String status = "closed";
         if (Boolean.TRUE.equals(success))
         {
@@ -2479,7 +2479,7 @@ public class Pacifica extends PacificaApi
     public Map<String, Object> cancelOrderRequest(Object id, String symbol, Map<String, Object> parameters)
     {
         Map<String, Object> market = this.market(symbol);
-        Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         String operationType = "cancel_order";
         if (Boolean.TRUE.equals(isStopOrder))
         {
@@ -3008,7 +3008,7 @@ public class Pacifica extends PacificaApi
     {
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
-        Boolean hasMore = (Boolean) this.safeBool(response, "has_more", false);
+        Boolean hasMore = this.safeBool(response, "has_more", false);
         Integer dataLength = data.size();
         if (Boolean.TRUE.equals(hasMore))
         {
@@ -3401,7 +3401,7 @@ public class Pacifica extends PacificaApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String margin = this.safeString(position, "margin");
-        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", null);
+        Boolean rawIsolated = this.safeBool(position, "isolated", null);
         Boolean isIsolated = (!java.util.Objects.equals(margin, null)) && (!java.util.Objects.equals(margin, "0"));
         if (!java.util.Objects.equals(rawIsolated, null))
         {
@@ -4218,7 +4218,7 @@ public class Pacifica extends PacificaApi
         //   "code": null
         // }
         //
-        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
+        Boolean success = this.safeBool(transfer, "success", null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {
@@ -4634,7 +4634,7 @@ public class Pacifica extends PacificaApi
             for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {
                 String key = this.safeString(sortedKeys, i, "");
-                result.put(key, this.sortJsonKeys(Helpers.GetValue(value, key)));
+                result.put(key, this.sortJsonKeys((valueCopy == null || key == null ? null : valueCopy.get(key))));
             }
             return result;
         } else if ((value instanceof List))
@@ -4696,7 +4696,7 @@ public class Pacifica extends PacificaApi
             }
             if (!java.util.Objects.equals(builderCode, null))
             {
-                Boolean isOperationSupportBuilder = (Boolean) this.safeBool(this.options.get("builderSupportOperations"), operationType, false);
+                Boolean isOperationSupportBuilder = this.safeBool(this.options.get("builderSupportOperations"), operationType, false);
                 if (Boolean.TRUE.equals(isOperationSupportBuilder))
                 {
                     sigPayload.put("builder_code", builderCode);

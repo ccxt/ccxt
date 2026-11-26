@@ -932,7 +932,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // vol24h counts contracts: base units on linear markets, quote (usd) units
         // on inverse ones, where the base side has to come from vwap24h instead
         String baseVolume = null;
-        Boolean isIndex = (Boolean) this.safeBool(marketResolved, "index", false);
+        Boolean isIndex = this.safeBool(marketResolved, "index", false);
         if (!Boolean.TRUE.equals(isIndex))
         {
             if (Boolean.TRUE.equals(this.safeBool(marketResolved, "linear", false)))
@@ -1447,7 +1447,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String type = this.parseOrderType(rawType); // undefined stays undefined
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String cost = null;
-        Boolean linear = (Boolean) this.safeBool(marketResolved, "linear", false);
+        Boolean linear = this.safeBool(marketResolved, "linear", false);
         if ((!java.util.Objects.equals(amount, null)) && (!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(marketResolved, null)))
         {
             if (Boolean.TRUE.equals(linear))
@@ -1566,7 +1566,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
         Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
         String triggerSignal = this.safeString(paramsPostOnly, "triggerSignal", "last");
-        Boolean reduceOnlyParam = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
+        Boolean reduceOnlyParam = this.safeBool(paramsPostOnly, "reduceOnly", false);
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyParam, true));
         if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger) || Boolean.TRUE.equals(isTriggerOrder))
         {
@@ -2203,7 +2203,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             request.put("since", since);
         }
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> response = null;
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         if (Boolean.TRUE.equals(isTrigger))
@@ -2284,7 +2284,7 @@ public class Krakenfutures extends KrakenfuturesApi
             request.put("since", since);
         }
         Map<String, Object> response = null;
-        Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trigger", "stop")));
         if (Boolean.TRUE.equals(isTrigger))
         {
@@ -2878,7 +2878,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String cost = null;
         if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(marketResolved, null)))
         {
-            Boolean isLinear = (Boolean) this.safeBool(marketResolved, "linear", false);
+            Boolean isLinear = this.safeBool(marketResolved, "linear", false);
             if (!java.util.Objects.equals(average, null))
             {
                 if (Boolean.TRUE.equals(isLinear))

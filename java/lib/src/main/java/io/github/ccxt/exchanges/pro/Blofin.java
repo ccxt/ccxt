@@ -682,7 +682,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> data = this.safeList(message, "data", null);
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String interval = (channelName == null ? null : ((String)channelName).replaceFirst("candle", ""));
         String unifiedTimeframe = this.findTimeframe(interval, null);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -843,7 +843,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
+        Boolean trigger = this.safeBool2(parameters, "stop", "trigger", null);
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
         String channel = "orders";
         if (java.util.Objects.equals(trigger, true))
@@ -1206,7 +1206,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             put( "op", "unsubscribe" );
             put( "args", topics );
         }};
-        String url = (String) Helpers.GetValue((marketType == null ? null : ((Map<String, Object>)((Map<String, Object>)(this.urls.get("api"))).get("ws")).get(marketType)), "public");
+        String url = this.safeString((marketType == null ? null : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get(marketType)), "public", "");
         return (this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes, null)).join();
 
     }

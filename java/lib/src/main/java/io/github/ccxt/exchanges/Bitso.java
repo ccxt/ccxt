@@ -2433,7 +2433,7 @@ public class Bitso extends BitsoApi
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            Boolean success = (Boolean) this.safeBool(response, "success", false);
+            Boolean success = this.safeBool(response, "success", false);
             if (!Boolean.TRUE.equals(success))
             {
                 String feedback = ((this.id + " ") + this.json(response));

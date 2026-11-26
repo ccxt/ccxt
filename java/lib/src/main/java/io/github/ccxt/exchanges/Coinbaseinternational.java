@@ -845,7 +845,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public MarketInterface parseMarket(Object market)
     {
-        String instrumentName = this.safeString(market, "instrument_name");
+        String instrumentName = this.safeString(market, "instrument_name", "");
         String lowercaseId = this.safeStringLower(market, "instrument_name");
         String baseId = this.safeString(market, "base_currency");
         String quoteId = this.safeString(market, "counter_currency");
@@ -889,7 +889,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Double tickSize = this.safeNumber(market, "tick_size", null);
         Boolean isFutureOrOption = Boolean.TRUE.equals(isFuture) || Boolean.TRUE.equals(isOption);
         Long expiry = ((Boolean.TRUE.equals(isFutureOrOption))) ? this.safeInteger(market, "expiration_timestamp") : null;
-        Boolean active = (Boolean) this.safeBool(market, "is_active", null);
+        Boolean active = this.safeBool(market, "is_active", null);
         Double strike = this.safeNumber(market, "strike", null);
         String optionType = this.safeString(market, "option_type");
         if (!Boolean.TRUE.equals(isComboMarket) && (Boolean.TRUE.equals(isOption) || Boolean.TRUE.equals(isFuture)))
@@ -904,7 +904,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 optionTypeLetter = "C";
             }
-            String strikeString = this.numberToString(strike);
+            String strikeString = this.safeString(market, "strike", "");
             symbol = ((((symbol + "-") + strikeString) + "-") + optionTypeLetter);
         }
         Map<String, Object> marketStructure = new HashMap<String, Object>();
@@ -2692,11 +2692,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 request.put("price", this.priceToPrecision(symbol, price));
             }
         }
-        Boolean postOnly = (Boolean) this.safeBool2(paramsResolved, "postOnly", "post_only", null);
+        Boolean postOnly = this.safeBool2(paramsResolved, "postOnly", "post_only", null);
         String timeInForce = this.safeString2(paramsResolved, "tif", "timeInForce");
         if (this.isNativeDeribitCredentials())
         {
-            Boolean reduceOnly = (Boolean) this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", null);
+            Boolean reduceOnly = this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", null);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -3864,7 +3864,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             return null;
         }
-        Boolean forceRefresh = (Boolean) this.safeBool(paramsResolved, "forceRefresh", false);
+        Boolean forceRefresh = this.safeBool(paramsResolved, "forceRefresh", false);
         Map<String, Object> paramsOmitted = this.omit(paramsResolved, "forceRefresh");
         Long now = this.milliseconds();
         String token = this.getV2AccessToken();
@@ -4032,7 +4032,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             return false;
         }
-        Boolean useV2CloudApiKey = (Boolean) this.safeBool(this.options, "v2CloudAPiKey", false);
+        Boolean useV2CloudApiKey = this.safeBool(this.options, "v2CloudAPiKey", false);
         return ((this.secret.length() == 88)) || Boolean.TRUE.equals(useV2CloudApiKey) || ((String)this.secret).endsWith("=");
     }
 
@@ -4052,7 +4052,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String route = routeparamsResolvedVariable.first();
         Map<String, Object> paramsResolved = routeparamsResolvedVariable.second();
         Boolean deribit = this.resolveRoute(route);
-        Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", null);
+        Boolean previousBackend = this.safeBool(this.options, "routeBackend", null);
         Boolean configuredBackend = this.isNativeDeribitCredentials();
         String currentToken = this.getV2AccessToken();
         Boolean hasToken = (!java.util.Objects.equals(currentToken, null)) && (!java.util.Objects.equals(currentToken, ""));

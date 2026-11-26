@@ -1095,7 +1095,7 @@ public class Bitvavo extends BitvavoApi
         String id = this.safeString2(trade, "id", "fillId");
         String marketId = this.safeString(trade, "market");
         String symbol = this.safeSymbol(marketId, market, "-", null);
-        Boolean taker = (Boolean) this.safeBool(trade, "taker", null);
+        Boolean taker = this.safeBool(trade, "taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
@@ -2557,7 +2557,7 @@ public class Bitvavo extends BitvavoApi
         }
         List<Object> rawTrades = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
+        Boolean postOnly = this.safeBool(order, "postOnly", null);
         // https://github.com/ccxt/ccxt/issues/8489
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", order);

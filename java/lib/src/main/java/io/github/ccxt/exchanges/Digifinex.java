@@ -930,7 +930,7 @@ public class Digifinex extends DigifinexApi
                 symbol = ((((base + "/") + quote) + ":") + settle);
                 isInverse = this.safeBool(market, "is_inverse", null);
                 isLinear = (((!java.util.Objects.equals(isInverse, true)))) ? true : false;
-                Boolean isTrading = (Boolean) this.safeBool(market, "isTrading", false);
+                Boolean isTrading = this.safeBool(market, "isTrading", false);
                 if (Boolean.TRUE.equals(isTrading))
                 {
                     isTradingSwap = true;
@@ -1735,7 +1735,7 @@ public class Digifinex extends DigifinexApi
             {
                 type = "limit";
             }
-            Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", false);
+            Boolean isMaker = this.safeBool(trade, "is_maker", false);
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         Map<String, Object> fee = null;
@@ -2311,7 +2311,7 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> paramsRequest = null;
         if (Boolean.TRUE.equals(swap))
         {
-            Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
+            Boolean reduceOnly = this.safeBool(paramsMarginMode, "reduceOnly", false);
             String timeInForce = this.safeString(paramsMarginMode, "timeInForce");
             Integer orderType = null;
             if (java.util.Objects.equals(side, "buy"))
@@ -5294,7 +5294,7 @@ public class Digifinex extends DigifinexApi
          * @returns {Array} the marginMode in lowercase
          */
         String defaultType = this.safeString(this.options, "defaultType");
-        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
+        Boolean isMargin = this.safeBool(parameters, "margin", false);
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();

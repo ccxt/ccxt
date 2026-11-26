@@ -993,7 +993,7 @@ public class Lbank extends LbankApi
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             Tickers responseForSwap = (this.fetchTickers(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
-            Map<String, Object> swapTicker = this.safeDict(responseForSwap, market.get("symbol"), null);
+            Map<String, Object> swapTicker = this.safeDict(responseForSwap, marketSymbol, null);
             return swapTicker;
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1981,7 +1981,7 @@ public class Lbank extends LbankApi
         }
         Map<String, Object> market = this.market(symbol);
         String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = this.safeBool(parameters, "postOnly", false);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Map<String, Object> paramsRequest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3524,7 +3524,7 @@ public class Lbank extends LbankApi
         for (var i = 0; i < response.size(); i++)
         {
             Object fee = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
-            Boolean canWithdraw = (Boolean) this.safeBool(fee, "canWithDraw", false);
+            Boolean canWithdraw = this.safeBool(fee, "canWithDraw", false);
             if (Boolean.TRUE.equals(canWithdraw))
             {
                 String code = this.safeCurrencyCode(this.safeString(fee, "assetCode"), null);
@@ -3614,7 +3614,7 @@ public class Lbank extends LbankApi
             Map<String, Object> networkEntry = this.safeDict(networkList, j, null);
             String networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee", null);
-            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault", false);
+            Boolean isDefault = this.safeBool(networkEntry, "isDefault", false);
             if (!java.util.Objects.equals(withdrawFee, null))
             {
                 if (Boolean.TRUE.equals(isDefault))
@@ -3699,7 +3699,7 @@ public class Lbank extends LbankApi
             Object sign = "";
             if (java.util.Objects.equals(signatureMethod, "RSA"))
             {
-                Boolean cacheSecretAsPem = (Boolean) this.safeBool(this.options, "cacheSecretAsPem", true);
+                Boolean cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 String pem = null;
                 if (Boolean.TRUE.equals(cacheSecretAsPem))
                 {

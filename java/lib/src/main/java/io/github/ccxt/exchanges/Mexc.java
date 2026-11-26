@@ -1427,7 +1427,7 @@ public class Mexc extends MexcApi
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            Boolean success = (Boolean) this.safeBool(response, "success", false);
+            Boolean success = this.safeBool(response, "success", false);
             status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
             updated = this.safeInteger(response, "data");
         }
@@ -1708,13 +1708,13 @@ public class Mexc extends MexcApi
                 continue;
             }
             String status = this.safeString(market, "status");
-            Boolean isSpotTradingAllowed = (Boolean) this.safeBool(market, "isSpotTradingAllowed", null);
+            Boolean isSpotTradingAllowed = this.safeBool(market, "isSpotTradingAllowed", null);
             Boolean active = false;
             if ((java.util.Objects.equals(status, "1")) && (java.util.Objects.equals(isSpotTradingAllowed, true)))
             {
                 active = true;
             }
-            Boolean isMarginTradingAllowed = (Boolean) this.safeBool(market, "isMarginTradingAllowed", null);
+            Boolean isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", null);
             Double makerCommission = this.safeNumber(market, "makerCommission", null);
             Double takerCommission = this.safeNumber(market, "takerCommission", null);
             Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount", null);
@@ -2134,7 +2134,7 @@ public class Mexc extends MexcApi
             //
             timestamp = this.safeInteger(trade, "t");
             marketResolved = this.safeMarket(null, market, null, null);
-            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
+            symbol = this.safeString(marketResolved, "symbol");
             priceString = this.safeString(trade, "p");
             amountString = this.safeString(trade, "v");
             side = this.parseOrderSide(this.safeString(trade, "T"));
@@ -2193,7 +2193,7 @@ public class Mexc extends MexcApi
             //
             String marketId = this.safeString(trade, "symbol");
             marketResolved = this.safeMarket(marketId, market, null, null);
-            symbol = java.util.Objects.toString(marketResolved.get("symbol"), null);
+            symbol = this.safeString(marketResolved, "symbol");
             id = this.safeString2(trade, "id", "a");
             priceString = this.safeString2(trade, "price", "p");
             orderId = this.safeString(trade, "orderId");
@@ -2208,16 +2208,16 @@ public class Mexc extends MexcApi
                     put( "cost", Mexc.this.safeString(trade, "fee") );
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency"), null) );
                 }};
-                Boolean isTaker = (Boolean) this.safeBool2(trade, "isTaker", "taker", false);
+                Boolean isTaker = this.safeBool2(trade, "isTaker", "taker", false);
                 takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             } else
             {
                 timestamp = this.safeInteger2(trade, "time", "T");
                 amountString = this.safeString2(trade, "qty", "q");
                 costString = this.safeString(trade, "quoteQty");
-                Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
-                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
-                Boolean buyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m", null);
+                Boolean isBuyer = this.safeBool(trade, "isBuyer", null);
+                Boolean isMaker = this.safeBool(trade, "isMaker", null);
+                Boolean buyerMaker = this.safeBool2(trade, "isBuyerMaker", "m", null);
                 if (!java.util.Objects.equals(isMaker, null))
                 {
                     takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -2605,7 +2605,7 @@ public class Mexc extends MexcApi
         String changePcnt = null;
         String changeValue = null;
         String prevClose = null;
-        Boolean isSwap = (Boolean) this.safeBool(marketResolved, "swap", false);
+        Boolean isSwap = this.safeBool(marketResolved, "swap", false);
         // if swap
         if (Boolean.TRUE.equals(isSwap) || (!java.util.Objects.equals(this.safeString(ticker, "timestamp"), null)))
         {
@@ -2998,7 +2998,7 @@ public class Mexc extends MexcApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Boolean test = (Boolean) this.safeBool(parameters, "test", false);
+        Boolean test = this.safeBool(parameters, "test", false);
         Map<String, Object> paramsOmitted = this.omit(parameters, "test");
         Map<String, Object> request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, paramsOmitted);
         Map<String, Object> response = null;
@@ -3144,8 +3144,8 @@ public class Mexc extends MexcApi
                 throw new ArgumentsRequired((this.id + " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
             }
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsPostOnly, "reduceOnly", false);
-        Boolean hedged = (Boolean) this.safeBool(paramsPostOnly, "hedged", false);
+        Boolean reduceOnly = this.safeBool(paramsPostOnly, "reduceOnly", false);
+        Boolean hedged = this.safeBool(paramsPostOnly, "hedged", false);
         Integer sideInteger = null;
         if (Boolean.TRUE.equals(hedged))
         {
@@ -3832,7 +3832,7 @@ public class Mexc extends MexcApi
             return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
         } else
         {
-            Boolean trigger = (Boolean) this.safeBool2(paramsMarketType, "stop", "trigger", null);
+            Boolean trigger = this.safeBool2(paramsMarketType, "stop", "trigger", null);
             Map<String, Object> swapParams = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             if (java.util.Objects.equals(limit, null))
             {
@@ -4005,7 +4005,7 @@ public class Mexc extends MexcApi
             }
         } else
         {
-            Boolean trigger = (Boolean) this.safeBool2(query, "stop", "trigger", null);
+            Boolean trigger = this.safeBool2(query, "stop", "trigger", null);
             String method = this.safeString(this.options, "cancelOrder", "contractPrivatePostOrderCancel"); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = this.safeString(query, "method", method);
             if (java.util.Objects.equals(trigger, true))
@@ -4826,7 +4826,7 @@ public class Mexc extends MexcApi
         marketType = marketTypeparamsMarketTypeVariable.first();
         paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         String marginMode = this.safeString(paramsMarketType, "marginMode");
-        Boolean isMargin = (Boolean) this.safeBool(paramsMarketType, "margin", false);
+        Boolean isMargin = this.safeBool(paramsMarketType, "margin", false);
         Map<String, Object> paramsOmitted2 = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
         Map<String, Object> response = null;
         if ((!java.util.Objects.equals(marginMode, null)) || Boolean.TRUE.equals(isMargin) || (java.util.Objects.equals(marketType, "margin")))
@@ -6806,7 +6806,7 @@ public class Mexc extends MexcApi
         List<Object> tagResolvedparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", null);
         String tagResolved = (String) ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(0);
         Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagResolvedparamsWithdrawTagVariable).get(1);
-        Boolean intern = (Boolean) this.safeBool(paramsWithdrawTag, "internal", false);
+        Boolean intern = this.safeBool(paramsWithdrawTag, "internal", false);
         if (Boolean.TRUE.equals(intern))
         {
             Map<String, Object> paramsInternal = this.omit(paramsWithdrawTag, "internal");
@@ -7264,7 +7264,7 @@ public class Mexc extends MexcApi
          * @returns {Array} the marginMode in lowercase
          */
         String defaultType = this.safeString(this.options, "defaultType");
-        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
+        Boolean isMargin = this.safeBool(parameters, "margin", false);
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
@@ -7566,7 +7566,7 @@ public class Mexc extends MexcApi
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", false); // v1
+        Boolean success = this.safeBool(response, "success", false); // v1
         if (Boolean.TRUE.equals(success))
         {
             return null;

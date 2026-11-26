@@ -1532,7 +1532,7 @@ public class Hollaex extends HollaexApi
         String filled = this.safeString(order, "filled");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> meta = this.safeDict(order, "meta", new HashMap<String, Object>() {{}});
-        Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
+        Boolean postOnly = this.safeBool(meta, "post_only", false);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -1593,7 +1593,7 @@ public class Hollaex extends HollaexApi
         request.put("type", type);
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")), (Object) null);
         Map<String, Object> meta = this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
-        Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
+        Boolean exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!Boolean.TRUE.equals(isMarketOrder))
@@ -2152,9 +2152,9 @@ public class Hollaex extends HollaexApi
         }
         String currencyId = this.safeString(transaction, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
-        Boolean completed = (Boolean) this.safeBool(transaction, "status", false);
-        Boolean dismissed = (Boolean) this.safeBool(transaction, "dismissed", false);
-        Boolean rejected = (Boolean) this.safeBool(transaction, "rejected", false);
+        Boolean completed = this.safeBool(transaction, "status", false);
+        Boolean dismissed = this.safeBool(transaction, "dismissed", false);
+        Boolean rejected = this.safeBool(transaction, "rejected", false);
         String status = null;
         if (Boolean.TRUE.equals(completed))
         {
@@ -2311,7 +2311,7 @@ public class Hollaex extends HollaexApi
             }} );
         }};
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Boolean allowWithdrawal = (Boolean) this.safeBool(fee, "allow_withdrawal", false);
+        Boolean allowWithdrawal = this.safeBool(fee, "allow_withdrawal", false);
         if (Boolean.TRUE.equals(allowWithdrawal))
         {
             result.put("withdraw", new HashMap<String, Object>() {{

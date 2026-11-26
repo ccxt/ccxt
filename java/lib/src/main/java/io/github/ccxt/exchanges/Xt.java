@@ -2061,7 +2061,7 @@ public class Xt extends XtApi
         //         "v": "702461.58895"
         //     }
         //
-        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
+        Boolean isInverse = this.safeBool(market, "inverse", false);
         String volumeIndex = "a";
         if (Boolean.TRUE.equals(isInverse))
         {
@@ -2956,7 +2956,7 @@ public class Xt extends XtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String side = null;
         String takerOrMaker = null;
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b", null);
+        Boolean isBuyerMaker = this.safeBool(trade, "b", null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
@@ -2969,7 +2969,7 @@ public class Xt extends XtApi
                 takerOrMaker = takerMaker;
             } else
             {
-                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+                Boolean isMaker = this.safeBool(trade, "isMaker", null);
                 if (!java.util.Objects.equals(isMaker, null))
                 {
                     takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -3302,7 +3302,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(side, "buy"))
             {
                 String cost = this.safeString(paramsMarginMode, "cost");
-                Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
+                Boolean createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
                 if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null) && (java.util.Objects.equals(cost, null)))
@@ -3398,7 +3398,7 @@ public class Xt extends XtApi
         {
             request.put("timeInForce", timeInForce);
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted4, "reduceOnly", false);
+        Boolean reduceOnly = this.safeBool(paramsOmitted4, "reduceOnly", false);
         if (java.util.Objects.equals(side, "buy"))
         {
             String requestType = "LONG";
@@ -3574,9 +3574,9 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
-        Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsSubType, "trigger", "stop", null);
+        Boolean stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
         {
             Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -3810,8 +3810,8 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrders", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
-        Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsSubType, "trigger", "stop", null);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
         {
             Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -4009,9 +4009,9 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "stop", "trigger", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
-        Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsSubType, "stop", "trigger", null);
+        Boolean stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
         {
             Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -4476,9 +4476,9 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
-        Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsSubType, "trigger", "stop", null);
+        Boolean stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
         {
             Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -4612,9 +4612,9 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelAllOrders", market, paramsMarketType, null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Boolean trigger = (Boolean) this.safeBool2(paramsSubType, "trigger", "stop", null);
-        Boolean stopLossTakeProfit = (Boolean) this.safeBool(paramsSubType, "stopLossTakeProfit", false);
-        Boolean trailing = (Boolean) this.safeBool(paramsSubType, "trailing", false);
+        Boolean trigger = this.safeBool2(paramsSubType, "trigger", "stop", null);
+        Boolean stopLossTakeProfit = this.safeBool(paramsSubType, "stopLossTakeProfit", false);
+        Boolean trailing = this.safeBool(paramsSubType, "trailing", false);
         if (Boolean.TRUE.equals(trailing))
         {
             Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));

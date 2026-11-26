@@ -415,7 +415,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {

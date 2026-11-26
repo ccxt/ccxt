@@ -122,7 +122,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
 
         Long id = this.requestId();
         String method = "SUBSCRIBE";
-        Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(unsubscribe))
         {
             method = "UNSUBSCRIBE";
@@ -160,7 +160,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String url = (this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type, "") + "/private");
         this.authenticate(url);
         String method = "SUBSCRIBE";
-        Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(unsubscribe))
         {
             method = "UNSUBSCRIBE";
@@ -686,7 +686,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             symbol = this.safeString(market, "symbol");
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        Boolean isBuyerMaker = this.safeBool(trade, "m", null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
@@ -2006,8 +2006,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Client client = this.client(url);
         this.setBalanceCache(client, (String) (type));
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-        Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
         {
             client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
@@ -2023,7 +2023,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return;
         }
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
@@ -2403,10 +2403,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String id = this.safeString(message, "id");
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Map<String, Object> subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-        Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Boolean unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (Boolean.TRUE.equals(unsubscribe))
         {
-            Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
+            Boolean subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
             List<Object> messageHashes = this.safeStringList(subscription, new ArrayList<Object>(Arrays.asList("messageHashes")));
             List<Object> subHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             if (!java.util.Objects.equals(messageHashes, null))
@@ -2432,7 +2432,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        Boolean result = (Boolean) this.safeBool(message, "result", true);
+        Boolean result = this.safeBool(message, "result", true);
         if (!Boolean.TRUE.equals(result))
         {
             String msg = this.safeString(message, "msg", "");

@@ -2217,8 +2217,8 @@ public class Bitfinex extends BitfinexApi
         String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         String trailingAmount = this.safeString(parameters, "trailingAmount");
         String timeInForce = this.safeString(parameters, "timeInForce");
-        Boolean postOnlyParam = (Boolean) this.safeBool(parameters, "postOnly", false);
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Boolean postOnlyParam = this.safeBool(parameters, "postOnly", false);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Long clientOrderId = (Long) this.safeInteger2(parameters, "cid", "clientOrderId");
         String orderType = type.toUpperCase();
         if (!java.util.Objects.equals(trailingAmount, null))
@@ -3568,7 +3568,7 @@ public class Bitfinex extends BitfinexApi
             request.put("payment_id", tag);
         }
         Map<String, Object> withdrawOptions = this.safeDict(this.options, "withdraw", new HashMap<String, Object>() {{}});
-        Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
+        Boolean includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if (Boolean.TRUE.equals(includeFee))
         {
             request.put("fee_deduct", 1);
@@ -4918,8 +4918,8 @@ public class Bitfinex extends BitfinexApi
         String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         String trailingAmount = this.safeString(parameters, "trailingAmount");
         String timeInForce = this.safeString(parameters, "timeInForce");
-        Boolean postOnlyParam = (Boolean) this.safeBool(parameters, "postOnly", false);
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Boolean postOnlyParam = this.safeBool(parameters, "postOnly", false);
+        Boolean reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Long clientOrderId = (Long) this.safeInteger2(parameters, "cid", "clientOrderId");
         if (!java.util.Objects.equals(trailingAmount, null))
         {
