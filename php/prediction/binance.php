@@ -2010,11 +2010,11 @@ class binance extends Exchange {
         if ($defaultRecvWindow !== null) {
             $extendedParams['recvWindow'] = $defaultRecvWindow;
         }
-        $querystring = $this->urlencode_nested($extendedParams);
-        $querystring = str_replace('%5B', '[', $querystring);
-        $querystring = str_replace('%5D', ']', $querystring);
-        $signature = $this->hmac($this->encode($querystring), $this->encode($this->secret), 'sha256');
-        $querystring = $querystring . '&signature=' . $signature;
+        $rawQuery = $this->urlencode_nested($extendedParams);
+        $bracketedQuery = str_replace('%5B', '[', $rawQuery);
+        $cleanQuery = str_replace('%5D', ']', $bracketedQuery);
+        $signature = $this->hmac($this->encode($cleanQuery), $this->encode($this->secret), 'sha256');
+        $querystring = $cleanQuery . '&signature=' . $signature;
         $headersValue = array(
             'X-MBX-APIKEY' => $this->apiKey,
         );

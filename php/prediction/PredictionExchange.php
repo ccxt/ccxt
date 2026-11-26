@@ -784,7 +784,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
          * @return {array} the outcome cache
          */
         for ($i = 0; $i < count($outcomeSymbols); $i++) {
-            Async\await($this->fetch_outcome($outcomeSymbols[$i]));
+            Async\await($this->fetch_outcome($this->safe_string($outcomeSymbols, $i, '')));
         }
         return $this->outcomes;
     }

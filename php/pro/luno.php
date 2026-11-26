@@ -138,12 +138,7 @@ class luno extends \ccxt\async\luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        $symbol = null;
-        if ($market === null) {
-            $symbol = null;
-        } else {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_string($market, 'symbol');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,

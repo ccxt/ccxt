@@ -5214,7 +5214,7 @@ class kucoin extends Exchange {
         $marginMode = null;
         list($marginMode, $paramsOmitted) = $this->handle_margin_mode_and_params('cancelOrder', $paramsOmitted);
         $isUnified = ($accountMode === 'unified');
-        $tradeType = $this->handle_trade_type($market['contract'], $marginMode, $isUnified, $paramsOmitted);
+        $tradeType = $this->handle_trade_type($this->safe_bool($market, 'contract', false), $marginMode, $isUnified, $paramsOmitted);
         $request['tradeType'] = $tradeType;
         $response = $this->utaPrivatePostAccountModeOrderCancel($this->extend($request, $paramsOmitted));
         //
@@ -6209,7 +6209,7 @@ class kucoin extends Exchange {
         $marginMode = null;
         list($marginMode, $paramsOmitted) = $this->handle_margin_mode_and_params('fetchOrder', $paramsOmitted);
         $isUnified = ($accountMode === 'unified');
-        $tradeType = $this->handle_trade_type($market['contract'], $marginMode, $isUnified, $paramsOmitted);
+        $tradeType = $this->handle_trade_type($this->safe_bool($market, 'contract', false), $marginMode, $isUnified, $paramsOmitted);
         $request['tradeType'] = $tradeType;
         $response = $this->utaPrivateGetAccountModeOrderDetail($this->extend($request, $paramsOmitted));
         //
@@ -7055,7 +7055,7 @@ class kucoin extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
-            $isContract = $market['contract'];
+            $isContract = $this->safe_bool($market, 'contract', false);
         } elseif (($marketType === 'spot') || ($marketType === 'margin')) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades');
         } else {

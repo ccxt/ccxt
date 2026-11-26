@@ -1970,8 +1970,9 @@ class sxbet extends Exchange {
         $hashesOrder = array();
         $seenHashes = array();
         for ($i = 0; $i < $outcomesLength; $i++) {
-            Async\await($this->load_outcome($outcomesList[$i]));
-            $outcomeObj = $this->outcome($outcomesList[$i]);
+            $outcomeItem = $this->safe_string($outcomesList, $i, '');
+            Async\await($this->load_outcome($outcomeItem));
+            $outcomeObj = $this->outcome($outcomeItem);
             $marketHash = $this->safe_string($outcomeObj['info'], 'marketHash', '');
             if ($this->safe_bool($seenHashes, $marketHash) === null) {
                 $seenHashes[$marketHash] = true;
