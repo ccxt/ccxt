@@ -859,7 +859,8 @@ export default class mexc extends mexcRest {
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = this.safeDict (cache, i);
-            const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
+            // a spot aggregated delta covers fromVersion..toVersion, the first one to apply is the first that ends at or after the snapshot
+            const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'toVersion' ]);
             if (deltaNonce === undefined) {
                 continue;
             }
@@ -997,7 +998,8 @@ export default class mexc extends mexcRest {
 
     override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
-        const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
+        // compare and store the end of a spot aggregated delta's range (toVersion): a delta that starts before the book's version but ends after it carries changes the book does not have yet
+        const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'toVersion' ]);
         if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates

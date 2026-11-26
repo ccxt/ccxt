@@ -75,6 +75,93 @@
                 "disabledJava": "same protobuf gap the exchange-level skipJava entry already records",
                 "disabledRS": "the rust base has no protobuf decoder"
             }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "spot protobuf depth, the rest snapshot's lastUpdateId falls inside a buffered delta's fromVersion..toVersion and that delta is applied",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://wbs-api.mexc.com/ws",
+                "options": {
+                    "watchOrderBook": {
+                        "snapshotDelay": 2
+                    }
+                },
+                "httpResponse": {
+                    "lastUpdateId": "105",
+                    "timestamp": 1792786957300,
+                    "bids": [
+                        [
+                            "99.00",
+                            "8"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "100.00",
+                            "7"
+                        ],
+                        [
+                            "101.00",
+                            "3"
+                        ]
+                    ]
+                },
+                "messages": [
+                    {
+                        "id": 0,
+                        "code": 0,
+                        "msg": "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT"
+                    },
+                    {
+                        "binary": "0a2f73706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7340425443555344541a074254435553445430d687b8d39634ca133f0a0b0a063130302e30301201371a2773706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d73220239312a03313030"
+                    },
+                    {
+                        "binary": "0a2f73706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7340425443555344541a074254435553445430e087b8d39634ca134c0a0b0a063130302e3030120130120a0a0539392e30301201391a2773706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7322033130312a03313130"
+                    },
+                    {
+                        "binary": "0a2f73706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7340425443555344541a074254435553445430ea87b8d39634ca133f120a0a0539392e35301201311a2773706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7322033131312a03313135"
+                    },
+                    {
+                        "binary": "0a2f73706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7340425443555344541a074254435553445430f487b8d39634ca134c0a0b0a063130312e3030120134120a0a0539392e35301201321a2773706f74407075626c69632e61676772652e64657074682e76332e6170692e7062403130306d7322033131362a03313230"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIPTION",
+                        "params": [
+                            "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            99.5,
+                            2.0
+                        ],
+                        [
+                            99.0,
+                            9.0
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            101.0,
+                            4.0
+                        ]
+                    ],
+                    "timestamp": 1792786957300,
+                    "datetime": "2026-10-23T20:22:37.300Z",
+                    "nonce": 120
+                },
+                "disabledGO": "go's ApplyOrderBookSnapshot (go/v4/exchange_ws_cache.go) replays the buffered deltas through BaseExchange.HandleBookDeltas, which calls the base HandleBookDelta stub instead of mexc's, so no buffered delta is applied on top of the snapshot - a go base dispatch gap, also on master, for every venue that overrides handleBookDelta but not handleBookDeltas",
+                "disabledPHP": "the static-tests job sets up php without ext-protobuf, only the live job loads it",
+                "disabledJava": "same protobuf gap the exchange-level skipJava entry already records",
+                "disabledRS": "the rust base has no protobuf decoder"
+            }
         ]
     }
 }
