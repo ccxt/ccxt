@@ -401795,6 +401795,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
                     'Insufficient spot balance asset': _base_errors_js__rspack_import_1.InsufficientFunds,
                     'Insufficient balance for withdrawal': _base_errors_js__rspack_import_1.InsufficientFunds,
                     'Insufficient balance for token transfer': _base_errors_js__rspack_import_1.InsufficientFunds,
+                    'Insufficient delegatable balance for priority order': _base_errors_js__rspack_import_1.InsufficientFunds,
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': _base_errors_js__rspack_import_1.InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': _base_errors_js__rspack_import_1.OrderNotFound,
                     'Too many cumulative requests sent': _base_errors_js__rspack_import_1.RateLimitExceeded
@@ -403791,6 +403792,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @name hyperliquid#createOrder
      * @description create a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -403805,6 +403807,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
      * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
      * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
      * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
@@ -403981,8 +403984,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async createOrders(orders, params = {}) {
         if (this.markets === undefined) {
@@ -404140,11 +404145,13 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             'stopPrice',
             'stopLossPrice',
             'takeProfitPrice',
-            'timeInForce'
+            'timeInForce',
+            'priorityFee'
         ]);
         const nonce = this.incrementingNonce();
         const orderReq = [];
         let grouping = 'na';
+        let priorityFee = this.safeInteger(params, 'priorityFee');
         for(let i = 0; i < ordersLength; i++){
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
@@ -404155,6 +404162,13 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             let amount = this.safeString(rawOrder, 'amount');
             const price = this.safeString(rawOrder, 'price');
             let orderParams = this.safeDict(rawOrder, 'params', {});
+            const orderPriorityFee = this.safeInteger(orderParams, 'priorityFee');
+            if (orderPriorityFee !== undefined) {
+                if (priorityFee !== undefined && priorityFee !== orderPriorityFee) {
+                    throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' createOrders() all orders must use the same priorityFee, it is applied to the whole request');
+                }
+                priorityFee = orderPriorityFee;
+            }
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
             orderParams['slippage'] = slippage;
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
@@ -404216,10 +404230,37 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams(params2, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress(vaultAddress);
+        let groupingValue = grouping;
+        if (priorityFee !== undefined) {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if (grouping !== 'na') {
+                throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders');
+            }
+            let allIoc = true;
+            let allPostOnly = true;
+            for(let i = 0; i < orderReq.length; i++){
+                const builtOrder = this.safeDict(orderReq, i, {});
+                const builtOrderType = this.safeDict(builtOrder, 't', {});
+                const builtOrderLimit = this.safeDict(builtOrderType, 'limit', {});
+                const builtOrderTif = this.safeString(builtOrderLimit, 'tif');
+                if (builtOrderTif !== 'Ioc') {
+                    allIoc = false;
+                }
+                if (builtOrderTif !== 'Alo' || this.safeBool(builtOrder, 'r', false)) {
+                    allPostOnly = false;
+                }
+            }
+            if (!allIoc && !allPostOnly) {
+                throw new _base_errors_js__rspack_import_1.InvalidOrder(this.id + ' createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only');
+            }
+            groupingValue = {
+                'p': priorityFee
+            };
+        }
         const orderAction = {
             'type': 'order',
             'orders': orderReq,
-            'grouping': grouping
+            'grouping': groupingValue
         };
         if (this.safeBool(this.options, 'approvedBuilderFee', false)) {
             const builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6';
