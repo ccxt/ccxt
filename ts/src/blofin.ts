@@ -3784,11 +3784,12 @@ export default class blofin extends Exchange {
         } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
+            const nonce = this.uuid ();
             const signedHeaders: Dict = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-PASSPHRASE': this.password,
                 'ACCESS-TIMESTAMP': timestamp,
-                'ACCESS-NONCE': timestamp,
+                'ACCESS-NONCE': nonce,
             };
             let sign_body = '';
             let signedBody: Str = undefined;
@@ -3805,7 +3806,7 @@ export default class blofin extends Exchange {
                 }
                 signedHeaders['Content-Type'] = 'application/json';
             }
-            const auth = request + method + timestamp + timestamp + sign_body;
+            const auth = request + method + timestamp + nonce + sign_body;
             const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
             signedHeaders['ACCESS-SIGN'] = signature;
             const bodyResolved: Str = signedBody;
