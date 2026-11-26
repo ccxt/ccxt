@@ -3036,12 +3036,9 @@ public class BaseExchange {
             Map<String, Object> costMap  = new HashMap<>();
             costMap.put("cost", cost);
 
-            // try {
-            return (CompletableFuture<T>) this.fetch2(path, api, method, parameters, costMap);
-                // return CompletableFuture.completedFuture(res);
-            // } catch (Exception e) {
-            //     // throw e;
-            // }
+            // route through request () like the ts abstract classes do, so exchange overrides of
+            // request () (session renewal, retries, validateServerSsl toggles, ...) apply to implicit endpoints too
+            return (CompletableFuture<T>) (CompletableFuture<?>) this.request(path, api, method, parameters, costMap);
 
         }
 

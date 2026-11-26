@@ -365,6 +365,62 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "trailing percent order with an activation price",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.17,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "trailingTriggerPrice": 106.37
+                    }
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "trailingStop",
+                        "data": {
+                            "oid": 617115922914
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "oid": 617115922914,
+                        "status": "open"
+                    },
+                    "id": "617115922914",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
             }
         ],
         "createOrderWithTakeProfitAndStopLoss": [
@@ -1259,6 +1315,145 @@
                         "stopPrice": 0.6,
                         "takeProfitPrice": null,
                         "stopLossPrice": 0.6
+                    }
+                ]
+            },
+            {
+                "description": "trailing stop orders, waiting for activation and tracking",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "SOL",
+                        "side": "A",
+                        "limitPx": "90.947",
+                        "sz": "0.17",
+                        "oid": 617115922914,
+                        "timestamp": 1795678479780,
+                        "triggerCondition": "Activation above 106.37, retracement 5%, best waiting",
+                        "isTrigger": true,
+                        "triggerPx": "0.0",
+                        "children": [],
+                        "isPositionTpsl": false,
+                        "reduceOnly": false,
+                        "orderType": "Trailing Stop Market",
+                        "origSz": "0.17",
+                        "tif": null,
+                        "cloid": null
+                    },
+                    {
+                        "coin": "SOL",
+                        "side": "A",
+                        "limitPx": "51.067",
+                        "sz": "0.17",
+                        "oid": 617115930246,
+                        "timestamp": 1795678481754,
+                        "triggerCondition": "Activation immediate, retracement 20%, best 70.925",
+                        "isTrigger": true,
+                        "triggerPx": "56.74",
+                        "children": [],
+                        "isPositionTpsl": false,
+                        "reduceOnly": false,
+                        "orderType": "Trailing Stop Market",
+                        "origSz": "0.17",
+                        "tif": null,
+                        "cloid": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "SOL",
+                            "side": "A",
+                            "limitPx": "90.947",
+                            "sz": "0.17",
+                            "oid": 617115922914,
+                            "timestamp": 1795678479780,
+                            "triggerCondition": "Activation above 106.37, retracement 5%, best waiting",
+                            "isTrigger": true,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Trailing Stop Market",
+                            "origSz": "0.17",
+                            "tif": null,
+                            "cloid": null
+                        },
+                        "id": "617115922914",
+                        "clientOrderId": null,
+                        "timestamp": 1795678479780,
+                        "datetime": "2026-11-26T07:34:39.780Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "SOL/USDC:USDC",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 90.947,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.17,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.17,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "coin": "SOL",
+                            "side": "A",
+                            "limitPx": "51.067",
+                            "sz": "0.17",
+                            "oid": 617115930246,
+                            "timestamp": 1795678481754,
+                            "triggerCondition": "Activation immediate, retracement 20%, best 70.925",
+                            "isTrigger": true,
+                            "triggerPx": "56.74",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Trailing Stop Market",
+                            "origSz": "0.17",
+                            "tif": null,
+                            "cloid": null
+                        },
+                        "id": "617115930246",
+                        "clientOrderId": null,
+                        "timestamp": 1795678481754,
+                        "datetime": "2026-11-26T07:34:41.754Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "SOL/USDC:USDC",
+                        "type": "market",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 51.067,
+                        "triggerPrice": 56.74,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.17,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.17,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": 56.74
                     }
                 ]
             }

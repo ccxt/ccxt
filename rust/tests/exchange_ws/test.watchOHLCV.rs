@@ -49,8 +49,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1664: bool = true;
-                while { if !__for_first_1664 { i += 1; } __for_first_1664 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1665: bool = true;
+                while { if !__for_first_1665 { i += 1; } __for_first_1665 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &Value::Int(i)), symbol.clone(), now.clone());
             }
             }

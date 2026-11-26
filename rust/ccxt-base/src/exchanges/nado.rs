@@ -445,8 +445,8 @@ impl crate::exchange::DerivedExchange for Nado {
         let mut balances: crate::value::List = self.safe_list_k(response, "spot_balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (balances.len() as i64) } {
             let mut rawBalance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -2018,8 +2018,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1033: bool = true;
-            while { if !__for_first_1033 { i += 1; } __for_first_1033 = false; i < (cancelledOrders.len() as i64) } {
+            let mut __for_first_1034: bool = true;
+            while { if !__for_first_1034 { i += 1; } __for_first_1034 = false; i < (cancelledOrders.len() as i64) } {
             let __ws_arg_2 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
@@ -2145,8 +2145,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1034: bool = true;
-            while { if !__for_first_1034 { i += 1; } __for_first_1034 = false; i < (cancelledOrders.len() as i64) } {
+            let mut __for_first_1035: bool = true;
+            while { if !__for_first_1035 { i += 1; } __for_first_1035 = false; i < (cancelledOrders.len() as i64) } {
             let __ws_arg_3 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".into()));
@@ -2185,8 +2185,8 @@ impl Nado {
         let mut productIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1035: bool = true;
-            while { if !__for_first_1035 { i += 1; } __for_first_1035 = false; i < (ids.len() as i64) } {
+            let mut __for_first_1036: bool = true;
+            while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (ids.len() as i64) } {
             productIds.push(Value::from(productId));
         }
         }
@@ -2598,8 +2598,8 @@ impl Nado {
         let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1036: bool = true;
-            while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1037: bool = true;
+            while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             if self.is_archive_order_closed(Value::from(&order)).as_bool() == Some(true) {
                 closedOrders.push(self.extend(Value::Map({
@@ -2776,8 +2776,8 @@ impl Nado {
         let mut trades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1037: bool = true;
-            while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (matches.len() as i64) } {
+            let mut __for_first_1038: bool = true;
+            while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (matches.len() as i64) } {
             let mut match_val: crate::value::Dict = matches.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut submissionIdx: Option<String> = self.safe_string_k_opt(&match_val, "submission_idx", &[]);
             let mut tx: crate::value::Dict = self.safe_dict(&txsBySubmission, submissionIdx.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -3002,8 +3002,8 @@ impl Nado {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1039: bool = true;
-            while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (events.len() as i64) } {
+            let mut __for_first_1040: bool = true;
+            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (events.len() as i64) } {
             let mut event: crate::value::Dict = events.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut submissionIdx: Option<String> = self.safe_string_k_opt(&event, "submission_idx", &[]);
             let mut tx: Value = Value::Map({
@@ -3012,8 +3012,8 @@ impl Nado {
             });
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1038: bool = true;
-                while { if !__for_first_1038 { j += 1; } __for_first_1038 = false; j < (txs.len() as i64) } {
+                let mut __for_first_1039: bool = true;
+                while { if !__for_first_1039 { j += 1; } __for_first_1039 = false; j < (txs.len() as i64) } {
                 let mut rawTx: Option<crate::value::Dict> = txs.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
                 let mut txSubmissionIdx: Option<String> = self.safe_string_k_opt(&rawTx, "submission_idx", &[]);
                 if (txSubmissionIdx == submissionIdx) {
@@ -3109,8 +3109,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (positions.len() as i64) } {
             let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut balance: crate::value::Dict = self.safe_dict_k(&position, "balance", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3127,8 +3127,8 @@ impl Nado {
             });
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1040: bool = true;
-                while { if !__for_first_1040 { j += 1; } __for_first_1040 = false; j < (products.len() as i64) } {
+                let mut __for_first_1041: bool = true;
+                while { if !__for_first_1041 { j += 1; } __for_first_1041 = false; j < (products.len() as i64) } {
                 let mut rawProduct: Option<crate::value::Dict> = products.get(j as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
                 let mut rawProductId: Option<String> = self.safe_string_k_opt(&rawProduct, "product_id", &[]);
                 if (rawProductId == productId) {
@@ -3261,8 +3261,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1042: bool = true;
-            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (pairs.len() as i64) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (pairs.len() as i64) } {
             let mut rawPair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut pairProductId: Option<String> = self.safe_string_k_opt(&rawPair, "product_id", &[]);
             if (pairProductId.is_some()) {
@@ -3276,8 +3276,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (assets.len() as i64) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (assets.len() as i64) } {
             let mut rawAsset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut assetProductId: Option<String> = self.safe_string_k_opt(&rawAsset, "product_id", &[]);
             if (assetProductId.is_some()) {
@@ -3291,8 +3291,8 @@ impl Nado {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (assets.len() as i64) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (assets.len() as i64) } {
             let mut rawAsset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut assetSymbol: Option<String> = self.safe_string_k_opt(&rawAsset, "symbol", &[]);
             let mut assetCode: Option<String> = self.safe_currency_code(self.remove_market_suffix(assetSymbol.as_deref()).map(Value::from).unwrap_or(Value::Null), None);
@@ -3316,8 +3316,8 @@ impl Nado {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (symbols.len() as i64) } {
             let mut market: crate::value::Dict = symbols.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "product_id", &[]);
             let mut pair: crate::value::Dict = self.safe_dict(&pairsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -3467,8 +3467,8 @@ impl Nado {
         let mut assets: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (assets.len() as i64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (assets.len() as i64) } {
             let mut currency: Value = self.safe_value(&assets, Value::Int(i), &[]);
             let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, currency.clone()).into_dict();
             let mut code: Option<String> = self.safe_string_k_opt(&parsed, "code", &[]);
@@ -3706,8 +3706,8 @@ impl Nado {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (fundingPayments.len() as i64) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (fundingPayments.len() as i64) } {
             result.push(self.parse_funding_history(fundingPayments.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)));
         }
         }
@@ -3768,8 +3768,8 @@ impl Nado {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (tickers.len() as i64) } {
             let mut ticker: Option<&str> = tickers.get(i as usize).and_then(Value::as_str);
             rates.push(self.safe_dict(&response, Value::from(ticker.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3893,8 +3893,8 @@ impl Nado {
         let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (tickers.len() as i64) } {
             let mut ticker: Option<&str> = tickers.get(i as usize).and_then(Value::as_str);
             interests.push(self.safe_dict(&response, Value::from(ticker.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4482,8 +4482,8 @@ impl Nado {
             let mut queryNames: Vec<Value> = Value::Array(byQuery.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1051: bool = true;
-                while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (queryNames.len() as i64) } {
+                let mut __for_first_1052: bool = true;
+                while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (queryNames.len() as i64) } {
                 let mut queryName: Option<&str> = queryNames.get(i as usize).and_then(Value::as_str);
                 if (in_op(&params, &Value::from(queryName.as_deref()))) {
                     let mut weights: crate::value::List = self.safe_list(&byQuery, Value::from(queryName.as_deref()), &[Value::from(vec![])]).into_list();
