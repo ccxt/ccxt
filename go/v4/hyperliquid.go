@@ -338,6 +338,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 					"stopLossPrice":              true,
 					"takeProfitPrice":            true,
 					"attachedStopLossTakeProfit": nil,
+					"trailing":                   true,
 				},
 			},
 			"swap": map[string]any{
@@ -2777,6 +2778,9 @@ func (this *Hyperliquid) setAgentAbstractionBody(ch chan AsyncResult[map[string]
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order] {
@@ -2798,19 +2802,114 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[Order], symbol stri
 			panic(r.Err)
 		}
 	}
+	var isTrailing bool = (this.SafeString2(params, "trailingPercent", "trailingAmount") != nil)
+	if isTrailing {
+
+		r1 := <-this.InitializeClientAsync()
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var trailingMarket map[string]any = this.Market(symbol)
+		var trailingRequest map[string]any = this.CreateTrailingStopRequest(symbol, side, amount, params)
+
+		r2 := <-this.PrivatePostExchange(trailingRequest)
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var trailingResponse map[string]any = r2.Value
+		//
+		//     {
+		//         "status": "ok",
+		//         "response": {
+		//             "type": "trailingStop",
+		//             "data": {
+		//                 "oid": 77738308
+		//             }
+		//         }
+		//     }
+		//
+		var trailingResponseObj map[string]any = SafeMapTyped(trailingResponse, "response")
+		var trailingData map[string]any = this.SafeDictMap(trailingResponseObj, "data", map[string]any{})
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(trailingData, map[string]any{
+			"status": "open",
+		}), trailingMarket)}
+		return nil
+	}
 	orderglobalParamsVariable := this.ParseCreateEditOrderArgs(nil, symbol, typeVar, side, amount, price, params)
 	var order map[string]any = orderglobalParamsVariable[0].(map[string]any)
 	var globalParams map[string]any = orderglobalParamsVariable[1].(map[string]any)
 
-	r1 := <-this.CreateOrdersAsync([]any{order}, globalParams)
-	if r1.Err != nil {
-		panic(r1.Err)
+	r3 := <-this.CreateOrdersAsync([]any{order}, globalParams)
+	if r3.Err != nil {
+		panic(r3.Err)
 	}
-	var orders []any = OrdersToList(r1.Value)
+	var orders []any = OrdersToList(r3.Value)
 	var created map[string]any = SafeMapTyped(orders, 0)
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(created)}
 	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#createTrailingStopRequest
+ * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+ * @param {string} symbol unified symbol of the swap market to create an order in
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+ * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+ * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} the request to be sent to the exchange endpoint
+ */
+func (this *Hyperliquid) CreateTrailingStopRequest(symbol string, side string, amount any, optionalArgs ...any) map[string]any {
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var market map[string]any = this.Market(symbol)
+	if !(market["swap"] == true) {
+		panic(NotSupported(this.Id + " createOrder() supports trailing orders for swap markets only"))
+	}
+	var trailingPercent *string = this.SafeString(params, "trailingPercent")
+	var trailingAmount *string = this.SafeString(params, "trailingAmount")
+	var trailingTriggerPrice *string = this.SafeString(params, "trailingTriggerPrice")
+	var retracement map[string]any = map[string]any{}
+	if trailingPercent != nil {
+		retracement["pct"] = *trailingPercent + "%"
+	} else {
+		retracement["px"] = this.PriceToPrecision(symbol, trailingAmount)
+	}
+	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var nonce int64 = this.IncrementingNonce()
+	// the action is hashed and signed, so the order of the keys must match the exchange's
+	var action map[string]any = map[string]any{
+		"type":         "trailingStop",
+		"asset":        this.ParseToInt(market["baseId"]),
+		"isBuy":        (strings.ToUpper(side) == "BUY"),
+		"sz":           this.AmountToPrecision(symbol, amount),
+		"reduceOnly":   this.SafeBool(paramsVault, "reduceOnly", false),
+		"retracement":  retracement,
+		"activationPx": nil,
+	}
+	if trailingTriggerPrice != nil {
+		action["activationPx"] = this.PriceToPrecision(symbol, trailingTriggerPrice)
+	}
+	var signature any = this.SignL1Action(action, nonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+	return request
 }
 
 /**
@@ -4740,12 +4839,17 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		return nil
 	}()
+	var orderTypeRaw string = *this.SafeStringLower(entry, "orderType", "")
+	// a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+	var isTrailing bool = (strings.Index(orderTypeRaw, "trailing") >= 0)
+	if isTrailing && Precise.StringEq(this.SafeString(entry, "triggerPx", "0"), "0") {
+		triggerPx = nil
+	}
 	// standalone stop / take-profit orders carry their trigger in triggerPx - surface it
 	// through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-	var orderTypeRaw string = *this.SafeStringLower(entry, "orderType", "")
 	var stopLossPrice any = nil
 	var takeProfitPrice any = nil
-	if !IsEqual(triggerPx, nil) {
+	if (!IsEqual(triggerPx, nil)) && !isTrailing {
 		if strings.Index(orderTypeRaw, "stop") >= 0 {
 			stopLossPrice = triggerPx
 		} else if strings.Index(orderTypeRaw, "take profit") >= 0 {
@@ -4803,8 +4907,9 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 }
 func (this *Hyperliquid) ParseOrderType(status *string) *string {
 	var statuses map[string]any = map[string]any{
-		"stop limit":  "limit",
-		"stop market": "market",
+		"stop limit":           "limit",
+		"stop market":          "market",
+		"trailing stop market": "market",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -7433,6 +7538,9 @@ func (this *Hyperliquid) FetchTrades(symbol string, options ...FetchTradesOption
  * @param {string} [params.slippage] the slippage for market order
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+ * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
