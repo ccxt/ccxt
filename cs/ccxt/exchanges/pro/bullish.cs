@@ -15,10 +15,15 @@ public partial class bullish : ccxt.bullish
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchOrderBook", true },
+                { "unWatchOrderBook", true },
                 { "watchOrders", true },
+                { "unWatchOrders", true },
                 { "watchTrades", true },
+                { "unWatchTrades", true },
                 { "watchPositions", true },
+                { "unWatchPositions", true },
                 { "watchMyTrades", true },
+                { "unWatchMyTrades", true },
                 { "watchBalance", true },
                 { "watchOHLCV", false },
             } },
@@ -106,6 +111,75 @@ public partial class bullish : ccxt.bullish
         return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name bullish#unsubscribePublic
+     * @description sends an unsubscribe command for one public topic and registers the pending unsubscription under the request id
+     * @param {string} url path of the public websocket endpoint the subscription was opened on
+     * @param {string} topic unified cache topic: trades, orderbook
+     * @param {string} messageHash message hash the subscription was opened with
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} request exchange-specific topic and symbol of the subscription
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async virtual Task<object> unsubscribePublic(object url, string? topic, string? messageHash, object symbol, object request = null, IDictionary<string, object> parameters = null)
+    {
+        request ??= new Dictionary<string, object>();
+        parameters ??= new Dictionary<string, object>();
+        string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "public");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " unsubscribePublic() has no public websocket url")) ;
+        }
+        string requestId = this.requestId().ToString();
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "type", "command" },
+            { "method", "unsubscribe" },
+            { "params", request },
+            { "id", requestId },
+        };
+        string unsubHash = ("unsubscribe::" + messageHash);
+        List<object> symbols = new List<object>() {symbol};
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", requestId },
+            { "topic", topic },
+            { "symbols", symbols },
+            { "subMessageHash", messageHash },
+            { "messageHash", unsubHash },
+        };
+        return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), unsubHash, this.deepExtend(message, parameters), requestId, subscription);
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "2",
+        //         "result": {
+        //             "responseCode": "200",
+        //             "responseCodeName": "OK",
+        //             "message": "Successfully unsubscribed (anonymousTrades BTCUSDC)"
+        //         }
+        //     }
+        //
+        string? subHash = this.safeString(subscription, "subMessageHash");
+        string? unsubHash = this.safeString(subscription, "messageHash");
+        bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
+        this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
+        this.cleanCache(subscription);
+        string? requestId = this.safeString(subscription, "id", "");
+        if (((requestId != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(requestId))))
+        {
+            ((IDictionary<string,object>)client.subscriptions).Remove(requestId);
+        }
+    }
+
     public async virtual Task<object> watchPrivate(object messageHash, object subscribeHash, object request = null, object parameters = null)
     {
         request ??= new Dictionary<string, object>();
@@ -126,6 +200,60 @@ public partial class bullish : ccxt.bullish
         };
         object result = await this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash);
         return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bullish#unsubscribePrivate
+     * @description sends an unsubscribe command for one private topic and registers the pending unsubscription under the request id
+     * @param {string} topic unified cache topic: orders, myTrades, positions
+     * @param {string} subscribeHash hash the subscription was opened with, per-symbol message hashes start with it
+     * @param {object} request exchange-specific topic of the subscription
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+     * @returns {any} status of the unwatch request
+     */
+    public async virtual Task<object> unsubscribePrivate(string topic, string subscribeHash, object request = null, object parameters = null)
+    {
+        request ??= new Dictionary<string, object>();
+        parameters ??= new Dictionary<string, object>();
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null));
+        string? token = await this.handleToken();
+        Dictionary<string, object> cookies = new Dictionary<string, object>() {
+            { "JWT_COOKIE", token },
+        };
+        ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null))["cookies"] = cookies;
+        string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
+        object paramsOmitted = parameters;
+        object requestParams = request;
+        if ((tradingAccountId != null))
+        {
+            Dictionary<string, object> accountRequest = new Dictionary<string, object>() {
+                { "tradingAccountId", tradingAccountId },
+            };
+            paramsOmitted = this.omit(parameters, "tradingAccountId");
+            requestParams = this.extend(request, accountRequest);
+        }
+        string requestId = this.requestId().ToString();
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "jsonrpc", "2.0" },
+            { "type", "command" },
+            { "method", "unsubscribe" },
+            { "params", requestParams },
+            { "id", requestId },
+        };
+        string unsubHash = ("unsubscribe::" + subscribeHash);
+        // the acknowledgement is matched by the request id, so the pending unsubscription is stored under it
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", requestId },
+            { "topic", topic },
+            { "subMessageHash", subscribeHash },
+            { "subHashIsPrefix", true },
+            { "messageHash", unsubHash },
+        };
+        return await this.watch(url, unsubHash, this.deepExtend(message, paramsOmitted), requestId, subscription);
     }
 
     /**
@@ -160,6 +288,34 @@ public partial class bullish : ccxt.bullish
             limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+    }
+
+    /**
+     * @method
+     * @name bullish#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-trades/operation-send-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = ("trades::" + marketSymbol);
+        string url = "/trading-api/v1/market-data/trades";
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "topic", "anonymousTrades" },
+            { "symbol", marketId },
+        };
+        return await this.unsubscribePublic(url, "trades", messageHash, marketSymbol, request, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -332,6 +488,34 @@ public partial class bullish : ccxt.bullish
         return (orderbook as IOrderBook).limit().Copy();
     }
 
+    /**
+     * @method
+     * @name bullish#unWatchOrderBook
+     * @description unsubscribes from the orderbook channel
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-mkt-data-orderbook/operation-send-unsubscribe
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol", "");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = ("orderbook::" + marketSymbol);
+        string url = "/trading-api/v1/market-data/orderbook";
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "topic", "l2Orderbook" },
+            { "symbol", marketId },
+        };
+        return await this.unsubscribePublic(url, "orderbook", messageHash, marketSymbol, request, parameters);
+    }
+
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
     {
         //
@@ -446,6 +630,29 @@ public partial class bullish : ccxt.bullish
             limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+    }
+
+    /**
+     * @method
+     * @name bullish#unWatchOrders
+     * @description unsubscribes from the orders channel, the subscription is account-wide so all symbols are unsubscribed
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+     * @param {string} [symbol] not used by bullish unWatchOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchOrders(string? symbol = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "topic", "orders" },
+        };
+        return await this.unsubscribePrivate("orders", "orders", request, parameters);
     }
 
     public virtual void handleOrders(WebSocketClient client, Dictionary<string, object> message)
@@ -579,6 +786,29 @@ public partial class bullish : ccxt.bullish
             limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+    }
+
+    /**
+     * @method
+     * @name bullish#unWatchMyTrades
+     * @description unsubscribes from the user trades channel, the subscription is account-wide so all symbols are unsubscribed
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+     * @param {string} [symbol] not used by bullish unWatchMyTrades
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchMyTrades(string? symbol = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "topic", "trades" },
+        };
+        return await this.unsubscribePrivate("myTrades", "myTrades", request, parameters);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -818,6 +1048,29 @@ public partial class bullish : ccxt.bullish
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(positions), symbolsNormalized, since, limit, true));
     }
 
+    /**
+     * @method
+     * @name bullish#unWatchPositions
+     * @description unsubscribes from the positions channel, the subscription is account-wide so all symbols are unsubscribed
+     * @see https://docs.exchange.bullish.com/websocket/api/ws-private-data/operation-send-unsubscribe
+     * @param {string[]} [symbols] not used by bullish unWatchPositions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tradingAccountId] the trading account id the subscription was opened with
+     * @returns {any} status of the unwatch request
+     */
+    public async override Task<object> unWatchPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "topic", "derivativesPositionsV2" },
+        };
+        return await this.unsubscribePrivate("positions", "positions", request, parameters);
+    }
+
     public virtual void handlePositions(WebSocketClient client, Dictionary<string, object> message)
     {
         // exchange does not return messages for sandbox mode
@@ -889,10 +1142,52 @@ public partial class bullish : ccxt.bullish
         }
     }
 
+    public virtual void handleUnSubscriptionError(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": "1",
+        //         "error": {
+        //             "code": "-32602",
+        //             "errorCode": "29013",
+        //             "errorCodeName": "'abcde' is not a valid topic"
+        //         }
+        //     }
+        //
+        string? messageId = this.safeString(message, "id");
+        if (((messageId == null)) || !(((messageId != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageId)))))
+        {
+            return;
+        }
+        IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageId);
+        if (((subscription == null)) || !(this.safeBool(subscription, "unsubscribe", false) == true))
+        {
+            return;
+        }
+        // the subscription stays active, only the pending unsubscription is dropped and rejected
+        ((IDictionary<string,object>)client.subscriptions).Remove(messageId);
+        string? unsubHash = this.safeString(subscription, "messageHash");
+        IDictionary<string, object> errorResponse = this.safeDict(message, "error", new Dictionary<string, object>() {});
+        string feedback = ((this.id + " ") + this.json(errorResponse));
+        try
+        {
+            string? errorCode = this.safeString(errorResponse, "errorCode");
+            string? errorCodeName = this.safeString(errorResponse, "errorCodeName");
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCodeName, feedback);
+            throw new ExchangeError (feedback) ;
+        } catch(Exception e)
+        {
+            client.reject(e, unsubHash);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         string? dataType = this.safeString(message, "dataType");
         IDictionary<string, object> result = this.safeDict(message, "result");
+        IDictionary<string, object> errorResponse = this.safeDict(message, "error");
         if ((result != null))
         {
             string? response = this.safeString(result, "message");
@@ -900,6 +1195,18 @@ public partial class bullish : ccxt.bullish
             {
                 this.handlePong(client, (Dictionary<string, object>)message);
             }
+            string? messageId = this.safeString(message, "id");
+            if (((messageId != null)) && (((messageId != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageId)))))
+            {
+                IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageId);
+                if (((subscription != null)) && (this.safeBool(subscription, "unsubscribe", false) == true))
+                {
+                    this.handleUnSubscription(client, subscription);
+                }
+            }
+        } else if ((errorResponse != null))
+        {
+            this.handleUnSubscriptionError(client, message);
         } else if ((dataType != null))
         {
             if (dataType == "V1TAAnonymousTradeUpdate")
