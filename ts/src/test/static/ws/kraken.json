@@ -1752,6 +1752,268 @@
                 ],
                 "parsedResponse": true
             }
+        ],
+        "createOrderWs": [
+            {
+                "description": "limit order with exchange specific params ccxt does not unify (sender_sub_id, stp_type) sent inside params",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.01,
+                    60000,
+                    {
+                        "clientOrderId": "b2m-order-1",
+                        "sender_sub_id": "client-1",
+                        "stp_type": "cancel_both"
+                    }
+                ],
+                "url": "wss://ws-auth.kraken.com/v2",
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "token": "testToken",
+                        "expires": 900
+                    }
+                },
+                "messages": [
+                    {
+                        "method": "add_order",
+                        "req_id": 1,
+                        "result": {
+                            "order_id": "OXM2QD-EALR2-YBAVEU",
+                            "cl_ord_id": "b2m-order-1"
+                        },
+                        "success": true,
+                        "time_in": "2026-11-26T10:12:13.876173Z",
+                        "time_out": "2026-11-26T10:12:13.890137Z"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "add_order",
+                        "params": {
+                            "order_type": "limit",
+                            "side": "buy",
+                            "order_qty": 0.01,
+                            "symbol": "BTC/USD",
+                            "token": "testToken",
+                            "limit_price": 60000,
+                            "cl_ord_id": "b2m-order-1",
+                            "sender_sub_id": "client-1",
+                            "stp_type": "cancel_both"
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": {
+                    "id": "OXM2QD-EALR2-YBAVEU",
+                    "clientOrderId": "b2m-order-1",
+                    "info": {
+                        "order_id": "OXM2QD-EALR2-YBAVEU",
+                        "cl_ord_id": "b2m-order-1"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "stop loss order merging the exchange specific triggers params with the unified trigger price",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "sell",
+                    0.01,
+                    null,
+                    {
+                        "stopLossPrice": 50000,
+                        "triggers": {
+                            "reference": "index"
+                        }
+                    }
+                ],
+                "url": "wss://ws-auth.kraken.com/v2",
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "token": "testToken",
+                        "expires": 900
+                    }
+                },
+                "messages": [
+                    {
+                        "method": "add_order",
+                        "req_id": 1,
+                        "result": {
+                            "order_id": "OXM2QD-EALR2-YBAVEU"
+                        },
+                        "success": true,
+                        "time_in": "2026-11-26T10:12:13.876173Z",
+                        "time_out": "2026-11-26T10:12:13.890137Z"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "add_order",
+                        "params": {
+                            "order_type": "stop-loss",
+                            "side": "sell",
+                            "order_qty": 0.01,
+                            "symbol": "BTC/USD",
+                            "token": "testToken",
+                            "triggers": {
+                                "price": 50000,
+                                "reference": "index"
+                            }
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": {
+                    "id": "OXM2QD-EALR2-YBAVEU",
+                    "clientOrderId": null,
+                    "info": {
+                        "order_id": "OXM2QD-EALR2-YBAVEU"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "editOrderWs": [
+            {
+                "description": "amend with exchange specific params ccxt does not unify (deadline) sent inside params",
+                "input": [
+                    "OGL7HR-SWFO4-NRQTHO",
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.02,
+                    61000,
+                    {
+                        "deadline": "2026-11-26T10:12:18.000Z"
+                    }
+                ],
+                "url": "wss://ws-auth.kraken.com/v2",
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "token": "testToken",
+                        "expires": 900
+                    }
+                },
+                "messages": [
+                    {
+                        "method": "amend_order",
+                        "req_id": 1,
+                        "result": {
+                            "amend_id": "TYDLSQ-OYNYU-3MNRER",
+                            "order_id": "OGL7HR-SWFO4-NRQTHO"
+                        },
+                        "success": true,
+                        "time_in": "2026-11-26T10:12:13.876173Z",
+                        "time_out": "2026-11-26T10:12:13.890137Z"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "amend_order",
+                        "params": {
+                            "order_id": "OGL7HR-SWFO4-NRQTHO",
+                            "order_qty": 0.02,
+                            "token": "testToken",
+                            "limit_price": 61000,
+                            "deadline": "2026-11-26T10:12:18.000Z"
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": {
+                    "id": "OGL7HR-SWFO4-NRQTHO",
+                    "clientOrderId": null,
+                    "info": {
+                        "amend_id": "TYDLSQ-OYNYU-3MNRER",
+                        "order_id": "OGL7HR-SWFO4-NRQTHO"
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
         ]
     }
 }
