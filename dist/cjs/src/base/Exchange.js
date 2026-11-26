@@ -6265,7 +6265,7 @@ class BaseExchange {
         for (let i = 0; i < oldest; i++) {
             const trade = this.safeDict(trades, i, {});
             const ts = this.safeInteger(trade, 'timestamp');
-            const price = trade['price'];
+            const price = this.safeNumber(trade, 'price');
             if ((ts === undefined) || (price === undefined)) {
                 continue;
             }
@@ -7456,11 +7456,11 @@ class BaseExchange {
     }
     handleTriggerPricesAndParams(symbol, params, omitParams = true) {
         //
-        const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr = undefined;
-        const stopLossPrice = this.safeString(params, 'stopLossPrice');
+        const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         let stopLossPriceStr = undefined;
-        const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
+        const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
         let takeProfitPriceStr = undefined;
         //
         const keysToOmit = [];

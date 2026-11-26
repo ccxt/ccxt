@@ -10447,7 +10447,7 @@ export default class binance extends Exchange {
             let toId = this.convertTypeToAccount(toAccount).toUpperCase();
             let isolatedSymbol = undefined;
             if (market !== undefined) {
-                isolatedSymbol = market['id'];
+                isolatedSymbol = this.safeString(market, 'id');
             }
             if (fromId === 'ISOLATED') {
                 if (symbol === undefined) {

@@ -341,7 +341,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction settlement structures
      */
     fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionSettlement[]>;
-    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: Dict | undefined): PredictionOrder;
+    safePredictionOrder(outcomeOrder: Dict, outcomeObj?: Market): PredictionOrder;
     safePredictionTrade(trade: Dict, outcomeObj?: Dict | undefined): PredictionTrade;
     safePredictionTicker(ticker: Dict, outcomeObj?: Dict | undefined): PredictionTicker;
     safePredictionPosition(position: Dict): PredictionPosition;
@@ -363,7 +363,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parsePredictionTrades(trades: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: Dict): PredictionTrade[];
+    parsePredictionTrades(trades: any[], outcomeObj?: Market, since?: Int, limit?: Int, params?: Dict): PredictionTrade[];
     /**
      * @ignore
      * @method
@@ -376,7 +376,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parsePredictionOrders(orders: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: Dict): PredictionOrder[];
+    parsePredictionOrders(orders: any[], outcomeObj?: Market, since?: Int, limit?: Int, params?: Dict): PredictionOrder[];
     /**
      * @ignore
      * @method

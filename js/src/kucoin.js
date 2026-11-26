@@ -1962,8 +1962,7 @@ export default class kucoin extends Exchange {
             let symbol = base + '/' + quote + ':' + settle;
             let type = 'swap';
             if (future) {
-                const expirySuffix = '-' + this.yymmdd(expiry, '');
-                symbol = symbol + expirySuffix;
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry, '');
                 type = 'future';
             }
             const inverse = this.safeBool(market, 'isInverse');
@@ -4416,8 +4415,8 @@ export default class kucoin extends Exchange {
         if ((postOnly) && (hidden !== undefined)) {
             throw new BadRequest(this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
-        const iceberg = this.safeValue(paramsOmitted, 'iceberg');
-        if ((iceberg !== undefined) && (iceberg !== false)) {
+        const iceberg = this.safeBool(paramsOmitted, 'iceberg', false);
+        if (iceberg) {
             const visibleSize = this.safeString(paramsOmitted, 'visibleSize');
             if (visibleSize === undefined) {
                 throw new ArgumentsRequired(this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
@@ -5410,10 +5409,10 @@ export default class kucoin extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
         }
-        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
         let response;
-        if ((trigger !== undefined) && (trigger !== false)) {
+        if (trigger) {
             response = await this.futuresPrivateDeleteStopOrders(this.extend(request, paramsOmitted));
         }
         else {
@@ -5538,7 +5537,7 @@ export default class kucoin extends Exchange {
         }
         else {
             const market = this.market(symbol);
-            marketType = market['type'];
+            marketType = this.safeString(market, 'type');
         }
         if (uta) {
             paramsRequest = this.omit(paramsRequest, 'uta');

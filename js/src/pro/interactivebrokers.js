@@ -622,16 +622,19 @@ export default class interactivebrokers extends interactivebrokersRest {
         let lastHistoryTimestamp = undefined;
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseOHLCV(data[i], market);
-            let timestamp = parsed[0];
-            if (timestamp === undefined) {
+            if (this.safeInteger(parsed, 0) === undefined) {
                 continue;
             }
+            let timestamp = this.safeInteger(parsed, 0, 0);
             if (timestamp < 100000000000) {
                 timestamp = timestamp * 1000; // seconds
                 parsed[0] = timestamp;
             }
             bars.push(parsed);
-            if ((lastHistoryTimestamp === undefined) || (timestamp > lastHistoryTimestamp)) {
+            if (lastHistoryTimestamp === undefined) {
+                lastHistoryTimestamp = timestamp;
+            }
+            else if (timestamp > lastHistoryTimestamp) {
                 lastHistoryTimestamp = timestamp;
             }
         }

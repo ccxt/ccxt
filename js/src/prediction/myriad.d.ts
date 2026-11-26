@@ -433,7 +433,7 @@ export default class myriad extends Exchange {
     fetchBalance(params?: Dict): Promise<Balances>;
     hexToDecimalString(hexValue: string): Str;
     fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
-    parseTradeTx(txHash: Str, quote: Dict, market: Dict, side: string): PredictionOrder;
+    parseTradeTx(txHash: Str, quote: Dict, market: Market, side: string): PredictionOrder;
     /**
      * @ignore
      * @method

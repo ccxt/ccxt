@@ -1113,9 +1113,7 @@ class onetrading extends onetrading$1["default"] {
             }
         }
         const marketTimeframes = this.safeDict(subscription, marketId, {});
-        if (timeframe !== undefined) {
-            marketTimeframes[timeframe] = true;
-        }
+        marketTimeframes[timeframe] = true;
         subscription[marketId] = marketTimeframes;
         const properties = [];
         const marketIds = Object.keys(subscription);

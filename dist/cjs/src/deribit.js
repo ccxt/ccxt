@@ -3311,8 +3311,7 @@ class deribit extends deribit$1["default"] {
         const duration = this.parseTimeframe(eachItemDuration) * 1000;
         const now = this.milliseconds();
         const month = 30 * 24 * 60 * 60 * 1000;
-        const defaultSince = now - month;
-        const sinceResolved = (since === undefined) ? defaultSince : since;
+        const sinceResolved = (since === undefined) ? (now - month) : since;
         let time = now;
         if (since !== undefined) {
             time = this.parseToInt(since + month);

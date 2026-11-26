@@ -601,9 +601,10 @@ class bitget extends bitget$1["default"] {
             messageHash = 'kline' + symbol;
         }
         else {
-            channel = 'candle' + interval;
+            const intervalValue = this.safeString(timeframes, timeframe, '');
+            channel = 'candle' + intervalValue;
             market['id'];
-            messageHash = 'candles:' + interval;
+            messageHash = 'candles:' + intervalValue;
         }
         return await this.unWatchChannel(symbol, channel, messageHash, 'watchOHLCV', paramsRequest);
     }

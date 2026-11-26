@@ -1531,7 +1531,8 @@ export default class dydx extends Exchange {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1642,7 +1643,8 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1712,7 +1714,8 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1990,7 +1993,8 @@ export default class dydx extends Exchange {
         }
         const txFee = await this.estimateTxFee(signingPayload, '', account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2176,7 +2180,8 @@ export default class dydx extends Exchange {
         };
         const txFee = await this.estimateTxFee(signingPayload, tag, account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };

@@ -10442,7 +10442,7 @@ class binance extends binance$1["default"] {
             let toId = this.convertTypeToAccount(toAccount).toUpperCase();
             let isolatedSymbol = undefined;
             if (market !== undefined) {
-                isolatedSymbol = market['id'];
+                isolatedSymbol = this.safeString(market, 'id');
             }
             if (fromId === 'ISOLATED') {
                 if (symbol === undefined) {

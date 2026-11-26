@@ -1495,10 +1495,10 @@ export default class bittrade extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (side === 'sell') {
-                feeCurrency = marketResolved['quote'];
+                feeCurrency = this.safeString(marketResolved, 'quote');
             }
             else {
-                feeCurrency = marketResolved['base'];
+                feeCurrency = this.safeString(marketResolved, 'base');
             }
             fee = {
                 'cost': feeCost,

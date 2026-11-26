@@ -955,7 +955,7 @@ export declare class BaseExchange {
     currency(code: Str): CurrencyInterface;
     market(symbol: Str): MarketInterface;
     createExpiredOptionMarket(symbol: string): MarketInterface;
-    isLeveragedCurrency(currencyCode: any, checkBaseCoin?: Bool, existingCurrencies?: NullableDict): boolean;
+    isLeveragedCurrency(currencyCode: string, checkBaseCoin?: Bool, existingCurrencies?: NullableDict): boolean;
     costToPrecision(symbol: Str, cost: any): Str;
     priceToPrecision(symbol: Str, price: any): Str;
     amountToPrecision(symbol: Str, amount: any): Str;

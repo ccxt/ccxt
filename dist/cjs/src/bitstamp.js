@@ -2169,7 +2169,7 @@ class bitstamp extends bitstamp$1["default"] {
         }
         else if (currency !== undefined) {
             amount = this.safeString(transaction, currency['id']);
-            feeCurrency = currency['code'];
+            feeCurrency = this.safeString(currency, 'code');
         }
         else if ((code !== undefined) && (currencyId !== undefined)) {
             amount = this.safeString(transaction, currencyId);

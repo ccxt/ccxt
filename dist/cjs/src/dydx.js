@@ -1530,7 +1530,8 @@ class dydx extends dydx$1["default"] {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1641,7 +1642,8 @@ class dydx extends dydx$1["default"] {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1711,7 +1713,8 @@ class dydx extends dydx$1["default"] {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1989,7 +1992,8 @@ class dydx extends dydx$1["default"] {
         }
         const txFee = await this.estimateTxFee(signingPayload, '', account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2175,7 +2179,8 @@ class dydx extends dydx$1["default"] {
         };
         const txFee = await this.estimateTxFee(signingPayload, tag, account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
+        const privateKey = this.safeString(credentials, 'privateKey', '');
+        const signedTx = this.signDydxTx(privateKey, signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };

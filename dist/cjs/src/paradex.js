@@ -3387,7 +3387,8 @@ class paradex extends paradex$1["default"] {
         let leverage = leverageOption;
         if (leverage === undefined) {
             // the endpoint always sets the leverage too, keep the current one instead of resetting it
-            const currentLeverage = await this.fetchLeverage(symbol);
+            const leverageSymbol = this.safeString(market, 'symbol', '');
+            const currentLeverage = await this.fetchLeverage(leverageSymbol);
             leverage = this.safeInteger(currentLeverage, 'longLeverage');
             if (leverage === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a params.leverage argument, the current leverage of ' + market['symbol'] + ' could not be fetched');

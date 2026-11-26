@@ -2199,11 +2199,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (address === undefined) {
             return undefined;
         }
-        let normalized = address;
-        if (normalized.startsWith('0x') || normalized.startsWith('0X')) {
-            normalized = normalized.slice(2);
+        if (address.startsWith('0x') || address.startsWith('0X')) {
+            return address.slice(2).toLowerCase();
         }
-        return normalized.toLowerCase();
+        return address.toLowerCase();
     }
     sign(path, api = ['public'], method = 'POST', params = {}) {
         const apiGroup = api[0];

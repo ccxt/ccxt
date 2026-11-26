@@ -4841,7 +4841,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             const record = records[i];
             if (this.safeString(record, 'type') === 'vaultDeposit') {
                 const delta = this.safeDict(record, 'delta', {});
-                if (this.safeString(delta, 'vault', '') === '0x' + vaultAddress) {
+                const deltaVault = this.safeString(delta, 'vault', '');
+                if (deltaVault === '0x' + vaultAddress) {
                     deposits.push(record);
                 }
             }
@@ -4907,7 +4908,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             const record = records[i];
             if (this.safeString(record, 'type') === 'vaultWithdraw') {
                 const delta = this.safeDict(record, 'delta', {});
-                if (this.safeString(delta, 'vault', '') === '0x' + vaultAddress) {
+                const deltaVault = this.safeString(delta, 'vault', '');
+                if (deltaVault === '0x' + vaultAddress) {
                     withdrawals.push(record);
                 }
             }

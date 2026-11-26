@@ -2250,7 +2250,7 @@ class bybit extends bybit$1["default"] {
             const expiryDatetime = this.iso8601(expiry);
             symbol = base + '/' + quote + ':' + settle;
             if (expiry !== undefined) {
-                symbol = symbol + '-' + this.yymmdd(expiry);
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
             const costLimits = {
@@ -3401,23 +3401,28 @@ class bybit extends bybit$1["default"] {
             if (this.safeBool(marketResolved, 'spot', false)) {
                 if (Precise["default"].stringGt(feeCostString, '0')) {
                     if (side === 'buy') {
-                        feeCurrencyCode = marketResolved['base'];
+                        feeCurrencyCode = this.safeString(marketResolved, 'base');
                     }
                     else {
-                        feeCurrencyCode = marketResolved['quote'];
+                        feeCurrencyCode = this.safeString(marketResolved, 'quote');
                     }
                 }
                 else {
                     if (side === 'buy') {
-                        feeCurrencyCode = marketResolved['quote'];
+                        feeCurrencyCode = this.safeString(marketResolved, 'quote');
                     }
                     else {
-                        feeCurrencyCode = marketResolved['base'];
+                        feeCurrencyCode = this.safeString(marketResolved, 'base');
                     }
                 }
             }
             else {
-                feeCurrencyCode = (this.safeBool(marketResolved, 'inverse', false)) ? marketResolved['base'] : marketResolved['settle'];
+                if (this.safeBool(marketResolved, 'inverse', false)) {
+                    feeCurrencyCode = this.safeString(marketResolved, 'base');
+                }
+                else {
+                    feeCurrencyCode = this.safeString(marketResolved, 'settle');
+                }
             }
             fee = {
                 'cost': feeCostString,
@@ -6127,7 +6132,7 @@ class bybit extends bybit$1["default"] {
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
-        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency['code'], networkCode, indexedAddresses, true);
+        const selectedNetworkCode = this.selectNetworkKeyFromNetworks(this.safeString(currency, 'code', ''), networkCode, indexedAddresses, true);
         return this.safeDict(indexedAddresses, selectedNetworkCode);
     }
     /**

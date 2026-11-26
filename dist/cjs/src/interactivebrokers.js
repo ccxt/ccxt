@@ -23,7 +23,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             'name': 'Interactive Brokers',
             'countries': ['US'],
             'version': 'v1',
-            'rateLimit': 100 * 1.2, // the client portal gateway allows ~10 requests per second
+            'rateLimit': 120, // the client portal gateway allows ~10 requests per second
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -1333,8 +1333,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         const results = await Promise.all(promises);
         const markets = this.arraysConcat(results);
-        // toArray is the identity on a list, it types the result as a list for the statically typed ports
-        return this.toArray(this.ibkrDisambiguateContractSymbols(markets));
+        return this.ibkrDisambiguateContractSymbols(markets);
     }
     /**
      * @method
@@ -2554,9 +2553,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         if (isContract) {
             settleId = quoteId;
             settle = quote;
-            symbol = symbol + ':' + settle;
+            symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle;
             if (isFuture) {
-                symbol = symbol + '-' + this.yymmdd(expiry);
+                symbol = base + '.' + microNanoPrefix + listingExchange + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry);
             }
         }
         let marketType = 'spot';

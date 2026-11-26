@@ -756,7 +756,8 @@ class sxbet extends sxbet$1["default"] {
      */
     async fetchSxbetProxy() {
         const response = await this.sxbetPrivateGetUserProxy();
-        return this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
+        return data;
     }
     /**
      * @method
@@ -1801,7 +1802,8 @@ class sxbet extends sxbet$1["default"] {
     async fetchSxbetBookSnapshot(marketHash) {
         const request = { 'marketHash': marketHash };
         const response = await this.sxbetPublicGetOrderbookV3Snapshot(request);
-        return this.safeDict(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
+        return data;
     }
     /**
      * @method

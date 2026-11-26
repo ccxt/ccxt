@@ -2116,7 +2116,8 @@ class gate extends gate$1["default"] {
         const code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         let type = 'crypto';
-        if (this.isLeveragedCurrency(currencyId)) {
+        const leveragedId = this.safeString(rawCurrency, 'currency', '');
+        if (this.isLeveragedCurrency(leveragedId)) {
             type = 'leveraged';
         }
         const chains = this.safeList(rawCurrency, 'chains', []);
@@ -2458,9 +2459,8 @@ class gate extends gate$1["default"] {
         }
         const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork(code, paramsNetworkCode);
-        const chainsIndexedById = chainsIndexedByIdRaw;
-        const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedById, true);
-        return this.safeDict(chainsIndexedById, selectedNetworkIdOrCode);
+        const selectedNetworkIdOrCode = this.selectNetworkKeyFromNetworks(code, networkCode, chainsIndexedByIdRaw, true);
+        return this.safeDict(chainsIndexedByIdRaw, selectedNetworkIdOrCode);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -6060,7 +6060,7 @@ class gate extends gate$1["default"] {
             defaultSettle = 'usdt';
         }
         else {
-            defaultSettle = market['settle'];
+            defaultSettle = this.safeString(market, 'settle');
         }
         const settle = this.safeStringLower(params, 'settle', defaultSettle);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);

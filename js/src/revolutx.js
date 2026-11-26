@@ -549,7 +549,7 @@ export default class revolutx extends Exchange {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                marketIds.push(market['id']);
+                marketIds.push(this.safeString(market, 'id', ''));
             }
             request['symbols'] = marketIds.join(',');
         }

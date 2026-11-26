@@ -801,17 +801,11 @@ class apex extends apex$1["default"] {
     }
     async loadPositionsSnapshot(client, messageHash) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        const fetchFunctions = [
-            this.fetchPositions(),
-        ];
-        const promises = await Promise.all(fetchFunctions);
+        const positions = await this.fetchPositions();
         this.positions = new Cache.ArrayCacheBySymbolBySide();
         const cache = this.positions;
-        for (let i = 0; i < promises.length; i++) {
-            const positions = promises[i];
-            for (let ii = 0; ii < positions.length; ii++) {
-                cache.append(positions[ii]);
-            }
+        for (let i = 0; i < positions.length; i++) {
+            cache.append(positions[i]);
         }
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {

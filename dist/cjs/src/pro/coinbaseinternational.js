@@ -1397,7 +1397,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 this.handleAuthenticationMessage(client, message);
                 return;
             }
-            client.resolve(this.safeValue(message, 'result', message), requestId);
+            if ('result' in message) {
+                client.resolve(this.safeValue(message, 'result'), requestId);
+            }
+            else {
+                client.resolve(message, requestId);
+            }
         }
     }
     handleAuthenticationMessage(client, message) {
