@@ -157,6 +157,7 @@
                     "datetime": "2026-10-23T20:22:37.300Z",
                     "nonce": 120
                 },
+                "disabledGO": "go's ApplyOrderBookSnapshot (go/v4/exchange_ws_cache.go) replays the buffered deltas through BaseExchange.HandleBookDeltas, which calls the base HandleBookDelta stub instead of mexc's, so no buffered delta is applied on top of the snapshot - a go base dispatch gap, also on master, for every venue that overrides handleBookDelta but not handleBookDeltas",
                 "disabledPHP": "the static-tests job sets up php without ext-protobuf, only the live job loads it",
                 "disabledJava": "same protobuf gap the exchange-level skipJava entry already records",
                 "disabledRS": "the rust base has no protobuf decoder"
