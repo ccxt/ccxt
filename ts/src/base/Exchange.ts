@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { keccak_256 } from '@noble/hashes/sha3.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
 import { sha256 } from '@noble/hashes/sha2.js';
@@ -100,6 +101,7 @@ const {
     encode,
     urlencode,
     hmac,
+    eddsa,
     numberToString,
     roundTimeframe,
     parseTimeframe,
@@ -2925,7 +2927,9 @@ export class BaseExchange {
                 'option': undefined,
                 'index': undefined,
                 'addMargin': undefined,
+                'addLiquidity': undefined,
                 'borrowCrossMargin': undefined,
+                'borrowCurrency': undefined,
                 'borrowIsolatedMargin': undefined,
                 'borrowMargin': undefined,
                 'cancelAllOrders': undefined,
@@ -2938,6 +2942,10 @@ export class BaseExchange {
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
+                'cancelDcaOrder': undefined,
+                'claimPoolFees': undefined,
+                'collectFees': undefined,
+                'createPool': undefined,
                 'createDepositAddress': undefined,
                 'createLimitBuyOrder': undefined,
                 'createLimitBuyOrderWs': undefined,
@@ -2958,6 +2966,10 @@ export class BaseExchange {
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
                 'createOrder': undefined,
+                'createDcaOrder': undefined,
+                'confirmCancelDcaOrder': undefined,
+                'depositCollateral': undefined,
+                'depositStake': undefined,
                 'createOrderWs': undefined,
                 'createOrders': undefined,
                 'createOrderWithTakeProfitAndStopLoss': undefined,
@@ -3010,6 +3022,8 @@ export class BaseExchange {
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
+                'fetchDcaOrder': undefined,
+                'fetchDcaOrders': undefined,
                 'fetchCurrenciesWs': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -3035,8 +3049,14 @@ export class BaseExchange {
                 'fetchL2OrderBook': undefined,
                 'fetchL3OrderBook': undefined,
                 'fetchLastPrices': undefined,
+                'fetchLiquidity': undefined,
+                'fetchLiquidityPools': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
+                'fetchPoolFees': undefined,
+                'fetchPoolMintAddresses': undefined,
+                'fetchStake': undefined,
+                'fetchBorrowPositions': undefined,
                 'fetchLeverage': undefined,
                 'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
@@ -3153,6 +3173,11 @@ export class BaseExchange {
                 'unWatchOHLCV': undefined,
                 'watchMyLiquidationsForSymbols': undefined,
                 'withdraw': undefined,
+                'withdrawCollateral': undefined,
+                'withdrawStake': undefined,
+                'removeLiquidity': undefined,
+                'repayCurrency': undefined,
+                'submitPool': undefined,
                 'ws': undefined,
             },
             'urls': {
@@ -4190,6 +4215,138 @@ export class BaseExchange {
 
     isEmptyString (value: any): boolean {
         return !this.valueIsDefined (value) || value === '';
+    }
+
+    /**
+     * @ignore
+     * @description extracts the 32-byte ed25519 seed from the privateKey credential as a hex string, accepts a base58-encoded solana secret key of 64 or 32 bytes (the Phantom / solana-keygen export formats) or the raw JSON byte array written by solana-keygen
+     * @returns {string} hex-encoded 32-byte signing seed
+     */
+    solanaSeedHex (): string {
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' signing requires the privateKey credential, a base58-encoded solana secret key or a solana-keygen JSON byte array');
+        }
+        const privateKey = this.privateKey;
+        let secretHex = '';
+        if (privateKey.indexOf ('[') === 0) {
+            // the JSON byte array written by solana-keygen new
+            const byteValues = this.parseJson (privateKey);
+            for (let i = 0; i < byteValues.length; i++) {
+                const byteValue = this.parseToInt (byteValues[i]);
+                let hexPair = this.intToBase16 (byteValue);
+                if (hexPair.length === 1) {
+                    hexPair = '0' + hexPair;
+                }
+                secretHex = secretHex + hexPair;
+            }
+        } else {
+            secretHex = this.binaryToBase16 (this.base58ToBinary (privateKey));
+        }
+        if (secretHex.length !== 128 && secretHex.length !== 64) {
+            throw new ArgumentsRequired (this.id + ' the privateKey credential must decode to a 64-byte solana secret key or a 32-byte seed');
+        }
+        return secretHex.slice (0, 64);
+    }
+
+    /**
+     * @ignore
+     * @description parses one hex byte pair into its integer value, -1 when the pair is not valid hex
+     * @param {string} hexPair two lowercase hex characters
+     * @returns {int} the byte value, or -1
+     */
+    parseHexByte (hexPair: string): number {
+        const hexDigits = '0123456789abcdef';
+        const high = hexDigits.indexOf (hexPair.slice (0, 1));
+        const low = hexDigits.indexOf (hexPair.slice (1, 2));
+        if (high < 0 || low < 0) {
+            return -1;
+        }
+        return this.sum (high * 16, low);
+    }
+
+    /**
+     * @method
+     * @name exchange#signSolanaTransaction
+     * @description signs a base64-encoded solana transaction with the privateKey credential, placing the signature in the slot of the walletAddress signer (gasless transactions carry a sponsor in the first slot) and preserving all other slots
+     * @param {string} transaction base64-encoded unsigned solana transaction
+     * @returns {string} the base64-encoded signed transaction
+     */
+    signSolanaTransaction (transaction: string): string {
+        const seedHex = this.solanaSeedHex ();
+        const txHex = this.binaryToBase16 (this.base64ToBinary (transaction));
+        // solana wire format: [compact-u16 signature count][64-byte signature slots...][message]
+        const numSignatures = this.parseHexByte (txHex.slice (0, 2));
+        if (numSignatures < 1 || numSignatures >= 128) {
+            // a set 0x80 continuation bit would imply a multi-byte compact-u16 count, solana transactions cannot carry that many signatures
+            throw new NotSupported (this.id + ' signSolanaTransaction() could not parse the transaction signature count');
+        }
+        const slotsHexLength = numSignatures * 128;
+        const slotsHexEnd = this.sum (2, slotsHexLength);
+        const countHex = txHex.slice (0, 2);
+        const messageHex = txHex.slice (slotsHexEnd);
+        // the wallet is usually the fee payer in the first slot, but sponsored (gasless)
+        // transactions put the sponsor first — locate the wallet among the required signers
+        // of the message header when the walletAddress credential is configured
+        let slotIndex = 0;
+        if (this.walletAddress !== undefined) {
+            // validate the address alphabet explicitly: an invalid walletAddress (e.g. offline test
+            // placeholders) must fall back to the fee-payer slot instead of throwing inside base58ToBinary,
+            // and exception types differ per language (PHP raises an uncatchable-as-Exception TypeError)
+            const base58Alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+            const walletChars = this.stringToCharsArray (this.walletAddress);
+            const walletCharsLength = walletChars.length;
+            let walletIsBase58 = walletCharsLength > 0;
+            for (let i = 0; i < walletCharsLength; i++) {
+                if (base58Alphabet.indexOf (walletChars[i]) < 0) {
+                    walletIsBase58 = false;
+                    break;
+                }
+            }
+            if (walletIsBase58) {
+                const walletHex = this.binaryToBase16 (this.base58ToBinary (this.walletAddress));
+                // versioned messages carry a prefix byte with the 0x80 bit set before the header
+                const prefixByte = this.parseHexByte (messageHex.slice (0, 2));
+                const headerOffset = (prefixByte >= 128) ? 2 : 0;
+                const headerEnd = this.sum (headerOffset, 2);
+                const numRequired = this.parseHexByte (messageHex.slice (headerOffset, headerEnd));
+                // the account list starts after the 3 header bytes and its compact-u16 length byte
+                const countOffset = this.sum (headerOffset, 6);
+                const countEnd = this.sum (countOffset, 2);
+                const accountsCount = this.parseHexByte (messageHex.slice (countOffset, countEnd));
+                const accountsOffset = this.sum (countOffset, 2);
+                if (numRequired > 0 && numRequired <= numSignatures && accountsCount < 128) {
+                    for (let i = 0; i < numRequired; i++) {
+                        const accountStart = this.sum (accountsOffset, i * 64);
+                        const accountEnd = this.sum (accountStart, 64);
+                        const accountHex = messageHex.slice (accountStart, accountEnd);
+                        if (accountHex === walletHex) {
+                            slotIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        const signatureBase64 = eddsa (this.base16ToBinary (messageHex), this.base16ToBinary (seedHex), ed25519);
+        const signatureHex = this.binaryToBase16 (this.base64ToBinary (signatureBase64));
+        const slotStart = this.sum (2, slotIndex * 128);
+        const slotEnd = this.sum (slotStart, 128);
+        const beforeSlots = txHex.slice (2, slotStart);
+        const afterSlots = txHex.slice (slotEnd, slotsHexEnd);
+        return this.binaryToBase64 (this.base16ToBinary (countHex + beforeSlots + signatureHex + afterSlots + messageHex));
+    }
+
+    /**
+     * @method
+     * @name exchange#signSolanaMessage
+     * @description signs a plain-text message with the privateKey credential, solana wallet-adapter style
+     * @param {string} message the message text to sign
+     * @returns {string} the base58-encoded ed25519 signature
+     */
+    signSolanaMessage (message: string): string {
+        const seedHex = this.solanaSeedHex ();
+        const signatureBase64 = eddsa (this.encode (message), this.base16ToBinary (seedHex), ed25519);
+        return this.binaryToBase58 (this.base64ToBinary (signatureBase64));
     }
 
     safeNumberOmitZero (obj: any, key: NullableIndexType, defaultValue: Num = undefined): Num {
@@ -9694,6 +9851,287 @@ export default class Exchange extends BaseExchange {
 
     async closeAllPositions (params: Dict = {}): Promise<Position[]> {
         throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#createDcaOrder
+     * @description creates a dollar-cost averaging order
+     * @param {object} params exchange-specific DCA schedule and funding parameters
+     * @returns {object} the created DCA order
+     */
+    async createDcaOrder (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' createDcaOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchDcaOrders
+     * @description fetches the user's dollar-cost averaging orders
+     * @param {int} [since] timestamp in milliseconds of the earliest order
+     * @param {int} [limit] maximum number of orders
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} a list of DCA orders
+     */
+    async fetchDcaOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchDcaOrders() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchDcaOrder
+     * @description fetches one dollar-cost averaging order by id
+     * @param {string} id DCA order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} DCA order details
+     */
+    async fetchDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' fetchDcaOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#cancelDcaOrder
+     * @description initiates cancellation of a dollar-cost averaging order
+     * @param {string} id DCA order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} cancellation result, which may contain a transaction to sign
+     */
+    async cancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' cancelDcaOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#confirmCancelDcaOrder
+     * @description confirms DCA order cancellation after completing any required signing step
+     * @param {string} id DCA order id
+     * @param {object} params exchange-specific cancellation confirmation fields
+     * @returns {object} cancellation confirmation
+     */
+    async confirmCancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' confirmCancelDcaOrder() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchLiquidityPools
+     * @description fetches available liquidity pools or vaults
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} liquidity pool structures with id, poolId, type, baseCurrency, quoteCurrency, lpCurrency, rates, and venue data in info
+     */
+    async fetchLiquidityPools (params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchLiquidityPools() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchLiquidity
+     * @description fetches the user's liquidity positions
+     * @param {string} [poolId] exchange-specific pool identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} liquidity position structures with id, poolId, owner, type, currency, amount, shares, collateral, debt, and venue data in info
+     */
+    async fetchLiquidity (poolId: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchLiquidity() is not supported for pool ' + poolId);
+    }
+
+    /**
+     * @method
+     * @name exchange#addLiquidity
+     * @description adds liquidity to a pool
+     * @param {string} poolId exchange-specific pool identifier
+     * @param {number} amount amount of liquidity to add
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the liquidity operation result
+     */
+    async addLiquidity (poolId: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' addLiquidity() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#removeLiquidity
+     * @description removes liquidity from a pool
+     * @param {string} poolId exchange-specific pool identifier
+     * @param {number} amount amount of liquidity to remove
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the liquidity operation result
+     */
+    async removeLiquidity (poolId: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' removeLiquidity() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchPoolFees
+     * @description fetches unclaimed fees for a pool or liquidity position
+     * @param {string} [poolId] exchange-specific pool or position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} fee structures with id, poolId, positionId, type, currency, amount, totalAmount, unclaimedAmount, and venue data in info
+     */
+    async fetchPoolFees (poolId: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchPoolFees() is not supported for pool ' + poolId);
+    }
+
+    /**
+     * @method
+     * @name exchange#collectFees
+     * @description collects unclaimed liquidity pool fees
+     * @param {string} poolId exchange-specific pool or position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the fee collection result
+     */
+    async collectFees (poolId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' collectFees() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#claimPoolFees
+     * @description claims unclaimed fees for a liquidity pool position
+     * @param {string} poolId exchange-specific pool or position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the fee claim result
+     */
+    async claimPoolFees (poolId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' claimPoolFees() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchStake
+     * @description fetches staking positions for an account
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} a list of exchange-specific staking positions
+     */
+    async fetchStake (code: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchStake() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#depositStake
+     * @description deposits assets into a staking product
+     * @param {string} code unified currency code
+     * @param {number} amount amount to stake
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the staking deposit result
+     */
+    async depositStake (code: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' depositStake() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#withdrawStake
+     * @description withdraws assets from a staking product
+     * @param {string} code unified currency code
+     * @param {number} amount amount to unstake
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the staking withdrawal result
+     */
+    async withdrawStake (code: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' withdrawStake() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#depositCollateral
+     * @description deposits collateral into a lending position
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of collateral to deposit
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the collateral operation result
+     */
+    async depositCollateral (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' depositCollateral() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#withdrawCollateral
+     * @description withdraws collateral from a lending position
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of collateral to withdraw
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the collateral operation result
+     */
+    async withdrawCollateral (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' withdrawCollateral() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#borrowCurrency
+     * @description borrows currency against a lending position
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of currency to borrow
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the borrow operation result
+     */
+    async borrowCurrency (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' borrowCurrency() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#repayCurrency
+     * @description repays borrowed currency
+     * @param {string} id lending position or vault identifier
+     * @param {number} amount amount of currency to repay
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} the repayment result
+     */
+    async repayCurrency (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' repayCurrency() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchBorrowPositions
+     * @description fetches collateralized borrowing positions for a wallet
+     * @param {string} walletAddress wallet public key
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} a list of exchange-specific borrowing positions
+     */
+    async fetchBorrowPositions (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchBorrowPositions() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#createPool
+     * @description prepares a new liquidity pool
+     * @param {object} params exchange-specific pool creation parameters
+     * @returns {object} the pool creation result
+     */
+    async createPool (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' createPool() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#submitPool
+     * @description submits a prepared liquidity pool
+     * @param {object} params exchange-specific pool submission parameters
+     * @returns {object} the pool submission result with id, signature, poolId, owner, and venue data in info when available
+     */
+    async submitPool (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' submitPool() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name exchange#fetchPoolMintAddresses
+     * @description fetches token mint addresses associated with a pool
+     * @param {string} id exchange-specific pool identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} pool mint addresses with poolId, baseCurrency, quoteCurrency, lpCurrency, and venue data in info when available
+     */
+    async fetchPoolMintAddresses (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' fetchPoolMintAddresses() is not supported yet');
     }
 
     async editOrders (orders: OrderRequest[], params: Dict = {}): Promise<Order[]> {

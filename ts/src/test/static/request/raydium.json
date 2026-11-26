@@ -1,0 +1,705 @@
+{
+    "exchange": "raydium",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets explicit pool selector",
+                "method": "fetchMarkets",
+                "url": "https://api-v3.raydium.io/pools/info/list?poolType=all&poolSortField=liquidity&sortType=desc&page=1&pageSize=1000",
+                "input": [
+                    {
+                        "type": "pool"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchMarkets swap selector",
+                "method": "fetchMarkets",
+                "url": "https://api-perps-v1.raydium.io/pool/default-list",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchMarkets default pool request preserves pagination",
+                "method": "fetchMarkets",
+                "url": "https://api-v3.raydium.io/pools/info/list?poolType=all&poolSortField=liquidity&sortType=desc&page=1&pageSize=1",
+                "input": [
+                    {
+                        "pageSize": 1
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "raydium fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api-v3.raydium.io/mint/list",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api-v3.raydium.io/pools/info/ids?ids=DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+                "input": [
+                    "RAY/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot fetchTickers for one symbol",
+                "method": "fetchTickers",
+                "url": "https://api-v3.raydium.io/pools/info/ids?ids=DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+                "input": [
+                    [
+                        "RAY/USDT"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with the default pool",
+                "method": "fetchTrades",
+                "url": "https://launch-history-v1.raydium.io/trade?poolId=DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut&limit=50",
+                "input": [
+                    "RAY/USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchTrades with a LaunchLab pool override",
+                "method": "fetchTrades",
+                "url": "https://launch-history-v1.raydium.io/trade?poolId=AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J&limit=50",
+                "input": [
+                    "RAY/USDT",
+                    null,
+                    null,
+                    {
+                        "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades for a wallet in a LaunchLab pool",
+                "method": "fetchMyTrades",
+                "url": "https://launch-history-v1.raydium.io/trade?poolId=AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J&owner=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5&limit=50",
+                "input": [
+                    "RAY/USDT",
+                    null,
+                    null,
+                    {
+                        "walletAddress": "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                        "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with the default pool",
+                "method": "fetchOHLCV",
+                "url": "https://launch-history-v1.raydium.io/kline?poolId=DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut&interval=1m&limit=300",
+                "input": [
+                    "RAY/USDT",
+                    "1m"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchOHLCV with a LaunchLab pool override",
+                "method": "fetchOHLCV",
+                "url": "https://launch-history-v1.raydium.io/kline?poolId=AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J&interval=1m&limit=300",
+                "input": [
+                    "RAY/USDT",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLiquidityPools": [
+            {
+                "description": "fetchLiquidityPools default pool list",
+                "method": "fetchLiquidityPools",
+                "url": "https://api-v3.raydium.io/pools/info/list?poolType=all&poolSortField=liquidity&sortType=desc&page=1&pageSize=100",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetchLiquidityPools stake pools",
+                "method": "fetchLiquidityPools",
+                "url": "https://api-v3.raydium.io/main/stake-pools",
+                "input": [
+                    {
+                        "type": "stake"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLiquidityPools farms by lp mint",
+                "method": "fetchLiquidityPools",
+                "url": "https://api-v3.raydium.io/farms/info/lp?page=1&pageSize=100&lp=C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+                "input": [
+                    {
+                        "type": "farm",
+                        "lp": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLiquidity": [
+            {
+                "description": "fetchLiquidity stake positions",
+                "method": "fetchLiquidity",
+                "url": "https://owner-v1.raydium.io/position/stake/9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    null,
+                    {
+                        "walletAddress": "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLiquidity locked CLMM positions",
+                "method": "fetchLiquidity",
+                "url": "https://owner-v1.raydium.io/position/clmm-lock/5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+                "input": [
+                    null,
+                    {
+                        "walletAddress": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+                        "type": "clmm-lock"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchStake": [
+            {
+                "description": "fetchStake staking positions",
+                "method": "fetchStake",
+                "url": "https://owner-v1.raydium.io/position/stake/9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    null,
+                    {
+                        "walletAddress": "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPoolMintAddresses": [
+            {
+                "description": "fetchPoolMintAddresses for the RAY/USDT pool",
+                "method": "fetchPoolMintAddresses",
+                "url": "https://api-v3.raydium.io/pools/info/ids?ids=DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+                "input": [
+                    "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPoolFees": [
+            {
+                "description": "fetchPoolFees for a CLMM position",
+                "method": "fetchPoolFees",
+                "url": "https://dynamic-ipfs.raydium.io/clmm/position?id=A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb",
+                "input": [
+                    "A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchPoolFees for a locked CLMM position",
+                "method": "fetchPoolFees",
+                "url": "https://dynamic-ipfs.raydium.io/lock/clmm/position?id=11dGkgPJDUPNfBRUdKXyf21xCzfRQy6WxTBKGigjAL1",
+                "input": [
+                    "11dGkgPJDUPNfBRUdKXyf21xCzfRQy6WxTBKGigjAL1",
+                    {
+                        "type": "clmm-lock"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetchConvertQuote RAY to USDT",
+                "method": "fetchConvertQuote",
+                "url": "https://transaction-v1.raydium.io/compute/swap-base-in?inputMint=4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R&outputMint=Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB&amount=1000000&slippageBps=50&txVersion=V0",
+                "input": [
+                    "RAY",
+                    "USDT",
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchTvl": [
+            {
+                "description": "fetchTvl protocol totals",
+                "method": "fetchTvl",
+                "url": "https://api-v3.raydium.io/main/info",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBlockchainTransactionFees": [
+            {
+                "description": "fetchBlockchainTransactionFees priority fees",
+                "method": "fetchBlockchainTransactionFees",
+                "url": "https://api-v3.raydium.io/main/auto-fee",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSwapInfo": [
+            {
+                "description": "fetchSwapInfo protocol statistics",
+                "method": "fetchSwapInfo",
+                "url": "https://api-perps-v1.raydium.io/main/info",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSwapMarkets": [
+            {
+                "description": "fetchSwapMarkets default pools",
+                "method": "fetchSwapMarkets",
+                "url": "https://api-perps-v1.raydium.io/pool/default-list",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSwapVersion": [
+            {
+                "description": "fetchSwapVersion API version",
+                "method": "fetchSwapVersion",
+                "url": "https://api-perps-v1.raydium.io/main/version",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSwapRpcs": [
+            {
+                "description": "fetchSwapRpcs endpoint list",
+                "method": "fetchSwapRpcs",
+                "url": "https://api-perps-v1.raydium.io/main/rpcs",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchSwapAvailability": [
+            {
+                "description": "fetchSwapAvailability region check",
+                "method": "fetchSwapAvailability",
+                "url": "https://api-perps-v1.raydium.io/main/availability-check",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchLiquidityPoolPosition": [
+            {
+                "description": "fetchLiquidityPoolPosition CLMM position metadata",
+                "method": "fetchLiquidityPoolPosition",
+                "url": "https://dynamic-ipfs.raydium.io/clmm/position?id=A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb",
+                "input": [
+                    "A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyLiquidityPools": [
+            {
+                "description": "fetchMyLiquidityPools created pools",
+                "method": "fetchMyLiquidityPools",
+                "url": "https://owner-v1.raydium.io/create-pool/9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyIdoPositions": [
+            {
+                "description": "fetchMyIdoPositions IDO participation",
+                "method": "fetchMyIdoPositions",
+                "url": "https://owner-v1.raydium.io/main/ido/9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCreatorFees": [
+            {
+                "description": "fetchCreatorFees CPMM creator fees",
+                "method": "fetchCreatorFees",
+                "url": "https://temp-api-v1.raydium.io/cp-creator-fee?wallet=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMintList": [
+            {
+                "description": "fetchMintList newest LaunchLab mints",
+                "method": "fetchMintList",
+                "url": "https://launch-mint-v1.raydium.io/get/list?sort=new",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchRecentMints": [
+            {
+                "description": "fetchRecentMints featured left-rail mints",
+                "method": "fetchRecentMints",
+                "url": "https://launch-mint-v1.raydium.io/get/random/index-left-mint",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFeaturedMints": [
+            {
+                "description": "fetchFeaturedMints top featured mint",
+                "method": "fetchFeaturedMints",
+                "url": "https://launch-mint-v1.raydium.io/get/random/index-top-mint",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMintVesting": [
+            {
+                "description": "fetchMintVesting by pool",
+                "method": "fetchMintVesting",
+                "url": "https://launch-mint-v1.raydium.io/vesting/by/pool?id=AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+                "input": [
+                    "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+                    {
+                        "type": "pool"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLiquidityPoolHistory": [
+            {
+                "description": "fetchLiquidityPoolHistory LaunchLab trades",
+                "method": "fetchLiquidityPoolHistory",
+                "url": "https://launch-history-v1.raydium.io/trade?poolId=AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+                "input": [
+                    "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPoolComments": [
+            {
+                "description": "fetchPoolComments for a LaunchLab pool, captured live on devnet",
+                "method": "fetchPoolComments",
+                "url": "https://launch-forum-v1.raydium.io/comment/pool?poolId=4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on",
+                "input": [
+                    "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClmmLimitOrders": [
+            {
+                "description": "fetchClmmLimitOrders active limit orders",
+                "method": "fetchClmmLimitOrders",
+                "url": "https://temp-api-v1.raydium.io/limit-order/order/list?wallet=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClmmLimitOrderHistory": [
+            {
+                "description": "fetchClmmLimitOrderHistory historical limit orders",
+                "method": "fetchClmmLimitOrderHistory",
+                "url": "https://temp-api-v1.raydium.io/limit-order/history/order/list-by-user?wallet=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                ],
+                "output": null
+            }
+        ],
+        "fetchClmmLimitOrderEvents": [
+            {
+                "description": "fetchClmmLimitOrderEvents events by pda",
+                "method": "fetchClmmLimitOrderEvents",
+                "url": "https://temp-api-v1.raydium.io/limit-order/history/event/list-by-pda?pda=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+                "input": [
+                    "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
+                ],
+                "output": null
+            }
+        ],
+        "buildConversionTransaction": [
+            {
+                "description": "buildConversionTransaction from a live WSOL to USDT quote",
+                "method": "buildConversionTransaction",
+                "url": "https://transaction-v1.raydium.io/transaction/swap-base-in",
+                "input": [
+                    {
+                        "swapResponse": {
+                            "id": "e869d4dc-e01a-471d-a1f7-a9644feabfc3",
+                            "success": true,
+                            "version": "V1",
+                            "data": {
+                                "swapType": "BaseIn",
+                                "inputMint": "So11111111111111111111111111111111111111112",
+                                "inputAmount": "10000000",
+                                "outputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                "outputAmount": "752888",
+                                "otherAmountThreshold": "749123",
+                                "slippageBps": 50,
+                                "priceImpactPct": 0.11,
+                                "referrerAmount": "0",
+                                "actualInputAmount": "10000000",
+                                "routePlan": [
+                                    {
+                                        "poolId": "EvEnYyGMoLKnHKDyLrQbKFSCiSKvVHynstX7TTUG94eG",
+                                        "inputMint": "So11111111111111111111111111111111111111112",
+                                        "outputMint": "7uDRKN38QxMRW18fzypGL8dYu9k9XAPZ4h94rAXYEray",
+                                        "feeMint": "So11111111111111111111111111111111111111112",
+                                        "feeRate": 1,
+                                        "feeAmount": "1000",
+                                        "remainingAccounts": [
+                                            "DCDu7hwYtFyCqGoZdy3YyJv5ZvQz3usGfsR9efxYuuHA"
+                                        ],
+                                        "lastPoolPriceX64": "848999475165105939729"
+                                    },
+                                    {
+                                        "poolId": "5nuLm3TaETAjYeJgLARqAVgM5TXtu4p9GeJbJrLZ64Hx",
+                                        "inputMint": "7uDRKN38QxMRW18fzypGL8dYu9k9XAPZ4h94rAXYEray",
+                                        "outputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                        "feeMint": "7uDRKN38QxMRW18fzypGL8dYu9k9XAPZ4h94rAXYEray",
+                                        "feeRate": 1,
+                                        "feeAmount": "2118419",
+                                        "remainingAccounts": [
+                                            "5CTybM5euvu72vuejJhqpxrFpzsLkWNxxPW8LeSjmVRt"
+                                        ],
+                                        "lastPoolPriceX64": "109954226639033547"
+                                    }
+                                ]
+                            }
+                        },
+                        "wallet": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+                        "wrapSol": true
+                    }
+                ],
+                "output": {
+                    "wallet": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+                    "wrapSol": true,
+                    "swapResponse": {
+                        "id": "e869d4dc-e01a-471d-a1f7-a9644feabfc3",
+                        "success": true,
+                        "version": "V1",
+                        "data": {
+                            "swapType": "BaseIn",
+                            "inputMint": "So11111111111111111111111111111111111111112",
+                            "inputAmount": "10000000",
+                            "outputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                            "outputAmount": "752888",
+                            "otherAmountThreshold": "749123",
+                            "slippageBps": 50,
+                            "priceImpactPct": 0.11,
+                            "referrerAmount": "0",
+                            "actualInputAmount": "10000000",
+                            "routePlan": [
+                                {
+                                    "poolId": "EvEnYyGMoLKnHKDyLrQbKFSCiSKvVHynstX7TTUG94eG",
+                                    "inputMint": "So11111111111111111111111111111111111111112",
+                                    "outputMint": "7uDRKN38QxMRW18fzypGL8dYu9k9XAPZ4h94rAXYEray",
+                                    "feeMint": "So11111111111111111111111111111111111111112",
+                                    "feeRate": 1,
+                                    "feeAmount": "1000",
+                                    "remainingAccounts": [
+                                        "DCDu7hwYtFyCqGoZdy3YyJv5ZvQz3usGfsR9efxYuuHA"
+                                    ],
+                                    "lastPoolPriceX64": "848999475165105939729"
+                                },
+                                {
+                                    "poolId": "5nuLm3TaETAjYeJgLARqAVgM5TXtu4p9GeJbJrLZ64Hx",
+                                    "inputMint": "7uDRKN38QxMRW18fzypGL8dYu9k9XAPZ4h94rAXYEray",
+                                    "outputMint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                                    "feeMint": "7uDRKN38QxMRW18fzypGL8dYu9k9XAPZ4h94rAXYEray",
+                                    "feeRate": 1,
+                                    "feeAmount": "2118419",
+                                    "remainingAccounts": [
+                                        "5CTybM5euvu72vuejJhqpxrFpzsLkWNxxPW8LeSjmVRt"
+                                    ],
+                                    "lastPoolPriceX64": "109954226639033547"
+                                }
+                            ]
+                        }
+                    },
+                    "txVersion": "V0",
+                    "computeUnitPriceMicroLamports": "0"
+                }
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "createConvertTrade broadcasts the signed swap transaction over Solana JSON-RPC, quote and unsigned transaction captured live from the mainnet route API",
+                "method": "createConvertTrade",
+                "url": "https://api.mainnet-beta.solana.com/",
+                "input": [
+                    "520f4fc9-0014-4f9f-b8b3-fadd242ddc9d",
+                    "WSOL",
+                    "RAY",
+                    0.001,
+                    {
+                        "swapResponse": {
+                            "id": "520f4fc9-0014-4f9f-b8b3-fadd242ddc9d",
+                            "success": true,
+                            "version": "V1",
+                            "data": {
+                                "swapType": "BaseIn",
+                                "inputMint": "So11111111111111111111111111111111111111112",
+                                "inputAmount": "1000000",
+                                "outputMint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+                                "outputAmount": "54210",
+                                "otherAmountThreshold": "53938",
+                                "slippageBps": 50,
+                                "priceImpactPct": 0,
+                                "referrerAmount": "0",
+                                "actualInputAmount": "1000000",
+                                "routePlan": [
+                                    {
+                                        "poolId": "8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj",
+                                        "inputMint": "So11111111111111111111111111111111111111112",
+                                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "feeMint": "So11111111111111111111111111111111111111112",
+                                        "feeRate": 1,
+                                        "feeAmount": "100",
+                                        "remainingAccounts": [
+                                            "Fth4eqBTFwRSDmJnD6K4k3BbFz5ZoncstwzZNqMeXneX"
+                                        ],
+                                        "lastPoolPriceX64": "4786491366915518750"
+                                    },
+                                    {
+                                        "poolId": "7DFVkReyQT52W1ocZ6Xuva1QSqa6KeGuk9boGALi9C4H",
+                                        "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "outputMint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+                                        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "feeRate": 10,
+                                        "feeAmount": "68",
+                                        "remainingAccounts": [
+                                            "7zaL5NPKUgFuQovWRhYYTCrWHMFNEFFHFDRh4GemMdbp"
+                                        ],
+                                        "lastPoolPriceX64": "20546260898635224133"
+                                    }
+                                ]
+                            }
+                        },
+                        "signedTransaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQADC9LPDae9Jt3Gppp8DowagQxNKA1bx5E3DFQzjSG6PQ++ZrbXOaxZDfPzwiczhmRnuocspH+RTtHaeMJMNvCz7p+lqbd4qj0QCDCoAMSKWj7LgqaD5ahXR+chWYB+8D4bKPqzMC11FM4YsZdgpPdTks8KpDoEvocUSq80kf564XqkgW5mYww7tyTcWeSfbMQwbmA6aqzKBvo+NOK0CtWXnY3dQYmemHYvCy8XXftPHIHNzQEDa80YydK3J4f95dke1L8DJCoVzhgtPsS2nZZjsBGIZgnU0QpMv+2MnRsnKwdpZ+XpqwKTMEUiVhd/3MJvoehxtD+kTZ/YtmYN56v5YDMMwoDLa+MZLFA4OAHPRDAYD54/hmMiOsgBBpcQ2/fVBwVKU1qZKSEGTSTocWDaOHx8NbXdvJK7geQfqEBBBUSNAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAABimjc+Mo6qHKzkfhglwlLVLY2XsOg2y1UinpNOCfBw5AQIBgABCxgZGgkFQEIPAAAAAAAIHxgbGRoAAQIcAwsMBA0ODxAJEQUcAgwSBhMUFRYJFwcRAEBCDwAAAAAAstIAAAAAAAAIBgABABgZGgEGCgAFAsBcFQADGY8fTDpFImPUE7LNF+vLwaDliHNk5iYaEqgXkuoWWj4ABQIHAAMQVWSoAFUnNo24UIeBcJII+ztQuiG2ju0xA/+LSGiFrXAIEALFyMnKyzoAgc7Lw2FFrVxg6la4jxuYr9rHibi5CT6S2ShlZ73CNcYFhoqJi4wA",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"sendTransaction\",\"params\":[\"AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQADC9LPDae9Jt3Gppp8DowagQxNKA1bx5E3DFQzjSG6PQ++ZrbXOaxZDfPzwiczhmRnuocspH+RTtHaeMJMNvCz7p+lqbd4qj0QCDCoAMSKWj7LgqaD5ahXR+chWYB+8D4bKPqzMC11FM4YsZdgpPdTks8KpDoEvocUSq80kf564XqkgW5mYww7tyTcWeSfbMQwbmA6aqzKBvo+NOK0CtWXnY3dQYmemHYvCy8XXftPHIHNzQEDa80YydK3J4f95dke1L8DJCoVzhgtPsS2nZZjsBGIZgnU0QpMv+2MnRsnKwdpZ+XpqwKTMEUiVhd/3MJvoehxtD+kTZ/YtmYN56v5YDMMwoDLa+MZLFA4OAHPRDAYD54/hmMiOsgBBpcQ2/fVBwVKU1qZKSEGTSTocWDaOHx8NbXdvJK7geQfqEBBBUSNAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAABimjc+Mo6qHKzkfhglwlLVLY2XsOg2y1UinpNOCfBw5AQIBgABCxgZGgkFQEIPAAAAAAAIHxgbGRoAAQIcAwsMBA0ODxAJEQUcAgwSBhMUFRYJFwcRAEBCDwAAAAAAstIAAAAAAAAIBgABABgZGgEGCgAFAsBcFQADGY8fTDpFImPUE7LNF+vLwaDliHNk5iYaEqgXkuoWWj4ABQIHAAMQVWSoAFUnNo24UIeBcJII+ztQuiG2ju0xA/+LSGiFrXAIEALFyMnKyzoAgc7Lw2FFrVxg6la4jxuYr9rHibi5CT6S2ShlZ73CNcYFhoqJi4wA\",{\"encoding\":\"base64\"}]}"
+            }
+        ],
+        "submitPool": [
+            {
+                "description": "submitPool relays the signed LaunchLab mint-creation transaction, transaction captured live from a devnet launch",
+                "method": "submitPool",
+                "url": "https://launch-mint-v1.raydium.io/create/sendTransaction",
+                "input": [
+                    {
+                        "transaction": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": "{\"txs\":[\"AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ\"]}"
+            }
+        ],
+        "createPoolMetadata": [
+            {
+                "description": "createPoolMetadata request shape only, the live endpoint is browser-only, it requires a Cloudflare Turnstile cfToken and a binary image upload so no live response exists",
+                "method": "createPoolMetadata",
+                "url": "https://launch-mint-v1.raydium.io/create/mint-info",
+                "input": [
+                    {
+                        "mint": "H8r98chJQQZP3aAk7KhRaTASH6unDQSicowKkwM262wM",
+                        "name": "Test Token",
+                        "symbol": "TST",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                        "rayToken": "fade8cea-bccd-4b91-8423-4e02a34b3e3d"
+                    }
+                ],
+                "output": "{\"mint\":\"H8r98chJQQZP3aAk7KhRaTASH6unDQSicowKkwM262wM\",\"name\":\"Test Token\",\"symbol\":\"TST\",\"wallet\":\"FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq\"}"
+            }
+        ],
+        "requestRaydiumToken": [
+            {
+                "description": "requestRaydiumToken signed login message, captured live on devnet",
+                "method": "requestRaydiumToken",
+                "url": "https://launch-auth-v1.raydium.io/request-token",
+                "input": [
+                    {
+                        "time": 1795250031,
+                        "signature": "KZiqZCJwvFCmAZNfG2H9USzyMskijmBpL5WYXkwBndYk2AUKDFHwxvif8p7gA2UqpE1zGByD1sQnoxeG6mdtvmh",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": "{\"time\":1795250031,\"signature\":\"KZiqZCJwvFCmAZNfG2H9USzyMskijmBpL5WYXkwBndYk2AUKDFHwxvif8p7gA2UqpE1zGByD1sQnoxeG6mdtvmh\",\"wallet\":\"FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq\"}"
+            }
+        ],
+        "fetchRaydiumTokenStatus": [
+            {
+                "description": "fetchRaydiumTokenStatus token validation, captured live on devnet",
+                "method": "fetchRaydiumTokenStatus",
+                "url": "https://launch-auth-v1.raydium.io/check-token?token=fade8cea-bccd-4b91-8423-4e02a34b3e3d&wallet=FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                "input": [
+                    {
+                        "token": "fade8cea-bccd-4b91-8423-4e02a34b3e3d",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchClmmLimitOrder": [
+            {
+                "description": "fetchClmmLimitOrder queries the active order list first, request test only because no wallet with a live CLMM limit order is available for a response capture",
+                "method": "fetchClmmLimitOrder",
+                "url": "https://temp-api-v1.raydium.io/limit-order/order/list?wallet=FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                "input": [
+                    "orderId",
+                    "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                ],
+                "output": null
+            }
+        ]
+    }
+}

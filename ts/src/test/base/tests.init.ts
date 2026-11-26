@@ -6,6 +6,7 @@ import testBinaryToBase16 from './test.binaryToBase16.js';
 import testBase16ToBinary from './test.base16ToBinary.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
 import testBase64ToBinary from './test.base64ToBinary.js';
+import testSignSolanaTransaction from './test.signSolanaTransaction.js';
 import testNumberToBE from './test.numberToBE.js';
 import testNumberToString from './test.numberToString.js';
 import testPrecise from './test.precise.js';
@@ -80,6 +81,7 @@ async function baseTestsInit () {
     testBase16ToBinary ();
     testBinaryToBase64 ();
     testBase64ToBinary ();
+    testSignSolanaTransaction ();
     testDatetime ();
     testNumberToBE ();
     testDecimalToPrecision ();

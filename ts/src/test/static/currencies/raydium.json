@@ -1,0 +1,76 @@
+{
+    "RAY": {
+        "info": {
+            "chainId": 101,
+            "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+            "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+            "symbol": "RAY",
+            "name": "Raydium",
+            "decimals": 6,
+            "tags": [],
+            "extensions": {}
+        },
+        "id": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        "code": "RAY",
+        "name": "Raydium",
+        "active": true,
+        "type": "token",
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "info": {
+            "chainId": 101,
+            "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+            "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+            "symbol": "USDT",
+            "name": "USDT",
+            "decimals": 6,
+            "tags": [
+                "hasFreeze"
+            ],
+            "extensions": {}
+        },
+        "id": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        "code": "USDT",
+        "name": "USDT",
+        "active": true,
+        "type": "token",
+        "precision": 6,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "WSOL": {
+        "info": {
+            "chainId": 101,
+            "address": "So11111111111111111111111111111111111111112",
+            "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            "logoURI": "https://img-v1.raydium.io/icon/So11111111111111111111111111111111111111112.png",
+            "symbol": "WSOL",
+            "name": "Wrapped SOL",
+            "decimals": 9,
+            "tags": [],
+            "extensions": {}
+        },
+        "id": "So11111111111111111111111111111111111111112",
+        "code": "WSOL",
+        "name": "Wrapped SOL",
+        "active": true,
+        "type": "token",
+        "precision": 9,
+        "limits": {
+            "amount": {},
+            "withdraw": {}
+        },
+        "networks": {}
+    }
+}

@@ -1,0 +1,2358 @@
+import Exchange from './abstract/jupiter.js';
+import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
+import type { Currencies, CurrencyInterface, Conversion, Dict, Int, int, Market, Num, Str, Ticker } from './base/types.js';
+
+/**
+ * @class jupiter
+ * @augments Exchange
+ */
+export default class jupiter extends Exchange {
+    override describe (): Dict {
+        return this.deepExtend (super.describe (), {
+            'id': 'jupiter',
+            'name': 'Jupiter',
+            'countries': [],
+            'version': 'v2',
+            'rateLimit': 2000,
+            'certified': false,
+            'pro': false,
+            'dex': true,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addLiquidity': true,
+                'borrowCurrency': true,
+                'cancelDcaOrder': true,
+                'cancelOrder': false,
+                'claimPoolFees': true,
+                'collectFees': true,
+                'createConvertTrade': true,
+                'createDcaOrder': true,
+                'createOrder': false,
+                'createPool': true,
+                'depositCollateral': true,
+                'depositStake': false,
+                'fetchBalance': false,
+                'fetchBorrowPositions': true,
+                'fetchClosedOrders': false,
+                'fetchConvertQuote': true,
+                'fetchCurrencies': 'emulated',
+                'fetchDcaOrder': true,
+                'fetchDcaOrders': true,
+                'fetchLiquidity': true,
+                'fetchLiquidityPools': true,
+                'fetchMarkets': false,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': false,
+                'fetchOrders': false,
+                'fetchPoolFees': true,
+                'fetchPoolMintAddresses': true,
+                'fetchStake': false,
+                'fetchTicker': true,
+                'fetchTickers': false,
+                'fetchTrades': false,
+                'removeLiquidity': true,
+                'repayCurrency': true,
+                'sandbox': false,
+                'submitPool': true,
+                'withdrawCollateral': true,
+                'withdrawStake': false,
+            },
+            'urls': {
+                'logo': 'https://jup.ag/favicon.ico',
+                'api': {
+                    'public': 'https://api.jup.ag',
+                    'trigger': 'https://api.jup.ag/trigger/v2',
+                    'lend': 'https://api.jup.ag/lend/v1',
+                    'studio': 'https://api.jup.ag/studio/v1',
+                },
+                'www': 'https://jup.ag',
+                'doc': 'https://developers.jup.ag/docs',
+                'fees': 'https://jup.ag/swap',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'tokens/v2/search',
+                        'price/v3',
+                        'swap/v2/order',
+                        'swap/v2/build',
+                    ],
+                    'post': [
+                        'swap/v2/execute',
+                    ],
+                },
+                'trigger': {
+                    'public': {
+                        'post': [
+                            'auth/challenge',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'vault',
+                            'vault/register',
+                            'orders/history',
+                            'orders/history/dca',
+                            'orders/history/dca/{id}',
+                        ],
+                        'post': [
+                            'auth/verify',
+                            'auth/refresh',
+                            'deposit/craft',
+                            'orders/price',
+                            'orders/dca',
+                            'orders/price/cancel/{id}',
+                            'orders/price/confirm-cancel/{id}',
+                            'orders/dca/cancel/{id}',
+                            'orders/dca/confirm-cancel/{id}',
+                        ],
+                        'patch': [
+                            'orders/price/{id}',
+                        ],
+                    },
+                },
+                'lend': {
+                    'public': {
+                        'get': [
+                            'earn/tokens',
+                            'earn/positions',
+                            'borrow/vaults',
+                            'borrow/positions',
+                        ],
+                        'post': [
+                            'earn/deposit',
+                            'earn/withdraw',
+                            'borrow/operate',
+                            'borrow/operate-instructions',
+                        ],
+                    },
+                },
+                'studio': {
+                    'public': {
+                        'get': [
+                            'dbc-pool/addresses/{mint}',
+                        ],
+                        'post': [
+                            'dbc-pool/create-tx',
+                            'dbc-pool/submit',
+                            'dbc/fee',
+                            'dbc/fee/create-tx',
+                        ],
+                    },
+                },
+            },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': false,
+            },
+            'precisionMode': DECIMAL_PLACES,
+            'options': {
+                'defaultType': 'spot',
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name jupiter#createPool
+     * @description creates a Jupiter Studio DBC pool transaction and token metadata upload links
+     * @see https://developers.jup.ag/docs/api-reference/studio/dbc-pool-create-tx
+     * @param {object} params DBC curve, fee, token metadata, and creator configuration
+     * @param {object} params.buildCurveByMarketCapParam bonding curve configuration
+     * @param {boolean} params.antiSniping whether to enable anti-sniping protection
+     * @param {object} params.fee pool fee configuration
+     * @param {string} params.tokenName token name
+     * @param {string} params.tokenSymbol token symbol
+     * @param {string} params.tokenImageContentType token image MIME type
+     * @param {string} params.creator creator wallet public key
+     * @returns {object} unsigned transaction, token mint, and presigned metadata URLs
+     */
+    override async createPool (params: Dict = {}): Promise<Dict> {
+        const required = [ 'buildCurveByMarketCapParam', 'antiSniping', 'fee', 'tokenName', 'tokenSymbol', 'tokenImageContentType', 'creator' ];
+        for (let i = 0; i < required.length; i++) {
+            const key = required[i];
+            if (!(key in params)) {
+                throw new ArgumentsRequired (this.id + ' createPool() requires params.' + key);
+            }
+        }
+        return await this.studioPublicPostDbcPoolCreateTx (params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#submitPool
+     * @description submits a caller-signed Jupiter Studio DBC pool transaction
+     * @see https://developers.jup.ag/docs/api-reference/studio/dbc-pool-submit
+     * @param {object} params signed transaction and pool owner
+     * @param {string} params.transaction base64-encoded signed Solana transaction
+     * @param {string} [params.owner] wallet public key that owns the transaction
+     * @param {string} [params.wallet] alias for owner
+     * @param {string} [params.content] optional Studio page description
+     * @param {object} [params.headerImage] unsupported binary file upload; upload it separately or omit it
+     * @returns {object} common pool transaction result plus token mint and config key
+     */
+    override async submitPool (params: Dict = {}): Promise<Dict> {
+        const transaction = this.safeString (params, 'transaction');
+        const owner = this.safeString (params, 'owner', this.safeString (params, 'wallet'));
+        if ((transaction === undefined) || (owner === undefined)) {
+            throw new ArgumentsRequired (this.id + ' submitPool() requires params.transaction and params.owner or params.wallet');
+        }
+        if ('headerImage' in params) {
+            throw new NotSupported (this.id + ' submitPool() does not support binary headerImage uploads; upload the image separately');
+        }
+        const request: Dict = {
+            'transaction': transaction,
+            'owner': owner,
+        };
+        const content = this.safeString (params, 'content');
+        if (content !== undefined) {
+            request['content'] = content;
+        }
+        const response = await this.studioPublicPostDbcPoolSubmit (request);
+        const data = this.safeDict (response, 'data', response);
+        return this.parsePoolSubmission (data, owner);
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchPoolMintAddresses
+     * @description fetches Jupiter DBC and graduated DAMM V2 pool addresses for a token mint
+     * @see https://developers.jup.ag/docs/api-reference/studio/dbc-pool-addresses-by-mint
+     * @param {string} id token mint address
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} common pool-address structure plus DBC, DAMM V2, and config addresses
+     */
+    override async fetchPoolMintAddresses (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.studioPublicGetDbcPoolAddressesMint (this.extend ({ 'mint': id }, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "dammv2PoolAddress": "5mdmkFmtBdzkTTmVzwvg8PUQeq91Y33KLcWrkjLJxjXR",
+        //             "dbcPoolAddress": "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F",
+        //             "configKey": "A9mKpkyvSSoTY2iMUG4bzABZ2GAupu9kxdpxKnuTuwMd",
+        //             "ctoPdaAccount": null
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', response);
+        return this.parsePoolMintAddresses (this.extend ({ 'mint': id }, data));
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchPoolFees
+     * @description fetches total and unclaimed creator fees for a Jupiter DBC pool
+     * @see https://developers.jup.ag/docs/api-reference/studio/dbc-fee
+     * @param {string} poolId Jupiter DBC pool address
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object[]} common fee structures; raw creator-fee values remain in info
+     */
+    override async fetchPoolFees (poolId: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        if (poolId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPoolFees() requires a DBC pool id');
+        }
+        const response = await this.studioPublicPostDbcFee (this.extend ({ 'poolAddress': poolId }, params));
+        //
+        //     {
+        //         "unclaimed": "658163",
+        //         "total": "658163"
+        //     }
+        //
+        return [ this.parsePoolFee (response, poolId, 'creator') ];
+    }
+
+    /**
+     * @method
+     * @name jupiter#collectFees
+     * @description creates an unsigned Jupiter DBC creator-fee claim transaction
+     * @see https://developers.jup.ag/docs/api-reference/studio/dbc-fee-create-tx
+     * @param {string} poolId Jupiter DBC pool address
+     * @param {object} params claim request including ownerWallet and maxQuoteAmount
+     * @param {string} params.ownerWallet creator wallet public key
+     * @param {number} params.maxQuoteAmount maximum quote-token amount in base units to claim
+     * @returns {object} unsigned claim transaction that must be signed and submitted by the caller
+     */
+    override async collectFees (poolId: string, params: Dict = {}): Promise<Dict> {
+        if (poolId === undefined) {
+            throw new ArgumentsRequired (this.id + ' collectFees() requires a DBC pool id');
+        }
+        const ownerWallet = this.safeString (params, 'ownerWallet');
+        const maxQuoteAmount = this.safeNumber (params, 'maxQuoteAmount');
+        if ((ownerWallet === undefined) || (maxQuoteAmount === undefined)) {
+            throw new ArgumentsRequired (this.id + ' collectFees() requires params.ownerWallet and params.maxQuoteAmount');
+        }
+        const response = await this.studioPublicPostDbcFeeCreateTx (this.extend (this.omit (params, [ 'ownerWallet', 'maxQuoteAmount' ]), {
+            'ownerWallet': ownerWallet,
+            'poolAddress': poolId,
+            'maxQuoteAmount': maxQuoteAmount,
+        }));
+        //
+        //     {
+        //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAYMEXh1ZC8+o3wkM9ulpvp76eGBbpQo..."
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#claimPoolFees
+     * @description creates an unsigned Jupiter DBC creator-fee claim transaction
+     * @see https://developers.jup.ag/docs/api-reference/studio/dbc-fee-create-tx
+     * @param {string} poolId Jupiter DBC pool address
+     * @param {object} params claim request including ownerWallet and maxQuoteAmount
+     * @param {string} params.ownerWallet creator wallet public key
+     * @param {number} params.maxQuoteAmount maximum quote-token amount in base units to claim
+     * @returns {object} unsigned claim transaction that must be signed and submitted by the caller
+     */
+    override async claimPoolFees (poolId: string, params: Dict = {}): Promise<Dict> {
+        return await this.collectFees (poolId, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchLiquidityPools
+     * @description fetches Jupiter Earn assets and Borrow vaults
+     * @see https://developers.jup.ag/docs/lend/earn
+     * @see https://developers.jup.ag/docs/lend/borrow
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} [params.type] filter by 'earn' or 'borrow'
+     * @param {string} [params.market] Borrow market, 'main' or 'ethena'
+     * @param {string} [params.rpcUrl] optional Solana RPC URL for Borrow vault data
+     * @returns {object[]} common liquidity pool structures with protocol-specific fields in info
+     */
+    override async fetchLiquidityPools (params: Dict = {}): Promise<Dict[]> {
+        const type = this.safeString (params, 'type');
+        if ((type !== undefined) && (type !== 'earn') && (type !== 'borrow')) {
+            throw new BadRequest (this.id + ' fetchLiquidityPools() params.type must be earn or borrow');
+        }
+        const request = this.omit (params, [ 'type' ]);
+        const results: Dict[] = [];
+        if (type !== 'borrow') {
+            const response = await this.lendPublicGetEarnTokens ();
+            //
+            //     [
+            //         {
+            //             "id": 9,
+            //             "address": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+            //             "name": "jupiter  lend JupUSD",
+            //             "symbol": "jlJupUSD",
+            //             "uiSymbol": "JUICED",
+            //             "decimals": 6,
+            //             "assetAddress": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+            //             "asset": {
+            //                 "address": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+            //                 "chainId": "solana",
+            //                 "name": "Jupiter USD",
+            //                 "symbol": "JupUSD",
+            //                 "uiSymbol": "JupUSD",
+            //                 "decimals": 6,
+            //                 "logoUrl": "https://coin-images.coingecko.com/coins/images/70636/large/icon.png?1767003505",
+            //                 "price": "0.998502728034",
+            //                 "coingeckoId": "jupusd",
+            //                 "updatedAt": "2026-11-17T20:36:07.000+00:00"
+            //             },
+            //             "totalAssets": "42193568871669",
+            //             "totalSupply": "40249000247575",
+            //             "convertToShares": "953913",
+            //             "convertToAssets": "1048313",
+            //             "rewardsRate": "150",
+            //             "supplyRate": "561",
+            //             "totalRate": "711",
+            //             "rebalanceDifference": "-776162678460",
+            //             "liquiditySupplyData": {
+            //                 "modeWithInterest": true,
+            //                 "supply": "41771091791719",
+            //                 "withdrawalLimit": "20885545895860",
+            //                 "lastUpdateTimestamp": "1794947833",
+            //                 "expandPercent": "5000",
+            //                 "expandDuration": "21600",
+            //                 "baseWithdrawalLimit": "10286954797530",
+            //                 "withdrawableUntilLimit": "20885545895859",
+            //                 "withdrawable": "3386179896417",
+            //                 "decayAmount": "963429559",
+            //                 "decayEndTimestamp": "1794949366"
+            //             },
+            //             "rewards": [],
+            //             "metadata": {}
+            //         }
+            //     ]
+            //
+            const tokens = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+            for (let i = 0; i < tokens.length; i++) {
+                const token = tokens[i] as Dict;
+                results.push (this.parseLiquidityPool ({
+                    'id': this.safeString (token, 'assetAddress'),
+                    'type': 'earn',
+                    'currency': this.safeString (token, 'assetAddress'),
+                    'shareToken': this.safeString (token, 'address'),
+                    'symbol': this.safeString (token, 'symbol'),
+                    'name': this.safeString (token, 'name'),
+                    'supplyRate': this.safeNumber (token, 'supplyRate'),
+                    'rewardsRate': this.safeNumber (token, 'rewardsRate'),
+                    'totalRate': this.safeNumber (token, 'totalRate'),
+                    'info': token,
+                }));
+            }
+        }
+        if (type !== 'earn') {
+            const response = await this.lendPublicGetBorrowVaults (request);
+            //
+            //     [
+            //         {
+            //             "id": 1,
+            //             "address": "nMzVs8GiXMVUENEwkev7JZfDcCENmz18ScheeVRdnb1",
+            //             "type": 0,
+            //             "supplyToken": {
+            //                 "address": "So11111111111111111111111111111111111111112",
+            //                 "chainId": "solana",
+            //                 "name": "Wrapped SOL",
+            //                 "symbol": "WSOL",
+            //                 "uiSymbol": "SOL",
+            //                 "decimals": 9,
+            //                 "logoUrl": "https://coin-images.coingecko.com/coins/images/21629/large/solana.jpg?1696520989",
+            //                 "price": "73.001437444494",
+            //                 "coingeckoId": "wrapped-solana",
+            //                 "updatedAt": "2026-11-17T20:45:09.000+00:00"
+            //             },
+            //             "borrowToken": {
+            //                 "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            //                 "chainId": "solana",
+            //                 "name": "USD Coin",
+            //                 "symbol": "USDC",
+            //                 "uiSymbol": "USDC",
+            //                 "decimals": 6,
+            //                 "logoUrl": "https://coin-images.coingecko.com/coins/images/6319/large/USDC.png?1769615602",
+            //                 "price": "0.999591168415",
+            //                 "coingeckoId": "usd-coin",
+            //                 "updatedAt": "2026-11-17T20:45:09.000+00:00"
+            //             },
+            //             "totalSupply": "1837535197342354",
+            //             "totalBorrow": "68811930886183",
+            //             "borrowFee": "0",
+            //             "collateralFactor": "800",
+            //             "liquidationThreshold": "850",
+            //             "liquidationMaxLimit": "900",
+            //             "liquidationPenalty": "100",
+            //             "supplyRate": "360",
+            //             "borrowRate": "496",
+            //             "minimumBorrowing": "1066456",
+            //             "totalPositions": 10922,
+            //             "oracle": "6uU9EvKL1rSTyw3ZqKz4hMNEB4NBCo3D3rg3n13fymHm",
+            //             "rewards": [],
+            //             "metadata": { "maxLeverage": false, "nativeStake": false, "pegged": false, "hidden": false }
+            //         },
+            //         ...
+            //     ]
+            //
+            const vaults = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+            for (let i = 0; i < vaults.length; i++) {
+                const vault = vaults[i] as Dict;
+                const supplyToken = this.safeDict (vault, 'supplyToken');
+                const borrowToken = this.safeDict (vault, 'borrowToken');
+                results.push (this.parseLiquidityPool ({
+                    'id': this.safeString (vault, 'id'),
+                    'type': 'borrow',
+                    'address': this.safeString (vault, 'address'),
+                    'collateralCurrency': this.safeString (supplyToken, 'address'),
+                    'borrowCurrency': this.safeString (borrowToken, 'address'),
+                    'supplyRate': this.safeNumber (vault, 'supplyRate'),
+                    'borrowRate': this.safeNumber (vault, 'borrowRate'),
+                    'borrowFee': this.safeNumber (vault, 'borrowFee'),
+                    'info': vault,
+                }));
+            }
+        }
+        return results;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchLiquidity
+     * @description fetches Jupiter Earn or Borrow positions for a wallet
+     * @see https://developers.jup.ag/docs/api-reference/lend/earn/positions
+     * @see https://developers.jup.ag/docs/api-reference/lend/borrow/positions
+     * @param {string} [poolId] asset mint for Earn or vault id for Borrow
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} params.walletAddress Solana wallet address (or pass it as params.users)
+     * @param {string} [params.type] 'earn' (default) or 'borrow'
+     * @param {string} [params.market] Borrow market, 'main' or 'ethena'
+     * @returns {object[]} common liquidity position structures with protocol-specific fields in info
+     */
+    override async fetchLiquidity (poolId: Str = undefined, params: Dict = {}): Promise<Dict[]> {
+        const walletAddress = this.safeString2 (params, 'walletAddress', 'users');
+        if (walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLiquidity() requires params.walletAddress');
+        }
+        const type = this.safeString (params, 'type', 'earn');
+        if ((type !== 'earn') && (type !== 'borrow')) {
+            throw new BadRequest (this.id + ' fetchLiquidity() params.type must be earn or borrow');
+        }
+        const request = this.omit (params, [ 'walletAddress', 'users', 'type', 'market' ]);
+        request['users'] = walletAddress;
+        const market = this.safeString (params, 'market');
+        if ((type === 'borrow') && (market !== undefined)) {
+            request['market'] = market;
+        }
+        let response = undefined;
+        if (type === 'borrow') {
+            response = await this.lendPublicGetBorrowPositions (request);
+        } else {
+            response = await this.lendPublicGetEarnPositions (request);
+            //
+            //     [
+            //         {
+            //             "token": {
+            //                 "id": 6,
+            //                 "address": "j14XLJZSVMcUYpAfajdZRpnfHUpJieZHS4aPektLWvh",
+            //                 "name": "jupiter  lend USDS",
+            //                 "symbol": "jlUSDS",
+            //                 "uiSymbol": "jlUSDS",
+            //                 "decimals": 6,
+            //                 "assetAddress": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+            //                 "asset": {
+            //                     "address": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+            //                     "chainId": "solana",
+            //                     "name": "USDS",
+            //                     "symbol": "USDS",
+            //                     "uiSymbol": "USDS",
+            //                     "decimals": 6,
+            //                     "logoUrl": "https://coin-images.coingecko.com/coins/images/39926/large/usds.webp?1726666683",
+            //                     "price": "0.999928369413",
+            //                     "coingeckoId": "usds",
+            //                     "updatedAt": "2026-11-17T20:36:07.000+00:00"
+            //                 },
+            //                 "totalAssets": "2249270503394",
+            //                 "totalSupply": "2097175151701",
+            //                 "convertToShares": "932380",
+            //                 "convertToAssets": "1072524",
+            //                 "rewardsRate": "0",
+            //                 "supplyRate": "373",
+            //                 "totalRate": "373",
+            //                 "rewards": [],
+            //                 "metadata": {}
+            //             },
+            //             "ownerAddress": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+            //             "shares": "0",
+            //             "underlyingAssets": "0",
+            //             "underlyingBalance": "0",
+            //             "allowance": "0"
+            //         },
+            //         ...
+            //     ]
+            //
+        }
+        const positions = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+        const result: Dict[] = [];
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i] as Dict;
+            if (type === 'borrow') {
+                const vault = this.safeDict (position, 'vault');
+                const vaultId = this.safeString2 (position, 'vaultId', 'id');
+                if ((poolId !== undefined) && (poolId !== vaultId)) {
+                    continue;
+                }
+                const supplyToken = this.safeDict (vault, 'supplyToken');
+                const borrowToken = this.safeDict (vault, 'borrowToken');
+                const supplyDecimals = this.safeInteger (supplyToken, 'decimals');
+                const borrowDecimals = this.safeInteger (borrowToken, 'decimals');
+                if ((supplyDecimals === undefined) || (borrowDecimals === undefined)) {
+                    throw new ExchangeError (this.id + ' Borrow position is missing token decimal precision');
+                }
+                const collateralAmount = this.safeString (position, 'supply');
+                const debtAmount = this.safeString (position, 'borrow');
+                result.push (this.parseLiquidity ({
+                    'id': this.safeString (position, 'id'),
+                    'poolId': vaultId,
+                    'type': 'borrow',
+                    'owner': this.safeString (position, 'ownerAddress'),
+                    'collateral': (collateralAmount === undefined) ? undefined : this.parseNumber (Precise.stringMul (collateralAmount, this.parsePrecision (this.numberToString (supplyDecimals)))),
+                    'collateralCurrency': this.safeString (supplyToken, 'address'),
+                    'debt': (debtAmount === undefined) ? undefined : this.parseNumber (Precise.stringMul (debtAmount, this.parsePrecision (this.numberToString (borrowDecimals)))),
+                    'borrowCurrency': this.safeString (borrowToken, 'address'),
+                    'liquidated': this.safeBool (position, 'isLiquidated'),
+                    'info': position,
+                    'vault': vault,
+                }));
+            } else {
+                const token = this.safeDict (position, 'token');
+                const assetAddress = this.safeString (token, 'assetAddress');
+                if ((poolId !== undefined) && (poolId !== assetAddress) && (poolId !== this.safeString (token, 'address'))) {
+                    continue;
+                }
+                const decimals = this.safeInteger (token, 'decimals');
+                if (decimals === undefined) {
+                    throw new ExchangeError (this.id + ' Earn position is missing token decimal precision');
+                }
+                const scale = this.parsePrecision (this.numberToString (decimals));
+                const shares = this.safeString (position, 'shares');
+                const underlyingAssets = this.safeString (position, 'underlyingAssets');
+                result.push (this.parseLiquidity ({
+                    'id': assetAddress,
+                    'poolId': assetAddress,
+                    'type': 'earn',
+                    'owner': this.safeString (position, 'ownerAddress'),
+                    'shares': (shares === undefined) ? undefined : this.parseNumber (Precise.stringMul (shares, scale)),
+                    'amount': (underlyingAssets === undefined) ? undefined : this.parseNumber (Precise.stringMul (underlyingAssets, scale)),
+                    'currency': assetAddress,
+                    'info': position,
+                }));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name jupiter#addLiquidity
+     * @description deposits an asset into a Jupiter Earn vault and returns an unsigned transaction
+     * @see https://developers.jup.ag/docs/api-reference/lend/earn/deposit
+     * @param {string} poolId underlying asset mint address
+     * @param {number} amount amount to deposit in human-readable currency units
+     * @param {object} params request fields including signer
+     * @param {string} params.signer Solana wallet address that will sign the transaction
+     * @returns {object} an unsigned transaction that must be signed and submitted by the caller
+     */
+    override async addLiquidity (poolId: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        return await this.createEarnTransaction ('deposit', poolId, amount, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#removeLiquidity
+     * @description withdraws an asset from a Jupiter Earn vault and returns an unsigned transaction
+     * @see https://developers.jup.ag/docs/api-reference/lend/earn/withdraw
+     * @param {string} poolId underlying asset mint address
+     * @param {number} amount amount to withdraw in human-readable currency units
+     * @param {object} params request fields including signer
+     * @param {string} params.signer Solana wallet address that will sign the transaction
+     * @returns {object} an unsigned transaction that must be signed and submitted by the caller
+     */
+    override async removeLiquidity (poolId: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        return await this.createEarnTransaction ('withdraw', poolId, amount, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#depositCollateral
+     * @description deposits collateral into a Jupiter Borrow position and returns an unsigned transaction
+     * @see https://developers.jup.ag/docs/api-reference/lend/borrow/operate
+     * @param {string} id Jupiter Borrow vault id
+     * @param {number} amount collateral amount in human-readable currency units
+     * @param {object} params operation parameters including signer and optional positionId
+     * @param {string} params.signer Solana wallet address that will sign the transaction
+     * @param {int} [params.positionId] existing position id; defaults to 0 to create a position
+     * @param {string} [params.positionOwner] owner of an existing position when operating on behalf of another wallet
+     * @param {string} [params.market] Borrow market, 'main' or 'ethena'
+     * @param {string} [params.rpcUrl] optional Solana RPC URL for Borrow vault data
+     * @param {boolean} [params.instructions] return raw instructions instead of a serialized transaction
+     * @returns {object} an unsigned transaction that must be signed and submitted by the caller
+     */
+    override async depositCollateral (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        if ((amount === undefined) || (amount <= 0)) {
+            throw new ArgumentsRequired (this.id + ' depositCollateral() requires a positive amount');
+        }
+        return await this.createBorrowOperation (id, amount, 0, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#withdrawCollateral
+     * @description withdraws collateral from a Jupiter Borrow position and returns an unsigned transaction
+     * @see https://developers.jup.ag/docs/api-reference/lend/borrow/operate
+     * @param {string} id Jupiter Borrow vault id
+     * @param {number} amount collateral amount in human-readable currency units
+     * @param {object} params operation parameters including signer and positionId
+     * @param {string} params.signer Solana wallet address that will sign the transaction
+     * @param {int} params.positionId existing Borrow position id
+     * @param {string} [params.positionOwner] owner of the position when operating on behalf of another wallet
+     * @param {string} [params.market] Borrow market, 'main' or 'ethena'
+     * @param {string} [params.rpcUrl] optional Solana RPC URL for Borrow vault data
+     * @param {boolean} [params.instructions] return raw instructions instead of a serialized transaction
+     * @returns {object} an unsigned transaction that must be signed and submitted by the caller
+     */
+    override async withdrawCollateral (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        if ((amount === undefined) || (amount <= 0)) {
+            throw new ArgumentsRequired (this.id + ' withdrawCollateral() requires a positive amount');
+        }
+        const negativeAmount = this.parseNumber (Precise.stringNeg (Precise.stringAbs (this.numberToString (amount))));
+        return await this.createBorrowOperation (id, negativeAmount, 0, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#borrowCurrency
+     * @description borrows against a Jupiter Borrow position and returns an unsigned transaction
+     * @see https://developers.jup.ag/docs/api-reference/lend/borrow/operate
+     * @param {string} id Jupiter Borrow vault id
+     * @param {number} amount borrow amount in human-readable currency units
+     * @param {object} params operation parameters including signer and optional positionId
+     * @param {string} params.signer Solana wallet address that will sign the transaction
+     * @param {int} [params.positionId] existing position id; defaults to 0 to create a position
+     * @param {string} [params.positionOwner] owner of an existing position when operating on behalf of another wallet
+     * @param {string} [params.market] Borrow market, 'main' or 'ethena'
+     * @param {string} [params.rpcUrl] optional Solana RPC URL for Borrow vault data
+     * @param {boolean} [params.instructions] return raw instructions instead of a serialized transaction
+     * @returns {object} an unsigned transaction that must be signed and submitted by the caller
+     */
+    override async borrowCurrency (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        if ((amount === undefined) || (amount <= 0)) {
+            throw new ArgumentsRequired (this.id + ' borrowCurrency() requires a positive amount');
+        }
+        return await this.createBorrowOperation (id, 0, amount, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#repayCurrency
+     * @description repays a Jupiter Borrow position and returns an unsigned transaction
+     * @see https://developers.jup.ag/docs/api-reference/lend/borrow/operate
+     * @param {string} id Jupiter Borrow vault id
+     * @param {number} amount repayment amount in human-readable currency units
+     * @param {object} params operation parameters including signer and positionId
+     * @param {string} params.signer Solana wallet address that will sign the transaction
+     * @param {int} params.positionId existing Borrow position id
+     * @param {boolean} [params.all] repay the full debt
+     * @param {string} [params.positionOwner] owner of the position when operating on behalf of another wallet
+     * @param {string} [params.market] Borrow market, 'main' or 'ethena'
+     * @param {string} [params.rpcUrl] optional Solana RPC URL for Borrow vault data
+     * @param {boolean} [params.instructions] return raw instructions instead of a serialized transaction
+     * @returns {object} an unsigned transaction that must be signed and submitted by the caller
+     */
+    override async repayCurrency (id: string, amount: Num = undefined, params: Dict = {}): Promise<Dict> {
+        const repayAll = this.safeBool (params, 'all');
+        if (((amount === undefined) || (amount <= 0)) && !repayAll) {
+            throw new ArgumentsRequired (this.id + ' repayCurrency() requires a positive amount or params.all');
+        }
+        const repayAmount = (amount === undefined) ? undefined : this.parseNumber (Precise.stringNeg (Precise.stringAbs (this.numberToString (amount))));
+        return await this.createBorrowOperation (id, 0, repayAmount, params);
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchBorrowPositions
+     * @description fetches Jupiter Borrow positions for a wallet
+     * @see https://developers.jup.ag/docs/api-reference/lend/borrow/positions
+     * @param {string} walletAddress Solana wallet address
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} [params.market] Jupiter Lend market, 'main' or 'ethena'
+     * @returns {object[]} a list of Jupiter Borrow positions
+     */
+    override async fetchBorrowPositions (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
+        const request = this.omit (params, [ 'users', 'walletAddress', 'type' ]);
+        request['walletAddress'] = walletAddress;
+        request['type'] = 'borrow';
+        return await this.fetchLiquidity (undefined, request);
+    }
+
+    /**
+     * @ignore
+     * @param {string} operation Earn operation
+     * @param {string} asset underlying asset mint
+     * @param {number} amount human-readable amount
+     * @param {object} params request parameters
+     * @returns {object} unsigned transaction response
+     */
+    async createEarnTransaction (operation: string, asset: string, amount: Num, params: Dict = {}): Promise<Dict> {
+        if ((amount === undefined) || (amount <= 0)) {
+            throw new ArgumentsRequired (this.id + ' ' + operation + ' requires a positive amount');
+        }
+        const signer = this.safeString (params, 'signer');
+        if (signer === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + operation + ' requires params.signer');
+        }
+        const response = await this.lendPublicGetEarnTokens ();
+        //
+        //     [
+        //         {
+        //             "id": 9,
+        //             "address": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+        //             "name": "jupiter  lend JupUSD",
+        //             "symbol": "jlJupUSD",
+        //             "uiSymbol": "JUICED",
+        //             "decimals": 6,
+        //             "assetAddress": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+        //             "asset": { "address": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD", "name": "Jupiter USD", "symbol": "JupUSD", "decimals": 6, "price": "0.998502728034" },
+        //             "totalAssets": "42193568871669",
+        //             "totalSupply": "40249000247575",
+        //             "convertToShares": "953913",
+        //             "convertToAssets": "1048313",
+        //             "rewardsRate": "150",
+        //             "supplyRate": "561",
+        //             "totalRate": "711",
+        //             "rewards": [],
+        //             "metadata": {}
+        //         },
+        //         ...
+        //     ]
+        //
+        const tokens = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+        let decimals: Int = undefined;
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i] as Dict;
+            if (this.safeString (token, 'assetAddress') === asset) {
+                decimals = this.safeInteger (token, 'decimals');
+                break;
+            }
+        }
+        if (decimals === undefined) {
+            throw new BadSymbol (this.id + ' ' + operation + ' unknown Earn asset ' + asset);
+        }
+        const amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, decimals, DECIMAL_PLACES);
+        const baseAmount = Precise.stringDiv (amountString, this.parsePrecision (this.numberToString (decimals)));
+        if (baseAmount === undefined) {
+            throw new ExchangeError (this.id + ' could not convert Earn amount to base units');
+        }
+        const request = this.omit (params, [ 'signer' ]);
+        request['asset'] = asset;
+        request['signer'] = signer;
+        request['amount'] = baseAmount;
+        if (operation === 'deposit') {
+            const depositResponse = await this.lendPublicPostEarnDeposit (request);
+            //
+            //     {
+            //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAkSXP/2uuAU1U1WGPBWBlDrYCLLke..."
+            //     }
+            //
+            return depositResponse;
+        }
+        const withdrawResponse = await this.lendPublicPostEarnWithdraw (request);
+        //
+        //     {
+        //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAkTXP/2uuAU1U1WGPBWBlDrYCLLke..."
+        //     }
+        //
+        return withdrawResponse;
+    }
+
+    /**
+     * @ignore
+     * @param {string} id Borrow vault id
+     * @param {number} collateralAmount human-readable collateral amount
+     * @param {number} debtAmount human-readable debt amount
+     * @param {object} params operation parameters
+     * @returns {object} unsigned transaction response
+     */
+    async createBorrowOperation (id: string, collateralAmount: Num, debtAmount: Num, params: Dict = {}): Promise<Dict> {
+        const signer = this.safeString (params, 'signer');
+        if (signer === undefined) {
+            throw new ArgumentsRequired (this.id + ' Borrow operation requires params.signer');
+        }
+        const vaultRequest: Dict = {};
+        const market = this.safeString (params, 'market');
+        const rpcUrl = this.safeString (params, 'rpcUrl');
+        if (market !== undefined) {
+            vaultRequest['market'] = market;
+        }
+        if (rpcUrl !== undefined) {
+            vaultRequest['rpcUrl'] = rpcUrl;
+        }
+        const response = await this.lendPublicGetBorrowVaults (vaultRequest);
+        //
+        //     [
+        //         {
+        //             "id": 1,
+        //             "address": "nMzVs8GiXMVUENEwkev7JZfDcCENmz18ScheeVRdnb1",
+        //             "type": 0,
+        //             "supplyToken": { "address": "So11111111111111111111111111111111111111112", "name": "Wrapped SOL", "symbol": "WSOL", "decimals": 9, "price": "73.001437444494" },
+        //             "borrowToken": { "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "name": "USD Coin", "symbol": "USDC", "decimals": 6, "price": "0.999591168415" },
+        //             "totalSupply": "1837535197342354",
+        //             "totalBorrow": "68811930886183",
+        //             "borrowFee": "0",
+        //             "collateralFactor": "800",
+        //             "liquidationThreshold": "850",
+        //             "liquidationMaxLimit": "900",
+        //             "liquidationPenalty": "100",
+        //             "supplyRate": "360",
+        //             "borrowRate": "496",
+        //             "minimumBorrowing": "1066456",
+        //             "totalPositions": 10922,
+        //             "rewards": [],
+        //             "metadata": { "maxLeverage": false, "nativeStake": false, "pegged": false, "hidden": false }
+        //         },
+        //         ...
+        //     ]
+        //
+        const vaults = (Array.isArray (response)) ? response : this.safeList (response, 'data', []);
+        let selectedVault: Dict = {};
+        for (let i = 0; i < vaults.length; i++) {
+            const vault = vaults[i] as Dict;
+            if (this.safeString (vault, 'id') === id) {
+                selectedVault = vault;
+                break;
+            }
+        }
+        if (Object.keys (selectedVault).length === 0) {
+            throw new BadSymbol (this.id + ' unknown Borrow vault ' + id);
+        }
+        const supplyToken = this.safeDict (selectedVault, 'supplyToken');
+        const borrowToken = this.safeDict (selectedVault, 'borrowToken');
+        const supplyDecimals = this.safeInteger (supplyToken, 'decimals');
+        const borrowDecimals = this.safeInteger (borrowToken, 'decimals');
+        if ((supplyDecimals === undefined) || (borrowDecimals === undefined)) {
+            throw new ExchangeError (this.id + ' Borrow vault is missing token decimal precision');
+        }
+        const colAmount = (collateralAmount === undefined) ? '0' : this.toBaseUnits (collateralAmount, supplyDecimals);
+        let debtAmountString = '0';
+        if (this.safeBool (params, 'all')) {
+            debtAmountString = '-170141183460469231731687303715884105728';
+        } else if (debtAmount !== undefined) {
+            debtAmountString = this.toBaseUnits (debtAmount, borrowDecimals);
+        }
+        const requestedPositionId = this.safeInteger (params, 'positionId');
+        const needsExistingPosition = ((collateralAmount !== undefined) && (collateralAmount < 0)) || ((debtAmount !== undefined) && (debtAmount < 0)) || this.safeBool (params, 'all');
+        if (needsExistingPosition && (requestedPositionId === undefined)) {
+            throw new ArgumentsRequired (this.id + ' Borrow withdrawals and repayments require params.positionId');
+        }
+        const positionId = (requestedPositionId === undefined) ? 0 : requestedPositionId;
+        const request: Dict = {
+            'market': market,
+            'positionOwner': this.safeString (params, 'positionOwner'),
+            'vaultId': this.parseToInt (id),
+            'positionId': positionId,
+            'signer': signer,
+            'colAmount': colAmount,
+            'debtAmount': debtAmountString,
+        };
+        if (this.safeBool (params, 'instructions')) {
+            return await this.lendPublicPostBorrowOperateInstructions (request);
+        }
+        const operateResponse = await this.lendPublicPostBorrowOperate (request);
+        //
+        //     {
+        //         "nftId": 10923,
+        //         "transaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAGD1z/9rrgFNVNVhjwVgZQ62Aiy5Hv..."
+        //     }
+        //
+        return operateResponse;
+    }
+
+    /**
+     * @ignore
+     * @param {number} amount human-readable token amount
+     * @param {int} decimals token decimal precision
+     * @returns {string} amount in base units
+     */
+    toBaseUnits (amount: Num, decimals: int): string {
+        const amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, decimals, DECIMAL_PLACES);
+        const baseUnits = Precise.stringDiv (amountString, this.parsePrecision (this.numberToString (decimals)));
+        if (baseUnits === undefined) {
+            throw new ExchangeError (this.id + ' could not convert token amount to base units');
+        }
+        return baseUnits;
+    }
+
+    /**
+     * @ignore
+     * @param {object} pool normalized pool input retaining venue data
+     * @returns {object} common liquidity pool structure
+     */
+    parseLiquidityPool (pool: Dict): Dict {
+        //
+        //     {
+        //         "id": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+        //         "type": "earn",
+        //         "currency": "JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD",
+        //         "shareToken": "7GxATsNMnaC88vdwd2t3mwrFuQwwGvmYPrUQ4D6FotXk",
+        //         "symbol": "jlJupUSD",
+        //         "name": "jupiter  lend JupUSD",
+        //         "supplyRate": 561,
+        //         "rewardsRate": 150,
+        //         "totalRate": 711,
+        //         "info": { ... }
+        //     }
+        //
+        const info = this.safeDict (pool, 'info', pool);
+        const poolId = this.safeString (pool, 'poolId', this.safeString (pool, 'id'));
+        return this.extend (pool, {
+            'id': this.safeString (pool, 'id', poolId),
+            'poolId': poolId,
+            'type': this.safeString (pool, 'type'),
+            'baseCurrency': this.safeString (pool, 'baseCurrency', this.safeString (pool, 'currency', this.safeString (pool, 'collateralCurrency'))),
+            'quoteCurrency': this.safeString (pool, 'quoteCurrency', this.safeString (pool, 'borrowCurrency')),
+            'lpCurrency': this.safeString (pool, 'lpCurrency', this.safeString (pool, 'shareToken')),
+            'symbol': this.safeString (pool, 'symbol'),
+            'name': this.safeString (pool, 'name'),
+            'totalLiquidity': this.safeNumber2 (pool, 'totalLiquidity', 'tvl'),
+            'totalLiquidityValue': this.safeNumber2 (pool, 'totalLiquidityValue', 'tvlUsd'),
+            'volume24h': this.safeNumber2 (pool, 'volume24h', 'volume24hUsd'),
+            'apr': this.safeNumber2 (pool, 'apr', 'totalRate'),
+            'supplyRate': this.safeNumber (pool, 'supplyRate'),
+            'borrowRate': this.safeNumber (pool, 'borrowRate'),
+            'rewardsRate': this.safeNumber (pool, 'rewardsRate'),
+            'feeRate': this.safeNumber (pool, 'feeRate', this.safeNumber (pool, 'borrowFee')),
+            'active': this.safeBool (pool, 'active'),
+            'info': info,
+        });
+    }
+
+    /**
+     * @ignore
+     * @param {object} position normalized position input retaining venue data
+     * @returns {object} common liquidity position structure
+     */
+    parseLiquidity (position: Dict): Dict {
+        //
+        //     {
+        //         "id": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+        //         "poolId": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+        //         "type": "earn",
+        //         "owner": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+        //         "shares": 0,
+        //         "amount": 0,
+        //         "currency": "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA",
+        //         "info": { ... }
+        //     }
+        //
+        const info = this.safeDict (position, 'info', position);
+        return this.extend (position, {
+            'id': this.safeString (position, 'id'),
+            'poolId': this.safeString (position, 'poolId'),
+            'owner': this.safeString (position, 'owner'),
+            'type': this.safeString (position, 'type'),
+            'currency': this.safeString (position, 'currency'),
+            'amount': this.safeNumber (position, 'amount'),
+            'shares': this.safeNumber (position, 'shares'),
+            'collateral': this.safeNumber (position, 'collateral'),
+            'collateralCurrency': this.safeString (position, 'collateralCurrency'),
+            'debt': this.safeNumber (position, 'debt'),
+            'borrowCurrency': this.safeString (position, 'borrowCurrency'),
+            'liquidated': this.safeBool (position, 'liquidated'),
+            'info': info,
+        });
+    }
+
+    /**
+     * @ignore
+     * @param {object} fee raw pool fee data
+     * @param {string} poolId pool identifier
+     * @param {string} type fee category
+     * @returns {object} common pool fee structure
+     */
+    parsePoolFee (fee: Dict, poolId: string, type: string): Dict {
+        //
+        //     {
+        //         "unclaimed": "658163",
+        //         "total": "658163"
+        //     }
+        //
+        const info = this.safeDict (fee, 'info', fee);
+        const amount = this.safeNumberN (fee, [ 'unclaimedAmount', 'unclaimedFee', 'unclaimed' ]);
+        return this.extend (fee, {
+            'id': this.safeString (fee, 'id', poolId),
+            'poolId': this.safeString (fee, 'poolId', poolId),
+            'positionId': this.safeString (fee, 'positionId'),
+            'type': type,
+            'currency': this.safeString2 (fee, 'currency', 'quoteMint'),
+            'amount': amount,
+            'unclaimedAmount': amount,
+            'totalAmount': this.safeNumberN (fee, [ 'totalAmount', 'totalFee', 'total' ]),
+            'info': info,
+        });
+    }
+
+    /**
+     * @ignore
+     * @param {object} addresses raw pool-address data
+     * @returns {object} common pool-address structure retaining venue-specific addresses
+     */
+    parsePoolMintAddresses (addresses: Dict): Dict {
+        //
+        //     {
+        //         "mint": "FAvY2SSpxzLYWaBAgkGUJdZMJaXLt2sQpSYN6yd9jups",
+        //         "dammv2PoolAddress": "5mdmkFmtBdzkTTmVzwvg8PUQeq91Y33KLcWrkjLJxjXR",
+        //         "dbcPoolAddress": "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F",
+        //         "configKey": "A9mKpkyvSSoTY2iMUG4bzABZ2GAupu9kxdpxKnuTuwMd",
+        //         "ctoPdaAccount": null
+        //     }
+        //
+        const info = this.safeDict (addresses, 'info', addresses);
+        const poolId = this.safeString (addresses, 'poolId', this.safeString (addresses, 'id', this.safeString (addresses, 'dbcPool')));
+        return this.extend (addresses, {
+            'id': this.safeString (addresses, 'id', poolId),
+            'poolId': poolId,
+            'baseCurrency': this.safeString (addresses, 'baseCurrency', this.safeString (addresses, 'mintA', this.safeString (addresses, 'mint'))),
+            'quoteCurrency': this.safeString (addresses, 'quoteCurrency', this.safeString (addresses, 'mintB')),
+            'lpCurrency': this.safeString (addresses, 'lpCurrency', this.safeString (addresses, 'lpMint')),
+            'info': info,
+        });
+    }
+
+    /**
+     * @ignore
+     * @param {object} submission raw transaction submission result
+     * @param {string} [owner] wallet that submitted the transaction
+     * @returns {object} common pool transaction result retaining venue-specific data
+     */
+    parsePoolSubmission (submission: Dict, owner: Str = undefined): Dict {
+        const info = this.safeDict (submission, 'info', submission);
+        const signature = this.safeString2 (submission, 'signature', 'transactionId', this.safeString (submission, 'txid'));
+        return this.extend (submission, {
+            'id': this.safeString (submission, 'id', signature),
+            'signature': signature,
+            'poolId': this.safeString (submission, 'poolId', this.safeString (submission, 'poolAddress')),
+            'owner': this.safeString (submission, 'owner', owner),
+            'info': info,
+        });
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchCurrencies
+     * @description searches for Solana tokens and returns their currency metadata
+     * @see https://developers.jup.ag/docs/api-reference/tokens/search
+     * @param {object} [params] exchange-specific parameters
+     * @param {string} params.query token name, symbol, or mint address to search for
+     * @returns {object} a dictionary of [currency structures](https://docs.ccxt.com/#/?id=currency-structure) indexed by currency code
+     */
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
+        const query = this.safeString (params, 'query');
+        if (query === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchCurrencies() requires a query parameter');
+        }
+        const response = await this.publicGetTokensV2Search (params);
+        //
+        //     [
+        //         {
+        //             "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //             "name": "Jupiter",
+        //             "symbol": "JUP",
+        //             "icon": "https://static.datapi.jup.ag/token-icons/12254fdd34fa9a0ad62075bd3872df61e28584f9519fe00c744b71b514d4c3d7.webp",
+        //             "decimals": 6,
+        //             "twitter": "https://twitter.com/JupiterExchange",
+        //             "website": "https://jup.ag",
+        //             "dev": "JUPhop9E8ZfdJ5FNHhxQt4uAih822Vs4QpqsWcewFbq",
+        //             "circSupply": 3319369204.37,
+        //             "totalSupply": 6861485665.049689,
+        //             "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "holderCount": 836147,
+        //             "fdv": 1718979923.724669,
+        //             "mcap": 831587982.586077,
+        //             "usdPrice": 0.2505259076005401,
+        //             "priceBlockId": 470669855,
+        //             "liquidity": 5368776.959425455,
+        //             "stats5m": { ... },
+        //             "stats1h": { ... },
+        //             "stats6h": { ... },
+        //             "stats24h": {
+        //                 "priceChange": 1.7188930297745795,
+        //                 "holderChange": -0.01171905362662856,
+        //                 "liquidityChange": 9.196443752699885,
+        //                 "volumeChange": 31.520334120280364,
+        //                 "buyVolume": 4806235.974102063,
+        //                 "sellVolume": 4672746.109049833,
+        //                 "buyOrganicVolume": 560843.9283383372,
+        //                 "sellOrganicVolume": 441984.90324390715,
+        //                 "numBuys": 91253,
+        //                 "numSells": 90950,
+        //                 "numTraders": 18792,
+        //                 "numOrganicBuyers": 217,
+        //                 "numNetBuyers": 1734
+        //             },
+        //             "firstPool": {
+        //                 "id": "2pspvjWWaf3dNgt3jsgSzFCNvMGPb7t8FrEYvLGjvcCe",
+        //                 "createdAt": "2024-01-29T17:33:29Z"
+        //             },
+        //             "audit": {
+        //                 "mintAuthorityDisabled": true,
+        //                 "freezeAuthorityDisabled": true,
+        //                 "topHoldersPercentage": 14.829274454604887,
+        //                 "devMints": 1
+        //             },
+        //             "organicScore": 96.7835220873601,
+        //             "organicScoreLabel": "high",
+        //             "isVerified": true,
+        //             "tags": [ "birdeye-trending" ],
+        //             "createdAt": "2024-06-07T10:56:42.584Z",
+        //             "updatedAt": "2026-11-17T20:36:34.196403656Z"
+        //         },
+        //         ...
+        //     ]
+        //
+        const tokens = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        const result: Currencies = {};
+        for (let i = 0; i < tokens.length; i++) {
+            const currency = this.parseCurrency (tokens[i]);
+            const code = currency['code'];
+            const existing = this.safeDict (result, code);
+            if (existing === undefined) {
+                result[code] = currency;
+            } else if (existing['id'] !== currency['id']) {
+                const suffix = currency['id'].slice (-4);
+                currency['code'] = code + '-' + suffix;
+                result[currency['code']] = currency;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchMarketsEmulated
+     * @description creates a synthetic market for a selected pair of Solana tokens
+     * @see https://developers.jup.ag/docs/api-reference/tokens/search
+     * @param {object} params extra parameters specific to the endpoint
+     * @param {string} params.base base token symbol or mint address; use a mint address to disambiguate duplicate symbols
+     * @param {string} params.quote quote token symbol or mint address; use a mint address to disambiguate duplicate symbols
+     * @returns {object[]} a synthetic [market structure](https://docs.ccxt.com/#/?id=market-structure)
+     */
+    async fetchMarketsEmulated (params: Dict = {}): Promise<Market[]> {
+        const baseCode = this.safeString (params, 'base');
+        const quoteCode = this.safeString (params, 'quote');
+        if ((baseCode === undefined) || (quoteCode === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchMarketsEmulated() requires params.base and params.quote');
+        }
+        const baseCurrency = await this.lookupJupiterCurrency (baseCode);
+        const quoteCurrency = await this.lookupJupiterCurrency (quoteCode);
+        if (baseCurrency['id'] === quoteCurrency['id']) {
+            throw new BadSymbol (this.id + ' fetchMarketsEmulated() base and quote must be different tokens');
+        }
+        return [ this.parseMarket ({
+            'id': baseCurrency['id'] + '/' + quoteCurrency['id'],
+            'baseCurrency': baseCurrency,
+            'quoteCurrency': quoteCurrency,
+        }) ];
+    }
+
+    /**
+     * @ignore
+     * @param {object} market synthetic market details containing base and quote currencies
+     * @returns {object} a market structure
+     */
+    override parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //         "baseCurrency": { "info": { ... }, "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", "code": "JUP", "name": "Jupiter", "active": true, "type": "token", "precision": 6 },
+        //         "quoteCurrency": { "info": { ... }, "id": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "code": "USDC", "name": "USD Coin", "active": true, "type": "token", "precision": 6 }
+        //     }
+        //
+        const baseCurrency = this.safeDict (market, 'baseCurrency') as CurrencyInterface;
+        const quoteCurrency = this.safeDict (market, 'quoteCurrency') as CurrencyInterface;
+        const base = this.safeString (baseCurrency, 'code');
+        const quote = this.safeString (quoteCurrency, 'code');
+        const baseId = this.safeString (baseCurrency, 'id');
+        const quoteId = this.safeString (quoteCurrency, 'id');
+        if ((base === undefined) || (quote === undefined) || (baseId === undefined) || (quoteId === undefined)) {
+            throw new ExchangeError (this.id + ' parseMarket() requires base and quote currency metadata');
+        }
+        return this.safeMarketStructure ({
+            'info': market,
+            'id': this.safeString (market, 'id', baseId + '/' + quoteId),
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'maker': undefined,
+            'taker': undefined,
+            'precision': {
+                'amount': this.safeInteger (baseCurrency, 'precision'),
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+            },
+        });
+    }
+
+    /**
+     * @ignore
+     * @param {object} currency the raw Jupiter token
+     * @returns {object} a currency structure
+     */
+    override parseCurrency (currency: Dict): CurrencyInterface {
+        //
+        //     {
+        //         "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //         "name": "Jupiter",
+        //         "symbol": "JUP",
+        //         "icon": "https://static.datapi.jup.ag/token-icons/12254fdd34fa9a0ad62075bd3872df61e28584f9519fe00c744b71b514d4c3d7.webp",
+        //         "decimals": 6,
+        //         "twitter": "https://twitter.com/JupiterExchange",
+        //         "website": "https://jup.ag",
+        //         "dev": "JUPhop9E8ZfdJ5FNHhxQt4uAih822Vs4QpqsWcewFbq",
+        //         "circSupply": 3319369204.37,
+        //         "totalSupply": 6861485665.049689,
+        //         "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //         "holderCount": 836147,
+        //         "fdv": 1718979923.724669,
+        //         "mcap": 831587982.586077,
+        //         "usdPrice": 0.2505259076005401,
+        //         "priceBlockId": 470669855,
+        //         "liquidity": 5368776.959425455,
+        //         "stats5m": { ... },
+        //         "stats1h": { ... },
+        //         "stats6h": { ... },
+        //         "stats24h": { ... },
+        //         "firstPool": { "id": "2pspvjWWaf3dNgt3jsgSzFCNvMGPb7t8FrEYvLGjvcCe", "createdAt": "2024-01-29T17:33:29Z" },
+        //         "audit": { "mintAuthorityDisabled": true, "freezeAuthorityDisabled": true, "topHoldersPercentage": 14.829274454604887, "devMints": 1 },
+        //         "organicScore": 96.7835220873601,
+        //         "organicScoreLabel": "high",
+        //         "isVerified": true,
+        //         "tags": [ "birdeye-trending" ],
+        //         "createdAt": "2024-06-07T10:56:42.584Z",
+        //         "updatedAt": "2026-11-17T20:36:34.196403656Z"
+        //     }
+        //
+        const id = this.safeString2 (currency, 'id', 'address');
+        const code = this.safeString (currency, 'symbol', id);
+        const decimals = this.safeInteger (currency, 'decimals');
+        if (id === undefined || code === undefined || decimals === undefined) {
+            throw new ExchangeError (this.id + ' parseCurrency() received a token without its mint, symbol, or decimals');
+        }
+        return {
+            'info': currency,
+            'id': id,
+            'code': code,
+            'name': this.safeString (currency, 'name'),
+            'active': true,
+            'type': 'token',
+            'precision': decimals,
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'withdraw': { 'min': undefined, 'max': undefined },
+            },
+            'networks': {},
+        };
+    }
+
+    /**
+     * @method
+     * @name jupiter#requestTriggerChallenge
+     * @description requests a wallet challenge for trigger api authentication
+     * @see https://developers.jup.ag/docs/trigger/authentication
+     * @param {string} walletPubkey solana wallet public key
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} [params.type] challenge type, 'message' or 'transaction'
+     * @returns {object} the challenge to sign with the wallet
+     */
+    async requestTriggerChallenge (walletPubkey: string, params: Dict = {}): Promise<Dict> {
+        const request: Dict = this.omit (params, [ 'type' ]);
+        request['walletPubkey'] = walletPubkey;
+        request['type'] = this.safeString (params, 'type', 'message');
+        const response = await this.triggerPublicPostAuthChallenge (request);
+        //
+        //     {
+        //         "type": "message",
+        //         "challenge": "Sign this message to authenticate with Jupiter that you are the owner of 7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2.\n\nThis challenge expires at 2026-11-17T20:44:10.345Z with the nonce of 01a1eb3c-2709-71db-acd5-6816e5d6571b."
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#verifyTriggerChallenge
+     * @description verifies a signed wallet challenge and stores the returned trigger access token
+     * @see https://developers.jup.ag/docs/trigger/authentication
+     * @param {string} walletPubkey solana wallet public key
+     * @param {object} params challenge response fields, including type and signature or signedTransaction
+     * @param {string} params.type challenge type, 'message' or 'transaction'
+     * @param {string} [params.signature] base58-encoded message signature
+     * @param {string} [params.signedTransaction] base64-encoded signed challenge transaction
+     * @param {string} [params.authMode] 'access_refresh' to obtain a refresh token
+     * @returns {object} token response; accessToken is also stored in options.jwt
+     */
+    async verifyTriggerChallenge (walletPubkey: string, params: Dict = {}): Promise<Dict> {
+        const request = this.omit (params, [ 'jwt' ]);
+        request['walletPubkey'] = walletPubkey;
+        const response = await this.triggerPrivatePostAuthVerify (request);
+        //
+        //     {
+        //         "authMode": "access_refresh",
+        //         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...",
+        //         "refreshToken": "01a21216-0000-0000-0000-000000000001.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t1",
+        //         "expiresAt": "2026-11-25T09:58:01.000Z",
+        //         "tokenType": "Bearer"
+        //     }
+        //
+        const accessToken = this.safeString2 (response, 'accessToken', 'token');
+        if (accessToken !== undefined) {
+            this.options['jwt'] = accessToken;
+        }
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#refreshTriggerToken
+     * @description refreshes trigger api access and rotating refresh tokens
+     * @see https://developers.jup.ag/docs/trigger/authentication
+     * @param {string} refreshToken refresh token returned by verifyTriggerChallenge
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} refreshed tokens; accessToken is stored in options.jwt
+     */
+    async refreshTriggerToken (refreshToken: string, params: Dict = {}): Promise<Dict> {
+        const request = this.omit (params, [ 'jwt' ]);
+        request['refreshToken'] = refreshToken;
+        const response = await this.triggerPrivatePostAuthRefresh (request);
+        //
+        //     {
+        //         "authMode": "access_refresh",
+        //         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...",
+        //         "refreshToken": "01a21216-0000-0000-0000-000000000002.c2FuaXRpemVkLXJlZnJlc2gtdG9rZW4t2",
+        //         "expiresAt": "2026-11-25T09:58:05.000Z",
+        //         "tokenType": "Bearer"
+        //     }
+        //
+        const accessToken = this.safeString (response, 'accessToken');
+        if (accessToken !== undefined) {
+            this.options['jwt'] = accessToken;
+        }
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#createTriggerDeposit
+     * @description builds an unsigned deposit transaction for a trigger price or dca order
+     * @see https://developers.jup.ag/docs/trigger/deposit
+     * @param {object} params deposit request including inputMint, outputMint, userAddress, amount, and orderType
+     * @param {string} params.inputMint input token mint
+     * @param {string} params.outputMint output token mint
+     * @param {string} params.userAddress wallet public key
+     * @param {string} params.amount input amount in base units
+     * @param {string} params.orderType 'price' or 'dca'
+     * @param {string} [params.orderSubType] price order subtype: 'single', 'oco', or 'otoco'
+     * @returns {object} unsigned transaction and request metadata
+     */
+    async createTriggerDeposit (params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostDepositCraft (params);
+        //
+        //     {
+        //         "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //         "requestId": "e3c8ad07-9265-47f0-946a-76b7177512cc",
+        //         "receiverAddress": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //         "mint": "So11111111111111111111111111111111111111112",
+        //         "amount": "315000000",
+        //         "tokenDecimals": 9,
+        //         "inputTokenAccount": "8ePeFfWka1HmqfuX44NLjdC623pczUk8fw2gTjeXCvT8"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#createDcaOrder
+     * @description creates a trigger dca order using a caller-signed deposit transaction
+     * @see https://developers.jup.ag/docs/trigger/dca
+     * @param {object} params dca order parameters required by the trigger api
+     * @param {string} params.depositRequestId request id returned by createTriggerDeposit
+     * @param {string} params.depositSignedTx base64-encoded signed deposit transaction
+     * @param {string} params.userPubkey wallet public key
+     * @param {string} params.inputMint input token mint
+     * @param {string} params.outputMint output token mint
+     * @returns {object} created dca order id and deposit transaction signature
+     */
+    override async createDcaOrder (params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostOrdersDca (params);
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi"
+        //     }
+        //
+        return this.parseDcaOrder (response);
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchDcaOrders
+     * @description fetches trigger dca order history
+     * @see https://developers.jup.ag/docs/trigger/dca-history
+     * @param {int} [since] unsupported by Jupiter; use params.offset
+     * @param {int} [limit] maximum number of orders
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} [params.state] 'active' or 'past'
+     * @returns {object[]} dca order history entries
+     */
+    override async fetchDcaOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        const request = this.omit (params, [ 'since', 'limit' ]);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.triggerPrivateGetOrdersHistoryDca (request);
+        //
+        //     [
+        //         {
+        //             "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //             "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+        //             "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //             "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //             "inputMint": "So11111111111111111111111111111111111111112",
+        //             "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //             "inputAmountInitial": "315000000",
+        //             "inputAmountRemaining": "315000000",
+        //             "amountPerRound": "157500000",
+        //             "outputAmountTotal": "0",
+        //             "inputAmountUsed": "0",
+        //             "orderType": "time_based",
+        //             "minPriceUsd": null,
+        //             "maxPriceUsd": null,
+        //             "triggerMint": null,
+        //             "retryWindowSeconds": 1800,
+        //             "jlEnabled": false,
+        //             "jlYieldUsd": null,
+        //             "numberOfRounds": 2,
+        //             "intervalSeconds": 3600,
+        //             "beginFillAt": "2026-11-25T10:08:10.067Z",
+        //             "nextFillAt": "2026-11-25T10:08:10.067Z",
+        //             "lastFillAt": null,
+        //             "roundsFilled": 0,
+        //             "fillPercent": 0,
+        //             "state": "active",
+        //             "displayState": "active",
+        //             "createdAt": "2026-11-25T09:43:12.208Z",
+        //             "updatedAt": "2026-11-25T09:43:12.870Z",
+        //             "events": [
+        //                 {
+        //                     "type": "deposit",
+        //                     "timestamp": "2026-11-25T09:43:12.870Z",
+        //                     "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+        //                     "inputAmount": "315000000",
+        //                     "state": "success"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const orders = (Array.isArray (response)) ? response : this.safeList (response, 'orders', []);
+        const result: Dict[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push (this.parseDcaOrder (orders[i]));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchDcaOrder
+     * @description fetches one trigger dca order by id
+     * @see https://developers.jup.ag/docs/trigger/dca-history
+     * @param {string} id dca order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} dca order details
+     */
+    override async fetchDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivateGetOrdersHistoryDcaId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+        //         "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //         "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //         "inputMint": "So11111111111111111111111111111111111111112",
+        //         "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //         "inputAmountInitial": "315000000",
+        //         "inputAmountRemaining": "315000000",
+        //         "amountPerRound": "157500000",
+        //         "outputAmountTotal": "0",
+        //         "inputAmountUsed": "0",
+        //         "orderType": "time_based",
+        //         "minPriceUsd": null,
+        //         "maxPriceUsd": null,
+        //         "triggerMint": null,
+        //         "retryWindowSeconds": 1800,
+        //         "jlEnabled": false,
+        //         "jlYieldUsd": null,
+        //         "numberOfRounds": 2,
+        //         "intervalSeconds": 3600,
+        //         "beginFillAt": "2026-11-25T10:08:10.067Z",
+        //         "nextFillAt": "2026-11-25T10:08:10.067Z",
+        //         "lastFillAt": null,
+        //         "roundsFilled": 0,
+        //         "fillPercent": 0,
+        //         "state": "active",
+        //         "displayState": "active",
+        //         "createdAt": "2026-11-25T09:43:12.208Z",
+        //         "updatedAt": "2026-11-25T09:43:12.870Z",
+        //         "events": [
+        //             {
+        //                 "type": "deposit",
+        //                 "timestamp": "2026-11-25T09:43:12.870Z",
+        //                 "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+        //                 "inputAmount": "315000000",
+        //                 "state": "success"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseDcaOrder (response);
+    }
+
+    /**
+     * @ignore
+     * @param {object} order raw Jupiter Trigger DCA order
+     * @returns {object} normalized DCA order fields with the original response in info
+     */
+    parseDcaOrder (order: Dict): Dict {
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "requestId": "1175a0f8-f0cc-4483-a3ad-8a770fbb0e3a",
+        //         "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //         "vaultPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //         "inputMint": "So11111111111111111111111111111111111111112",
+        //         "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //         "inputAmountInitial": "315000000",
+        //         "inputAmountRemaining": "315000000",
+        //         "amountPerRound": "157500000",
+        //         "outputAmountTotal": "0",
+        //         "inputAmountUsed": "0",
+        //         "orderType": "time_based",
+        //         "minPriceUsd": null,
+        //         "maxPriceUsd": null,
+        //         "triggerMint": null,
+        //         "retryWindowSeconds": 1800,
+        //         "jlEnabled": false,
+        //         "jlYieldUsd": null,
+        //         "numberOfRounds": 2,
+        //         "intervalSeconds": 3600,
+        //         "beginFillAt": "2026-11-25T10:08:10.067Z",
+        //         "nextFillAt": "2026-11-25T10:08:10.067Z",
+        //         "lastFillAt": null,
+        //         "roundsFilled": 0,
+        //         "fillPercent": 0,
+        //         "state": "active",
+        //         "displayState": "active",
+        //         "createdAt": "2026-11-25T09:43:12.208Z",
+        //         "updatedAt": "2026-11-25T09:43:12.870Z",
+        //         "events": [
+        //             {
+        //                 "type": "deposit",
+        //                 "timestamp": "2026-11-25T09:43:12.870Z",
+        //                 "txSignature": "U3PfE9hHmRmv77ChJkLxEDFvyfn2RqwUnizyMHzFXterLGyaG5EX9K6DMyYfCmZ2kGsvQXcwTyEzcUVg2kU3xMi",
+        //                 "inputAmount": "315000000",
+        //                 "state": "success"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeDict (order, 'data', this.safeDict (order, 'order', order));
+        const info = this.safeDict (order, 'info', order);
+        return this.extend (data, {
+            'id': this.safeString (data, 'id', this.safeString (data, 'publicKey')),
+            'owner': this.safeString (data, 'owner', this.safeString (data, 'user')),
+            'inputCurrency': this.safeString (data, 'inputCurrency', this.safeString (data, 'inputMint')),
+            'outputCurrency': this.safeString (data, 'outputCurrency', this.safeString (data, 'outputMint')),
+            'status': this.safeString (data, 'status', this.safeString (data, 'state')),
+            'info': info,
+        });
+    }
+
+    /**
+     * @method
+     * @name jupiter#cancelDcaOrder
+     * @description starts cancellation of a dca order and returns its unsigned withdrawal transaction
+     * @see https://developers.jup.ag/docs/trigger/dca-cancel
+     * @param {string} id dca order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} unsigned withdrawal transaction and cancellation request id
+     */
+    override async cancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostOrdersDcaCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "roundsRemaining": 2,
+        //         "refundAmount": "315000000",
+        //         "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //         "requestId": "0a61450c-d5dd-42b0-9918-01ca18b02def"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#confirmCancelDcaOrder
+     * @description confirms dca cancellation with a caller-signed withdrawal transaction
+     * @see https://developers.jup.ag/docs/trigger/dca-cancel
+     * @param {string} id dca order id
+     * @param {object} params cancellation confirmation including signedTransaction and cancelRequestId
+     * @param {string} params.signedTransaction base64-encoded signed withdrawal transaction
+     * @param {string} params.cancelRequestId cancellation request id
+     * @returns {object} cancellation confirmation and transaction signature
+     */
+    override async confirmCancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostOrdersDcaConfirmCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21216-784f-754c-be94-a75f5e757aee",
+        //         "txSignature": "21S9J77LoxBBf7z8hLM2qzZHpTswbakYBCVLseuGkTfJMbMUJBPZtCWMVvwKtofgfXJkrFrqMfAzUrXPmaAmDhDn"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#createTriggerOrder
+     * @description creates a trigger price order from a caller-signed vault deposit
+     * @see https://developers.jup.ag/docs/trigger/create-order
+     * @param {object} params price order request required by the trigger api
+     * @param {string} params.depositRequestId request id returned by createTriggerDeposit
+     * @param {string} params.depositSignedTx base64-encoded signed deposit transaction
+     * @param {string} params.userPubkey wallet public key
+     * @param {string} params.inputMint input token mint
+     * @param {string} params.outputMint output token mint
+     * @param {string} params.orderType 'single', 'oco', or 'otoco'
+     * @returns {object} created trigger order response
+     */
+    async createTriggerPriceOrder (params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostOrdersPrice (params);
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //         "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+        //         "depositConfirmed": true
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchTriggerOrders
+     * @description fetches trigger price order history
+     * @see https://developers.jup.ag/docs/trigger/order-history
+     * @param {int} [since] unsupported by Jupiter; use params.offset
+     * @param {int} [limit] maximum number of orders
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @param {string} [params.state] 'active' or 'past'
+     * @returns {object[]} trigger order history entries
+     */
+    async fetchTriggerOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        const request = this.omit (params, [ 'since', 'limit' ]);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.triggerPrivateGetOrdersHistory (request);
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //                 "userPubkey": "5Y3Gkqu4jhu3VNHaKurtwwHbv5fPsEB3azNc2tJkxK3o",
+        //                 "privyWalletPubkey": "DrgQngCmucJbmEB384xztZm1bsQVGhnovAEKQG3ocBq1",
+        //                 "inputMint": "So11111111111111111111111111111111111111112",
+        //                 "remainingInputAmount": "315000000",
+        //                 "initialInputAmount": "315000000",
+        //                 "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                 "triggerMint": "So11111111111111111111111111111111111111112",
+        //                 "expiresAt": 1795686262818,
+        //                 "createdAt": 1795599864925,
+        //                 "updatedAt": 1795599865594,
+        //                 "events": [
+        //                     {
+        //                         "type": "deposit",
+        //                         "timestamp": 1795599865594,
+        //                         "txSignature": "4yjRCaAXGYvtkxsArA6aSdHYDnyQLFWBtHjRu6qbuNqUhsgt3huapPyB4mgpkZ9fCRtf9yUrs6zZjmZpHgL8dA5p",
+        //                         "mint": "So11111111111111111111111111111111111111112",
+        //                         "amount": "315000000",
+        //                         "state": "success"
+        //                     }
+        //                 ],
+        //                 "orderType": "single",
+        //                 "orderState": "open",
+        //                 "rawState": "open",
+        //                 "triggerCondition": "above",
+        //                 "triggerPriceUsd": 500,
+        //                 "slippageBps": 100,
+        //                 "fillPercent": 0,
+        //                 "trailingBps": null,
+        //                 "highWatermark": null,
+        //                 "lowWatermark": null
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeList (response, 'orders', []);
+        return orders as Dict[];
+    }
+
+    /**
+     * @method
+     * @name jupiter#editTriggerOrder
+     * @description updates a trigger price order without cancelling and recreating it
+     * @see https://developers.jup.ag/docs/trigger/manage-orders
+     * @param {string} id trigger order id
+     * @param {object} params update fields required by the order type
+     * @param {string} params.orderType 'single', 'oco', or 'otoco'
+     * @returns {object} updated order response
+     */
+    async editTriggerOrder (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePatchOrdersPriceId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#cancelTriggerOrder
+     * @description initiates trigger order cancellation and returns an unsigned withdrawal transaction
+     * @see https://developers.jup.ag/docs/trigger/manage-orders
+     * @param {string} id trigger order id
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} unsigned withdrawal transaction and cancellation request id
+     */
+    async cancelTriggerOrder (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostOrdersPriceCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //         "transaction": "AwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+        //         "requestId": "3313098a-25fb-481c-9aac-e936e8c96b09"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#confirmCancelTriggerOrder
+     * @description confirms trigger order cancellation with a caller-signed withdrawal transaction
+     * @see https://developers.jup.ag/docs/trigger/manage-orders
+     * @param {string} id trigger order id
+     * @param {object} params cancellation confirmation including signedTransaction and cancelRequestId
+     * @param {string} params.signedTransaction base64-encoded signed withdrawal transaction
+     * @param {string} params.cancelRequestId cancellation request id
+     * @returns {object} cancellation confirmation and transaction signature
+     */
+    async confirmCancelTriggerOrder (id: string, params: Dict = {}): Promise<Dict> {
+        const response = await this.triggerPrivatePostOrdersPriceConfirmCancelId (this.extend ({ 'id': id }, params));
+        //
+        //     {
+        //         "id": "01a21217-945c-746f-9abc-f4d1b018dbf4",
+        //         "txSignature": "5yfhU8GH7fFw6M7Nn6RY9dpT4nrHDthgqqSkgZu4ehn7KPaQsNN543Gby6yoRK6V7pDVsaVwG4XPB2ZTQe34nEgi"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchTicker
+     * @description fetches the USD price and 24-hour change for a Solana token, or the cross price for a token pair
+     * @see https://developers.jup.ag/docs/api-reference/price
+     * @param {string} symbol currency code, Solana token mint address, or a BASE/QUOTE pair of either
+     * @param {object} [params] exchange-specific parameters
+     * @param {string} [params.mint] token mint address when it cannot be resolved from symbol
+     * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+     */
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+        const parts = symbol.split ('/');
+        const partsLength = parts.length;
+        let baseCode = symbol;
+        let quoteCode: Str = undefined;
+        if (partsLength === 2) {
+            baseCode = parts[0];
+            if (parts[1] !== 'USD') {
+                quoteCode = parts[1];
+            }
+        }
+        if (quoteCode !== undefined) {
+            // the price API only quotes USD, so a pair resolves as a cross of both legs
+            const baseCurrency = await this.lookupJupiterCurrency (baseCode);
+            const quoteCurrency = await this.lookupJupiterCurrency (quoteCode);
+            const baseMint = baseCurrency['id'];
+            const quoteMint = quoteCurrency['id'];
+            if (baseMint === quoteMint) {
+                throw new BadSymbol (this.id + ' fetchTicker() base and quote must be different tokens');
+            }
+            const crossQuery = this.omit (params, [ 'mint' ]);
+            crossQuery['ids'] = baseMint + ',' + quoteMint;
+            const crossResponse = await this.publicGetPriceV3 (crossQuery);
+            const baseData = this.safeDict (crossResponse, baseMint);
+            const quoteData = this.safeDict (crossResponse, quoteMint);
+            if ((baseData === undefined) || (quoteData === undefined)) {
+                throw new ExchangeError (this.id + ' fetchTicker() returned no price for ' + baseMint + ' or ' + quoteMint);
+            }
+            const baseUsd = this.safeString (baseData, 'usdPrice');
+            const quoteUsd = this.safeString (quoteData, 'usdPrice');
+            const last = Precise.stringDiv (baseUsd, quoteUsd);
+            const basePercentage = this.safeString (baseData, 'priceChange24h');
+            const quotePercentage = this.safeString (quoteData, 'priceChange24h');
+            let percentage = undefined;
+            if ((basePercentage !== undefined) && (quotePercentage !== undefined)) {
+                const baseRatio = Precise.stringAdd ('1', Precise.stringDiv (basePercentage, '100'));
+                const quoteRatio = Precise.stringAdd ('1', Precise.stringDiv (quotePercentage, '100'));
+                percentage = Precise.stringMul (Precise.stringSub (Precise.stringDiv (baseRatio, quoteRatio), '1'), '100');
+            }
+            const crossTicker = this.extend (crossResponse, { 'symbol': baseCurrency['code'] + '/' + quoteCurrency['code'], 'last': last, 'percentage': percentage });
+            const parsedCross = this.parseTicker (crossTicker);
+            return parsedCross;
+        }
+        let currency = this.safeDict (this.currencies, baseCode) as CurrencyInterface;
+        const mintOverride = this.safeString (params, 'mint');
+        if (currency === undefined && mintOverride === undefined) {
+            currency = await this.lookupJupiterCurrency (baseCode);
+        }
+        let defaultMint = baseCode;
+        if (currency !== undefined) {
+            defaultMint = currency['id'];
+        }
+        const mint = this.safeString (params, 'mint', defaultMint);
+        const query = this.omit (params, [ 'mint' ]);
+        query['ids'] = mint;
+        const response = await this.publicGetPriceV3 (query);
+        //
+        //      {
+        //         "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN": {
+        //             "createdAt": "2024-06-07T10:56:42.584Z",
+        //             "liquidity": 5356892.119796345,
+        //             "usdPrice": 0.24871252368558808,
+        //             "blockId": 470400865,
+        //             "decimals": 6,
+        //             "priceChange24h": -5.129214208806516
+        //         },
+        //         "So11111111111111111111111111111111111111112": {
+        //             "createdAt": "2024-06-05T08:55:25.527Z",
+        //             "liquidity": 779975943.4173653,
+        //             "usdPrice": 72.61530184750472,
+        //             "blockId": 470400869,
+        //             "decimals": 9,
+        //             "priceChange24h": 1.1782703766204228
+        //         }
+        //     }
+        //
+        const tickerData = this.safeDict (response, mint);
+        if (tickerData === undefined) {
+            throw new ExchangeError (this.id + ' fetchTicker() returned no price for ' + mint);
+        }
+        const code = (currency === undefined) ? baseCode : currency['code'];
+        const ticker = this.extend (tickerData, { 'symbol': code + '/USD' });
+        const parsed = this.parseTicker (ticker);
+        return parsed;
+    }
+
+    /**
+     * @ignore
+     * @param {object} ticker the raw Jupiter price entry
+     * @param {object} [market] unused by jupiter
+     * @returns {object} a ticker structure
+     */
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "SOL/USD",
+        //         "createdAt": "2024-06-05T08:55:25.527Z",
+        //         "liquidity": 779975943.4173653,
+        //         "usdPrice": 72.61530184750472,
+        //         "blockId": 470400869,
+        //         "decimals": 9,
+        //         "priceChange24h": 1.1782703766204228
+        //     }
+        //
+        let defaultSymbol = undefined;
+        if (market !== undefined) {
+            defaultSymbol = market['symbol'];
+        }
+        const symbol = this.safeString (ticker, 'symbol', defaultSymbol);
+        const parsed = this.safeTicker ({
+            'info': ticker,
+            'symbol': symbol,
+            'last': this.safeString2 (ticker, 'usdPrice', 'last'),
+            'percentage': this.safeString2 (ticker, 'priceChange24h', 'percentage'),
+        });
+        return parsed;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchSwapInstructions
+     * @description builds a custom Solana swap transaction using Jupiter's raw instruction endpoint
+     * @see https://developers.jup.ag/docs/api-reference/swap/build
+     * @param {object} params request parameters required by Jupiter, including inputMint, outputMint, and amount in base units
+     * @param {string} params.inputMint mint address of the input token
+     * @param {string} params.outputMint mint address of the output token
+     * @param {string} params.amount input amount in the token's smallest unit
+     * @returns {object} raw swap instructions and transaction metadata
+     */
+    async fetchSwapInstructions (params: Dict = {}): Promise<Dict> {
+        const inputMint = this.safeString (params, 'inputMint');
+        const outputMint = this.safeString (params, 'outputMint');
+        const amount = this.safeString (params, 'amount');
+        if (inputMint === undefined || outputMint === undefined || amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchSwapInstructions() requires inputMint, outputMint, and amount in token base units');
+        }
+        const response = await this.publicGetSwapV2Build (params);
+        //
+        //     {
+        //         "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //         "outputMint": "So11111111111111111111111111111111111111112",
+        //         "inAmount": "1000000",
+        //         "outAmount": "3428125",
+        //         "otherAmountThreshold": "3410985",
+        //         "swapMode": "ExactIn",
+        //         "slippageBps": 50,
+        //         "priceImpactPct": "0",
+        //         "routePlan": [
+        //             {
+        //                 "percent": 100,
+        //                 "bps": 10000,
+        //                 "swapInfo": {
+        //                     "ammKey": "Et6HnPjetV8AzmxNAfzKJ6ax5VM82ZB7phY465Ns5iZW",
+        //                     "label": "ZeroFi",
+        //                     "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //                     "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                     "inAmount": "1000000",
+        //                     "outAmount": "251017"
+        //                 }
+        //             },
+        //             ...
+        //         ],
+        //         "computeBudgetInstructions": [ { "programId": "ComputeBudget111111111111111111111111111111", "accounts": [], "data": "A8EWAAAAAAAA" }, ... ],
+        //         "setupInstructions": [ { "programId": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", "accounts": [ ... ], "data": "AQ==" }, ... ],
+        //         "swapInstruction": { "programId": "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4", "accounts": [ ... ], "data": "0ZhTk3z+2OkGQEIPAAAAAAAdTzQAAAAAADIAAAAAAAUAAADDECcAAREAiQMBAhoQJwIFEQCHIwEELwAAECcEBQ==" },
+        //         "cleanupInstruction": { "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", "accounts": [ ... ], "data": "CQ==" },
+        //         "otherInstructions": [],
+        //         "tipInstruction": null,
+        //         "addressesByLookupTableAddress": {
+        //             "8j7WQ4zBQPw7HwtUo97BGgPhZk4E8Ggnt33HwncZHdci": [ "8exuywH7jW6AXBAb9f878uddLpPHjJFtNTxjZCjW4L3J", ... ],
+        //             ...
+        //         },
+        //         "blockhashWithMetadata": {
+        //             "blockhash": [ 71, ... ],
+        //             "lastValidBlockHeight": 448685171,
+        //             "fetchedAt": {
+        //                 "secs_since_epoch": 1794947863,
+        //                 "nanos_since_epoch": 334993875
+        //             }
+        //         },
+        //         "transactionVersion": 0
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name jupiter#fetchConvertQuote
+     * @description fetches a quote and a signable transaction for converting two Solana tokens
+     * @see https://developers.jup.ag/docs/api-reference/swap/order
+     * @param {string} fromCode currency code or mint address to convert from
+     * @param {string} toCode currency code or mint address to convert to
+     * @param {float} [amount] amount of the from currency to convert
+     * @param {object} [params] exchange-specific parameters
+     * @param {string} [params.taker] Solana wallet address that will sign the returned transaction; defaults to the walletAddress credential
+     * @param {string} [params.inputMint] input token mint address override
+     * @param {string} [params.outputMint] output token mint address override
+     * @param {int} [params.fromDecimals] input token decimal places when its metadata is not cached
+     * @param {int} [params.toDecimals] output token decimal places when its metadata is not cached
+     * @returns {object} a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+     */
+    override async fetchConvertQuote (fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchConvertQuote() requires an amount');
+        }
+        if (amount <= 0) {
+            throw new InvalidOrder (this.id + ' fetchConvertQuote() amount must be positive');
+        }
+        const fromCurrency = await this.lookupJupiterCurrency (fromCode);
+        const toCurrency = await this.lookupJupiterCurrency (toCode);
+        const fromDecimals = this.safeInteger (params, 'fromDecimals', fromCurrency['precision']);
+        const toDecimals = this.safeInteger (params, 'toDecimals', toCurrency['precision']);
+        if (fromDecimals === undefined || toDecimals === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchConvertQuote() requires token decimal metadata');
+        }
+        const inputMint = this.safeString (params, 'inputMint', fromCurrency['id']);
+        const outputMint = this.safeString (params, 'outputMint', toCurrency['id']);
+        const inputPrecision = this.parsePrecision (this.numberToString (fromDecimals));
+        const outputPrecision = this.parsePrecision (this.numberToString (toDecimals));
+        const rawAmount = Precise.stringDiv (this.numberToString (amount), inputPrecision);
+        if (rawAmount === undefined) {
+            throw new InvalidOrder (this.id + ' fetchConvertQuote() could not convert the input amount to token base units');
+        }
+        if (rawAmount.indexOf ('.') >= 0) {
+            throw new InvalidOrder (this.id + ' fetchConvertQuote() amount has more decimal places than the input token supports');
+        }
+        const query = this.omit (params, [ 'inputMint', 'outputMint', 'fromDecimals', 'toDecimals' ]);
+        query['inputMint'] = inputMint;
+        query['outputMint'] = outputMint;
+        const taker = this.safeString (query, 'taker', this.walletAddress);
+        if (taker !== undefined) {
+            query['taker'] = taker;
+        }
+        query['amount'] = rawAmount;
+        const response = await this.publicGetSwapV2Order (query);
+        //
+        //     {
+        //         "swapMode": "ExactIn",
+        //         "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //         "outputMint": "So11111111111111111111111111111111111111112",
+        //         "inAmount": "1000000",
+        //         "outAmount": "3430477",
+        //         "otherAmountThreshold": "3430477",
+        //         "slippageBps": 0,
+        //         "priceImpactPct": "0.002415178085089822",
+        //         "priceImpact": 0.2415178085089822,
+        //         "routePlan": [
+        //             {
+        //                 "percent": 100,
+        //                 "bps": 10000,
+        //                 "usdValue": 0.25113097228232417,
+        //                 "swapInfo": {
+        //                     "ammKey": "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u",
+        //                     "label": "OKX DEX Router",
+        //                     "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        //                     "outputMint": "So11111111111111111111111111111111111111112",
+        //                     "inAmount": "1000000",
+        //                     "outAmount": "3430477"
+        //                 }
+        //             }
+        //         ],
+        //         "feeMint": "So11111111111111111111111111111111111111112",
+        //         "feeBps": 10,
+        //         "platformFee": {
+        //             "feeBps": 10,
+        //             "feeMint": "So11111111111111111111111111111111111111112"
+        //         },
+        //         "signatureFeeLamports": 0,
+        //         "signatureFeePayer": null,
+        //         "prioritizationFeeLamports": 0,
+        //         "prioritizationFeePayer": null,
+        //         "rentFeeLamports": 0,
+        //         "rentFeePayer": null,
+        //         "swapType": "aggregator",
+        //         "router": "okx",
+        //         "guaranteedPrice": false,
+        //         "transaction": null,
+        //         "gasless": false,
+        //         "jitOptimized": false,
+        //         "requestId": "01a1eb3a-47c3-723d-95ba-f5d6411bb350",
+        //         "taker": null,
+        //         "inUsdValue": 0.2505259076005401,
+        //         "outUsdValue": 0.25113097228232417,
+        //         "swapUsdValue": 0.25113097228232417,
+        //         "mode": "ultra",
+        //         "totalTime": 188
+        //     }
+        //
+        const inAmount = this.safeString (response, 'inAmount');
+        const outAmount = this.safeString (response, 'outAmount');
+        if (inAmount === undefined || outAmount === undefined) {
+            throw new ExchangeError (this.id + ' fetchConvertQuote() response is missing inAmount or outAmount');
+        }
+        const fromAmount = Precise.stringMul (inAmount, inputPrecision);
+        const toAmount = Precise.stringMul (outAmount, outputPrecision);
+        return {
+            'info': response,
+            'id': this.safeString (response, 'requestId'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.parseNumber (fromAmount),
+            'toCurrency': toCode,
+            'toAmount': this.parseNumber (toAmount),
+            'price': this.parseNumber (Precise.stringDiv (toAmount, fromAmount)),
+            'fee': undefined,
+        };
+    }
+
+    /**
+     * @method
+     * @name jupiter#createConvertTrade
+     * @description executes a quoted token conversion with a caller-signed Solana transaction
+     * @see https://developers.jup.ag/docs/api-reference/swap/execute
+     * @param {string} id request id returned by the quote
+     * @param {string} fromCode currency code or mint address converted from
+     * @param {string} toCode currency code or mint address converted to
+     * @param {float} [amount] amount of the from currency converted
+     * @param {object} [params] exchange-specific parameters
+     * @param {string} [params.signedTransaction] base64-encoded transaction signed by the wallet
+     * @param {string} [params.transaction] unsigned transaction from fetchConvertQuote info; signed internally when the privateKey credential is configured
+     * @param {string} [params.lastValidBlockHeight] block height from the quote transaction
+     * @param {int} [params.fromDecimals] input token decimal places when metadata cannot be resolved
+     * @param {int} [params.toDecimals] output token decimal places when metadata cannot be resolved
+     * @returns {object} a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure)
+     */
+    override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
+        if (amount !== undefined && amount <= 0) {
+            throw new InvalidOrder (this.id + ' createConvertTrade() amount must be positive');
+        }
+        if (id.length === 0) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a request id from the quote');
+        }
+        let signedTransaction = this.safeString (params, 'signedTransaction');
+        if (signedTransaction === undefined) {
+            const unsignedTransaction = this.safeString (params, 'transaction');
+            if (unsignedTransaction === undefined || this.privateKey === undefined) {
+                throw new ArgumentsRequired (this.id + ' createConvertTrade() requires params.signedTransaction, or params.transaction from the quote with the privateKey credential; Jupiter does not sign transactions');
+            }
+            signedTransaction = this.signSolanaTransaction (unsignedTransaction as string);
+        }
+        const fromCurrency = await this.lookupJupiterCurrency (fromCode);
+        const toCurrency = await this.lookupJupiterCurrency (toCode);
+        const fromDecimals = this.safeInteger (params, 'fromDecimals', fromCurrency['precision']);
+        const toDecimals = this.safeInteger (params, 'toDecimals', toCurrency['precision']);
+        if (fromDecimals === undefined || toDecimals === undefined) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires token decimal metadata');
+        }
+        const request: Dict = {
+            'requestId': id,
+            'signedTransaction': signedTransaction,
+        };
+        const lastValidBlockHeight = this.safeString (params, 'lastValidBlockHeight');
+        if (lastValidBlockHeight !== undefined) {
+            request['lastValidBlockHeight'] = lastValidBlockHeight;
+        }
+        const response = await this.publicPostSwapV2Execute (request);
+        //
+        //     {
+        //         "status": "Success",
+        //         "signature": "48Rdf64XW7t...8U4D5utN5kvUzhfK",
+        //         "slot": "473698544",
+        //         "code": 0,
+        //         "totalInputAmount": "10000000",
+        //         "totalOutputAmount": "3141785",
+        //         "inputAmountResult": "10000000",
+        //         "outputAmountResult": "3141785"
+        //     }
+        //
+        const status = this.safeString (response, 'status');
+        if (status !== 'Success') {
+            const error = this.safeString (response, 'error', this.json (response));
+            throw new ExchangeError (this.id + ' createConvertTrade() failed: ' + error);
+        }
+        const inputAmount = this.safeString (response, 'totalInputAmount');
+        const outputAmount = this.safeString (response, 'totalOutputAmount');
+        if (fromDecimals === undefined || toDecimals === undefined || inputAmount === undefined || outputAmount === undefined) {
+            throw new ExchangeError (this.id + ' createConvertTrade() response is missing token amounts or decimal metadata');
+        }
+        const fromAmount = Precise.stringMul (inputAmount, this.parsePrecision (this.numberToString (fromDecimals)));
+        const toAmount = Precise.stringMul (outputAmount, this.parsePrecision (this.numberToString (toDecimals)));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'signature'),
+            'fromCurrency': fromCode,
+            'fromAmount': this.parseNumber (fromAmount),
+            'toCurrency': toCode,
+            'toAmount': this.parseNumber (toAmount),
+            'price': this.parseNumber (Precise.stringDiv (toAmount, fromAmount)),
+            'fee': undefined,
+        };
+    }
+
+    /**
+     * @ignore
+     * @param {string} code unified token code or mint address
+     * @returns {object} currency metadata
+     */
+    async lookupJupiterCurrency (code: string): Promise<CurrencyInterface> {
+        const cached = this.safeDict (this.currencies, code) as CurrencyInterface;
+        if (cached !== undefined) {
+            return cached;
+        }
+        const currencies = await this.fetchCurrencies ({ 'query': code });
+        const matched = this.safeDict (currencies, code) as CurrencyInterface;
+        if (matched !== undefined) {
+            return matched;
+        }
+        const codes = Object.keys (currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const currency = currencies[codes[i]];
+            if (currency['id'] === code) {
+                return currency;
+            }
+        }
+        throw new BadSymbol (this.id + ' could not find token ' + code);
+    }
+
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const url = this.urls['api'][api[0]] + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        const requestUrl = (method === 'GET' && Object.keys (query).length > 0) ? url + '?' + this.urlencode (query) : url;
+        const requestHeaders: Dict = {
+            'Accept': 'application/json',
+        };
+        if (this.apiKey !== undefined) {
+            requestHeaders['x-api-key'] = this.apiKey;
+        }
+        if ((api[0] === 'trigger') && (api[1] === 'private') && (path !== 'auth/refresh')) {
+            const jwtToken = this.safeString (this.options, 'jwt');
+            if (jwtToken !== undefined) {
+                requestHeaders['Authorization'] = 'Bearer ' + jwtToken;
+            }
+        }
+        let requestBody: any = undefined;
+        if (method !== 'GET') {
+            if ((api[0] === 'studio') && (path === 'dbc-pool/submit')) {
+                const boundary = '--------------------------' + this.randomBytes (12);
+                const eol = '\r\n';
+                requestHeaders['Content-Type'] = 'multipart/form-data; boundary=' + boundary;
+                let multipartBody = '';
+                const bodyKeys = Object.keys (query);
+                for (let i = 0; i < bodyKeys.length; i++) {
+                    const bodyKey = bodyKeys[i];
+                    const fieldValue = query[bodyKey];
+                    if (fieldValue === undefined || fieldValue === null) {
+                        continue;
+                    }
+                    let encodedValue = fieldValue;
+                    if (typeof fieldValue !== 'string') {
+                        encodedValue = this.json (fieldValue);
+                    }
+                    multipartBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + encodedValue + eol;
+                }
+                multipartBody += '--' + boundary + '--' + eol;
+                requestBody = multipartBody;
+            } else {
+                requestHeaders['Content-Type'] = 'application/json';
+                requestBody = this.json (query);
+            }
+        }
+        return {
+            'url': requestUrl,
+            'method': method,
+            'body': requestBody,
+            'headers': requestHeaders,
+        };
+    }
+
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined || response === null) {
+            return undefined;
+        }
+        const error = this.safeString2 (response, 'error', 'message');
+        if (error !== undefined) {
+            throw new ExchangeError (this.id + ' ' + error);
+        }
+        return undefined;
+    }
+}

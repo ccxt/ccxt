@@ -69,6 +69,7 @@
         "independentreserve",
         "indodax",
         "interactivebrokers",
+        "jupiter",
         "kraken",
         "krakenfutures",
         "kucoin",
@@ -94,6 +95,7 @@
         "phemex",
         "poloniex",
         "polymarket",
+        "raydium",
         "revolutx",
         "tokocrypto",
         "toobit",
@@ -188,6 +190,7 @@
     "prediction": [
         "binance",
         "hyperliquid",
+        "jupiter",
         "kalshi",
         "limitless",
         "myriad",

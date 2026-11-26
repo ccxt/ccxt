@@ -1149,6 +1149,7 @@ class Transpiler {
             'MarketInterface': /(-> (?:[Ll]ist\[)?MarketInterface|: MarketInterface\b)/,
             'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
+            'PredictionMarket': /-> (?:[Ll]ist\[)?PredictionMarket\b/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
             'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
             'PredictionTicker': /-> (?:[Ll]ist\[)?PredictionTicker\b/,

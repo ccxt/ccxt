@@ -115,6 +115,7 @@ import hyperliquid from  './src/hyperliquid.js'
 import independentreserve from  './src/independentreserve.js'
 import indodax from  './src/indodax.js'
 import interactivebrokers from  './src/interactivebrokers.js'
+import jupiter from  './src/jupiter.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
@@ -140,6 +141,7 @@ import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
 import polymarket from  './src/polymarket.js'
+import raydium from  './src/raydium.js'
 import revolutx from  './src/revolutx.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
@@ -234,6 +236,7 @@ import xtPro from  './src/pro/xt.js'
 
 import binancePrediction from  './src/prediction/binance.js'
 import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
+import jupiterPrediction from  './src/prediction/jupiter.js'
 import kalshiPrediction from  './src/prediction/kalshi.js'
 import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
@@ -312,6 +315,7 @@ const exchanges = {
     'independentreserve':     independentreserve,
     'indodax':                indodax,
     'interactivebrokers':     interactivebrokers,
+    'jupiter':                jupiter,
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
@@ -337,6 +341,7 @@ const exchanges = {
     'phemex':                 phemex,
     'poloniex':               poloniex,
     'polymarket':             polymarket,
+    'raydium':                raydium,
     'revolutx':               revolutx,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
@@ -437,6 +442,7 @@ const pro = {
 const prediction = {
     'binance':                binancePrediction,
     'hyperliquid':            hyperliquidPrediction,
+    'jupiter':                jupiterPrediction,
     'kalshi':                 kalshiPrediction,
     'limitless':              limitlessPrediction,
     'myriad':                 myriadPrediction,
@@ -690,6 +696,7 @@ export {
     independentreserve,
     indodax,
     interactivebrokers,
+    jupiter,
     kraken,
     krakenfutures,
     kucoin,
@@ -715,6 +722,7 @@ export {
     phemex,
     poloniex,
     polymarket,
+    raydium,
     revolutx,
     tokocrypto,
     toobit,
