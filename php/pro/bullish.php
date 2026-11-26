@@ -114,11 +114,11 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($wsUrl . $url, $messageHash, $this->deep_extend($message, $params), $messageHash));
     }
 
-    public function unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, $request = array(), $params = array()): PromiseInterface {
+    public function unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, array $request = array(), $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_public(...))($url, $topic, $messageHash, $symbol, $request, $params);
     }
 
-    private function do_unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, $request = array(), $params = array()) {
+    private function do_unsubscribe_public(string $url, string $topic, string $messageHash, string $symbol, array $request = array(), $params = array()) {
         /**
          * @ignore
          * sends an unsubscribe command for one public $topic and registers the pending unsubscription under the $request id
@@ -130,7 +130,8 @@ class bullish extends \ccxt\async\bullish {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} status of the unwatch $request
          */
-        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
+        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $wsUrl = $this->safe_string($wsUrls, 'public');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' unsubscribePublic() has no public websocket url');
         }
@@ -156,7 +157,7 @@ class bullish extends \ccxt\async\bullish {
         return Async\await($this->watch($wsUrl . $url, $unsubHash, $this->deep_extend($message, $params), $requestId, $subscription));
     }
 
-    public function handle_un_subscription(Client $client, array $subscription) {
+    public function handle_un_subscription(Client $client, array $subscription): void {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -174,7 +175,7 @@ class bullish extends \ccxt\async\bullish {
         $this->clean_unsubscription($client, $subHash, $unsubHash, $subHashIsPrefix);
         $this->clean_cache($subscription);
         $requestId = $this->safe_string($subscription, 'id', '');
-        if (is_array($client->subscriptions) && array_key_exists($requestId ?? '', $client->subscriptions)) {
+        if ($this->safe_dict($client->subscriptions, $requestId) !== null) {
             unset($client->subscriptions[$requestId]);
         }
     }
@@ -204,11 +205,11 @@ class bullish extends \ccxt\async\bullish {
         return $result;
     }
 
-    public function unsubscribe_private(string $topic, string $subscribeHash, $request = array(), $params = array()): PromiseInterface {
+    public function unsubscribe_private(string $topic, string $subscribeHash, array $request = array(), $params = array()): PromiseInterface {
         return Async\async(self::do_unsubscribe_private(...))($topic, $subscribeHash, $request, $params);
     }
 
-    private function do_unsubscribe_private(string $topic, string $subscribeHash, $request = array(), $params = array()) {
+    private function do_unsubscribe_private(string $topic, string $subscribeHash, array $request = array(), $params = array()) {
         /**
          * @ignore
          * sends an unsubscribe command for one private $topic and registers the pending unsubscription under the $request id
@@ -219,12 +220,18 @@ class bullish extends \ccxt\async\bullish {
          * @param {string} [$params->tradingAccountId] the trading account id the $subscription was opened with
          * @return {any} status of the unwatch $request
          */
-        $url = $this->urls['api']['ws']['private'];
+        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $url = $this->safe_string($wsUrls, 'private');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' unsubscribePrivate() has no private websocket url');
+        }
         $token = Async\await($this->handleToken());
         $cookies = array(
             'JWT_COOKIE' => $token,
         );
-        $this->options['ws']['cookies'] = $cookies;
+        $wsDict = $this->safe_dict($this->options, 'ws', array());
+        $wsDict['cookies'] = $cookies;
+        $this->options['ws'] = $wsDict;
         $tradingAccountId = $this->safe_string($params, 'tradingAccountId');
         $paramsOmitted = $params;
         $requestParams = $request;
@@ -1099,7 +1106,7 @@ class bullish extends \ccxt\async\bullish {
         return false;
     }
 
-    public function handle_un_subscription_error(Client $client, array $message) {
+    public function handle_un_subscription_error(Client $client, array $message): void {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1112,7 +1119,7 @@ class bullish extends \ccxt\async\bullish {
         //     }
         //
         $messageId = $this->safe_string($message, 'id');
-        if (($messageId === null) || !(is_array($client->subscriptions) && array_key_exists($messageId ?? '', $client->subscriptions))) {
+        if ($messageId === null) {
             return;
         }
         $subscription = $this->safe_dict($client->subscriptions, $messageId);
@@ -1145,7 +1152,7 @@ class bullish extends \ccxt\async\bullish {
                 $this->handle_pong($client, $message);
             }
             $messageId = $this->safe_string($message, 'id');
-            if (($messageId !== null) && (is_array($client->subscriptions) && array_key_exists($messageId ?? '', $client->subscriptions))) {
+            if ($messageId !== null) {
                 $subscription = $this->safe_dict($client->subscriptions, $messageId);
                 if (($subscription !== null) && $this->safe_bool($subscription, 'unsubscribe', false)) {
                     $this->handle_un_subscription($client, $subscription);
