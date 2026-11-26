@@ -318,12 +318,12 @@ const LOCAL_THIS_RETURN_TYPES = {
     // `Object x = this.safeBool (a, k[, default])` -> `Boolean x = (Boolean) ...`.
     // `defaultArg: 2` marks the entry whose box is Boolean|null ONLY when the call's own
     // default argument is absent or a boolean literal — see the section-7 header.
-    'safeBool': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
+    'safeBool': { type: 'Boolean', defaultArg: 2, safeBool: true },
     // `safeBool2(a, k1, k2[, default])` / `safeBoolN(a, keys[, default])` are the same box
     // (BaseExchange.safeBool2/safeBoolN return `value instanceof Boolean ? value : defaultValue`,
     // with `defaultValue = optionalArgs.length > 0 ? optionalArgs[0] : null`), the default
-    'safeBool2': { type: 'Boolean', cast: '(Boolean)', defaultArg: 3, safeBool: true },
-    'safeBoolN': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
+    'safeBool2': { type: 'Boolean', defaultArg: 3, safeBool: true },
+    'safeBoolN': { type: 'Boolean', defaultArg: 2, safeBool: true },
     // string/crypto/url helpers (section 4); classifyStringHelperCall adds the ts/src/base file gate
     'json': { type: 'String' },
     'urlencode': { type: 'String' },

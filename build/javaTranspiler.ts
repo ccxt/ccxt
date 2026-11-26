@@ -266,6 +266,8 @@ const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.
 const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
     'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption', 'handlePostOnly',
+    // hand-written with a Boolean return (the printed body returns its Object default)
+    'safeBool', 'safeBool2', 'safeBoolN',
 ];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
 // methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
@@ -6332,7 +6334,7 @@ function javaScalarLocalsSelfTest (): string[] {
         "    product (p: any) { const g = this.safeIntegerProduct2 (p, 'a', 'b', 1000, 0); return g; }",
     ], checks: [
         [ /Long a = \(Long\) this\.safeIntegerOmitZero\(/, true, "'a' (safeIntegerOmitZero, no default) must print Long with a checkcast" ],
-        [ /Boolean b = \(Boolean\) this\.safeBool\(/, true, "'b' (safeBool, Boolean default) must print Boolean" ],
+        [ /Boolean b = this\.safeBool\(/, true, "'b' (safeBool, Boolean default) must print Boolean" ],
         [ /String c = this\.safeString\(/, true, "'c' (safeString + safeString2 write) must print String" ],
         [ /Long u = this\.safeInteger\(/, true, "'u' (safeInteger + milliseconds write) must print Long" ],
         ...[ 'e', 'g' ].map((n): JavaProbeCheck => [ new RegExp(`\\bObject ${n} = `), true, `'${n}' has an unproven write/default/arm and must stay Object` ]),

@@ -4567,6 +4567,22 @@ public class BaseExchange {
         return new Pair<>(true, this.omit(parameters, keysToOmit));
     }
 
+    // the boolean readers: a found Boolean, else the caller's default (a Bool in ts/src, so Boolean or null)
+    public Boolean safeBool(Object dictionaryOrList, Object key, Object defaultValue) {
+        return this.safeValue(dictionaryOrList, key, defaultValue) instanceof Boolean value ? value : (defaultValue instanceof Boolean fallback ? fallback : null);
+    }
+
+    public Boolean safeBool2(Object dictionaryOrList, Object key1, Object key2, Object defaultValue) {
+        if (this.safeValue(dictionaryOrList, key1) instanceof Boolean value) {
+            return value;
+        }
+        return this.safeValue(dictionaryOrList, key2) instanceof Boolean value2 ? value2 : (defaultValue instanceof Boolean fallback ? fallback : null);
+    }
+
+    public Boolean safeBoolN(Object dictionaryOrList, Object keys, Object defaultValue) {
+        return this.safeValueN(dictionaryOrList, keys, defaultValue) instanceof Boolean value ? value : (defaultValue instanceof Boolean fallback ? fallback : null);
+    }
+
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
