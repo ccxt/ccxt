@@ -48,8 +48,6 @@ Add that URL to your assistant and ask for prices, order books, candles, trades 
 
 **Status: phase 1.** Public market data only. Signing in to use your own exchange accounts through the hosted server is planned for a later phase. Until then, account data and trading need the [local server](#local-server).
 
-The hosted server's [privacy policy](/docs/mcp-privacy) and [terms of service](/docs/mcp-terms) cover what it records and the conditions of use.
-
 #### Claude (web and desktop)
 
 - **One click:** open [this link](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp). claude.ai opens the **Add custom connector** dialog with the name and URL filled in. Review them, then add the connector. The link only fills in the form; nothing is added until you confirm.

@@ -29,9 +29,6 @@ const GUIDES: Record<string, { route: string; title: string }> = {
     'Install.md':                      { route: 'install',                     title: 'Install' },
     'CLI.md':                          { route: 'cli',                         title: 'CLI' },
     'MCP.md':                          { route: 'mcp',                         title: 'MCP Server' },
-    // the hosted MCP server's legal pages; both plugin manifests link these exact URLs
-    'MCP-Privacy.md':                  { route: 'mcp-privacy',                 title: 'Hosted MCP Server Privacy Policy' },
-    'MCP-Terms.md':                    { route: 'mcp-terms',                   title: 'Hosted MCP Server Terms of Service' },
     'Examples.md':                     { route: 'examples-overview',           title: 'Examples Overview' },
     'FAQ.md':                          { route: 'faq',                         title: 'FAQ' },
     'Requirements.md':                 { route: 'requirements',                title: 'Requirements' },
@@ -149,7 +146,7 @@ function resolveAnchorPage (anchor: string): string {
 // ---------------------------------------------------------------------------
 // https://docs.ccxt.com/mcp is the hosted MCP server's endpoint (mcp/hosted), not a docs page:
 // the rules below would turn it into /docs/mcp, also inside code blocks. It is set aside
-// first and put back last. /mcp-privacy and /mcp/... are not the endpoint and stay rewritable.
+// first and put back last. /mcp-<page> and /mcp/... are not the endpoint and stay rewritable.
 const MCP_ENDPOINT = 'https://docs.ccxt.com/mcp';
 const MCP_ENDPOINT_RE = /https:\/\/docs\.ccxt\.com\/mcp(?![\w.\/-])/g;
 const MCP_ENDPOINT_HOLD = '\u0000CCXT_MCP_ENDPOINT\u0000';

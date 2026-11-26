@@ -6,4 +6,4 @@
 >
 > Do not reuse `https://ccxt.com/terms`: that page is the CCXT Terminal terms of service, a different product.
 >
-> The text itself now lives at [`wiki/MCP-Terms.md`](../../../wiki/MCP-Terms.md), published at `https://docs.ccxt.com/docs/mcp-terms` once legal review removes its draft banner.
+> The text is [TERMS.draft.md](TERMS.draft.md). After legal review it moves to `wiki/MCP-Terms.md` with a `mcp-terms` route in `build/wiki-to-fumadocs.ts`, which publishes it at `https://docs.ccxt.com/docs/mcp-terms` (the URL both plugin manifests already point to). That happens in the pull request that submits to the directories, not in the one that launches the server.
