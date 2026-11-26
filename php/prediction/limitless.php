@@ -2303,8 +2303,8 @@ class limitless extends Exchange {
         $payload = '02' . $this->rlp_encode_list($fields);
         $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
         $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
-        $rHex = $this->pad_hex_to_even($this->safe_string($signature, 'r'));
-        $sHex = $this->pad_hex_to_even($this->safe_string($signature, 's'));
+        $rHex = $this->pad_hex_to_even($this->safe_string($signature, 'r', ''));
+        $sHex = $this->pad_hex_to_even($this->safe_string($signature, 's', ''));
         $yParity = $this->safe_integer($signature, 'v');
         $signedFields = array();
         for ($i = 0; $i < count($fields); $i++) {

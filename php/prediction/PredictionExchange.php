@@ -1638,8 +1638,8 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->cost_to_precision($marketSymbol, $cost);
     }
 
-    public function pad_hex_to_even(?string $hex) {
-        if ($hex === null) {
+    public function pad_hex_to_even(string $hex) {
+        if ($hex === '') {
             return '';
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -1659,10 +1659,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return '000000000000000000000000' . $stripped;
     }
 
-    public function rlp_encode_bytes(?string $hex) {
-        if ($hex === null) {
-            return '';
-        }
+    public function rlp_encode_bytes(string $hex) {
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         $byteLength = $this->parse_to_int(strlen($hex) / 2);
         if ($byteLength === null) {

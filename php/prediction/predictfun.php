@@ -2837,10 +2837,8 @@ class predictfun extends Exchange {
         $payload = '02' . $this->rlp_encode_list($fields);
         $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
         $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
-        $rHex = $this->safe_string($signature, 'r');
-        $sHex = $this->safe_string($signature, 's');
-        $rHex = $this->pad_hex_to_even($rHex);
-        $sHex = $this->pad_hex_to_even($sHex);
+        $rHex = $this->pad_hex_to_even($this->safe_string($signature, 'r', ''));
+        $sHex = $this->pad_hex_to_even($this->safe_string($signature, 's', ''));
         $yParity = $this->safe_integer($signature, 'v');
         $signedFields = $this->array_concat($fields, array( $this->rlp_encode_bytes($this->int_to_rlp_hex($yParity)), $this->rlp_encode_bytes($rHex), $this->rlp_encode_bytes($sHex) ));
         return '0x02' . $this->rlp_encode_list($signedFields);

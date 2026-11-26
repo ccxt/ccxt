@@ -770,22 +770,16 @@ class myriad extends Exchange {
         $payload = '02' . $this->rlp_encode_list($fields);
         $hashHex = $this->hash($this->base16_to_binary($payload), 'keccak', 'hex');
         $signature = $this->ecdsa($hashHex, $this->remove0x_prefix($privateKey), 'secp256k1', null);
-        $rHex = $this->safe_string($signature, 'r');
-        $sHex = $this->safe_string($signature, 's');
-        if ($rHex === null) {
+        $rHexRaw = $this->safe_string($signature, 'r', '');
+        if ($rHexRaw === '') {
             throw new ExchangeError($this->id . ' signEvmTransaction() missing rHex');
         }
-        $rHexLength = count($rHex);
-        if ((fmod($rHexLength, 2)) !== 0) {
-            $rHex = '0' . $rHex;
-        }
-        if ($sHex === null) {
+        $sHexRaw = $this->safe_string($signature, 's', '');
+        if ($sHexRaw === '') {
             throw new ExchangeError($this->id . ' signEvmTransaction() missing sHex');
         }
-        $sHexLength = count($sHex);
-        if ((fmod($sHexLength, 2)) !== 0) {
-            $sHex = '0' . $sHex;
-        }
+        $rHex = $this->pad_hex_to_even($rHexRaw);
+        $sHex = $this->pad_hex_to_even($sHexRaw);
         $yParity = $this->safe_integer($signature, 'v');
         $signedFields = array();
         for ($i = 0; $i < count($fields); $i++) {
