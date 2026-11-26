@@ -4965,7 +4965,7 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, paramsOmitted = self.handle_margin_mode_and_params('cancelOrder', paramsOmitted)
         isUnified = (accountMode == 'unified')
-        tradeType = self.handle_trade_type(market['contract'], marginMode, isUnified, paramsOmitted)
+        tradeType = self.handle_trade_type(self.safe_bool(market, 'contract', False), marginMode, isUnified, paramsOmitted)
         request['tradeType'] = tradeType
         response = self.utaPrivatePostAccountModeOrderCancel(self.extend(request, paramsOmitted))
         #
@@ -5868,7 +5868,7 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, paramsOmitted = self.handle_margin_mode_and_params('fetchOrder', paramsOmitted)
         isUnified = (accountMode == 'unified')
-        tradeType = self.handle_trade_type(market['contract'], marginMode, isUnified, paramsOmitted)
+        tradeType = self.handle_trade_type(self.safe_bool(market, 'contract', False), marginMode, isUnified, paramsOmitted)
         request['tradeType'] = tradeType
         response = self.utaPrivateGetAccountModeOrderDetail(self.extend(request, paramsOmitted))
         #
@@ -6658,7 +6658,7 @@ class kucoin(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            isContract = market['contract']
+            isContract = self.safe_bool(market, 'contract', False)
         elif (marketType == 'spot') or (marketType == 'margin'):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for uta spot or margin trades')
         else:

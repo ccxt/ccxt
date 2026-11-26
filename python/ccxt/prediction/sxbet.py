@@ -1735,8 +1735,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
         hashesOrder = []
         seenHashes = {}
         for i in range(0, outcomesLength):
-            await self.load_outcome(outcomesList[i])
-            outcomeObj = self.outcome(outcomesList[i])
+            outcomeItem = self.safe_string(outcomesList, i, '')
+            await self.load_outcome(outcomeItem)
+            outcomeObj = self.outcome(outcomeItem)
             marketHash = self.safe_string(outcomeObj['info'], 'marketHash', '')
             if self.safe_bool(seenHashes, marketHash) is None:
                 seenHashes[marketHash] = True

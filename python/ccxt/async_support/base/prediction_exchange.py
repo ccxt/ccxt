@@ -636,7 +636,7 @@ class PredictionExchange(BaseExchange):
         :returns dict: the outcome cache
         """
         for i in range(0, len(outcomeSymbols)):
-            await self.fetch_outcome(outcomeSymbols[i])
+            await self.fetch_outcome(self.safe_string(outcomeSymbols, i, ''))
         return self.outcomes
 
     async def load_outcome(self, outcomeSymbol: Str, reload=False):

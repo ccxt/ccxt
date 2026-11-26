@@ -1791,11 +1791,11 @@ class binance(PredictionExchange, ImplicitAPI):
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         if defaultRecvWindow is not None:
             extendedParams['recvWindow'] = defaultRecvWindow
-        querystring = self.urlencode_nested(extendedParams)
-        querystring = querystring.replace('%5B', '[')
-        querystring = querystring.replace('%5D', ']')
-        signature = self.hmac(self.encode(querystring), self.encode(self.secret), hashlib.sha256)
-        querystring = querystring + '&signature=' + signature
+        rawQuery = self.urlencode_nested(extendedParams)
+        bracketedQuery = rawQuery.replace('%5B', '[')
+        cleanQuery = bracketedQuery.replace('%5D', ']')
+        signature = self.hmac(self.encode(cleanQuery), self.encode(self.secret), hashlib.sha256)
+        querystring = cleanQuery + '&signature=' + signature
         headersValue = {
             'X-MBX-APIKEY': self.apiKey,
         }

@@ -125,11 +125,7 @@ class luno(ccxt.async_support.luno):
         #       "order_id": "BXEEU4S2BWF5WRB"
         #     }
         #
-        symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         return self.safe_trade({
             'info': trade,
             'id': None,
