@@ -1723,7 +1723,7 @@ export default class sxbet extends Exchange {
         const result: any[] = [];
         const rawTradesLength = rawTrades.length;
         for (let i = 0; i < rawTradesLength; i++) {
-            const settlement = this.parseSettlement (rawTrades[i]);
+            const settlement = this.parseSettlement (this.safeDict (rawTrades, i, {}));
             if ((wantedOutcomeId === undefined) || (this.safeString (settlement, 'outcomeId') === wantedOutcomeId)) {
                 result.push (settlement);
             }
