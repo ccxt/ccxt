@@ -223,6 +223,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Insufficient spot balance asset': InsufficientFunds,
                     'Insufficient balance for withdrawal': InsufficientFunds,
                     'Insufficient balance for token transfer': InsufficientFunds,
+                    'Insufficient delegatable balance for priority order': InsufficientFunds,  # priorityFee is paid in HYPE from the undelegated staking balance
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': OrderNotFound,
                     'Too many cumulative requests sent': RateLimitExceeded,  # {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
@@ -350,6 +351,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # todo, in two orders
+                        'trailing': True,
                     },
                 },
                 'swap': {
@@ -2041,6 +2043,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         create a trade order
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2056,14 +2059,92 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.slippage]: the slippage for market order
         :param str [params.vaultAddress]: the vault address for order
         :param str [params.subAccountAddress]: sub account user address
+        :param int [params.priorityFee]: the order priority fee rate in units of 1e-8(10000 = 1 bp), only for IOC orders(market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+        :param float [params.trailingPercent]: *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+        :param float [params.trailingAmount]: *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+        :param float [params.trailingTriggerPrice]: *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             self.load_markets()
+        isTrailing = self.safe_string_2(params, 'trailingPercent', 'trailingAmount') is not None
+        if isTrailing:
+            self.initialize_client()
+            trailingMarket = self.market(symbol)
+            trailingRequest = self.create_trailing_stop_request(symbol, side, amount, params)
+            trailingResponse = self.privatePostExchange(trailingRequest)
+            #
+            #     {
+            #         "status": "ok",
+            #         "response": {
+            #             "type": "trailingStop",
+            #             "data": {
+            #                 "oid": 77738308
+            #             }
+            #         }
+            #     }
+            #
+            trailingResponseObj = self.safe_dict(trailingResponse, 'response', {})
+            trailingData = self.safe_dict(trailingResponseObj, 'data', {})
+            return self.parse_order(self.extend(trailingData, {'status': 'open'}), trailingMarket)
         order, globalParams = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
         orders = self.create_orders([order], globalParams)
         created = self.safe_dict(orders, 0)
         return created
+
+    def create_trailing_stop_request(self, symbol: str, side: OrderSide, amount: float, params: dict = {}) -> dict:
+        """
+ @ignore
+        builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+
+        :param str symbol: unified symbol of the swap market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param float [params.trailingPercent]: the percent to trail away from the best mark price
+        :param float [params.trailingAmount]: the quote amount to trail away from the best mark price
+        :param float [params.trailingTriggerPrice]: the mark price at which the order starts tracking, tracking starts immediately if omitted
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: the request to be sent to the exchange endpoint
+        """
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' createOrder() supports trailing orders for swap markets only')
+        trailingPercent = self.safe_string(params, 'trailingPercent')
+        trailingAmount = self.safe_string(params, 'trailingAmount')
+        trailingTriggerPrice = self.safe_string(params, 'trailingTriggerPrice')
+        retracement = {}
+        if trailingPercent is not None:
+            retracement['pct'] = trailingPercent + '%'
+        else:
+            retracement['px'] = self.price_to_precision(symbol, trailingAmount)
+        vaultAddressOption, paramsVault = self.handle_option_string_and_params(params, 'createOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddressOption)
+        nonce = self.incrementing_nonce()
+        # the action is hashed and signed, so the order of the keys must match the exchange's
+        action = {
+            'type': 'trailingStop',
+            'asset': self.parse_to_int(market['baseId']),
+            'isBuy': (side.upper() == 'BUY'),
+            'sz': self.amount_to_precision(symbol, amount),
+            'reduceOnly': self.safe_bool(paramsVault, 'reduceOnly', False),
+            'retracement': retracement,
+            'activationPx': None,
+        }
+        if trailingTriggerPrice is not None:
+            action['activationPx'] = self.price_to_precision(symbol, trailingTriggerPrice)
+        signature = self.sign_l1_action(action, nonce, vaultAddress)
+        request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        }
+        if vaultAddress is not None:
+            request['vaultAddress'] = vaultAddress
+        return request
 
     def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params: dict = {}) -> Order:
         """
@@ -2140,9 +2221,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         create a list of trade orders
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.priorityFee]: the order priority fee rate in units of 1e-8(10000 = 1 bp) applied to the whole request, only when every order is IOC(market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -2271,10 +2354,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                 clientOrderId = self.safe_string_2(orderParams, 'clientOrderId', 'client_id')
                 if clientOrderId is None:
                     raise ArgumentsRequired(self.id + ' createOrders() all orders must have clientOrderId if at least one has a clientOrderId')
-        params2 = self.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce'])
+        params2 = self.omit(params, ['slippage', 'clientOrderId', 'client_id', 'slippage', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'timeInForce', 'priorityFee'])
         nonce = self.incrementing_nonce()
         orderReq = []
         grouping = 'na'
+        priorityFee = self.safe_integer(params, 'priorityFee')
         for i in range(0, ordersLength):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -2285,6 +2369,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             amount = self.safe_string(rawOrder, 'amount')
             price = self.safe_string(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
+            orderPriorityFee = self.safe_integer(orderParams, 'priorityFee')
+            if orderPriorityFee is not None:
+                if (priorityFee is not None) and (priorityFee != orderPriorityFee):
+                    raise BadRequest(self.id + ' createOrders() all orders must use the same priorityFee, it is applied to the whole request')
+                priorityFee = orderPriorityFee
             slippage = self.safe_string(orderParams, 'slippage', defaultSlippage)
             orderParams = self.extend(orderParams, {'slippage': slippage})
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
@@ -2332,10 +2421,29 @@ class hyperliquid(Exchange, ImplicitAPI):
                 orderReq.append(mainOrderObj)
         vaultAddressOption = self.handle_option_string_and_params(params2, 'createOrder', 'vaultAddress')[0]
         vaultAddress = self.format_vault_address(vaultAddressOption)
+        groupingValue = grouping
+        if priorityFee is not None:
+            # the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if grouping != 'na':
+                raise NotSupported(self.id + ' createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders')
+            allIoc = True
+            allPostOnly = True
+            for i in range(0, len(orderReq)):
+                builtOrder = self.safe_dict(orderReq, i, {})
+                builtOrderType = self.safe_dict(builtOrder, 't', {})
+                builtOrderLimit = self.safe_dict(builtOrderType, 'limit', {})
+                builtOrderTif = self.safe_string(builtOrderLimit, 'tif')
+                if builtOrderTif != 'Ioc':
+                    allIoc = False
+                if (builtOrderTif != 'Alo') or self.safe_bool(builtOrder, 'r', False):
+                    allPostOnly = False
+            if not allIoc and not allPostOnly:
+                raise InvalidOrder(self.id + ' createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only')
+            groupingValue = {'p': priorityFee}
         orderAction = {
             'type': 'order',
             'orders': orderReq,
-            'grouping': grouping,
+            'grouping': groupingValue,
         }
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
             builder = '0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6'
@@ -3322,12 +3430,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         triggerPx = None
         if isTrigger:
             triggerPx = self.safe_number(entry, 'triggerPx')
+        orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')
+        # a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        isTrailing = (orderTypeRaw.find('trailing') >= 0)
+        if isTrailing and Precise.string_eq(self.safe_string(entry, 'triggerPx', '0'), '0'):
+            triggerPx = None
         # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         # through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')
         stopLossPrice = None
         takeProfitPrice = None
-        if triggerPx is not None:
+        if (triggerPx is not None) and not isTrailing:
             if orderTypeRaw.find('stop') >= 0:
                 stopLossPrice = triggerPx
             elif orderTypeRaw.find('take profit') >= 0:
@@ -3382,6 +3494,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         statuses = {
             'stop limit': 'limit',
             'stop market': 'market',
+            'trailing stop market': 'market',
         }
         return self.safe_string(statuses, status, status)
 
