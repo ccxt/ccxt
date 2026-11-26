@@ -130,8 +130,7 @@ class bullish extends \ccxt\async\bullish {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} status of the unwatch $request
          */
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
-        $wsUrl = $this->safe_string($wsUrls, 'public');
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], 'public');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' unsubscribePublic() has no public websocket url');
         }
@@ -175,7 +174,7 @@ class bullish extends \ccxt\async\bullish {
         $this->clean_unsubscription($client, $subHash, $unsubHash, $subHashIsPrefix);
         $this->clean_cache($subscription);
         $requestId = $this->safe_string($subscription, 'id', '');
-        if ($this->safe_dict($client->subscriptions, $requestId) !== null) {
+        if (is_array($client->subscriptions) && array_key_exists($requestId ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$requestId]);
         }
     }
@@ -220,11 +219,7 @@ class bullish extends \ccxt\async\bullish {
          * @param {string} [$params->tradingAccountId] the trading account id the $subscription was opened with
          * @return {any} status of the unwatch $request
          */
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
-        $url = $this->safe_string($wsUrls, 'private');
-        if ($url === null) {
-            throw new ExchangeError($this->id . ' unsubscribePrivate() has no private websocket url');
-        }
+        $url = $this->urls['api']['ws']['private'];
         $token = Async\await($this->handleToken());
         $cookies = array(
             'JWT_COOKIE' => $token,
@@ -1119,7 +1114,7 @@ class bullish extends \ccxt\async\bullish {
         //     }
         //
         $messageId = $this->safe_string($message, 'id');
-        if ($messageId === null) {
+        if (($messageId === null) || !(is_array($client->subscriptions) && array_key_exists($messageId ?? '', $client->subscriptions))) {
             return;
         }
         $subscription = $this->safe_dict($client->subscriptions, $messageId);
@@ -1152,7 +1147,7 @@ class bullish extends \ccxt\async\bullish {
                 $this->handle_pong($client, $message);
             }
             $messageId = $this->safe_string($message, 'id');
-            if ($messageId !== null) {
+            if (($messageId !== null) && (is_array($client->subscriptions) && array_key_exists($messageId ?? '', $client->subscriptions))) {
                 $subscription = $this->safe_dict($client->subscriptions, $messageId);
                 if (($subscription !== null) && $this->safe_bool($subscription, 'unsubscribe', false)) {
                     $this->handle_un_subscription($client, $subscription);
