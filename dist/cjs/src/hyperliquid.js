@@ -2005,9 +2005,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             if (response !== undefined) {
-                response = response.replace('"', '');
-                response = response.replace('"', '');
-                enableUnifiedMargin = response === 'unifiedAccount';
+                enableUnifiedMargin = (response.replaceAll('"', '') === 'unifiedAccount');
             }
             // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls

@@ -183059,22 +183059,33 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                     break; // this is needed because of GO
                 }
             }
-            let content = response;
-            if (content === undefined) {
+            if (response === undefined) {
                 throw new _errors_js__rspack_import_2.NullResponse(this.id + ' fetchWebEndpoint() returned empty content');
             }
+            if (typeof response !== 'string') {
+                if (startRegex !== undefined || endRegex !== undefined) {
+                    throw new _errors_js__rspack_import_2.BadResponse(this.id + ' fetchWebEndpoint() returned non-string content');
+                }
+                return response;
+            }
+            let content = response;
             if (startRegex !== undefined) {
                 const splitted_by_start = content.split(startRegex);
+                const startLen = splitted_by_start.length;
+                if (startLen < 2) {
+                    throw new _errors_js__rspack_import_2.NullResponse(this.id + ' fetchWebEndpoint() returned empty content');
+                }
                 content = splitted_by_start[1]; // we need second part after start
-            }
-            if (content === undefined) {
-                throw new _errors_js__rspack_import_2.NullResponse(this.id + ' fetchWebEndpoint() returned empty content');
             }
             if (endRegex !== undefined) {
                 const splitted_by_end = content.split(endRegex);
+                const endLen = splitted_by_end.length;
+                if (endLen < 1) {
+                    throw new _errors_js__rspack_import_2.NullResponse(this.id + ' fetchWebEndpoint() returned empty content');
+                }
                 content = splitted_by_end[0]; // we need first part after start
             }
-            if (returnAsJson === true && typeof content === 'string') {
+            if (returnAsJson === true) {
                 const jsoned = this.parseJson(content.trim()); // content should be trimmed before json parsing
                 if (jsoned !== undefined && jsoned !== null) {
                     return jsoned; // if parsing was not successfull, exception should be thrown
@@ -404175,9 +404186,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             if (response !== undefined) {
-                response = response.replace('"', '');
-                response = response.replace('"', '');
-                enableUnifiedMargin = response === 'unifiedAccount';
+                enableUnifiedMargin = response.replaceAll('"', '') === 'unifiedAccount';
             }
             // don't cache this result if this is a different addresss
             this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
