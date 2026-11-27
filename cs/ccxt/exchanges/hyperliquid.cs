@@ -3275,7 +3275,7 @@ public partial class hyperliquid : Exchange
         };
         Dictionary<string, object> cancelAction = new Dictionary<string, object>() {
             { "type", "scheduleCancel" },
-            { "time", add(nonce, this.parseToInt(timeout)) },
+            { "time", (nonce + this.parseToInt(timeout)) },
         };
         (string?, IDictionary<string, object>) vaultAddressOptionVariable = this.handleOptionStringAndParams2(params2, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress");
         string? vaultAddressOption = vaultAddressOptionVariable.Item1;

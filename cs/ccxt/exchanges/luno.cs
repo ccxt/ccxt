@@ -1569,7 +1569,7 @@ public partial class luno : Exchange
         object max_row = maxRowBase;
         if (limitApplies && maxRowBase.GetValueOrDefault() > 0 && minRowBase.GetValueOrDefault() > 0)
         {
-            max_row = add(minRowBase, limit);
+            max_row = (minRowBase + limit);
         }
         bool limitAdjusts = limitApplies && (maxRowBase.GetValueOrDefault() <= 0 || minRowBase.GetValueOrDefault() > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))

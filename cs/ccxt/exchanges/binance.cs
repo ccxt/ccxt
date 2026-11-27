@@ -4428,7 +4428,7 @@ public partial class binance : Exchange
                     {
                         settle = bs;
                     }
-                    string? futuresSymbol = ((string)(add(add(symbol, ":"), settle)));
+                    string? futuresSymbol = ((string)((((string)symbol) + ":" + settle)));
                     if (((this.markets != null)) && (((futuresSymbol != null) && (this.markets != null && futuresSymbol != null && this.markets.ContainsKey(futuresSymbol)))))
                     {
                         return ccxt.BaseExchange.ToDict((this.markets != null && futuresSymbol != null && this.markets.ContainsKey(futuresSymbol) ? this.markets[futuresSymbol] : null));

@@ -1723,7 +1723,7 @@ public partial class phemex : Exchange
                     {
                         // when since is defined 'to' is mandatory
                         Int64 now = this.seconds();
-                        Int64? to = this.parseToInt(add(this.parseToInt(fromSeconds), (((Int64)maxLimit * candleDuration))));
+                        Int64? to = this.parseToInt((this.parseToInt(fromSeconds) + (((Int64)maxLimit * candleDuration))));
                         request["to"] = (to > now) ? now : to;
                     }
                 } else if ((until != null))
