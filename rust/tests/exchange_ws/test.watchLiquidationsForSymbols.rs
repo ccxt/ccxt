@@ -31,7 +31,7 @@ pub async fn testWatchLiquidationsForSymbols(mut exchange: Value, mut skippedPro
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_liquidations_for_symbols", vec![Value::from(vec![symbol.clone()])]).await;
             now = date_now();
             let isArray: Value = Value::Bool(matches!(&response, Value::Arr(_)));
-            assert!(ccxt::runtime::is_true(&(isArray)));
+            assert!(crate::test_helpers::is_true(&(isArray)));
             let m3: Value = (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), "() returned ").into()), Value::Int(response.len() as i64)).into()), " liquidations").into()));
             println_val(&m3);
             {

@@ -44,27 +44,27 @@ pub fn testBalance(mut exchange: Value, mut skippedProperties: Value, mut method
     let codesLength: i64 = codesTotal.len() as i64;
     let freeLength: i64 = codesFree.len() as i64;
     let usedLength: i64 = codesUsed.len() as i64;
-    assert!(ccxt::runtime::is_true(&(((codesLength == freeLength) || (codesLength == usedLength)))));
+    assert!(crate::test_helpers::is_true(&(((codesLength == freeLength) || (codesLength == usedLength)))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_0: bool = true;
         while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (allCodes.len() as i64) } {
         let code: Value = allCodes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
-        assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));
-        assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code)))));
-        assert!(ccxt::runtime::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), &code)))));
+        assert!(crate::test_helpers::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code)))));
+        assert!(crate::test_helpers::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code)))));
+        assert!(crate::test_helpers::is_true(&((in_op(&entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), &code)))));
         let total: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("total")).cloned().unwrap_or(Value::Null), &code, &[]);
         let free: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), &code, &[]);
         let used: Option<String> = exchange.safe_string_opt(entry.as_map().and_then(|__m| __m.get("used")).cloned().unwrap_or(Value::Null), code, &[]);
-        assert!(ccxt::runtime::is_true(&((total.is_some()))));
-        assert!(ccxt::runtime::is_true(&((free.is_some()))));
-        assert!(ccxt::runtime::is_true(&((used.is_some()))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".into())))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".into())))));
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".into())))));
+        assert!(crate::test_helpers::is_true(&((total.is_some()))));
+        assert!(crate::test_helpers::is_true(&((free.is_some()))));
+        assert!(crate::test_helpers::is_true(&((used.is_some()))));
+        assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringGe(&total, &Value::Str("0".into())))));
+        assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringGe(&free, &Value::Str("0".into())))));
+        assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringGe(&used, &Value::Str("0".into())))));
         let sumFreeUsed: Option<String> = ccxt::precise::Precise::stringAdd(&free, &used).as_str().map(str::to_owned);
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&total, &sumFreeUsed))));
+        assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringEq(&total, &sumFreeUsed))));
     }
     }
 }

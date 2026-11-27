@@ -30,7 +30,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         now = exchange.milliseconds();
         if success && (response != Value::Null) {
-            assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
+            assert!(crate::test_helpers::is_true(&(exchange.is_dictionary(response.clone()))));
             testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), response, symbol.clone());
             if ((now - startTime)) > maxIdleTime {
                 idle = true;

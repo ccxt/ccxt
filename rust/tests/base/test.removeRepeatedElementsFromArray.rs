@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -42,10 +43,10 @@ pub fn testRemoveRepeatedElementsFromArray() {
 })]);
     let res1: Value = exchange.remove_repeated_elements_from_array(array1, &[Value::Bool(false)]);
     let res1Length: i64 = res1.len() as i64;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(res1Length == 3))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x2")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x4")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(res1Length == 3))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x2")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res1.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x4")))));
     // CASE 2: by timestamp
     let array2: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -74,14 +75,14 @@ pub fn testRemoveRepeatedElementsFromArray() {
 })]);
     let res2: Value = exchange.remove_repeated_elements_from_array(array2, &[Value::Bool(true)]);
     let res2Length: i64 = res2.len() as i64;
-    assert!(ccxt::runtime::is_true(&(Value::Bool(res2Length == 3))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x2")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x4")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(res2Length == 3))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x2")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res2.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &Value::Str("uniq".into())).as_str() == Some("x4")))));
     // CASE 3: by timestamp index (used in ohlcv)
     let array3: Value = Value::from(vec![Value::from(vec![Value::Int(555), Value::Int(1), Value::Int(1), Value::Str("x1".into())]), Value::from(vec![Value::Int(666), Value::Int(1), Value::Int(1), Value::Str("x2".into())]), Value::from(vec![Value::Int(555), Value::Int(1), Value::Int(1), Value::Str("x3".into())])]);
     let res3: Value = exchange.remove_repeated_elements_from_array(array3, &[Value::Bool(true)]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(res3.len() as i64).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res3.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Int(3)).as_str() == Some("x1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&res3.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Int(3)).as_str() == Some("x2")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(res3.len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res3.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &Value::Int(3)).as_str() == Some("x1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&res3.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &Value::Int(3)).as_str() == Some("x2")))));
 }

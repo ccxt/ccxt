@@ -12,7 +12,7 @@ use super::*;
 pub async fn testFetchOrders(mut exchange: Value, mut skippedProperties: Value, mut symbol: Value) -> Value {
     let method: Value = Value::Str("fetchOrders".into());
     let orders: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_orders", vec![symbol.clone()]).await;
-    assert!(ccxt::runtime::is_true(&((matches!(&orders, Value::Arr(_))))));
+    assert!(crate::test_helpers::is_true(&((matches!(&orders, Value::Arr(_))))));
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), orders.clone(), symbol.clone()]);
     let now: Value = Value::Int(exchange.milliseconds());
     {

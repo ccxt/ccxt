@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -26,5 +27,5 @@ pub fn testUrlencode() {
     let expected1: String = "a=1&c=%2B%26".to_string();
     let expected2: String = "c=%2B%26&a=1".to_string();
     let encoded: String = exchange.urlencode(dict1, &[]);
-    assert!(ccxt::runtime::is_true(&(((encoded == expected1) || (encoded == expected2)))));
+    assert!(crate::test_helpers::is_true(&(((encoded == expected1) || (encoded == expected2)))));
 }

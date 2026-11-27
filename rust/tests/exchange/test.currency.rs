@@ -98,7 +98,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Value::Dict(__d) = &mut format { std::sync::Arc::make_mut(__d).insert("id".into(), Value::Int(123)); }
             crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format, emptyAllowedFor]);
         }  else {
-            assert!(ccxt::runtime::is_true(&((message.as_str() == Some("")))));
+            assert!(crate::test_helpers::is_true(&((message.as_str() == Some("")))));
         }
     }
     //

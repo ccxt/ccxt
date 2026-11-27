@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -17,7 +18,7 @@ pub fn testEncode() {
     let input: Value = Value::Str("encode-test".into());
     let encoded: ccxt::value::Bytes = exchange.encode(input.clone());
     let decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
-    assert!(ccxt::runtime::is_true(&(((decoded.as_deref() == input.as_str())))));
+    assert!(crate::test_helpers::is_true(&(((decoded.as_deref() == input.as_str())))));
 }
 pub fn testDecode() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -28,7 +29,7 @@ pub fn testDecode() {
     let input: Value = Value::Str("decode-test".into());
     let encoded: ccxt::value::Bytes = exchange.encode(input.clone());
     let decoded: Option<String> = exchange.decode(&encoded).as_str().map(str::to_owned);
-    assert!(ccxt::runtime::is_true(&(((decoded.as_deref() == input.as_str())))));
+    assert!(crate::test_helpers::is_true(&(((decoded.as_deref() == input.as_str())))));
 }
 pub fn testEncodeDecode() {
     testEncode();

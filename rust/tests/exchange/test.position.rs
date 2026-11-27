@@ -111,7 +111,7 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             let expectedCollateral: Option<String> = ccxt::precise::Precise::stringAdd(&marginString, &unrealizedPnlString).as_str().map(str::to_owned);
             let collateralDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&collateralString, &expectedCollateral)).as_str().map(str::to_owned);
             let collateralTolerance: Option<String> = ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringAbs(&marginString), &Value::Str("0.05".into())).as_str().map(str::to_owned);
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&collateralDiff, &collateralTolerance))));
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringLe(&collateralDiff, &collateralTolerance))));
         }
         let mut entryMarginString: Value = marginString;
         if (entryMarginString == Value::Null) && (collateralString != Value::Null) {
@@ -146,10 +146,10 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             }
             let lossFromEntry: Option<String> = ccxt::precise::Precise::stringMul(&priceDiff, &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
             let calculatedMm: Value = ccxt::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
             let mmDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString)).as_str().map(str::to_owned);
             let maxTolerance: Option<String> = ccxt::precise::Precise::stringMul(&entryMarginString, &Value::Str("0.05".into())).as_str().map(str::to_owned);
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLe(&mmDiff, &maxTolerance))));
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringLe(&mmDiff, &maxTolerance))));
         }
     }
 }

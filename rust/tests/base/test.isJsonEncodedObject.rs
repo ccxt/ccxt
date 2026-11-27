@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,19 +15,19 @@ pub fn testIsJsonEncodedObject() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{\"key\":\"value\"}".into())])))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{}".into())])))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[]".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{\"key\":\"value\"}".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{}".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[]".into())])))));
     // todo: the belows  are not ideal, but currently valid
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{x".into())])))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[x".into())])))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{".into())])))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{x".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[x".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("{".into())])))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.is_json_encoded_object(&[Value::Str("[".into())])))));
     // invalid
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("x".into())]))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("".into())]))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("}".into())]))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("]".into())]))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("null".into())]))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("undefined".into())]))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("x".into())]))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("".into())]))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("}".into())]))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("]".into())]))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("null".into())]))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&exchange.is_json_encoded_object(&[Value::Str("undefined".into())]))))));
 }

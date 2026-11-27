@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -15,32 +16,32 @@ pub fn testUrlencodeBase64() {
         m
     }));
     // Test 1: Simple string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("hello".into()), &[]).as_str() == Some("aGVsbG8")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("hello".into()), &[]).as_str() == Some("aGVsbG8")))));
     // Test 2: String with space
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("hello world".into()), &[]).as_str() == Some("aGVsbG8gd29ybGQ")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("hello world".into()), &[]).as_str() == Some("aGVsbG8gd29ybGQ")))));
     // Test 3: Short string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("test".into()), &[]).as_str() == Some("dGVzdA")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("test".into()), &[]).as_str() == Some("dGVzdA")))));
     // Test 4: Empty string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("".into()), &[]).as_str() == Some("")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("".into()), &[]).as_str() == Some("")))));
     // Test 5: Single character
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("a".into()), &[]).as_str() == Some("YQ")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("a".into()), &[]).as_str() == Some("YQ")))));
     // Test 6: Two characters
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("ab".into()), &[]).as_str() == Some("YWI")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("ab".into()), &[]).as_str() == Some("YWI")))));
     // Test 7: Three characters (no padding needed)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("abc".into()), &[]).as_str() == Some("YWJj")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("abc".into()), &[]).as_str() == Some("YWJj")))));
     // Test 8: Four characters
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("abcd".into()), &[]).as_str() == Some("YWJjZA")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("abcd".into()), &[]).as_str() == Some("YWJjZA")))));
     // Test 9: JSON-like string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("{\"user\":\"test\"}".into()), &[]).as_str() == Some("eyJ1c2VyIjoidGVzdCJ9")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("{\"user\":\"test\"}".into()), &[]).as_str() == Some("eyJ1c2VyIjoidGVzdCJ9")))));
     // Test 10: String with special characters (urlsafe base64)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("subjects?_d".into()), &[]).as_str() == Some("c3ViamVjdHM_X2Q")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("subjects?_d".into()), &[]).as_str() == Some("c3ViamVjdHM_X2Q")))));
     // Test 11: Longer string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("The quick brown fox".into()), &[]).as_str() == Some("VGhlIHF1aWNrIGJyb3duIGZveA")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("The quick brown fox".into()), &[]).as_str() == Some("VGhlIHF1aWNrIGJyb3duIGZveA")))));
     // Test 12: Numbers as string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("123456789".into()), &[]).as_str() == Some("MTIzNDU2Nzg5")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("123456789".into()), &[]).as_str() == Some("MTIzNDU2Nzg5")))));
     //
     // add binary tests
     //
     let binaryData: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("191919191919".into()), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(&binaryData, &[]).as_str() == Some("GRkZGRkZ")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.urlencode_base64(&binaryData, &[]).as_str() == Some("GRkZGRkZ")))));
 }

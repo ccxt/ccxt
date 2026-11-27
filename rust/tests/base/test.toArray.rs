@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -33,8 +34,8 @@ pub fn testToArray() {
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
     //
-    assert!(ccxt::runtime::is_true(&((Value::Int(result1.len() as i64).as_f64() == Some(3.0)))));
-    assert!(ccxt::runtime::is_true(&((Value::Int(result2.len() as i64).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".into()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(result1.len() as i64).as_f64() == Some(3.0)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(result2.len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Int(1), result1.clone())) && is_true(&exchange.in_array(Value::Int(3), result1.clone())) && is_true(&exchange.in_array(Value::Int(2), result1.clone()))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_true(&exchange.in_array(Value::Str("x".into()), result2.clone())) && is_true(&exchange.in_array(Value::Int(2), result2.clone()))))));
 }

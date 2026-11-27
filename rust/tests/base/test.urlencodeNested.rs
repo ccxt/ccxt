@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -32,5 +33,5 @@ pub fn testUrlencodeNested() {
     let expected2b: String = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string();
     let expected2d: String = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string();
     let result2: String = exchange.urlencode_nested(dict2, &[]);
-    assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b) || (result2 == expected2c) || (result2 == expected2d)))));
+    assert!(crate::test_helpers::is_true(&(((result2 == expected2a) || (result2 == expected2b) || (result2 == expected2c) || (result2 == expected2d)))));
 }

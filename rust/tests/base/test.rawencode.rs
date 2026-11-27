@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -26,5 +27,5 @@ pub fn testRawencode() {
     let expected2a: String = "a=1&b=+&".to_string();
     let expected2b: String = "b=+&&a=1".to_string();
     let result2: String = exchange.rawencode(dict2, &[]);
-    assert!(ccxt::runtime::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
+    assert!(crate::test_helpers::is_true(&(((result2 == expected2a) || (result2 == expected2b)))));
 }

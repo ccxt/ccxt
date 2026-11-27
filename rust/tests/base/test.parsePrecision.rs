@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,8 +15,8 @@ pub fn testParsePrecision() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("15".into())]).as_str() == Some("0.000000000000001")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("1".into())]).as_str() == Some("0.1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("0".into())]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("-5".into())]).as_str() == Some("100000")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("15".into())]).as_str() == Some("0.000000000000001")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("1".into())]).as_str() == Some("0.1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("0".into())]).as_str() == Some("1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.parse_precision(&[Value::Str("-5".into())]).as_str() == Some("100000")))));
 }

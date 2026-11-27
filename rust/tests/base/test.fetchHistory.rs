@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -16,30 +17,30 @@ pub async fn testFetchHistoryBase() -> Value {
             m.insert("enableRateLimit".to_string(), Value::Bool(false));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".into())), &Value::Int(2))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("fetchHistoryCacheSize".into())), &Value::Int(2))))));
     let trueAssertion: Value = Value::Bool(exchange.parse_number(Value::Null, &[]) == Value::Null);
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample1".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-        assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
+        assert!(crate::test_helpers::is_true(&(trueAssertion.clone()))); // just skip
     }
-    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample2".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-        assert!(ccxt::runtime::is_true(&(trueAssertion.clone()))); // just skip
+        assert!(crate::test_helpers::is_true(&(trueAssertion.clone()))); // just skip
     }
-    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
         exchange.fetch2(Value::Str("sample3".into()), &[]).await;
      #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-        assert!(ccxt::runtime::is_true(&(trueAssertion))); // just skip
+        assert!(crate::test_helpers::is_true(&(trueAssertion))); // just skip
     }
-    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
+    assert!(crate::test_helpers::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y),
         _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < Value::Int(3).as_f64().unwrap_or(f64::NAN)))));
 
     Value::Null
@@ -52,17 +53,17 @@ if _try_result.is_err() {
 //     // try 3 times
 //     // first
 //     await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
-//     assert!(ccxt::runtime::is_true(&((exchange.getFetchCache ()).length === 1)));
+//     assert!(crate::test_helpers::is_true(&((exchange.getFetchCache ()).length === 1)));
 //     // second
 //     await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-//     assert!(ccxt::runtime::is_true(&((exchange.getFetchCache ()).length === 2)));
+//     assert!(crate::test_helpers::is_true(&((exchange.getFetchCache ()).length === 2)));
 //     // third
 //     await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-//     assert!(ccxt::runtime::is_true(&((exchange.getFetchCache ()).length === 2)));
+//     assert!(crate::test_helpers::is_true(&((exchange.getFetchCache ()).length === 2)));
 //     const finalCache = exchange.getFetchCache ();
-//     assert!(ccxt::runtime::is_true(&(finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD')));
-//     assert!(ccxt::runtime::is_true(&(finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker')));
-//     assert!(ccxt::runtime::is_true(&(1 + 1 < 3)));
+//     assert!(crate::test_helpers::is_true(&(finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD')));
+//     assert!(crate::test_helpers::is_true(&(finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker')));
+//     assert!(crate::test_helpers::is_true(&(1 + 1 < 3)));
 // }
 pub async fn testFetchHistory() -> Value {
     testFetchHistoryBase().await;

@@ -43,7 +43,7 @@ fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value 
             if let Value::Dict(__d) = &mut ids { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&symbol), get_value(&market, &Value::Str("id".into()))); }
         }  else {
             let isDifferent: Value = Value::Bool(!is_equal(&ids.as_map().and_then(|__m| symbol.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &get_value(&market, &Value::Str("id".into()))));
-            assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&isDifferent)))));
+            assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&isDifferent)))));
         }
     }
     }

@@ -21,7 +21,7 @@ pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> 
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".into()), keys.clone(), i.clone(), marketTypes.clone()]);
         let marketType: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let value: Value = features.as_map().and_then(|__m| marketType.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-        // assert!(ccxt::runtime::is_true(&(value !== undefined)));
+        // assert!(crate::test_helpers::is_true(&(value !== undefined)));
         if (value == Value::Null) {
             continue;
         }

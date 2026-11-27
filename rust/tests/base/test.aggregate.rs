@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,7 +15,7 @@ pub fn testAggregate() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&((Value::Int(exchange.milliseconds()).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(exchange.milliseconds()).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // @SKIP_START_GO
     let bids: Value = Value::from(vec![Value::from(vec![Value::Float(789.1), Value::Float(111.05)]), Value::from(vec![Value::Float(789.1), Value::Float(111.05)]), Value::from(vec![Value::Float(123.3), Value::Float(456.2)]), Value::from(vec![Value::Float(784.2), Value::Float(111.05)]), Value::from(vec![Value::Float(789.1), Value::Float(111.05)])]);
     let expectedBids: Value = Value::from(vec![Value::from(vec![Value::Float(123.3), Value::Float(456.2)]), Value::from(vec![Value::Float(784.2), Value::Float(111.05)]), Value::from(vec![Value::Float(789.1), Value::Float(333.15)])]);

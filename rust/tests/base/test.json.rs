@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -21,9 +22,9 @@ pub fn testJson() {
         m
     });
     let objJson: Option<String> = exchange.json(obj).as_str().map(str::to_owned);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(objJson.as_deref() == Some("{\"k\":\"v\"}")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(objJson.as_deref() == Some("{\"k\":\"v\"}")))));
     // Test: list
     let list: Value = Value::from(vec![Value::Int(1), Value::Int(2)]);
     let listJson: Option<String> = exchange.json(list).as_str().map(str::to_owned);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(listJson.as_deref() == Some("[1,2]")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(listJson.as_deref() == Some("[1,2]")))));
 }

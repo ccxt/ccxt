@@ -25,9 +25,9 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
     // with symbol
     let positionsForSymbol: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![Value::from(vec![symbol.clone()])]).await;
-    assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbol, Value::Arr(_))))));
+    assert!(crate::test_helpers::is_true(&((matches!(&positionsForSymbol, Value::Arr(_))))));
     let positionsForSymbolLength: i64 = positionsForSymbol.len() as i64;
-    assert!(ccxt::runtime::is_true(&((positionsForSymbolLength <= 4))));
+    assert!(crate::test_helpers::is_true(&((positionsForSymbolLength <= 4))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_1: bool = true;

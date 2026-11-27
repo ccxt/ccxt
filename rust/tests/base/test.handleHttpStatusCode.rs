@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -34,7 +35,7 @@ pub fn testHandleHttpStatusCode() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(418), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -42,7 +43,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(401), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -50,7 +51,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(408), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -58,7 +59,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(500), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -66,7 +67,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(422), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -74,7 +75,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(caught)));
     // statuses missing from the table must not throw — derived handleErrors
     // implementations rely on exactly that swallow when they guard with
     // a httpExceptions lookup before deferring to the status handler
@@ -95,6 +96,6 @@ if _try_result.is_err() {
         m.insert("success".to_string(), Value::Bool(false));
     m
 }), Some(&indexmap::IndexMap::new()), None);
-    assert!(ccxt::runtime::is_true(&((skip.is_none()))));
+    assert!(crate::test_helpers::is_true(&((skip.is_none()))));
     exchange.handle_http_status_code(Value::Int(406), Value::Str("Not Acceptable".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("{\"success\":false}".into()));
 }

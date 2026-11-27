@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -18,11 +19,11 @@ pub fn testIo() {
     let fileName: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".into()), Value::Str(format!("{}", ms).into())).into()), ".ccxtfile");
     // upper tmp dir
     let tempDir: Option<String> = exchange.get_temp_dir().as_str().map(str::to_owned);
-    assert!(ccxt::runtime::is_true(&(((tempDir.is_some()) && (tempDir.as_deref() != Some(""))))));
+    assert!(crate::test_helpers::is_true(&(((tempDir.is_some()) && (tempDir.as_deref() != Some(""))))));
     let filePath: String = format!("{}{}", tempDir.as_deref().unwrap_or("null"), fileName); // '../../../../../../../../../../../../tmp/' + fileName;
     let fileContent: Value = Value::Str("hello world".into());
-    assert!(ccxt::runtime::is_true(&(exchange.write_file(Value::from(filePath.as_str()), fileContent.clone()))));
-    assert!(ccxt::runtime::is_true(&(exchange.exists_file(Value::from(filePath.as_str())))));
+    assert!(crate::test_helpers::is_true(&(exchange.write_file(Value::from(filePath.as_str()), fileContent.clone()))));
+    assert!(crate::test_helpers::is_true(&(exchange.exists_file(Value::from(filePath.as_str())))));
     let readContent: Value = exchange.read_file(Value::from(filePath));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&readContent, &fileContent)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&readContent, &fileContent)))));
 }

@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -18,14 +19,14 @@ pub fn testBinaryConcat() {
     let binary1: ccxt::value::Bytes = exchange.string_to_binary(Value::Str("hello".into()), &[]);
     let binary2: ccxt::value::Bytes = exchange.string_to_binary(Value::Str(" world".into()), &[]);
     let result1: ccxt::value::Bytes = exchange.binary_concat(&binary1, &[Value::from(&binary2)]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_string(&result1, &[])).as_str() == Some("hello world")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_string(&result1, &[])).as_str() == Some("hello world")))));
     // Test 2: Concat three binaries
     let binary3: ccxt::value::Bytes = exchange.string_to_binary(Value::Str("foo".into()), &[]);
     let binary4: ccxt::value::Bytes = exchange.string_to_binary(Value::Str("bar".into()), &[]);
     let binary5: ccxt::value::Bytes = exchange.string_to_binary(Value::Str("baz".into()), &[]);
     let result2: ccxt::value::Bytes = exchange.binary_concat(&binary3, &[Value::from(&binary4), Value::from(&binary5)]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_string(&result2, &[])).as_str() == Some("foobarbaz")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_string(&result2, &[])).as_str() == Some("foobarbaz")))));
     // Test 3: Concat with hex bytes
     let result3: ccxt::value::Bytes = exchange.binary_concat(exchange.base16_to_binary(Value::Str("68656c6c6f".into()), &[]), &[Value::from(exchange.string_to_binary(Value::Str(" world".into()), &[]))]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_string(&result3, &[])).as_str() == Some("hello world")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_string(&result3, &[])).as_str() == Some("hello world")))));
 }

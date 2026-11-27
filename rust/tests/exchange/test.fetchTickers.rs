@@ -69,7 +69,7 @@ fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mu
         let notInactiveSymbolsLength: i64 = get_array_length(&nonInactiveMarkets).as_i64().unwrap_or_default();
         let obtainedTickersLength: i64 = tickersValues.len() as i64;
         let minRatio: f64 = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-        assert!(ccxt::runtime::is_true(&(((obtainedTickersLength as f64) >= (((notInactiveSymbolsLength as f64) * minRatio))))));
+        assert!(crate::test_helpers::is_true(&(((obtainedTickersLength as f64) >= (((notInactiveSymbolsLength as f64) * minRatio))))));
         //
         // ensure tickers length is less than markets length
         //
@@ -78,6 +78,6 @@ fn fetchTickersAmountsTest(mut exchange: Value, mut skippedProperties: Value, mu
             return;
         }
         let allMarketsLength: Value = Value::Int(object_keys(&allMarkets).len() as i64);
-        assert!(ccxt::runtime::is_true(&(((obtainedTickersLength as f64) <= allMarketsLength.as_f64().unwrap_or(f64::NAN)))));
+        assert!(crate::test_helpers::is_true(&(((obtainedTickersLength as f64) <= allMarketsLength.as_f64().unwrap_or(f64::NAN)))));
     }
 }

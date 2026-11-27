@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -24,5 +25,5 @@ pub fn testImplodeParams() {
     });
     let expected: String = "v2/watchlists/1m/BTC/USDT".to_string();
     let result: String = exchange.implode_params(Value::from(path), params);
-    assert!(ccxt::runtime::is_true(&((result == expected))));
+    assert!(crate::test_helpers::is_true(&((result == expected))));
 }

@@ -62,9 +62,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success2 = false;
         }
         if success2 {
-            assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
+            assert!(crate::test_helpers::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
-            assert!(ccxt::runtime::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
+            assert!(crate::test_helpers::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
             now = Value::Int(exchange.milliseconds());
             {
                                 let mut i: i64 = 0;

@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -18,43 +19,43 @@ pub fn testBase64ToBinary() {
     // Test 1: Simple base64
     let b64_1: Value = Value::Str("aGVsbG8=".into()); // hello
     let binary1: ccxt::value::Bytes = exchange.base64_to_binary(b64_1.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary1, &[])).as_str() == b64_1.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary1, &[])).as_str() == b64_1.as_str()))));
     // Test 2: Binary with space in original
     let b64_2: Value = Value::Str("aGVsbG8gd29ybGQ=".into()); // hello world
     let binary2: ccxt::value::Bytes = exchange.base64_to_binary(b64_2.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary2, &[])).as_str() == b64_2.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary2, &[])).as_str() == b64_2.as_str()))));
     // Test 3: Short binary
     let b64_3: Value = Value::Str("dGVzdA==".into()); // test
     let binary3: ccxt::value::Bytes = exchange.base64_to_binary(b64_3.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary3, &[])).as_str() == b64_3.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary3, &[])).as_str() == b64_3.as_str()))));
     // Test 4: Empty binary
     let b64_4: Value = Value::Str("".into());
     let binary4: ccxt::value::Bytes = exchange.base64_to_binary(b64_4.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary4, &[])).as_str() == b64_4.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary4, &[])).as_str() == b64_4.as_str()))));
     // Test 5: Single byte
     let b64_5: Value = Value::Str("YQ==".into()); // a
     let binary5: ccxt::value::Bytes = exchange.base64_to_binary(b64_5.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary5, &[])).as_str() == b64_5.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary5, &[])).as_str() == b64_5.as_str()))));
     // Test 6: Two bytes
     let b64_6: Value = Value::Str("YWI=".into()); // ab
     let binary6: ccxt::value::Bytes = exchange.base64_to_binary(b64_6.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary6, &[])).as_str() == b64_6.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary6, &[])).as_str() == b64_6.as_str()))));
     // Test 7: Three bytes (no padding)
     let b64_7: Value = Value::Str("YWJj".into()); // abc
     let binary7: ccxt::value::Bytes = exchange.base64_to_binary(b64_7.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary7, &[])).as_str() == b64_7.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary7, &[])).as_str() == b64_7.as_str()))));
     // Test 8: JSON-like binary
     let b64_8: Value = Value::Str("eyJrZXkiOiJ2YWx1ZSJ9".into()); // {"key":"value"}
     let binary8: ccxt::value::Bytes = exchange.base64_to_binary(b64_8.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary8, &[])).as_str() == b64_8.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary8, &[])).as_str() == b64_8.as_str()))));
     // Test 9: Numbers as binary
     let b64_9: Value = Value::Str("MTIzNDU2".into()); // 123456
     let binary9: ccxt::value::Bytes = exchange.base64_to_binary(b64_9.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary9, &[])).as_str() == b64_9.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary9, &[])).as_str() == b64_9.as_str()))));
     // Test 10: Special characters
     let b64_10: Value = Value::Str("aGVsbG8rd29ybGQvdGVzdA==".into()); // hello+world/test
     let binary10: ccxt::value::Bytes = exchange.base64_to_binary(b64_10.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary10, &[])).as_str() == b64_10.as_str()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::from(exchange.binary_to_base64(&binary10, &[])).as_str() == b64_10.as_str()))));
     // @SKIP_END_GO
-    assert!(ccxt::runtime::is_true(&((exchange.safe_string(Value::Null, Value::Str("key".into()), &[]) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&((exchange.safe_string(Value::Null, Value::Str("key".into()), &[]) == Value::Null))));
 }

@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -18,35 +19,35 @@ pub fn testRoundTimeframe() {
     if (testDate.is_none()) {
         return;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("5m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:20:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("10m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:20:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("30m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:00:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1d".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 00:00:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("5m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:25:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("10m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:30:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("30m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:30:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1h".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 14:00:00".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1d".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-13 00:00:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("5m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:20:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("10m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:20:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("30m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:00:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1d".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 00:00:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("5m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:25:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("10m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:30:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("30m".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 13:30:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1h".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-12 14:00:00".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1d".into()), Value::from(testDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2019-08-13 00:00:00".into()))).as_f64()))));
     let calendarDate: Option<i64> = exchange.parse8601(Value::Str("2026-09-02T00:00:00Z".into()));
     if (calendarDate.is_none()) {
         return;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-08-31T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-09-01T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1y".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-01-01T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-09-07T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-10-01T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1y".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2027-01-01T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-08-31T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("3M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-07-01T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-09-14T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("3M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-10-01T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-08-31T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-09-01T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1y".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-01-01T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-09-07T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-10-01T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("1y".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2027-01-01T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-08-31T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("3M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-07-01T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-09-14T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("3M".into()), Value::from(calendarDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("2026-10-01T00:00:00Z".into()))).as_f64()))));
     let preEpochDate: Option<i64> = exchange.parse8601(Value::Str("1960-06-15T00:00:00Z".into()));
     if (preEpochDate.is_none()) {
         return;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(preEpochDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("1960-06-06T00:00:00Z".into()))).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(preEpochDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("1960-06-20T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(preEpochDate), Value::Int(ccxt::runtime::ROUND_DOWN)).as_f64() == Value::from(exchange.parse8601(Value::Str("1960-06-06T00:00:00Z".into()))).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.round_timeframe(Value::Str("2w".into()), Value::from(preEpochDate), Value::Int(ccxt::runtime::ROUND_UP)).as_f64() == Value::from(exchange.parse8601(Value::Str("1960-06-20T00:00:00Z".into()))).as_f64()))));
 }
 pub fn testParseTimeframe() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -54,13 +55,13 @@ pub fn testParseTimeframe() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1m".into()))).as_f64() == Some(60.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("5m".into()))).as_f64() == Some(300.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1h".into()))).as_f64() == Some(3600.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1d".into()))).as_f64() == Some(86400.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1w".into()))).as_f64() == Some(604800.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1M".into()))).as_f64() == Some(2592000.0))))); // todo: just approx
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1y".into()))).as_f64() == Some(31536000.0))))); // todo: just approx
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1m".into()))).as_f64() == Some(60.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("5m".into()))).as_f64() == Some(300.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1h".into()))).as_f64() == Some(3600.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1d".into()))).as_f64() == Some(86400.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1w".into()))).as_f64() == Some(604800.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1M".into()))).as_f64() == Some(2592000.0))))); // todo: just approx
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(exchange.parse_timeframe(Value::Str("1y".into()))).as_f64() == Some(31536000.0))))); // todo: just approx
 }
 pub fn testTimeframes() {
     testRoundTimeframe();

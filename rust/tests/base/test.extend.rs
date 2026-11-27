@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -85,13 +86,13 @@ pub fn testExtend() {
     let extended: Value = exchange.extend(obj1.clone(), &[obj2.clone()]);
     tbfeCheckExtended(extended.clone(), Value::Bool(true));
     // --- mutation check: obj1 must NOT be mutated ---
-    assert!(ccxt::runtime::is_true(&((obj1.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == obj1SnapshotA.as_f64()))));
-    assert!(ccxt::runtime::is_true(&((obj1.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_f64() == obj1SnapshotB0.as_f64()))));
-    assert!(ccxt::runtime::is_true(&((obj1.as_map().and_then(|__m| __m.get("other1")).cloned().unwrap_or(Value::Null).as_str() == obj1SnapshotOther1.as_str()))));
+    assert!(crate::test_helpers::is_true(&((obj1.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == obj1SnapshotA.as_f64()))));
+    assert!(crate::test_helpers::is_true(&((obj1.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_f64() == obj1SnapshotB0.as_f64()))));
+    assert!(crate::test_helpers::is_true(&((obj1.as_map().and_then(|__m| __m.get("other1")).cloned().unwrap_or(Value::Null).as_str() == obj1SnapshotOther1.as_str()))));
     // --- mutation check: obj2 must NOT be mutated ---
-    assert!(ccxt::runtime::is_true(&((obj2.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == obj2SnapshotA.as_f64()))));
-    assert!(ccxt::runtime::is_true(&((obj2.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_f64() == obj2SnapshotB0.as_f64()))));
-    assert!(ccxt::runtime::is_true(&((obj2.as_map().and_then(|__m| __m.get("other2")).cloned().unwrap_or(Value::Null).as_str() == obj2SnapshotOther2.as_str()))));
+    assert!(crate::test_helpers::is_true(&((obj2.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == obj2SnapshotA.as_f64()))));
+    assert!(crate::test_helpers::is_true(&((obj2.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_f64() == obj2SnapshotB0.as_f64()))));
+    assert!(crate::test_helpers::is_true(&((obj2.as_map().and_then(|__m| __m.get("other2")).cloned().unwrap_or(Value::Null).as_str() == obj2SnapshotOther2.as_str()))));
     // --- test 2: multi-step extend – apply a third patch on top of the first result ---
     let obj3: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -109,22 +110,22 @@ pub fn testExtend() {
         m
     });
     let extended2: Value = exchange.extend(extended.clone(), &[obj3]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended2, &Value::Str("a".into())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(5))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(6))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test1".into())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test2".into()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test3".into()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test4".into())), &Value::Int(4))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("d".into())).as_str() == Some("step3")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("e".into())).as_str() == Some("back_to_string")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other1".into())).as_str() == Some("x")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other2".into())).as_str() == Some("y")))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extended2, &Value::Str("other3".into())).as_str() == Some("z")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&extended2, &Value::Str("a".into())), &Value::Int(3))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(5))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended2, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(6))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test1".into())), &Value::Int(3))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test2".into()))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test3".into()))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended2, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test4".into())), &Value::Int(4))))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extended2, &Value::Str("d".into())).as_str() == Some("step3")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extended2, &Value::Str("e".into())).as_str() == Some("back_to_string")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extended2, &Value::Str("other1".into())).as_str() == Some("x")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extended2, &Value::Str("other2".into())).as_str() == Some("y")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extended2, &Value::Str("other3".into())).as_str() == Some("z")))));
     // --- mutation check: first result must NOT be mutated by second extend ---
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".into())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&extended, &Value::Str("other3".into()))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".into())), &Value::Int(2))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(in_op(&extended, &Value::Str("other3".into()))))))));
     // --- test 3: four-step chained extend on same base object ---
     let base: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -153,17 +154,17 @@ pub fn testExtend() {
     let r1: Value = exchange.extend(base.clone(), &[patch1]);
     let r2: Value = exchange.extend(r1.clone(), &[patch2]);
     let r3: Value = exchange.extend(r2.clone(), &[patch3]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("x".into())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&((get_value(&r3, &Value::Str("keep".into())).as_str() == Some("yes")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p1".into())), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p2".into())), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p3".into())), &Value::Bool(true))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("x".into())), &Value::Int(3))))));
+    assert!(crate::test_helpers::is_true(&((get_value(&r3, &Value::Str("keep".into())).as_str() == Some("yes")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p1".into())), &Value::Bool(true))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p2".into())), &Value::Bool(true))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&r3, &Value::Str("p3".into())), &Value::Bool(true))))));
     // --- mutation check: each intermediate must be unaffected ---
-    assert!(ccxt::runtime::is_true(&((base.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(0.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r1, &Value::Str("x".into())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&r2, &Value::Str("x".into())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&r1, &Value::Str("p3".into()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&base, Value::Dict(__d) if __d.contains_key("p2"))))))));
+    assert!(crate::test_helpers::is_true(&((base.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(0.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&r1, &Value::Str("x".into())), &Value::Int(1))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&r2, &Value::Str("x".into())), &Value::Int(2))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(in_op(&r1, &Value::Str("p3".into()))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(matches!(&base, Value::Dict(__d) if __d.contains_key("p2"))))))));
     // --- test 4: extend with undefined values does NOT overwrite existing keys ---
     let withValues: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -180,25 +181,25 @@ pub fn testExtend() {
     });
     let extUndef: Value = exchange.extend(withValues.clone(), &[withUndefs]);
     // extend() merges ALL keys (including undefined ones), so undefined wins over previous value
-    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep1".into())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("keep2".into())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&((get_value(&extUndef, &Value::Str("newKey".into())).as_str() == Some("C")))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extUndef, &Value::Str("keep1".into())) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extUndef, &Value::Str("keep2".into())) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&((get_value(&extUndef, &Value::Str("newKey".into())).as_str() == Some("C")))));
     // original must not be touched
-    assert!(ccxt::runtime::is_true(&((withValues.as_map().and_then(|__m| __m.get("keep1")).cloned().unwrap_or(Value::Null).as_str() == Some("A")))));
-    assert!(ccxt::runtime::is_true(&((withValues.as_map().and_then(|__m| __m.get("keep2")).cloned().unwrap_or(Value::Null).as_str() == Some("B")))));
+    assert!(crate::test_helpers::is_true(&((withValues.as_map().and_then(|__m| __m.get("keep1")).cloned().unwrap_or(Value::Null).as_str() == Some("A")))));
+    assert!(crate::test_helpers::is_true(&((withValues.as_map().and_then(|__m| __m.get("keep2")).cloned().unwrap_or(Value::Null).as_str() == Some("B")))));
 }
 fn tbfeCheckExtended(mut extended: Value, mut hasSub: Value) {
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".into())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(4))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test1".into())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test2".into()))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test3".into())), &Value::Int(3))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("d".into())).as_str() == Some("not_undefined")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("e".into())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other1".into())).as_str() == Some("x")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other2".into())).as_str() == Some("y")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&extended, &Value::Str("a".into())), &Value::Int(2))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(0)), &Value::Int(3))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&extended, &Value::Str("b".into())), &Value::Int(1)), &Value::Int(4))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test1".into())), &Value::Int(2))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(in_op(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test2".into()))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&extended, &Value::Str("c".into())), &Value::Int(0)), &Value::Str("test3".into())), &Value::Int(3))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&extended, &Value::Str("d".into())).as_str() == Some("not_undefined")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&extended, &Value::Str("e".into())) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other1".into())).as_str() == Some("x")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(get_value(&extended, &Value::Str("other2".into())).as_str() == Some("y")))));
     if hasSub.as_bool() == Some(true) {
-        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&extended, &Value::Str("sub".into()))))));
+        assert!(crate::test_helpers::is_true(&(Value::Bool(in_op(&extended, &Value::Str("sub".into()))))));
     }
 }

@@ -36,8 +36,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
         //
         let grouped: Value = exchange.group_by(trades.clone(), Value::Str("side".into()), &[]);
         let msg: Value = Value::Str(format!("{}{}", Value::Str("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue".into()), crate::tests_support::shared::log_template(exchange.clone(), method.clone(), trades.clone())).into());
-        assert!(ccxt::runtime::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("buy"))))));
-        assert!(ccxt::runtime::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("sell"))))));
+        assert!(crate::test_helpers::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("buy"))))));
+        assert!(crate::test_helpers::is_true(&((matches!(&grouped, Value::Dict(__d) if __d.contains_key("sell"))))));
     }
     if !(in_op(&skippedProperties, &Value::Str("timestampSort".into()))) {
         crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), trades.clone()]);
@@ -90,9 +90,9 @@ async fn helperTestFetchTradesSideSequence(mut exchange: Value, mut skippedPrope
             let priceIncreasing: bool = ccxt::precise::Precise::stringGt(&price, &lastPrice).as_bool().unwrap_or(false);
             let priceDecreasing: bool = ccxt::precise::Precise::stringLt(&price, &lastPrice).as_bool().unwrap_or(false);
             if priceIncreasing {
-                assert!(ccxt::runtime::is_true(&((side.as_str() == Some("buy")))));
+                assert!(crate::test_helpers::is_true(&((side.as_str() == Some("buy")))));
             }  else if priceDecreasing {
-                assert!(ccxt::runtime::is_true(&((side.as_str() == Some("sell")))));
+                assert!(crate::test_helpers::is_true(&((side.as_str() == Some("sell")))));
             }
         }
         lastPrice = price;

@@ -12,12 +12,12 @@ use super::*;
 pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Value) -> Value {
     let method: Value = Value::Str("fetchOrderBooks".into());
     let symbols: Value = get_value(&exchange, &Value::Str("symbols".into()));
-    assert!(ccxt::runtime::is_true(&((symbols != Value::Null))));
+    assert!(crate::test_helpers::is_true(&((symbols != Value::Null))));
     let symbol: Option<String> = symbols.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
     let orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::from(vec![symbol.map(Value::from).unwrap_or(Value::Null)])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), orderBooks.clone()]);
     let orderBookKeys: Value = object_keys(&orderBooks);
-    assert!(ccxt::runtime::is_true(&((Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     {
                 let mut i: i64 = 0;
         let mut __for_first_0: bool = true;

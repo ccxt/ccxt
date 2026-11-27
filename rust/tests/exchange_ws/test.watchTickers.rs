@@ -54,7 +54,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return Value::Bool(false);
         }
         if success {
-            assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
+            assert!(crate::test_helpers::is_true(&(exchange.is_dictionary(response.clone()))));
             let values: Value = object_values(&response);
             let mut checkedSymbol: Value = Value::Null;
             if (argSymbols != Value::Null) && (Value::Int(argSymbols.len() as i64).as_f64() == Some(1.0)) {

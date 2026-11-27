@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -31,7 +32,7 @@ pub fn testMergeBalanceAccount() {
         m
     });
     result = exchange.extend(Value::Dict(exchange.merge_balance_account(result, Value::Str("BTC".into()), btcAccount)), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("1")))));
     let btcAccount2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("free".to_string(), Value::Str("2".into()));
@@ -40,25 +41,25 @@ pub fn testMergeBalanceAccount() {
         m
     });
     result = exchange.extend(Value::Dict(exchange.merge_balance_account(result, Value::Str("BTC".into()), btcAccount2)), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]).as_str() == Some("0.75")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]).as_str() == Some("2.25")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]).as_str() == Some("0.1")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("3")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]).as_str() == Some("0.75")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]).as_str() == Some("2.25")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]).as_str() == Some("0.1")))));
     let usdtAccount: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("free".to_string(), Value::Str("5".into()));
         m
     });
     result = exchange.extend(Value::Dict(exchange.merge_balance_account(result, Value::Str("USDT".into()), usdtAccount)), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("5")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]) == Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("5")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]) == Value::Null))));
     let keys: Value = object_keys(&result);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(keys.len() as i64).as_f64() == Some(2.0)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(Value::Int(keys.len() as i64).as_f64() == Some(2.0)))));
     // the merged dict is a regular safeBalance input. safeBalance parses to a number,
     // and each port spells that number differently (JS "3", PHP "3.0"), so assert on
     // the parsed value rather than on its string form
     let balance: Value = Value::Dict(exchange.safe_balance(result));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_f64() == exchange.parse_number(Value::Str("3".into()), &[]).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), Value::Str("USDT".into()), &[]).as_f64() == exchange.parse_number(Value::Str("5".into()), &[]).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("debt")).cloned().unwrap_or(Value::Null), Value::Str("BTC".into()), &[]).as_f64() == exchange.parse_number(Value::Str("0.1".into()), &[]).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_f64() == exchange.parse_number(Value::Str("3".into()), &[]).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("free")).cloned().unwrap_or(Value::Null), Value::Str("USDT".into()), &[]).as_f64() == exchange.parse_number(Value::Str("5".into()), &[]).as_f64()))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.safe_number(balance.as_map().and_then(|__m| __m.get("debt")).cloned().unwrap_or(Value::Null), Value::Str("BTC".into()), &[]).as_f64() == exchange.parse_number(Value::Str("0.1".into()), &[]).as_f64()))));
 }

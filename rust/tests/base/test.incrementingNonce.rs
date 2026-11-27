@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -20,7 +21,7 @@ pub fn testIncrementingNonce() {
     add_element_to_object(&mut exchange.options, &Value::Str("lastNonce".into()), seed.clone());
     let first: i64 = exchange.incrementing_nonce();
     let second: i64 = exchange.incrementing_nonce();
-    assert!(ccxt::runtime::is_true(&(((first as f64) > seed.as_f64().unwrap_or(f64::NAN)))));
-    assert!(ccxt::runtime::is_true(&((second == ((first + 1))))));
-    assert!(ccxt::runtime::is_true(&((second > first))));
+    assert!(crate::test_helpers::is_true(&(((first as f64) > seed.as_f64().unwrap_or(f64::NAN)))));
+    assert!(crate::test_helpers::is_true(&((second == ((first + 1))))));
+    assert!(crate::test_helpers::is_true(&((second > first))));
 }

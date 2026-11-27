@@ -31,14 +31,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         now = Value::Int(exchange.milliseconds());
         if success && (response != Value::Null) {
-            assert!(ccxt::runtime::is_true(&((matches!(&response, Value::Arr(_))))));
+            assert!(crate::test_helpers::is_true(&((matches!(&response, Value::Arr(_))))));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_0: bool = true;
                 while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (response.len() as i64) } {
                 let trade: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));
+                assert!(crate::test_helpers::is_true(&((symbol != Value::Null))));
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone(), Value::Bool(true));
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade, Value::Str("symbol".into()), symbols.clone()]);
                 if !exchange.in_array(symbol.clone(), returnedSymbols.clone()) {
@@ -53,7 +53,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
     }
     let receivedLength: i64 = returnedSymbols.len() as i64;
-    assert!(ccxt::runtime::is_true(&((receivedLength > 0))));
+    assert!(crate::test_helpers::is_true(&((receivedLength > 0))));
     if !allReceived {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug
         println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, "warning: only received part of symbols before the deadline: ").into()), exchange.json(returnedSymbols)).into()));

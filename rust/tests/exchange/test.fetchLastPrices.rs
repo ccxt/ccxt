@@ -37,7 +37,7 @@ if _try_result.is_err() {
         atLeastOnePassed = Value::Bool(is_true(&atLeastOnePassed) || (exchange.safe_number(values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("price".into()), &[]).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)));
     }
     }
-    assert!(ccxt::runtime::is_true(&(atLeastOnePassed)));
+    assert!(crate::test_helpers::is_true(&(atLeastOnePassed)));
     return Value::Bool(true);
 
     Value::Null

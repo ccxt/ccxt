@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -39,9 +40,9 @@ fn helperTestHandleMarketTypeAndParams() {
     let marketType1params1Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".into()), <Option<ccxt::types::Market> as ccxt::types::FromRaw>::from_raw(market.clone()).as_ref(), &[&initialParams, &Value::Str("valueDefault".into())]);
     let marketType1: Value = marketType1params1Variable.0;
     let params1: Value = Value::Dict(marketType1params1Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params1, Value::Dict(__d) if __d.contains_key("defaultType"))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType1.as_str() == Some("valueFromParam")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(matches!(&params1, Value::Dict(__d) if __d.contains_key("defaultType"))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marketType1.as_str() == Some("valueFromParam")))));
     //
     // case #2, should prevail: market.type
     //
@@ -51,7 +52,7 @@ fn helperTestHandleMarketTypeAndParams() {
 }), &Value::Str("valueDefault".into())]);
     let marketType2: Value = marketType2params2Variable.0;
     let params2: Value = Value::Dict(marketType2params2Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType2.as_str() == Some("spot")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marketType2.as_str() == Some("spot")))));
     //
     // case #3, should prevail: valueDefault
     //
@@ -61,7 +62,7 @@ fn helperTestHandleMarketTypeAndParams() {
 }), &Value::Str("valueDefault".into())]);
     let marketType3: Value = marketType3params3Variable.0;
     let params3: Value = Value::Dict(marketType3params3Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType3.as_str() == Some("valueDefault")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marketType3.as_str() == Some("valueDefault")))));
     //
     // case #4, should prevail: method options
     //
@@ -71,7 +72,7 @@ fn helperTestHandleMarketTypeAndParams() {
 })]);
     let marketType4: Value = marketType4params4Variable.0;
     let params4: Value = Value::Dict(marketType4params4Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType4.as_str() == Some("valueFromMethodOptions")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marketType4.as_str() == Some("valueFromMethodOptions")))));
     //
     // case #5, should prevail: options
     //
@@ -81,7 +82,7 @@ fn helperTestHandleMarketTypeAndParams() {
 }), &Value::Null]);
     let marketType5: Value = marketType5params5Variable.0;
     let params5: Value = Value::Dict(marketType5params5Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marketType5.as_str() == Some("option")))));
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -92,9 +93,9 @@ fn helperTestHandleMarketTypeAndParams() {
 }), &Value::Null]);
     let marketType6: Value = marketType6params6Variable.0;
     let params6: Value = Value::Dict(marketType6params6Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType6.as_str() == Some("spot")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marketType6.as_str() == Some("spot")))));
     // fake assertion to avoid unused vars
-    assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
 }
 fn helperTestHandleTypedOptions() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -120,7 +121,7 @@ fn helperTestHandleTypedOptions() {
 }), &Value::Str("cross".into())]);
     let marginMode: Value = marginModeparams1Variable.0;
     let params1: Value = Value::Dict(marginModeparams1Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))));
     let utaparams2Variable = exchange.handle_option_bool_and_params(Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -134,7 +135,7 @@ fn helperTestHandleTypedOptions() {
 }), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
     let absent: Value = absentparams3Variable.0;
     let params3: Value = Value::Dict(absentparams3Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(absent.as_str() == Some("fallback")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(absent.as_str() == Some("fallback")))));
     let fromParamsparams4Variable = exchange.handle_option_string_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("absentKey".to_string(), Value::Str("p".into()));
@@ -142,8 +143,8 @@ fn helperTestHandleTypedOptions() {
 }), Value::Str("fetchX".into()), Value::Str("absentKey".into()), &[Value::Str("fallback".into())]);
     let fromParams: Value = fromParamsparams4Variable.0;
     let params4: Value = Value::Dict(fromParamsparams4Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(fromParams.as_str() == Some("p")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params4, Value::Dict(__d) if __d.contains_key("absentKey"))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(fromParams.as_str() == Some("p")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(matches!(&params4, Value::Dict(__d) if __d.contains_key("absentKey"))))))));
     // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
     let boolStringparams5Variable = exchange.handle_option_bool_and_params(Value::Map({
     let m = indexmap::IndexMap::new();
@@ -151,7 +152,7 @@ fn helperTestHandleTypedOptions() {
 }), Value::Str("fetchX".into()), Value::Str("boolString".into()), &[Value::Bool(true)]);
     let boolString: Option<bool> = boolStringparams5Variable.0;
     let params5: Value = Value::Dict(boolStringparams5Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(boolString == Some(false)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(boolString == Some(false)))));
     let boolNumberparams6Variable = exchange.handle_option_bool_and_params(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("boolNumber".to_string(), Value::Int(1));
@@ -159,8 +160,8 @@ fn helperTestHandleTypedOptions() {
 }), Value::Str("fetchX".into()), Value::Str("boolNumber".into()), &[Value::Bool(false)]);
     let boolNumber: Option<bool> = boolNumberparams6Variable.0;
     let params6: Value = Value::Dict(boolNumberparams6Variable.1);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(boolNumber == Some(true)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(matches!(&params6, Value::Dict(__d) if __d.contains_key("boolNumber"))))))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(boolNumber == Some(true)))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(!is_true(&(matches!(&params6, Value::Dict(__d) if __d.contains_key("boolNumber"))))))));
     let mut caught: Value = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.check_option_bool(Value::Str("fetchX".into()), Value::Str("wrongBool".into()), Value::Str("yes".into()));
@@ -168,9 +169,9 @@ fn helperTestHandleTypedOptions() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught)));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(params5 != Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null)))));
+    assert!(crate::test_helpers::is_true(&(caught)));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(params5 != Value::Null))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null)))));
 }
 pub fn testHandleMethods() {
     helperTestHandleMarketTypeAndParams();

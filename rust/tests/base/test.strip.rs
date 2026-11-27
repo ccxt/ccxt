@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -14,12 +15,12 @@ pub fn testStrip() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd    ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd    ".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd".into()), &[]).as_str() == Some("asd")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("".into()), &[]).as_str() == Some("")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str("asd ".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str("asd    ".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd ".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd    ".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str("asd".into()), &[]).as_str() == Some("asd")))));
+    assert!(crate::test_helpers::is_true(&(Value::Bool(exchange.strip(Value::Str("".into()), &[]).as_str() == Some("")))));
 }

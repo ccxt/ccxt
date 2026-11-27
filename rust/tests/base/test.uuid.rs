@@ -5,6 +5,7 @@
 use ccxt::Value;
 use ccxt::get_value;
 use ccxt::runtime::*;
+use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};
 use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};
 use ccxt::exchange_generated::ExchangeBase;
 
@@ -17,32 +18,32 @@ pub fn testUuid() {
     // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
     let mut id1: String = exchange.uuid(&[]); // need type for .length understanding
     let mut id2: String = exchange.uuid(&[]);
-    assert!(ccxt::runtime::is_true(&((true))));
-    assert!(ccxt::runtime::is_true(&((true))));
-    assert!(ccxt::runtime::is_true(&((id1 != id2))));
-    assert!(ccxt::runtime::is_true(&(((id1) == id1))));
-    assert!(ccxt::runtime::is_true(&(((id2) == id2))));
-    assert!(ccxt::runtime::is_true(&((((id1.chars().count() as i64)) == 36))));
-    assert!(ccxt::runtime::is_true(&((((id2.chars().count() as i64)) == 36))));
-    assert!(ccxt::runtime::is_true(&((((if let (Some(__h), Some(__n)) = (Some(id1.as_str()), Some("-")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 8))));
+    assert!(crate::test_helpers::is_true(&((true))));
+    assert!(crate::test_helpers::is_true(&((true))));
+    assert!(crate::test_helpers::is_true(&((id1 != id2))));
+    assert!(crate::test_helpers::is_true(&(((id1) == id1))));
+    assert!(crate::test_helpers::is_true(&(((id2) == id2))));
+    assert!(crate::test_helpers::is_true(&((((id1.chars().count() as i64)) == 36))));
+    assert!(crate::test_helpers::is_true(&((((id2.chars().count() as i64)) == 36))));
+    assert!(crate::test_helpers::is_true(&((((if let (Some(__h), Some(__n)) = (Some(id1.as_str()), Some("-")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 8))));
     // uuid16() - 16-char hex string
     let mut id16a: String = exchange.uuid16(&[]);
     let mut id16b: String = exchange.uuid16(&[]);
-    assert!(ccxt::runtime::is_true(&((true))));
-    assert!(ccxt::runtime::is_true(&((true))));
-    assert!(ccxt::runtime::is_true(&((id16a != id16b))));
-    assert!(ccxt::runtime::is_true(&(((id16a) == id16a))));
-    assert!(ccxt::runtime::is_true(&(((id16b) == id16b))));
-    assert!(ccxt::runtime::is_true(&((((id16a.chars().count() as i64)) == 16))));
-    assert!(ccxt::runtime::is_true(&((((id16b.chars().count() as i64)) == 16))));
+    assert!(crate::test_helpers::is_true(&((true))));
+    assert!(crate::test_helpers::is_true(&((true))));
+    assert!(crate::test_helpers::is_true(&((id16a != id16b))));
+    assert!(crate::test_helpers::is_true(&(((id16a) == id16a))));
+    assert!(crate::test_helpers::is_true(&(((id16b) == id16b))));
+    assert!(crate::test_helpers::is_true(&((((id16a.chars().count() as i64)) == 16))));
+    assert!(crate::test_helpers::is_true(&((((id16b.chars().count() as i64)) == 16))));
     // uuid22() - 22-char hex string
     let mut id22a: String = exchange.uuid22(&[]);
     let mut id22b: String = exchange.uuid22(&[]);
-    assert!(ccxt::runtime::is_true(&((true))));
-    assert!(ccxt::runtime::is_true(&((true))));
-    assert!(ccxt::runtime::is_true(&((id22a != id22b))));
-    assert!(ccxt::runtime::is_true(&(((id22a) == id22a))));
-    assert!(ccxt::runtime::is_true(&(((id22b) == id22b))));
-    assert!(ccxt::runtime::is_true(&((((id22a.chars().count() as i64)) == 22))));
-    assert!(ccxt::runtime::is_true(&((((id22b.chars().count() as i64)) == 22))));
+    assert!(crate::test_helpers::is_true(&((true))));
+    assert!(crate::test_helpers::is_true(&((true))));
+    assert!(crate::test_helpers::is_true(&((id22a != id22b))));
+    assert!(crate::test_helpers::is_true(&(((id22a) == id22a))));
+    assert!(crate::test_helpers::is_true(&(((id22b) == id22b))));
+    assert!(crate::test_helpers::is_true(&((((id22a.chars().count() as i64)) == 22))));
+    assert!(crate::test_helpers::is_true(&((((id22b.chars().count() as i64)) == 22))));
 }

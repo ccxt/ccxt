@@ -14,7 +14,7 @@ pub async fn testWatchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     let mut now: Value = Value::Int(exchange.milliseconds());
     let ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".into())));
-    assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(crate::test_helpers::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // prefer 1m timeframe if available, otherwise return the first one
     let mut chosenTimeframeKey: Value = Value::Str("1m".into());
     if !exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone()) {

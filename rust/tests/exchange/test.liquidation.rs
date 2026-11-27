@@ -41,9 +41,9 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
     let price: Value = exchange.safe_string(&entry, Value::Str("price".into()), &[]);
     let baseValue: Value = exchange.safe_string(&entry, Value::Str("baseValue".into()), &[]);
     if (contracts != Value::Null) && (contracts.as_str() != Some("")) && (contractSize != Value::Null) && (contractSize.as_str() != Some("")) {
-        assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
+        assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
         if (price != Value::Null) && (price.as_str() != Some("")) {
-            assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringMul(&contracts, &contractSize), &price)))));
+            assert!(crate::test_helpers::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringMul(&contracts, &contractSize), &price)))));
         }
     }
     // if singular was called, then symbol needs to be asserted

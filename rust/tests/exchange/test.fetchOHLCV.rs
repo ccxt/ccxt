@@ -16,7 +16,7 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
         let m = indexmap::IndexMap::new();
         m
     }));
-    assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))))); // prefer 1m timeframe if available, otherwise return the first one
+    assert!(crate::test_helpers::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))))); // prefer 1m timeframe if available, otherwise return the first one
     let mut chosenTimeframeKey: Value = Value::Str("1m".into());
     if !exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone()) {
         chosenTimeframeKey = timeframeKeys.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -56,7 +56,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         let m = indexmap::IndexMap::new();
         m
     }));
-    assert!(ccxt::runtime::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
+    assert!(crate::test_helpers::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
     let now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
@@ -70,14 +70,14 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
     // check bars amounts, to be between 0 and limit
     // less then limit
     if (limit != Value::Null) {
-        assert!(ccxt::runtime::is_true(&(((barsLength as f64) <= limit.as_f64().unwrap_or(f64::NAN)))));
+        assert!(crate::test_helpers::is_true(&(((barsLength as f64) <= limit.as_f64().unwrap_or(f64::NAN)))));
     }
     // ensure bars amount is more than zero
     if (barsLength == 0) {
         // zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
         // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
         if !(in_op(&skippedProperties, &Value::Str("compareAmountToZero".into()))) {
-            assert!(ccxt::runtime::is_true(&((barsLength > 0))));
+            assert!(crate::test_helpers::is_true(&((barsLength > 0))));
         }
         return;
     }
@@ -90,7 +90,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         // if this is the first bar, then ensure its timestamp is not earlier than requested "since"
         if !(in_op(&skippedProperties, &Value::Str("compareTimestampToSince".into()))) {
             if (i == 0) && (since != Value::Null) {
-                assert!(ccxt::runtime::is_true(&(((match (&(barTs), &(since)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
+                assert!(crate::test_helpers::is_true(&(((match (&(barTs), &(since)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
                     Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x > __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x > __y) }) || (match (__a, __b) { (Value::Null, Value::Null) => true,
                     (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, _ => matches!(((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
                     Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) }) })))));
@@ -99,7 +99,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
         // if this is the last bar, then check if it's <= now
         if (i == ((barsLength - 1))) {
             if !(in_op(&skippedProperties, &Value::Str("compareToNow".into()))) {
-                assert!(ccxt::runtime::is_true(&(((match (&(barTs), &(now)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
+                assert!(crate::test_helpers::is_true(&(((match (&(barTs), &(now)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64),
                     Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x < __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x < __y) }) || (match (__a, __b) { (Value::Null, Value::Null) => true,
                     (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, _ => matches!(((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f),
                     Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) }) })))));
@@ -109,7 +109,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
                 if (since != Value::Null) && (limit != Value::Null) {
                     let maxExpectedTs: Value = (match (&(since), &(((match (&(limit), &(durationMs)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
                         _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    assert!(ccxt::runtime::is_true(&(((match (&(barTs), &(maxExpectedTs)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
+                    assert!(crate::test_helpers::is_true(&(((match (&(barTs), &(maxExpectedTs)) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                         (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x < __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x < __y) }) || (match (__a,
                         __b) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, _ => matches!(((match __a { Value::Int(__n) => Some(*__n as f64),
                         Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }),
@@ -123,10 +123,10 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
                 let previousBarTs: Value = get_value(&ohlcvs.as_array().and_then(|__arr| match &(Value::Int((i - 1))) { Value::Int(__n) if *__n >= 0 => __arr.get(*__n as usize), _ => None }).cloned().unwrap_or(Value::Null), &Value::Int(0));
                 let diffBetweenCurrentAndPrevious: Value = (match (&(barTs), &(previousBarTs)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
                     Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
-                assert!(ccxt::runtime::is_true(&((diffBetweenCurrentAndPrevious.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+                assert!(crate::test_helpers::is_true(&((diffBetweenCurrentAndPrevious.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
                 // ensure that the difference is one duration or its multiplier (i.e. current minute bar timestamp should be 60*X seconds more than last bar's timestamp)
                 let isRoundNumber: Value = exchange.is_round_number((match ((diffBetweenCurrentAndPrevious).as_f64(), (durationMs).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-                assert!(ccxt::runtime::is_true(&(isRoundNumber)));
+                assert!(crate::test_helpers::is_true(&(isRoundNumber)));
             }
         }
     }
