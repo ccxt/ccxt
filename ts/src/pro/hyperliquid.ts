@@ -433,7 +433,7 @@ export default class hyperliquid extends hyperliquidRest {
         return this.safeString (symbols, 0, '');
     }
 
-    handleBidAsk (client: Client, message: Dict) {
+    handleBidAsk (client: Client, message: Dict): void {
         //
         //     {
         //         "channel": "bbo",
@@ -1919,7 +1919,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleBidAskUnsubscription (client: Client, subscription: Dict) {
+    handleBidAskUnsubscription (client: Client, subscription: Dict): void {
         //
         //        "subscription":{
         //           "type":"bbo",

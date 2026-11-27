@@ -1405,19 +1405,18 @@ export default class hyperliquid extends Exchange {
             //         ]
             //     ]
             //
+            const predictedRows: List = this.infoList (predictedResponse);
             const predicted: List = [];
-            if (Array.isArray (predictedResponse)) {
-                for (let i = 0; i < predictedResponse.length; i++) {
-                    const coinEntry = this.safeList (predictedResponse, i, []);
-                    const venues = this.safeList (coinEntry, 1, []);
-                    const venuesByName: Dict = {};
-                    for (let j = 0; j < venues.length; j++) {
-                        const venue = this.safeList (venues, j, []);
-                        const venueName = this.safeString (venue, 0, '');
-                        venuesByName[venueName] = this.safeDict (venue, 1);
-                    }
-                    predicted.push ({ 'name': this.safeString (coinEntry, 0), 'predictedFundings': venuesByName });
+            for (let i = 0; i < predictedRows.length; i++) {
+                const coinEntry = this.safeList (predictedRows, i, []);
+                const venues = this.safeList (coinEntry, 1, []);
+                const venuesByName: Dict = {};
+                for (let j = 0; j < venues.length; j++) {
+                    const venue = this.safeList (venues, j, []);
+                    const venueName = this.safeString (venue, 0, '');
+                    venuesByName[venueName] = this.safeDict (venue, 1);
                 }
+                predicted.push ({ 'name': this.safeString (coinEntry, 0), 'predictedFundings': venuesByName });
             }
             return this.parseFundingRates (predicted, symbolsNormalized);
         }
@@ -4535,8 +4534,7 @@ export default class hyperliquid extends Exchange {
         if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchLeverage() supports swap markets only');
         }
-        const userAddress = this.safeString (this.handlePublicAddress ('fetchLeverage', params), 0);
-        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchLeverage', params), 1, {});
+        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchLeverage', params);
         const request: Dict = {
             'type': 'activeAssetData',
             'user': userAddress,
@@ -4556,7 +4554,7 @@ export default class hyperliquid extends Exchange {
         //         "markPx": "70.58"
         //     }
         //
-        return this.parseLeverage (response as Dict, market);
+        return this.parseLeverage (this.extend ({}, response), market);
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -6118,8 +6116,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
-        const userAddress = this.safeString (this.handlePublicAddress ('fetchAccounts', params), 0);
-        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchAccounts', params), 1, {});
+        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchAccounts', params);
         const request: Dict = {
             'type': 'subAccounts',
             'user': userAddress,
@@ -6146,11 +6143,10 @@ export default class hyperliquid extends Exchange {
         //     ]
         //
         // the response is null when the account has no sub-accounts
+        const rows: Dict[] = this.infoList (response);
         const result: Account[] = [];
-        if (Array.isArray (response)) {
-            for (let i = 0; i < response.length; i++) {
-                result.push (this.parseAccount (this.safeDict (response, i, {})));
-            }
+        for (let i = 0; i < rows.length; i++) {
+            result.push (this.parseAccount (this.safeDict (rows, i, {})));
         }
         return result;
     }
@@ -6198,15 +6194,14 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     ]
         //
+        const rows: List = this.infoList (response);
         const rates: Dict = {};
-        if (Array.isArray (response)) {
-            for (let i = 0; i < response.length; i++) {
-                const reserve = this.safeList (response, i, []);
-                const reserveState = this.safeDict (reserve, 1, {});
-                const rate = this.parseBorrowRate (this.extend (reserveState, { 'token': this.safeString (reserve, 0) }));
-                const code = this.safeString (rate, 'currency', '');
-                rates[code] = rate;
-            }
+        for (let i = 0; i < rows.length; i++) {
+            const reserve = this.safeList (rows, i, []);
+            const reserveState = this.safeDict (reserve, 1, {});
+            const rate = this.parseBorrowRate (this.extend (reserveState, { 'token': this.safeString (reserve, 0) }));
+            const code = this.safeString (rate, 'currency', '');
+            rates[code] = rate;
         }
         return rates as CrossBorrowRates;
     }
@@ -6260,10 +6255,12 @@ export default class hyperliquid extends Exchange {
             return this.safeCurrencyCode (tokenName);
         }
         // the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
-        const codes = Object.keys (this.currencies);
+        const currencies: Dict = this.currencies;
+        const codes = Object.keys (currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyInfo = this.safeDict (this.currencies[code], 'info', {});
+            const currency = this.safeDict (currencies, code, {});
+            const currencyInfo = this.safeDict (currency, 'info', {});
             if (this.safeString (currencyInfo, 'index') === tokenIndex) {
                 return code;
             }
@@ -6312,8 +6309,7 @@ export default class hyperliquid extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const userAddress = this.safeString (this.handlePublicAddress ('fetchBorrowInterest', params), 0);
-        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchBorrowInterest', params), 1, {});
+        const [ userAddress, paramsPublicAddress ] = this.handlePublicAddress ('fetchBorrowInterest', params);
         const request: Dict = {
             'type': 'borrowLendUserState',
             'user': userAddress,
