@@ -792,7 +792,7 @@ pub trait ExchangeBase:
         // backwards-compatibility
         if (self.proxy != Value::Null) {
             usedProxies.push(Value::Str("proxy".into()));
-            if is_function(&self.proxy) {
+            if false {
                 proxyUrl = self.proxy_fn(url, method, headers, body);
             }  else {
                 proxyUrl = self.proxy.clone();
@@ -2933,7 +2933,7 @@ pub trait ExchangeBase:
         let mut currencies = get_arg(optional_args, 0, Value::Null);
         let mut values: Vec<Value> = Vec::new();
         // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
-        let mut marketsById: Value = Value::Map({
+        let mut marketsById: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
@@ -2949,10 +2949,10 @@ pub trait ExchangeBase:
     m
 })]);
             let id: Value = self.safe_string_k(&value, "id", &[Value::Str("".into())]);
-            if !(matches!((&marketsById, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut marketsById { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&id), Value::from(vec![])); }
+            if !(matches!(&id, Value::Str(__k) if marketsById.contains_key(__k.as_ref()))) {
+                marketsById.insert(crate::runtime::stringify_param(&id), Value::from(vec![]));
             }
-            crate::runtime::append_to_object_array(&mut marketsById, &id, value.clone());
+            if let Some(__k) = id.as_str() { if let Value::Arr(__a) = marketsById.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(value.clone()); } }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
@@ -2988,7 +2988,7 @@ pub trait ExchangeBase:
         }
         }
         { let __t = self.map_to_safe_map(Value::Dict(self.index_by(Value::from(values.clone()), Value::Str("symbol".into())))); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
-        { let __t = self.map_to_safe_map(marketsById); self.markets_by_id = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
+        { let __t = self.map_to_safe_map(Value::Map(marketsById)); self.markets_by_id = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
         let marketsSortedBySymbol: indexmap::IndexMap<String, Value> = self.keysort(Value::from(&self.markets), &[]).as_map().cloned().unwrap_or_default();
         let marketsSortedById: indexmap::IndexMap<String, Value> = self.keysort(Value::from(&self.markets_by_id), &[]).as_map().cloned().unwrap_or_default();
         self.symbols = crate::value::List::new(marketsSortedBySymbol.keys().cloned().map(Value::from).collect());

@@ -1352,7 +1352,7 @@ impl Mercado {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("quantity".to_string(), Value::str(format!("{:.*}", 10, Some(amount).unwrap_or(0.0))));
+                m.insert("quantity".to_string(), self.decimal_to_precision(Value::from(amount), Value::Int(crate::runtime::ROUND), Value::Int(10), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::PAD_WITH_ZERO)]));
                 m.insert("address".to_string(), address);
             m
         });
