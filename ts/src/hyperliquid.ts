@@ -825,9 +825,7 @@ export default class hyperliquid extends Exchange {
             pricePrecision = digitsLeft;
         }
         // cap by maxDecimals - szDecimals
-        if ((decimalsLeft !== undefined) && (pricePrecision !== undefined)) {
-            pricePrecision = Math.min (decimalsLeft, pricePrecision);
-        }
+        pricePrecision = Math.min (decimalsLeft, pricePrecision);
         return this.parseToInt (pricePrecision);
     }
 

@@ -8472,25 +8472,13 @@ export default class okx extends Exchange {
                 // all entries in it are requested and the caller keeps the earliest limit of them
                 const months = this.parseToInt (unitPeriod.slice (0, -1));
                 const day = 86400000;
-                if ((effectiveLimit !== undefined) && (months !== undefined)) {
-                    const maxMonthsDuration = this.parseToInt (effectiveLimit * months * 31 * day);
-                    const minMonthsDuration = this.parseToInt (maxLimit * months * 28 * day);
-                    if ((maxMonthsDuration !== undefined) && (minMonthsDuration !== undefined)) {
-                        windowDuration = Math.min (maxMonthsDuration, minMonthsDuration);
-                    }
-                }
+                windowDuration = Math.min (effectiveLimit * months * 31 * day, maxLimit * months * 28 * day);
                 request['limit'] = maxLimit;
             } else {
                 windowDuration = effectiveLimit * this.parseTimeframe (unitPeriod.toLowerCase ()) * 1000;
             }
-            if (windowDuration !== undefined) {
-                const windowEnd = this.parseToInt (this.sum (since, windowDuration));
-                if (end === undefined) {
-                    end = windowEnd;
-                } else if (windowEnd !== undefined) {
-                    end = Math.min (end, windowEnd);
-                }
-            }
+            const windowEnd = this.parseToInt (this.sum (since, windowDuration));
+            end = (end === undefined) ? windowEnd : this.parseToInt (Math.min (end, windowEnd));
         }
         if (end !== undefined) {
             request['end'] = end;

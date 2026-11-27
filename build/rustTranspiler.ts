@@ -8062,7 +8062,7 @@ export class RustTranspilerBuilder {
     constructor() {
         this.setupTranspiler();
     }
-    setupTranspiler() { this.transpiler = new Transpiler(this.getTranspilerConfig()); this.transpiler.setVerboseMode(false); }
+    setupTranspiler() { this.transpiler = new Transpiler(this.getTranspilerConfig()); this.transpiler.setVerboseMode(false); (this.transpiler.rustTranspiler as any).rustNonNumericInIsDict = true; }
     getTranspilerConfig() {
         return {
             verbose: false,

@@ -3043,11 +3043,7 @@ export default class interactivebrokers extends Exchange {
         if (months <= 12) {
             return this.numberToString (months) + 'm';
         }
-        const rawYears = this.parseToInt ((months + 11) / 12);
-        if (rawYears === undefined) {
-            return '15y';
-        }
-        const years = Math.min (rawYears, 15); // 15y is the documented maximum period
+        const years = Math.min (this.parseToInt ((months + 11) / 12), 15); // 15y is the documented maximum period
         return this.numberToString (years) + 'y';
     }
 

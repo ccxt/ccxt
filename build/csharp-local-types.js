@@ -15294,12 +15294,12 @@ function h29c01DispatchKeyPrefixes (node, scope) {
     return h29c01HandlerKeys (scope, node.arguments[1].text);
 }
 // Math.min/max over two `+ - *` chains of Int64 / int / literal leaves whose Int64? leaves are null-guarded: each chain is a non-null long, so mathMin hands back an Int64 box equa...
-function h29c04ChainText (csharp, call, node) {
+function h29c04ChainText (csharp, call, node, nullableIds = null) {
     const inner = stripParens (node);
     const op = inner?.operatorToken?.kind;
     if (inner?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (op)) {
-        const l = h29c04ChainText (csharp, call, inner.left);
-        const r = h29c04ChainText (csharp, call, inner.right);
+        const l = h29c04ChainText (csharp, call, inner.left, nullableIds);
+        const r = h29c04ChainText (csharp, call, inner.right, nullableIds);
         if (l === undefined || r === undefined) return undefined;
         const kind = (l.kind === 'Int64' || r.kind === 'Int64') ? 'Int64' : 'int';
         return { kind, text: '(' + l.text + ' ' + inner.operatorToken.getText () + ' ' + r.text + ')' };
@@ -15310,14 +15310,23 @@ function h29c04ChainText (csharp, call, node) {
     const kind = nativeArithmeticOperandKind (csharp, inner);
     if (kind === 'int' || kind === 'Int64') return { kind, text: csharp.printNode (inner, 0).trim () };
     if (kind !== 'Int64?' || typeof csharp.csharpIntegralNonNullText !== 'function') return undefined;
-    const text = csharp.csharpIntegralNonNullText (call, { kind, node: inner }, csharp.printNode (inner, 0).trim ());
-    return (text === undefined) ? undefined : { kind: 'Int64', text };
+    const printed = csharp.printNode (inner, 0).trim ();
+    const text = csharp.csharpIntegralNonNullText (call, { kind, node: inner }, printed);
+    if (text !== undefined) return { kind: 'Int64', text };
+    if (nullableIds !== null) { nullableIds.add (printed); return { kind: 'Int64', text: printed + '.Value' }; }
+    return undefined;
 }
 function h29c04ChainMinMaxText (csharp, call, name) {
     if (call?.arguments?.length !== 2 || !csharp.csharpMinMaxResultIsPlainValue (call)) return undefined;
     const parts = call.arguments.map ((a) => h29c04ChainText (csharp, call, a));
-    if (parts.some ((p) => p === undefined || p.kind !== 'Int64')) return undefined;
-    return 'Math.' + name + '(' + parts[0].text + ', ' + parts[1].text + ')';
+    if (!parts.some ((p) => p === undefined || p.kind !== 'Int64')) {
+        return 'Math.' + name + '(' + parts[0].text + ', ' + parts[1].text + ')';
+    }
+    const nullableIds = new Set ();
+    const nparts = call.arguments.map ((a) => h29c04ChainText (csharp, call, a, nullableIds));
+    if (nullableIds.size !== 1 || nparts.some ((p) => p === undefined || p.kind !== 'Int64')) return undefined;
+    const guard = [ ...nullableIds ][0];
+    return '((' + guard + ' != null) ? (Int64?)Math.' + name + '(' + nparts[0].text + ', ' + nparts[1].text + ') : null)';
 }
 // Math.min/max in the single argument of this.parseToInt (directly or as a ternary arm): parseToInt reads an Int32 and an Int64 box alike, so both sides need only be non-null inte...
 function h30c04ParseToIntArgument (call) {

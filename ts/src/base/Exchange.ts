@@ -4370,7 +4370,7 @@ export class BaseExchange {
             const featureBlock = featuresObj[key];
             if (!this.inArray (key, [ 'sandbox' ]) && featureBlock !== undefined) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if (this.safeBool (featureBlock, 'symbolRequired') === undefined) {
+                if (!('symbolRequired' in featureBlock)) {
                     featureBlock['symbolRequired'] = this.inArray (key, [ 'createOrder', 'createOrders', 'fetchOHLCV' ]);
                 }
             }

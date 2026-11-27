@@ -6910,7 +6910,7 @@ export default class bybit extends Exchange {
         const results: List = [];
         for (let i = 0; i < positions.length; i++) {
             const rawPosition = positions[i];
-            if ((this.safeValue (rawPosition, 'data') !== undefined) && (this.safeBool (rawPosition, 'is_valid') !== undefined)) {
+            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
                 // futures only
                 const futuresData: Dict = this.safeDict (rawPosition, 'data', {});
                 const futuresPosition = this.parsePosition (futuresData);
