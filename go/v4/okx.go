@@ -11546,7 +11546,7 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period st
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	var end any = nil
 	if until != nil {
-		end = this.Sum(until, 1)
+		end = this.ParseToInt(*until + 1)
 	}
 	if since != nil {
 		// end the window after limit periods, so that the earliest entries from since on come back
@@ -11569,11 +11569,11 @@ func (this *Okx) HandleTradingStatisticsWindow(request map[string]any, period st
 		} else {
 			windowDuration = effectiveLimit * this.ParseTimeframe(strings.ToLower(unitPeriod)) * 1000
 		}
-		var windowEnd any = this.Sum(since, windowDuration)
+		var windowEnd int64 = this.ParseToInt(this.Sum(since, windowDuration))
 		if end == nil {
 			end = windowEnd
 		} else {
-			end = mathMin(end, windowEnd)
+			end = this.ParseToInt(mathMin(end, windowEnd))
 		}
 	}
 	if end != nil {

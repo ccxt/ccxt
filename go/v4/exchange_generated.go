@@ -2142,7 +2142,7 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 	if _, ok := methodDict[*parentKey]; !ok {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
 	}
-	var dictionary, _ = methodDict[*parentKey].(map[string]any)
+	var dictionary any = this.SafeDict(methodDict, parentKey)
 	if dictionary == nil {
 		// if the value is not dictionary but a scalar value (or undefined), return as is
 		return methodDict[*parentKey]
@@ -2152,7 +2152,7 @@ func (this *BaseExchange) FeatureValueByType(marketType string, subType *string,
 			return methodDict[*parentKey]
 		}
 		// throw an exception for unsupported subKey
-		if !(InOp(methodDict[*parentKey], subKey)) {
+		if !(InOp(dictionary, subKey)) {
 			return defaultValue // unsupported subKey, check "exchange.features" for details
 		}
 		return this.SafeValue(dictionary, subKey)

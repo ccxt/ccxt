@@ -4341,7 +4341,7 @@ func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var withdrawNonce *float64 = Float64PtrTyped(r1.Value)
+	var withdrawNonce *float64 = r1.Value
 	var nonce int64 = this.Nonce()
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,

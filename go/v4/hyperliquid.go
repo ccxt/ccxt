@@ -923,7 +923,7 @@ func (this *Hyperliquid) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterf
  * @returns {int} The calculated price precision
  */
 func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision int64, maxDecimals int64) int64 {
-	var pricePrecision any = 0
+	var pricePrecision any = this.ParseToInt(0)
 	var priceStr *string = this.NumberToString(price)
 	if priceStr == nil {
 		return 0
@@ -935,7 +935,7 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision int6
 	if Precise.StringEq(priceStr, "0") {
 		// Significant digits is always 5 in this case
 		// and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-		pricePrecision = 5
+		pricePrecision = this.ParseToInt(5)
 	} else if Precise.StringGt(priceStr, "0") && Precise.StringLt(priceStr, "1") {
 		// Significant digits, always 5 in this case
 		var significantDigits int = 5
@@ -957,11 +957,10 @@ func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision int6
 		if len(integerPart) <= 5 {
 			digitsLeft = 5 - (len(integerPart))
 		}
-		pricePrecision = digitsLeft
+		pricePrecision = this.ParseToInt(digitsLeft)
 	}
 	// cap by maxDecimals - szDecimals
-	pricePrecision = mathMin(decimalsLeft, pricePrecision)
-	return this.ParseToInt(pricePrecision)
+	return this.ParseToInt(mathMin(decimalsLeft, pricePrecision))
 }
 
 /**
@@ -1350,12 +1349,12 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 	var paramsValue map[string]any = isUnifiedEnabledparamsValuePair.Value.P
 	var dex *string = this.SafeString(paramsValue, "dex")
 	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled == true)) && (dex == nil)
-	var ternaryStr117320 string = "clearinghouseState"
+	var ternaryStr117220 string = "clearinghouseState"
 	if isSpot {
-		ternaryStr117320 = "spotClearinghouseState"
+		ternaryStr117220 = "spotClearinghouseState"
 	}
 	var request map[string]any = map[string]any{
-		"type": ternaryStr117320,
+		"type": ternaryStr117220,
 		"user": userAddress,
 	}
 
@@ -2475,12 +2474,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan AsyncResult[map[string]an
 	defer ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var ternaryStr199732 string = "Mainnet"
+	var ternaryStr199632 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr199732 = "Testnet"
+		ternaryStr199632 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr199732,
+		"hyperliquidChain": ternaryStr199632,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,
@@ -2773,12 +2772,12 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan AsyncResult[map[string]a
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
-	var ternaryStr213632 string = "Mainnet"
+	var ternaryStr213532 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr213632 = "Testnet"
+		ternaryStr213532 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr213632,
+		"hyperliquidChain": ternaryStr213532,
 		"user":             userAddress,
 		"abstraction":      abstraction,
 		"nonce":            nonce,
@@ -2840,12 +2839,12 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan AsyncResult[map[st
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
-	var ternaryStr218232 string = "Mainnet"
+	var ternaryStr218132 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr218232 = "Testnet"
+		ternaryStr218132 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr218232,
+		"hyperliquidChain": ternaryStr218132,
 		"user":             userAddress,
 		"enabled":          enabled,
 		"nonce":            nonce,
@@ -5646,11 +5645,11 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan AsyncResult[[]Position], opt
 	var data []any = SafeListTyped(response, "assetPositions")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		dataDict425255, _ := data[i].(map[string]any)
-		if dataDict425255 == nil {
-			dataDict425255 = map[string]any{}
+		dataDict425155, _ := data[i].(map[string]any)
+		if dataDict425155 == nil {
+			dataDict425155 = map[string]any{}
 		}
-		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(dataDict425255))
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(dataDict425155))
 		result = append(result, parsedPosition)
 	}
 
@@ -6342,12 +6341,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var strAmountFinal any = strAmount // java req
 		var toPerp bool = (toAccount == "perp") || (toAccount == "swap")
-		var ternaryStr476436 string = "Mainnet"
+		var ternaryStr476336 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			ternaryStr476436 = "Testnet"
+			ternaryStr476336 = "Testnet"
 		}
 		var transferPayload map[string]any = map[string]any{
-			"hyperliquidChain": ternaryStr476436,
+			"hyperliquidChain": ternaryStr476336,
 			"amount":           strAmountFinal,
 			"toPerp":           toPerp,
 			"nonce":            nonce,
@@ -6427,12 +6426,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
-		var ternaryStr482636 string = "Mainnet"
+		var ternaryStr482536 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			ternaryStr482636 = "Testnet"
+			ternaryStr482536 = "Testnet"
 		}
 		var sendAssetPayload map[string]any = map[string]any{
-			"hyperliquidChain": ternaryStr482636,
+			"hyperliquidChain": ternaryStr482536,
 			"destination":      masterAddress,
 			"sourceDex":        sourceDex,
 			"destinationDex":   destinationDex,
@@ -6608,12 +6607,12 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 		sig = this.SignL1Action(action, nonce)
 	} else {
 		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-		var ternaryStr496936 string = "Mainnet"
+		var ternaryStr496836 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			ternaryStr496936 = "Testnet"
+			ternaryStr496836 = "Testnet"
 		}
 		var payload map[string]any = map[string]any{
-			"hyperliquidChain": ternaryStr496936,
+			"hyperliquidChain": ternaryStr496836,
 			"destination":      address,
 			"amount":           this.NumberToString(amount),
 			"time":             nonce,
@@ -8337,11 +8336,11 @@ func (this *Hyperliquid) fetchAccountsBody(ch chan AsyncResult[[]Account], optio
 	var rows []any = this.InfoList(response)
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict614844, _ := rows[i].(map[string]any)
-		if rowsDict614844 == nil {
-			rowsDict614844 = map[string]any{}
+		rowsDict614744, _ := rows[i].(map[string]any)
+		if rowsDict614744 == nil {
+			rowsDict614744 = map[string]any{}
 		}
-		result = append(result, this.ParseAccount(rowsDict614844))
+		result = append(result, this.ParseAccount(rowsDict614744))
 	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
@@ -8851,16 +8850,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		requestBody = &jsonText
 	}
-	var literal652915 map[string]any = map[string]any{
+	var literal652815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal652915["body"] = *requestBody
+		literal652815["body"] = *requestBody
 	}
-	return literal652915
+	return literal652815
 }
 func (this *Hyperliquid) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

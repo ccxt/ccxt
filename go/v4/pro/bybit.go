@@ -1623,7 +1623,7 @@ func (this *Bybit) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	this.Orderbooks[*symbol] = orderbook
 	client.Resolve(orderbook, messageHash)
 	if limit != nil && *limit == "1" {
-		var bidask map[string]any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks[*symbol]), market)
+		var bidask map[string]any = this.ParseWsBidAsk(this.Orderbooks[*symbol].ToMap(), market)
 		var newBidsAsks map[string]any = map[string]any{}
 		if symbol != nil {
 			newBidsAsks[*symbol] = bidask
