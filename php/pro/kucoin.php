@@ -176,9 +176,10 @@ class kucoin extends \ccxt\async\kucoin {
             $client->keepAlive = $pingInterval;
             return $result;
         } catch (Exception $e) {
-            $future = $this->safe_value($this->options['urls'], $connectId);
+            $urls = $this->safe_dict($this->options, 'urls', array());
+            $future = $this->safe_value($urls, $connectId);
             $future->reject($e);
-            unset($this->options['urls'][$connectId]);
+            $this->options['urls'] = $this->omit($urls, $connectId);
         }
         return null;
     }

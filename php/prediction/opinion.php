@@ -2069,7 +2069,7 @@ class opinion extends Exchange {
         $marketId = $this->safe_integer($info, 'marketId');
         $messageHash = 'orders';
         $orders = Async\await($this->subscribe_opinion_channel($messageHash, 'trade.order.update', $marketId));
-        $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
+        $sym = $this->safe_string($outcomeObj, 'outcome');
         return $this->filter_by_value_since_limit($orders, 'outcome', $sym, $since, $limit, 'timestamp', true);
     }
 
@@ -2192,7 +2192,7 @@ class opinion extends Exchange {
         $marketId = $this->safe_integer($info, 'marketId');
         $messageHash = 'myTrades';
         $trades = Async\await($this->subscribe_opinion_channel($messageHash, 'trade.record.new', $marketId));
-        $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
+        $sym = $this->safe_string($outcomeObj, 'outcome');
         return $this->filter_by_value_since_limit($trades, 'outcome', $sym, $since, $limit, 'timestamp', true);
     }
 

@@ -3532,7 +3532,7 @@ class myriad extends Exchange {
         $info = $this->safe_dict($outcomeObj, 'info', array());
         $networkId = $this->safe_string($info, 'networkId', '');
         $marketId = $this->safe_string($info, 'marketId', '');
-        $sym = $this->safe_outcome_symbol($outcome, $outcomeObj);
+        $sym = $this->safe_string($outcomeObj, 'outcome');
         $channel = 'trades:' . $networkId . ':' . $marketId;
         $messageHash = 'myTrades';
         $trades = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
@@ -3821,12 +3821,12 @@ class myriad extends Exchange {
             $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $networkId = $this->safe_string($info, 'networkId', $networkId);
-            $outcomeResolved = $this->safe_outcome_symbol($outcomeResolved, $outcomeObj);
+            $outcomeResolved = $this->safe_string($outcomeObj, 'outcome');
         }
         $channel = 'orders:' . $networkId . ':' . $trader;
         $messageHash = 'orders';
         $orders = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
-        return $this->filter_by_value_since_limit($orders, 'outcome', $outcomeResolved, $since, $limit, 'timestamp', true);
+        return $this->filter_by_outcome_since_limit($orders, $outcomeResolved, $since, $limit, true);
     }
 
     public function handle_order(Client $client, array $data) {

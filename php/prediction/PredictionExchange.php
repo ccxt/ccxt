@@ -310,14 +310,15 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $matched = false;
             for ($ti = 0; $ti < count($eventTags); $ti++) {
                 $tag = $eventTags[$ti];
-                $tagLabel = null;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                $tagLabel = '';
                 if (gettype($tag) === 'string') {
-                    $tagLabel = $tag;
+                    $tagLabel = $this->safe_string($eventTags, $ti, '');
                 } else {
-                    $tagLabel = $this->safe_string_2($tag, 'slug', 'title');
+                    $tagLabel = $this->safe_string_2($tag, 'slug', 'title', '');
                 }
-                if ($tagLabel !== null) {
-                    $tagKey = $this->normalize_tag_key($tagLabel);
+                $tagKey = $this->normalize_tag_key($tagLabel);
+                if ($tagKey !== '') {
                     for ($wi = 0; $wi < count($wanted); $wi++) {
                         if (mb_strpos($tagKey, $wanted[$wi]) !== false) {
                             $matched = true;

@@ -991,16 +991,13 @@ class predictfun extends Exchange {
         );
     }
 
-    public function strip_price_formatting(?string $text): ?string {
+    public function strip_price_formatting(string $text): string {
         /**
          * @ignore
          * drops the formatting the venue puts in a price but not in its slug - the currency sign, and a comma that sits between two $digits
          * @param {string} [$text] the raw title or outcome label
          * @return {string} the same $text with '$' removed and thousands separators closed up
          */
-        if ($text === null) {
-            return null;
-        }
         $digits = '0123456789';
         $chars = $this->string_to_chars_array($text);
         $stripped = '';
@@ -1034,7 +1031,7 @@ class predictfun extends Exchange {
         return $stripped;
     }
 
-    public function title_for_market_symbol(?string $topicSlug, ?string $title, ?int $marketCount = null): ?string {
+    public function title_for_market_symbol(?string $topicSlug, ?string $title, ?int $marketCount = null): string {
         /**
          * @ignore
          * decides what of a market $title belongs in the unified symbol, given how many markets its topic holds
@@ -1050,6 +1047,9 @@ class predictfun extends Exchange {
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if (($marketCount === 1) && ($topicSlug !== null)) {
             return $topicSlug;
+        }
+        if ($title === null) {
+            return '';
         }
         return $this->strip_price_formatting($title);
     }
@@ -1184,7 +1184,7 @@ class predictfun extends Exchange {
             $rawOutcome = $rawOutcomes[$oi];
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            $rawLabel = $this->safe_string_upper($rawOutcome, 'name');
+            $rawLabel = $this->safe_string_upper($rawOutcome, 'name', '');
             $label = $this->strip_price_formatting($rawLabel);
             $tokenId = $this->safe_string($rawOutcome, 'onChainId');
             $outcomeHandle = $marketSymbol . ':' . $label;
@@ -3700,7 +3700,8 @@ class predictfun extends Exchange {
         if ($topicSlug !== null) {
             $eventHandle = $this->shorten_slug($topicSlug);
         }
-        $label = $this->strip_price_formatting($this->safe_string_upper($details, 'outcomeName'));
+        $rawOutcomeName = $this->safe_string_upper($details, 'outcomeName');
+        $label = ($rawOutcomeName !== null) ? $this->strip_price_formatting($rawOutcomeName) : null;
         return array(
             'outcome' => null,
             'outcomeId' => null,

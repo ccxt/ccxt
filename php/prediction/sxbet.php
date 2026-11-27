@@ -338,7 +338,8 @@ class sxbet extends Exchange {
         $teamTwoName = $this->safe_string($raw, 'teamTwoName', '');
         $outcomeOneName = $this->safe_string($raw, 'outcomeOneName');
         $outcomeTwoName = $this->safe_string($raw, 'outcomeTwoName');
-        $eventSlug = $this->shorten_slug($teamOneName . ' ' . $teamTwoName);
+        $matchTitle = $teamOneName . ' ' . $teamTwoName;
+        $eventSlug = $this->shorten_slug($matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -460,7 +461,7 @@ class sxbet extends Exchange {
         $tags = $this->safe_list($params, 'tags', array());
         $tagsLength = count($tags);
         for ($i = 0; $i < $tagsLength; $i++) {
-            $queries[] = $tags[$i];
+            $queries[] = $this->safe_string($tags, $i, '');
         }
         $rest = $this->omit($params, array( 'eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit' ));
         $rawMarkets = array();
@@ -634,7 +635,8 @@ class sxbet extends Exchange {
         $eventSlug = null;
         if (($teamOneName !== null) && ($teamTwoName !== null)) {
             $title = $teamOneName . ' vs ' . $teamTwoName;
-            $eventSlug = $this->shorten_slug($teamOneName . ' ' . $teamTwoName);
+            $matchTitle = $teamOneName . ' ' . $teamTwoName;
+            $eventSlug = $this->shorten_slug($matchTitle);
         } else {
             $eventSlug = $this->shorten_slug($fixtureId);
         }
@@ -2825,16 +2827,14 @@ class sxbet extends Exchange {
         if ($response === null) {
             return null;
         }
-        $message = $this->safe_value($response, 'message');
-        if ($message === null) {
-            return null;
-        }
         // validation failures arrive in string-array form, business errors in single-code-string form
-        $messageString = null;
-        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $messageString = implode(', ', $message);
-        } else {
-            $messageString = $message;
+        $messageList = $this->safe_list($response, 'message', array());
+        $messageString = $this->safe_string($response, 'message');
+        if ($this->safe_string($messageList, 0) !== null) {
+            $messageString = implode(', ', $messageList);
+        }
+        if ($messageString === null) {
+            return null;
         }
         $feedback = $this->id . ' ' . $body;
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $messageString, $feedback);

@@ -9416,7 +9416,8 @@ class binance extends Exchange {
             list($isPortfolioMargin, $paramsPaginate) = $this->handle_option_bool_and_params_2($paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if ($stock) {
                 // request['endTime'] holds endTime whenever endTime is defined
-                $endTimeResolved = $this->safe_integer($request, 'endTime', $this->milliseconds());
+                $endTimeRequest = $this->safe_integer($request, 'endTime');
+                $endTimeResolved = ($endTimeRequest !== null) ? $endTimeRequest : $this->milliseconds();
                 if ($endTime === null) {
                     $request['endTime'] = $endTimeResolved;
                 }

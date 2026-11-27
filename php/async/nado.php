@@ -3273,12 +3273,12 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($this->int_to_base16($productId), 40);
     }
 
-    public function pad_hex(string $value, float $length, bool $left = true): string {
+    public function pad_hex(string $value, int $length, bool $left = true): string {
         $zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if ($left) {
             $paddedLeft = $zeros . $value;
-            $start = strlen($paddedLeft) - $this->parse_to_int($length);
-            return mb_substr($paddedLeft, $start, strlen($paddedLeft) - $start);
+            $start = strlen($paddedLeft) - $length;
+            return mb_substr($paddedLeft, $start);
         }
         $paddedRight = $value . $zeros;
         $end = $this->parse_to_int($length);

@@ -193,18 +193,15 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $sent = array();
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $subscription = $client->subscriptions[$keys[$i]];
-            if (gettype($subscription) === 'array') {
-                $request = $this->safe_string($subscription, 'request');
-                if (($request !== null) && str_starts_with($request, 'smd+') && !(is_array($sent) && array_key_exists($request ?? '', $sent))) {
-                    $sent[$request] = true;
-                    try {
-                        Async\await($client->send($request));
-                    } catch (Exception $e) {
-                        // the connection is gone, the client reconnects on the next watch call
-                        if ($this->verbose) {
-                            $this->log('ibkrKeepAliveSession resubscribe failed ' . $this->exception_message($e));
-                        }
+            $request = $this->safe_string($client->subscriptions[$keys[$i]], 'request');
+            if (($request !== null) && str_starts_with($request, 'smd+') && !(is_array($sent) && array_key_exists($request ?? '', $sent))) {
+                $sent[$request] = true;
+                try {
+                    Async\await($client->send($request));
+                } catch (Exception $e) {
+                    // the connection is gone, the client reconnects on the next watch call
+                    if ($this->verbose) {
+                        $this->log('ibkrKeepAliveSession resubscribe failed ' . $this->exception_message($e));
                     }
                 }
             }
@@ -273,7 +270,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
 
     private function do_ibkr_unsubscribe_market_data(Client $client, ?string $marketId) {
         /**
-         * sends umd for a $conid when no ticker, bidask or ohlcv $subscription of the market is left
+         * sends umd for a $conid when no ticker, bidask or ohlcv subscription of the market is left
          * @ignore
          * @param {array} $client the websocket $client
          * @param {string} $marketId the $conid
@@ -281,11 +278,10 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
          */
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            $subscription = $client->subscriptions[$keys[$i]];
-            if (gettype($subscription) === 'array') {
-                $request = $this->safe_string($subscription, 'request');
-                $conid = $this->safe_string($subscription, 'conid');
-                if (($request !== null) && str_starts_with($request, 'smd+') && ($conid === $marketId)) {
+            $request = $this->safe_string($client->subscriptions[$keys[$i]], 'request');
+            if (($request !== null) && str_starts_with($request, 'smd+')) {
+                $conid = $this->safe_string($client->subscriptions[$keys[$i]], 'conid');
+                if ($conid === $marketId) {
                     return null; // still in use
                 }
             }
@@ -689,7 +685,8 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         // the live candles built from smd before the history arrived are kept only when they are newer than the history
         for ($i = 0; $i < count($stored); $i++) {
             $candle = $stored[$i];
-            if (($lastHistoryTimestamp === null) || ($candle[0] > $lastHistoryTimestamp)) {
+            $candleTimestamp = $this->safe_integer($candle, 0, 0);
+            if (($lastHistoryTimestamp === null) || ($candleTimestamp > $lastHistoryTimestamp)) {
                 $bars[] = $candle;
             }
         }
@@ -794,9 +791,10 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             $candle = null;
             if ($length > 0) {
                 $lastCandle = $stored[$length - 1];
-                if ($lastCandle[0] === $candleTimestamp) {
+                $lastTimestamp = $this->safe_integer($lastCandle, 0, 0);
+                if ($lastTimestamp === $candleTimestamp) {
                     $candle = $lastCandle;
-                } elseif ($lastCandle[0] > $candleTimestamp) {
+                } elseif ($lastTimestamp > $candleTimestamp) {
                     continue;
                 }
             }

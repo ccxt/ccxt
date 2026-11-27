@@ -878,11 +878,13 @@ class interactivebrokers extends Exchange {
          * @return {int} the timestamp when the session was found lost
          */
         $this->options['gatewayAuthenticatedTimestamp'] = null;
-        $lostTimestamp = $this->safe_integer($this->options, 'gatewaySessionLostTimestamp');
-        if ($lostTimestamp === null) {
-            $lostTimestamp = $this->milliseconds();
+        $lostTimestamp = $this->milliseconds();
+        $storedTimestamp = $this->safe_integer($this->options, 'gatewaySessionLostTimestamp');
+        if ($storedTimestamp === null) {
             $this->options['gatewaySessionLostTimestamp'] = $lostTimestamp;
             $this->ibkr_gateway_schedule_regain();
+        } else {
+            $lostTimestamp = $storedTimestamp;
         }
         return $lostTimestamp;
     }
@@ -2701,7 +2703,7 @@ class interactivebrokers extends Exchange {
         }
         $symbolsNormalized = $this->market_symbols($symbols);
         list($fields, $query) = $this->handle_option_and_params($params, 'fetchTickers', 'fields');
-        $fieldsString = implode(',', $fields);
+        $fieldsString = implode(',', ($fields));
         $readyFields = array( '31', '84', '86' );
         $response = Async\await($this->ibkr_fetch_snapshot($symbolsNormalized, $fieldsString, $readyFields, $query));
         //

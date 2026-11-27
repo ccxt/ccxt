@@ -361,7 +361,7 @@ class hyperliquid extends Exchange {
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (($name !== null) && ($name !== '')) {
+        if ($name !== '') {
             return $this->shorten_slug($name) . '_' . $outcomeId;
         }
         return 'OUTCOME_' . $outcomeId;

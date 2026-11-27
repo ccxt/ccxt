@@ -5018,13 +5018,14 @@ class bitget extends Exchange {
         $historicalEndpointNeeded = ($useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        $calculatedStartTime = null;
-        $calculatedEndTime = null;
+        // the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        $hasEndTime = ($since !== null) || ($until !== null);
+        $calculatedEndTime = $now;
         if ($since !== null) {
-            $calculatedStartTime = $since;
             $request['startTime'] = $since;
             if ($until === null) {
-                $calculatedEndTime = $this->sum($since, $recentDuration);
+                $sinceEndTime = $this->sum($since, $recentDuration);
+                $calculatedEndTime = $sinceEndTime;
                 if ($since > $now - $recentDuration) {
                     $calculatedEndTime = $now;
                 }
@@ -5040,7 +5041,6 @@ class bitget extends Exchange {
             $request['endTime'] = $untilEndTime;
             if ($since === null) {
                 $untilStartTime = $untilEndTime - $recentDuration;
-                $calculatedStartTime = $untilStartTime;
                 // we do not need to set "startTime" here
                 if (($recentEndpointAvailableDays !== null) && ($untilStartTime <= $now - ($recentEndpointAvailableDays - 1) * $msInDay)) {
                     $historicalEndpointNeeded = true;
@@ -5052,15 +5052,16 @@ class bitget extends Exchange {
             $historicalLimit = ($recentLimit > $maxLimitForHistoryEndpoint) ? $maxLimitForHistoryEndpoint : $recentLimit;
             $limitResolved = $historicalLimit;
             $historicalDuration = $historicalLimit * $duration;
-            $calculatedStartTime = $calculatedEndTime - $historicalDuration;
-            $request['startTime'] = $calculatedStartTime;
-            // for contract, maximum 90 days allowed between start-end times
-            if (!$this->safe_bool($market, 'spot', false)) {
-                $maxDistanceForContracts = 90 * $msInDay;
-                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (($calculatedEndTime !== null) && ($historicalDuration > $maxDistanceForContracts)) {
-                    $calculatedEndTime = $this->sum($calculatedStartTime, $maxDistanceForContracts);
-                    $request['endTime'] = $calculatedEndTime;
+            if ($hasEndTime) {
+                $historicalStartTime = $calculatedEndTime - $historicalDuration;
+                $request['startTime'] = $historicalStartTime;
+                // for contract, maximum 90 days allowed between start-end times
+                if (!$this->safe_bool($market, 'spot', false)) {
+                    $maxDistanceForContracts = 90 * $msInDay;
+                    // endTime - startTime is historicalDuration here
+                    if ($historicalDuration > $maxDistanceForContracts) {
+                        $request['endTime'] = $this->sum($historicalStartTime, $maxDistanceForContracts);
+                    }
                 }
             }
         }
