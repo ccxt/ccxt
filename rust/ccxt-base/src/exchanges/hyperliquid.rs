@@ -3406,9 +3406,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             if (response != Value::Null) {
-                response = response.as_str().map(|__s| Value::Str(__s.replace("\"", "").into())).unwrap_or_else(|| response.clone());
-                response = response.as_str().map(|__s| Value::Str(__s.replace("\"", "").into())).unwrap_or_else(|| response.clone());
-                enableUnifiedMargin = Value::Bool(response.as_str() == Some("unifiedAccount"));
+                enableUnifiedMargin = (Value::Bool(response.as_str().map(|__s| Value::Str(__s.replace("\"", "").into())).unwrap_or_else(|| response.clone()).as_str() == Some("unifiedAccount")));
             }
             // don't cache this result if this is a different addresss
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("enableUnifiedMargin".into(), enableUnifiedMargin.clone()); }; // cache this for future calls

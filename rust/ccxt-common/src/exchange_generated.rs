@@ -4396,22 +4396,33 @@ pub trait ExchangeBase:
                 }
             }
             }
-            let mut content: Value = response;
-            if (content == Value::Null) {
+            if (response == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchWebEndpoint() returned empty content")));
             }
+            if !matches!(&response, Value::Str(_)) {
+                if (startRegex != Value::Null) || (endRegex != Value::Null) {
+                    panic!("{}", crate::exchange_errors::bad_response(format!("{}{}", self.id, " fetchWebEndpoint() returned non-string content")));
+                }
+                return response.clone();
+            }
+            let mut content: Value = response;
             if (startRegex != Value::Null) {
-                let splitted_by_start: Vec<Value> = split(&content, &startRegex).as_array().cloned().unwrap_or_default();
+                let splitted_by_start: Vec<Value> = Value::Array(content.as_str().zip(startRegex.as_str()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let startLen: i64 = splitted_by_start.len() as i64;
+                if startLen < 2 {
+                    panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchWebEndpoint() returned empty content")));
+                }
                 content = splitted_by_start.get(1).cloned().unwrap_or(Value::Null); // we need second part after start
             }
-            if (content == Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchWebEndpoint() returned empty content")));
-            }
             if (endRegex != Value::Null) {
-                let splitted_by_end: Vec<Value> = split(&content, &endRegex).as_array().cloned().unwrap_or_default();
+                let splitted_by_end: Vec<Value> = Value::Array(content.as_str().zip(endRegex.as_str()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let endLen: i64 = splitted_by_end.len() as i64;
+                if endLen < 1 {
+                    panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchWebEndpoint() returned empty content")));
+                }
                 content = splitted_by_end.get(0).cloned().unwrap_or(Value::Null); // we need first part after start
             }
-            if (returnAsJson) && (matches!(&content, Value::Str(_))) {
+            if (returnAsJson) {
                 let jsoned: Value = self.parse_json_value(content.as_str().map(|__s| Value::Str(__s.trim().to_string().into())).unwrap_or(Value::Null)); // content should be trimmed before json parsing
                 if (jsoned != Value::Null) && (jsoned != Value::Null) {
                     return jsoned;
