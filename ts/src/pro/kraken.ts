@@ -329,7 +329,8 @@ export default class kraken extends krakenRest {
             'req_id': requestId,
         };
         const [ requestValue, paramsValue ] = this.orderRequestWs ('createOrderWs', symbol, type, request, orderParams, amount, price, params);
-        return await this.watch (url, messageHash, this.extend (requestValue, paramsValue), messageHash);
+        requestValue['params'] = this.deepExtend (requestValue['params'], paramsValue);
+        return await this.watch (url, messageHash, requestValue, messageHash);
     }
 
     handleCreateEditOrder (client: Client, message: Dict) {
@@ -396,7 +397,8 @@ export default class kraken extends krakenRest {
             'req_id': requestId,
         };
         const [ requestValue, paramsValue ] = this.orderRequestWs ('editOrderWs', symbol, type, request, orderParams, amount, price, params);
-        return await this.watch (url, messageHash, this.extend (requestValue, paramsValue), messageHash);
+        requestValue['params'] = this.deepExtend (requestValue['params'], paramsValue);
+        return await this.watch (url, messageHash, requestValue, messageHash);
     }
 
     /**
