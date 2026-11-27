@@ -2799,7 +2799,8 @@
                 "timestamp": "not provided"
             },
             "fetchOHLCV": {
-                "compareTimestampToLimit": "todo review - exchange api might be broken"
+                "compareTimestampToLimit": "todo review - exchange api might be broken",
+                "ohlcvVolumeNotional": "Deepcoin's ticker is the current UTC day, not a rolling 24h"
             }
         }
     },
