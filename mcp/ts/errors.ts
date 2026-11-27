@@ -1,6 +1,7 @@
 import { redact } from './redact.js';
 import { ccxt } from './ccxt-loader.js';
 import type { Envelope } from './format.js';
+import { currentRequestScope } from './request-scope.js';
 
 interface ErrorMapping {
     classes: string[];
@@ -73,6 +74,13 @@ const MAPPINGS: ErrorMapping[] = [
     },
 ];
 
+// The hosted profile registers neither search_events nor describe_method, so a hint that
+// points at them sends a hosted model to a tool that answers "not found"
+const HOSTED_HINTS: Readonly<Record<string, string>> = Object.freeze ({
+    'BAD_SYMBOL': 'symbol not found on this exchange — resolve symbols with search_markets',
+    'BAD_REQUEST': 'check the arguments against the tool schema (describe_exchange lists what this exchange supports)',
+});
+
 function errorClassNames (error: any): string[] {
     const names: string[] = [];
     let proto = Object.getPrototypeOf (error);
@@ -108,12 +116,77 @@ export function isBenignStreamClose (reason: any): boolean {
         || /closed before the connection (is|was) established/i.test (message);
 }
 
+// An error that already knows its envelope: thrown by layers that sit between a tool and
+// the exchange (the hosted server's guarded exchange layer: full queues, an open circuit
+// breaker, a passed deadline) and mapped by run () as is. Without it those failures would
+// reach toErrorEnvelope as plain Errors and be reported as INTERNAL_ERROR ccxt-mcp bugs.
+export class ToolError extends Error {
+    code: string;
+    retryable: boolean;
+    hint: string;
+    retryAfterSeconds: number | undefined;
+
+    constructor (code: string, message: string, options: { retryable?: boolean, hint?: string, retryAfterSeconds?: number } = {}) {
+        super (message);
+        this.code = code;
+        this.retryable = options.retryable ?? false;
+        this.hint = options.hint ?? '';
+        this.retryAfterSeconds = options.retryAfterSeconds;
+    }
+
+    envelope (exchange?: string): Envelope {
+        const body: Record<string, any> = {
+            'code': this.code,
+            'message': this.message,
+            'retryable': this.retryable,
+            'hint': this.hint,
+        };
+        if (this.retryAfterSeconds !== undefined) {
+            body['retryAfterSeconds'] = this.retryAfterSeconds;
+        }
+        if (exchange !== undefined) {
+            body['exchange'] = exchange;
+        }
+        return { 'ok': false, 'error': body };
+    }
+}
+
 export interface ErrorContext {
     exchange?: string;
     account?: string;
     tool?: string;
     mutating?: boolean;
     clientOrderId?: string;
+    hosted?: boolean; // defaults to the current request scope's deployment
+}
+
+export const HOSTED_ERROR_MESSAGE_MAX = 300;
+
+const URL_PATTERN = /\b(?:https?|wss?):\/\/[^\s"'<>]+/gi;
+// where an upstream body starts: an HTML/XML tag or a JSON object/array opening
+const BODY_START = /<(?:!doctype|\?xml|[a-z][a-z0-9]*[\s>\/])|[[{]\s*["{[\]}]/i;
+
+// The message an upstream (exchange or network) error may show the caller. ccxt messages
+// embed the request URL and the raw response body ("kraken GET https://… 403 <html>…",
+// "binance {"code":-1121,…}"). Locally that is the user's own diagnostic data and is
+// returned as is (redacted). On the hosted server it would hand any anonymous caller
+// arbitrary upstream pages and the exact URLs the server calls, so there the message keeps
+// only the leading prose: no URLs, no bodies, at most HOSTED_ERROR_MESSAGE_MAX characters.
+export function sanitizeUpstreamError (error: any, options: { hosted: boolean }): string {
+    const message = redact (String (error?.message ?? error));
+    if (!options.hosted) {
+        return message;
+    }
+    let text = message;
+    const bodyStart = text.search (BODY_START);
+    if (bodyStart !== -1) {
+        text = text.slice (0, bodyStart) + '[response body removed]';
+    }
+    text = text.replace (URL_PATTERN, '[url]').replace (/\s+/g, ' ').trim ();
+    if (text.length > HOSTED_ERROR_MESSAGE_MAX) {
+        text = text.slice (0, HOSTED_ERROR_MESSAGE_MAX - 1) + '…';
+    }
+    return text;
 }
 
 export function toErrorEnvelope (error: any, context: ErrorContext = {}): Envelope {
@@ -148,7 +221,11 @@ export function toErrorEnvelope (error: any, context: ErrorContext = {}): Envelo
     if (code === 'EXCHANGE_UNAVAILABLE' && /ENOTFOUND|EAI_AGAIN|getaddrinfo|ECONNRESET|ETIMEDOUT/i.test (String (error?.message ?? error))) {
         hint = 'could not reach ' + (context.exchange ?? 'the exchange') + ' — this looks like a LOCAL network/DNS failure (often DNS/threadpool exhaustion from too many concurrent cold market loads or watch_subscribe calls), NOT necessarily an exchange outage; reduce concurrency (a few at a time) and retry';
     }
-    const message = redact (String (error?.message ?? error));
+    const hosted = context.hosted ?? currentRequestScope ()?.hosted ?? false;
+    if (hosted && HOSTED_HINTS[code] !== undefined) {
+        hint = HOSTED_HINTS[code];
+    }
+    const message = sanitizeUpstreamError (error, { hosted });
     const errorBody: Record<string, any> = {
         code,
         'type': names[0] ?? 'Error',

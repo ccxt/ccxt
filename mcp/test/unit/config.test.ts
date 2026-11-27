@@ -116,6 +116,31 @@ test ('settings maxSubscriptions:0 (the documented default sentinel) validates a
     });
 });
 
+test ('settings.tools: string or array, CCXT_MCP_TOOLS wins, a blank env is "not set", default "all"', () => {
+    const cases: [ any, string | undefined, string ][] = [
+        [ {}, undefined, 'all' ],
+        [ { 'tools': 'core' }, undefined, 'core' ],
+        [ { 'tools': [ 'core', 'describe_method' ] }, undefined, 'core,describe_method' ],
+        [ { 'tools': 'core' }, 'get_tickers', 'get_tickers' ],
+        [ { 'tools': 'core' }, '   ', 'core' ],
+        [ {}, '', 'all' ],
+        [ { 'tools': [] }, undefined, 'all' ],
+    ];
+    for (const [ settings, env, expected ] of cases) {
+        withConfig ({ settings, 'accounts': {} }, { 'CCXT_MCP_TOOLS': env }, () => {
+            const config = loadConfig ();
+            assert.equal (config.settings.tools, expected, JSON.stringify ([ settings, env ]));
+            assert.ok (!config.problems.some ((p) => p.includes ('settings invalid')), JSON.stringify (config.problems));
+        });
+    }
+    // a wrong type is a config problem, not a crash, and falls back to "all"
+    withConfig ({ 'settings': { 'tools': 5 }, 'accounts': {} }, { 'CCXT_MCP_TOOLS': undefined }, () => {
+        const config = loadConfig ();
+        assert.equal (config.settings.tools, 'all');
+        assert.ok (config.problems.some ((p) => p.includes ('settings invalid')));
+    });
+});
+
 test ('CCXT_MCP_* env defines the implicit default account', () => {
     withConfig ({}, {
         'CCXT_MCP_EXCHANGE': 'binance',

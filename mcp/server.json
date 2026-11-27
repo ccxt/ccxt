@@ -19,5 +19,11 @@
         "type": "stdio"
       }
     }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.ccxt.com/mcp"
+    }
   ]
 }

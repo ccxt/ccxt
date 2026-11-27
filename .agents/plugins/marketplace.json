@@ -1,0 +1,20 @@
+{
+  "name": "ccxt",
+  "interface": {
+    "displayName": "CCXT"
+  },
+  "plugins": [
+    {
+      "name": "ccxt",
+      "source": {
+        "source": "local",
+        "path": "./mcp/hosted/plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Finance"
+    }
+  ]
+}

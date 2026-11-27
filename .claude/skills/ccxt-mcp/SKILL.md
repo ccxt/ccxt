@@ -1,20 +1,32 @@
 ---
 name: ccxt-mcp
-description: Official CCXT MCP (Model Context Protocol) server — connect an AI agent to 100+ cryptocurrency exchanges and prediction markets for market data, balances, and opt-in trading. Covers installing the server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts; configuring named accounts and API keys (kept local, never seen by the model); the capability tiers and safety rails; sandbox/testnet trading; and how to drive the tools. Use when the user wants an agent to fetch prices/order books/candles, check balances/orders/positions, place or cancel orders, or explore prediction markets across exchanges.
+description: Official CCXT MCP (Model Context Protocol) server — connect an AI agent to 100+ cryptocurrency exchanges and prediction markets for market data, balances, and opt-in trading. Covers the hosted no-install server (https://mcp.ccxt.com/mcp, public market data) and installing the local server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts; configuring named accounts and API keys (kept local, never seen by the model); the capability tiers and safety rails; sandbox/testnet trading; and how to drive the tools. Use when the user wants an agent to fetch prices/order books/candles, check balances/orders/positions, place or cancel orders, or explore prediction markets across exchanges.
 ---
 
 # CCXT MCP Server
 
-`ccxt-mcp` is the official CCXT Model Context Protocol server. It runs **locally over stdio** and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
+`ccxt-mcp` is the official CCXT Model Context Protocol server. It runs **locally over stdio** (a read-only [hosted version](#hosted-server-no-install-public-data-only) needs no install) and lets an AI agent (Claude Desktop/Code, Cursor, VS Code, Windsurf, …) use the unified CCXT API across 100+ crypto exchanges and prediction markets.
 
 - npm: `ccxt-mcp` · runs via `npx -y ccxt-mcp` · source: https://github.com/ccxt/ccxt/tree/master/mcp
 - Full docs: https://docs.ccxt.com/docs/mcp
 
 Key property: **your API keys stay on your machine and the model never sees them.** Tools reference accounts by a name you choose; credentials are never tool parameters and never appear in results.
 
-## Install
+## Hosted server (no install, public data only)
 
-Requires Node.js ≥ 18. Pick the host:
+CCXT also runs a public, read-only MCP endpoint at `https://mcp.ccxt.com/mcp` (Streamable HTTP, no sign-in, no API keys). Use it when the user only needs market data and does not want to install anything; use the local server below for balances, orders, positions or trading.
+
+- **Claude (web/desktop):** Customize > Connectors > Add > Add custom connector, URL `https://mcp.ccxt.com/mcp`, **No sign-in**; or the prefilled link `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fmcp.ccxt.com%2Fmcp`. It then also works in the Claude mobile apps.
+- **Claude Code:** the plugin, `claude plugin install ccxt --marketplace ccxt/ccxt-plugins` (server plus usage skill; Claude Code 2.1.292+, else `claude plugin marketplace add ccxt/ccxt-plugins` then `claude plugin install ccxt@ccxt`), or the server alone, `claude mcp add --transport http ccxt https://mcp.ccxt.com/mcp`.
+- **Claude (web/desktop) plugin, paid plans:** Customize > Plugins > Add > Add marketplace `ccxt/ccxt-plugins` > add **CCXT**, then connect it on the plugin's Connectors tab.
+- **ChatGPT (web):** chatgpt.com/plugins > plus button > **Add custom MCP server** > the URL, **No authentication** > **Create as a plugin**. **ChatGPT desktop / Codex:** the plugin, `codex plugin marketplace add ccxt/ccxt-plugins` then `codex plugin add ccxt@ccxt`; or Settings > MCP servers > Add server > **Streamable HTTP**, or `[mcp_servers.ccxt]` `url = "https://mcp.ccxt.com/mcp"` in `~/.codex/config.toml`.
+- **Cursor / VS Code:** `{ "mcpServers": { "ccxt": { "url": "https://mcp.ccxt.com/mcp" } } }` / `{ "servers": { "ccxt": { "type": "http", "url": "https://mcp.ccxt.com/mcp" } } }`.
+
+What it offers: `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, and the `show_chart` / `show_orderbook` / `show_tickers` views, on a curated set of major exchanges (`list_exchanges` names them). `get_balance`, `get_orders`, `get_positions` and `get_my_trades` return `ACCOUNT_REQUIRED`: relay it and point the user to the local server. No trading, no `watch_*` streams, no prediction markets, no `params`, no `call_read_method`. It is shared and rate-limited: on `RATE_LIMITED` / `EXCHANGE_UNAVAILABLE` wait `retryAfterSeconds`, don't loop. Data is briefly cached: order books 1 s, tickers and trades 2 s, candles a tenth of the candle length (2–60 s). Phase 1: signing in with exchange accounts is planned, not available. Details: https://docs.ccxt.com/docs/mcp#hosted-server-no-install
+
+## Install (local server)
+
+Requires Node.js ≥ 20. Pick the host:
 
 - **Claude Code**: `claude mcp add ccxt -- npx -y ccxt-mcp`
 - **Claude Desktop** / **Cursor** / **Windsurf** — add to the host's MCP config:
@@ -95,6 +107,7 @@ Set `"sandbox": true` on an account to trade fake money on the exchange testnet 
 - **Discovery**: `list_exchanges`, `describe_exchange`, `describe_method` (search method names / signatures / per-exchange params + doc links), `get_safety_status` (which accounts/tiers are active).
 - **Market data**: `search_markets` (resolve a symbol — there is no list-all-markets tool), `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`. Long-tail reads (funding rates, open interest, ledger, …) via `call_read_method`; raw exchange GET endpoints via `call_implicit_get`.
 - **Live data (WebSocket)**: `watch_subscribe` opens a background stream and returns a `subscriptionId` and a `streamKind`. **State** streams are snapshots — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: `watch_read` returns the **full current set** in `latest` (the server merges live updates, so a multi-symbol stream always shows every subscribed symbol, not just the one that last changed) — just read it whenever you need the current value (the live order book, all your positions, the recent candle window). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` plus a `nextCursor` — thread it back as `cursor` on each poll so you don't re-receive old items. Pass `waitForChange: true` (optional `timeoutMs`) to **block until the next update** instead of polling — ideal for waiting on an order fill or position change; the response's `timedOut` says whether anything arrived. `watch_unsubscribe` when done; `watch_list` shows active streams. Prefer one-shot `get_*` tools for a single snapshot; use `watch_*` for live/continuous data.
+- **Show data to the user (MCP Apps views)**: `show_chart` (candlestick chart), `show_orderbook` (depth chart + ladder), `show_tickers` (price board). They return a compact summary; `meta.ui` says whether a view was shown (`"displayed"`) or not (`"unsupported"`, `"off"`) — when it was, comment on the summary instead of repeating the data. Where the host lets views call tools (Claude, ChatGPT), a shown view updates itself: about every 2 s from a shared stream ("Live"), 5 s or more from REST ("Delayed"), on both the hosted and the local server. It does this through `live_update`, an app-only tool: don't call it yourself, and don't re-call `show_*` just to refresh a view. A chart of a past window (`since` that ends more than two candles ago) and a view rendered with `params` stay snapshots with a Refresh button: leave `since` and `params` out when the user wants a live view. Use the `get_*` tools when you need the raw rows. `CCXT_MCP_UI` (`auto` / `always` / `off`) overrides the host detection; `CCXT_MCP_TOOLS=core` lists only the essential tools on hosts that cap tool definitions.
 - **Private (read tier)**: `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
 - **Best route across exchanges**: `fetch_route` (no account needed) — see below.
 - **Trading (trading tier)**: `create_order`, `edit_order`, `cancel_order`, `cancel_all_orders`, `set_leverage`, `set_margin_mode`, `call_write_method`, `execute_route`.
@@ -104,7 +117,8 @@ Conventions to follow:
 - Symbols are unified CCXT symbols: `BTC/USDT` (spot), `BTC/USDT:USDT` (linear swap), `BTC/USD:BTC` (inverse). Resolve them with `search_markets` — don't guess. Derivatives-only methods (funding rate, positions) need the `:SETTLE` form.
 - To list many symbols, call `search_markets` with `fields: ["symbol"]` (or e.g. `["symbol", "contractSize", "limits"]`) and a `limit` up to 1000 — full rows are ~450 chars each and capped at 100. Page with `meta.nextOffset` while `meta.hasMore` is true; `meta.limitClamped` says when your limit was reduced. Perpetuals are `type: "swap"`; an empty result lists the exchange's real types in `meta.marketTypes`.
 - Every exchange-touching tool takes a `params` passthrough for exchange-specific options; discover supported keys with `describe_method`.
-- `since` accepts a millisecond timestamp or an ISO8601 string; results carry both `timestamp` (ms) and `datetime` (ISO8601).
+- `since` accepts a millisecond timestamp or an ISO8601 string; results carry `timestamp` (ms) and `datetime` (ISO8601) when the exchange provides them. Ticker fields vary by exchange: some tickers lack a timestamp, bid/ask or 24h stats, and some venues count the change from the day's open rather than a rolling 24h. When an exchange does not serve data from `since` (okx `fetchTrades` returns only the latest trades), `meta.notice` says so.
+- `limit` is a positive integer; a value over a tool's max is clamped and reported in `meta.limitClamped`.
 - List results are capped to fit context; check `meta` (`count`/`returned`/`available`/`hasMore`/`truncated`) and page rather than assuming completeness.
 - **Prediction markets**: use `search_events` to find an event and its outcome handles, then pass an outcome handle (priced 0–1) as the symbol to the ordinary tools.
 

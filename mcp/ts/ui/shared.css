@@ -1,0 +1,127 @@
+/* Shared styles for the ccxt-mcp views (inlined into each view by ts/ui.ts).
+   The palette is the CCXT terminal's (navy surfaces, teal-green up, red down), in a light and
+   a dark variant that follow the host's theme; fonts follow the host's MCP Apps style
+   variables when it supplies them. Mark colours are a fixed pair per theme, checked for
+   contrast on that theme's surface: up/down must stay distinguishable on either. */
+:root {
+    color-scheme: light;
+    --bg: #ffffff;
+    --bg-2: #f2f5f7;
+    --text: #0b141b;
+    --text-2: #4a5660;
+    --text-3: #76818a;
+    --border: #e1e6ea;
+    --up: #027a52;
+    --down: #d62839;
+    --accent: #1f6fd1;
+    --warn: #a86300;
+    --watermark: 0.09;
+    --radius: var(--border-radius-md, 8px);
+    --sans: var(--font-sans, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+    --mono: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #040e16;
+        --bg-2: #0b1720;
+        --text: #eef3f6;
+        --text-2: #a3adb5;
+        --text-3: #6b767e;
+        --border: #17232c;
+        --up: #05a06f;
+        --down: #f13645;
+        --accent: #3b8ff0;
+        --warn: #e0a030;
+        --watermark: 0.11;
+    }
+}
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #040e16;
+    --bg-2: #0b1720;
+    --text: #eef3f6;
+    --text-2: #a3adb5;
+    --text-3: #6b767e;
+    --border: #17232c;
+    --up: #05a06f;
+    --down: #f13645;
+    --accent: #3b8ff0;
+    --warn: #e0a030;
+    --watermark: 0.11;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font: 13px/1.4 var(--sans);
+    padding: calc(12px + var(--safe-top, 0px)) calc(14px + var(--safe-right, 0px)) calc(12px + var(--safe-bottom, 0px)) calc(14px + var(--safe-left, 0px));
+    -webkit-font-smoothing: antialiased;
+}
+.num { font-variant-numeric: tabular-nums; }
+.head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; margin-bottom: 10px; }
+.title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+.title h1 { font-size: 15px; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.title .venue { color: var(--text-2); }
+.hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 2px; }
+.hero .value { font-size: 24px; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.hero .context { color: var(--text-2); }
+/* direction is never colour-alone: every delta carries an arrow glyph and a signed number */
+.delta { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.delta.up { color: var(--up); }
+.delta.down { color: var(--down); }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+button {
+    font: inherit;
+    color: var(--text-2);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px 9px;
+    cursor: pointer;
+}
+.segmented button { border: 0; border-radius: 0; border-left: 1px solid var(--border); }
+.segmented button:first-child { border-left: 0; }
+button:hover:not(:disabled) { background: var(--bg-2); color: var(--text); }
+button[aria-pressed="true"] { background: var(--bg-2); color: var(--text); font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: default; }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.status { color: var(--text-2); min-height: 18px; margin-top: 6px; }
+.status.error { color: var(--down); }
+.empty { color: var(--text-2); padding: 48px 0; text-align: center; }
+.busy { opacity: 0.45; transition: opacity 120ms; }
+.scroll { max-height: 320px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border); }
+th:first-child, td:first-child { text-align: left; }
+thead th { position: sticky; top: 0; background: var(--bg); color: var(--text-2); font-weight: 500; z-index: 1; }
+tbody tr:last-child td { border-bottom: 0; }
+svg { display: block; width: 100%; overflow: visible; }
+svg text { fill: var(--text-3); font: 11px var(--sans); font-variant-numeric: tabular-nums; }
+.grid { stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; }
+.watermark { fill: var(--text); opacity: var(--watermark); pointer-events: none; }
+.cursor { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; shape-rendering: crispEdges; pointer-events: none; }
+[hidden] { display: none !important; }
+/* live mode (live.js): a fixed-width indicator, so its states never move the controls */
+.live { display: inline-flex; flex: none; align-items: center; gap: 5px; width: 11.5em; overflow: hidden; color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.live .label { flex: none; }
+.live .at { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.live.pending { visibility: hidden; }
+.live .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+.live[data-state="live"] .dot { background: var(--up); animation: live-pulse 2s ease-in-out infinite; }
+.live[data-state="delayed"] .dot { background: var(--warn); }
+.live[data-state="offline"] .dot { background: var(--down); }
+.live .at { color: var(--text-3); }
+.live .resume { padding: 1px 7px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes live-pulse { 50% { opacity: 0.35; } }
+@keyframes live-flash { from { background-color: var(--flash, var(--bg-2)); } }
+.flash { animation: live-flash 900ms ease-out; }
+.flash-up { --flash: color-mix(in srgb, var(--up) 24%, transparent); animation: live-flash 900ms ease-out; }
+.flash-down { --flash: color-mix(in srgb, var(--down) 24%, transparent); animation: live-flash 900ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+    .busy { transition: none; }
+    .live .dot, .flash, .flash-up, .flash-down { animation: none !important; }
+}

@@ -1,0 +1,81 @@
+# The hosted CCXT MCP server on the docs.ccxt.com machine. From mcp/hosted:
+#   cp .env.example .env    # then edit; .env is never committed
+#   sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env
+#   docker compose up -d --build
+# nginx on the host proxies https://mcp.ccxt.com/mcp (and https://docs.ccxt.com/mcp) to 127.0.0.1:${HOST_PORT} (default 8080)
+# (deploy/nginx/). README.md, "Deploy", has the whole procedure.
+name: ccxt-mcp
+
+services:
+  hosted:
+    build:
+      context: ..
+      dockerfile: hosted/Dockerfile
+      args:
+        BUILD_ID: ${BUILD_ID:?set BUILD_ID in .env (README, Deploy)}
+    # The deployed build lives in .env, not in the shell: with a "latest" fallback, any later
+    # compose command run without BUILD_ID (an .env edit, check-exchanges) silently went
+    # back to the first image ever built
+    # IMAGE: the registry repository on the machine (deploy/remote-deploy.sh pulls
+    # ghcr.io/ccxt/ccxt-mcp-hosted:<BUILD_ID>); a local `docker compose build` tags
+    # ccxt-mcp-hosted:<BUILD_ID>
+    image: ${IMAGE:-ccxt-mcp-hosted}:${BUILD_ID:?set BUILD_ID in .env (README, Deploy)}
+    restart: unless-stopped
+    labels:
+      # the autoheal service below restarts this container when its HEALTHCHECK fails
+      autoheal: "true"
+    env_file:
+      - .env
+    environment:
+      # the commit as $mcp_server_build on analytics events
+      SERVER_BUILD: ${BUILD_ID}
+      # fixed by this deployment, whatever .env says: listen inside the container on 8080,
+      # and take the client address from nginx's X-Real-IP (the port is reachable only
+      # from the host, so only nginx can set it)
+      HOST: 0.0.0.0
+      PORT: "8080"
+      TRUSTED_PROXY: nginx-x-real-ip
+    ports:
+      # loopback only: the public entry point is nginx, never this port. HOST_PORT (.env)
+      # moves it when 8080 is taken on the machine; nginx's upstream must name the same port
+      - "127.0.0.1:${HOST_PORT:-8080}:8080"
+    read_only: true # the bundle writes nothing; markets are kept in memory
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: 2
+    pids_limit: 256
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # long enough for in-flight calls (20 s deadline) to finish: the server drains on SIGTERM
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: "5"
+
+  # Docker restarts a container only when its process exits, never because its HEALTHCHECK
+  # fails: a hung event loop or a polluted process would stay up answering errors. This
+  # restarts containers labelled autoheal=true once they turn unhealthy. It needs the Docker
+  # socket (read-write: it calls the restart API); if that is not acceptable, use the systemd
+  # timer in README.md, "Monitoring", instead and delete this service.
+  autoheal:
+    # pinned by digest (the multi-arch index of the 1.2.0 tag): it gets the Docker socket, which
+    # is root on the machine, so a re-pushed tag must not swap in different code
+    image: willfarrell/autoheal:1.2.0@sha256:31f580ef0279eaced5b38d631b08c474d70d8403c1c2fdd6ddcf2e879d5f3f7c
+    restart: unless-stopped
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: "10"
+      AUTOHEAL_START_PERIOD: "60"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    mem_limit: 64m
+    cpus: 0.25
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

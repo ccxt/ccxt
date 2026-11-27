@@ -32,7 +32,7 @@ const LANGS: { id: string; label: string; cmd: string; prompt?: string }[] = [
 const AI_SCRIPT_URL = 'https://raw.githubusercontent.com/ccxt/ccxt/master/install-skills.sh';
 const AI_CMD = `curl -fsSL ${AI_SCRIPT_URL} | bash`;
 
-function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -56,7 +56,7 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function CommandLine({ cmd, prompt = '$' }: { cmd: string; prompt?: string }) {
+export function CommandLine({ cmd, prompt = '$' }: { cmd: string; prompt?: string }) {
   return (
     <div className="flex items-center gap-2 rounded-md bg-fd-background px-3 py-2 font-mono text-sm">
       {prompt ? <span className="select-none text-fd-muted-foreground">{prompt}</span> : null}

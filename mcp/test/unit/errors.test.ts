@@ -36,3 +36,15 @@ test ('isBenignStreamClose does not swallow genuine faults', () => {
     assert.equal (isBenignStreamClose (undefined), false);
     assert.equal (isBenignStreamClose (null), false);
 });
+
+test ('hosted error hints never point at a tool the hosted profile does not register', () => {
+    class BadSymbol extends Error {}
+    class BadRequest extends Error {}
+    for (const error of [ new BadSymbol ('x does not have market symbol NOPE/XYZ'), new BadRequest ('bad') ]) {
+        const local: any = toErrorEnvelope (error, { 'hosted': false });
+        const hosted: any = toErrorEnvelope (error, { 'hosted': true });
+        assert.equal (local.error.code, hosted.error.code);
+        assert.doesNotMatch (hosted.error.hint, /search_events|describe_method/, hosted.error.code);
+    }
+    assert.match ((toErrorEnvelope (new BadSymbol ('x'), { 'hosted': false }) as any).error.hint, /search_events/, 'the local hint is unchanged');
+});

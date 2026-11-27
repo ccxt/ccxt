@@ -1,16 +1,16 @@
 import { z } from 'zod';
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { McpServer } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
 import { ok, project, ORDER_FIELDS, TRADE_FIELDS, POSITION_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, accountParam, paramsParam, sinceParam, environmentMeta } from './common.js';
+import { run, clampLimit, limitParam, limitClamped, withLimitClamped, parseSince, accountParam, paramsParam, sinceParam, environmentMeta, symbolParam, MARKET_TYPES, MAX_SYMBOLS, MAX_TEXT_LENGTH, MAX_CODE_LENGTH } from './common.js';
 
 export function registerReadTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('list_accounts', {
         'title': 'List configured accounts',
         'description': 'Locally configured named exchange accounts. Returns aliases and capability flags only — credential values are never exposed by any tool.',
-        'inputSchema': {},
-        'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
+        'inputSchema': z.object ({}),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'idempotentHint': true, 'openWorldHint': false },
     }, async () => run ({ 'tool': 'list_accounts' }, async () => {
         const accounts = Object.values (ctx.config.accounts).map ((account) => accountSummary (account as any));
         return ok (accounts, {
@@ -22,13 +22,16 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
     server.registerTool ('get_balance', {
         'title': 'Get account balance',
         'description': 'Balances for a named account. Returns non-zero balances by default (exchanges report every listed currency — hundreds of zero rows).',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
             'nonzeroOnly': z.boolean ().optional ().describe ('default true; false returns every currency'),
-            'marketType': z.string ().optional ().describe ('wallet/market type to query when the exchange has several (e.g. "spot", "swap", "future", "funding") — overrides the account default'),
+            // not the market-type enum: wallet types are exchange-specific ("funding", "savings",
+            // …). The value only becomes params.type on fetchBalance — never part of a path or an
+            // instance key — so a bounded identifier is enough
+            'marketType': z.string ().regex (/^[A-Za-z][A-Za-z0-9_-]{0,31}$/).optional ().describe ('wallet/market type to query when the exchange has several (e.g. "spot", "swap", "future", "funding") — overrides the account default'),
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ account: accountName, nonzeroOnly, marketType, params }) => run ({ 'tool': 'get_balance', 'account': accountName, 'exchange': ctx.config.accounts[accountName]?.exchange }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         const requestParams = { ...(params ?? {}) };
@@ -62,17 +65,17 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
     server.registerTool ('get_orders', {
         'title': 'Get orders',
         'description': 'Orders for a named account: one order by id, or a list filtered by status ("open" default, "closed", "canceled", "all"). Many exchanges require a symbol for list queries.',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'id': z.string ().optional ().describe ('order id — fetches that single order'),
-            'symbol': z.string ().optional ().describe ('unified symbol (required by many exchanges for list queries)'),
-            'status': z.string ().optional ().describe ('"open" (default), "closed", "canceled" or "all"'),
+            'id': z.string ().min (1).max (MAX_TEXT_LENGTH).optional ().describe ('order id — fetches that single order'),
+            'symbol': symbolParam ('unified symbol (required by many exchanges for list queries)').optional (),
+            'status': z.string ().max (MAX_CODE_LENGTH).optional ().describe ('"open" (default), "closed", "canceled" or "all"'),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('max orders (default 50, max 200)'),
+            'limit': limitParam ('max orders (default 50, max 200)'),
             'includeInfo': z.boolean ().optional ().describe ('include the raw exchange payload (single order only)'),
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ account: accountName, id, symbol, status, since, limit, includeInfo, params }) => run ({ 'tool': 'get_orders', 'account': accountName, 'exchange': ctx.config.accounts[accountName]?.exchange }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         if (id !== undefined) {
@@ -102,46 +105,46 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         const filtered = (method === 'fetchCanceledAndClosedOrders' && statusValue !== 'all')
             ? orders.filter ((order: any) => order.status === statusValue)
             : orders;
-        return ok (filtered.map ((order: any) => project (order, ORDER_FIELDS)), {
+        return ok (filtered.map ((order: any) => project (order, ORDER_FIELDS)), withLimitClamped ({
             ...environmentMeta (account),
             'status': statusValue,
             'count': filtered.length,
             'hasMore': orders.length >= orderLimit,
-        });
+        }, limitClamped (limit, orderLimit)));
     }));
 
     server.registerTool ('get_my_trades', {
         'title': 'Get account trade history',
         'description': "The account's own executed trades (fills). Many exchanges require a symbol.",
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'symbol': z.string ().optional ().describe ('unified symbol'),
+            'symbol': symbolParam ('unified symbol').optional (),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('max trades (default 50, max 200)'),
+            'limit': limitParam ('max trades (default 50, max 200)'),
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ account: accountName, symbol, since, limit, params }) => run ({ 'tool': 'get_my_trades', 'account': accountName, 'exchange': ctx.config.accounts[accountName]?.exchange }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         const tradeLimit = clampLimit (limit, 50, 200);
         const trades = await exchange.fetchMyTrades (symbol, parseSince (exchange, since), tradeLimit, params ?? {});
-        return ok (trades.map ((trade: any) => project (trade, TRADE_FIELDS)), {
+        return ok (trades.map ((trade: any) => project (trade, TRADE_FIELDS)), withLimitClamped ({
             ...environmentMeta (account),
             'count': trades.length,
             'hasMore': trades.length >= tradeLimit,
-        });
+        }, limitClamped (limit, tradeLimit)));
     }));
 
     server.registerTool ('get_positions', {
         'title': 'Get open positions',
         'description': 'Open derivatives positions for a named account (prediction-market positions on prediction exchanges).',
-        'inputSchema': {
+        'inputSchema': z.object ({
             'account': accountParam,
-            'symbols': z.array (z.string ()).optional ().describe ('restrict to these unified symbols'),
-            'marketType': z.string ().optional ().describe ('derivatives type to query when the exchange has several (e.g. "swap", "future") — overrides the account default'),
+            'symbols': z.array (symbolParam ('unified symbol')).max (MAX_SYMBOLS).optional ().describe ('restrict to these unified symbols'),
+            'marketType': z.enum (MARKET_TYPES).optional ().describe ('derivatives type to query when the exchange has several (e.g. "swap", "future") — overrides the account default'),
             'params': paramsParam,
-        },
-        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+        }),
+        'annotations': { 'readOnlyHint': true, 'destructiveHint': false, 'openWorldHint': true },
     }, async ({ account: accountName, symbols, marketType, params }) => run ({ 'tool': 'get_positions', 'account': accountName, 'exchange': ctx.config.accounts[accountName]?.exchange }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
         if (!exchange.has?.['fetchPositions']) {

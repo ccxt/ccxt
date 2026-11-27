@@ -144,8 +144,15 @@ function resolveAnchorPage (anchor: string): string {
 // ---------------------------------------------------------------------------
 // Link rewriting. Operates on the whole document. Order matters (specific first).
 // ---------------------------------------------------------------------------
+// https://docs.ccxt.com/mcp is the hosted MCP server's endpoint (mcp/hosted), not a docs page:
+// the rules below would turn it into /docs/mcp, also inside code blocks. It is set aside
+// first and put back last. /mcp-<page> and /mcp/... are not the endpoint and stay rewritable.
+const MCP_ENDPOINT = 'https://docs.ccxt.com/mcp';
+const MCP_ENDPOINT_RE = /https:\/\/docs\.ccxt\.com\/mcp(?![\w.\/-])/g;
+const MCP_ENDPOINT_HOLD = '\u0000CCXT_MCP_ENDPOINT\u0000';
+
 function rewriteLinks (md: string): string {
-    let s = md;
+    let s = md.replace(MCP_ENDPOINT_RE, MCP_ENDPOINT_HOLD);
 
     // readthedocs-style legacy URLs: docs.ccxt.com/en/latest/<page>.html(#a | ?id=a)
     s = s.replace(/https?:\/\/docs\.ccxt\.com\/en\/latest\/([\w.\-]+?)\.html(?:[#?](?:id=)?([\w-]+))?/g,
@@ -242,7 +249,7 @@ function rewriteLinks (md: string): string {
         return `](${target.slice(0, i)}#${target.slice(i + 1).toLowerCase()})`;
     });
 
-    return s;
+    return s.split(MCP_ENDPOINT_HOLD).join(MCP_ENDPOINT);
 }
 
 // ---------------------------------------------------------------------------

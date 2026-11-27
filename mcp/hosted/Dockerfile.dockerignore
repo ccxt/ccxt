@@ -1,0 +1,22 @@
+# BuildKit reads this file for hosted/Dockerfile (the build context is mcp/, so a plain
+# .dockerignore would have to live there and would also apply to unrelated builds).
+# Only what the build stage copies is sent: manifests, ts/, hosted/ sources.
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!hosted/.env.example
+js
+mcpb
+plugin
+test
+scripts
+DESIGN.md
+README.md
+server.json
+*.mcpb
+hosted/test
+hosted/plugin
+hosted/listing
+hosted/deploy
+hosted/.scratch

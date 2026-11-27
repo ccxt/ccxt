@@ -1,4 +1,13 @@
+import type { AuthInfo } from '@modelcontextprotocol/server';
+import type { UiPolicy, ViewCatalog } from './ui.js';
+import type { ToolProfile } from './tools/access.js';
+
 export type TierFlag = false | true | 'live';
+
+// the protocol era one McpServer instance serves: 'legacy' = the 2025 initialize handshake,
+// 'modern' = the 2026-07-28 per-request envelope. Chosen by the SDK's serving entry per
+// connection (stdio) or per request (HTTP); confirmations work differently in each
+export type ProtocolEra = 'legacy' | 'modern';
 
 export interface AccountConfig {
     name: string;
@@ -38,6 +47,7 @@ export interface ServerSettings {
     exchangeOptions: Record<string, Record<string, any>>;
     maxSubscriptions: number;
     hideDisabledTools: boolean;
+    tools?: string; // tool profile: "all", "core" or a comma-separated list of tool names
     loadEnvKeys: boolean;
 }
 
@@ -74,11 +84,25 @@ export interface ServerContext {
     safety: any;   // Safety
     journal: any;  // Journal
     subscriptions: any; // SubscriptionRegistry (WebSocket streaming)
+    live: any;     // LiveHub (ts/live/hub.ts): shared streams behind the live views
     router: any;   // ccxt.OrderRouter, or undefined when the installed ccxt predates it
     routes: any;   // RouteCache — routes returned by fetch_route, executable by routeId
     version: string;
+    // true on the hosted (public HTTP) server, false on the local stdio server. Shared helpers
+    // read it to tighten what leaves the process (error sanitising) — never to grant anything
+    hosted: boolean;
+    era: ProtocolEra;
+    // the verified caller identity: undefined on stdio and in hosted phase 1 (anonymous).
+    // Phase 2 resolves accounts from it instead of the local config file; tool handlers read it
+    // through requestAuthInfo (), which also sees a per-request ctx.http.authInfo
+    authInfo?: AuthInfo;
+    // when show_* results carry their view payload, and the views (versioned URIs + HTML)
+    ui: { policy: UiPolicy, views: ViewCatalog, resourceMeta?: () => Record<string, any> | undefined };
+    // which tools this server instance registers (get_safety_status reports it)
+    toolProfile: ToolProfile;
+    // whether the client declared form elicitation — read per request, because on the
+    // 2026-07-28 revision capabilities travel with each request instead of the handshake
     elicitationSupported: () => boolean;
-    elicit: (message: string, schema: any) => Promise<any>;
 }
 
 export function accountEnvironment (account: AccountConfig): 'live' | 'sandbox' | 'demo' {

@@ -4,6 +4,8 @@ import { accountEnvironment } from './types.js';
 import type { Journal } from './journal.js';
 
 const CONFIRM_TOKEN_TTL_MS = 60 * 1000;
+// a human answering an in-host confirmation prompt gets as long as the 2025-era prompt waits
+const CONFIRM_STATE_TTL_MS = 5 * 60 * 1000;
 
 // USD-pegged quotes valued 1:1; anything else is valued through a <QUOTE>/<stable> ticker
 const USD_QUOTES = new Set ([ 'USD', 'USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'FDUSD', 'USDD', 'PYUSD', 'USDE' ]);
@@ -83,6 +85,7 @@ export class Safety {
     private journal: Journal;
     private tokenSecret = crypto.randomBytes (32);
     private tokens = new Map<string, { digest: string, expiresAt: number }> ();
+    private states = new Map<string, { digest: string, expiresAt: number }> ();
     private accountLocks = new Map<string, Promise<void>> ();
 
     constructor (journal: Journal) {
@@ -386,6 +389,45 @@ export class Safety {
         }
         if (entry.digest !== this.digest (payload)) {
             throw new SafetyError ('CONFIRM_MISMATCH', 'the call parameters differ from the ones this token confirmed', 'call the tool again without "confirm" to preview the new parameters');
+        }
+    }
+
+    // 2026-07-28 confirmation round trip: the server returns input_required with this value
+    // as requestState, the client asks the human and retries the call echoing it back. The
+    // value round-trips through the client, so it is only an opaque single-use nonce; what it
+    // confirmed (the payload digest) and until when stay here, exactly like confirm tokens
+    issueConfirmState (payload: any): string {
+        this.pruneExpired ();
+        const state = 'cs-' + crypto.randomUUID ();
+        this.states.set (state, {
+            'digest': this.digest (payload),
+            'expiresAt': Date.now () + CONFIRM_STATE_TTL_MS,
+        });
+        return state;
+    }
+
+    redeemConfirmState (state: unknown, payload: any): void {
+        const entry = (typeof state === 'string') ? this.states.get (state) : undefined;
+        if (typeof state === 'string') {
+            this.states.delete (state); // single-use, valid or not
+        }
+        if (entry === undefined) {
+            throw new SafetyError ('CONFIRM_INVALID', 'the confirmation answer does not belong to a prompt this server issued (unknown, forged or already used)', 'call the tool again to get a fresh confirmation prompt');
+        }
+        if (Date.now () > entry.expiresAt) {
+            throw new SafetyError ('CONFIRM_EXPIRED', 'the confirmation answer arrived after the 5-minute window', 'call the tool again to get a fresh confirmation prompt');
+        }
+        if (entry.digest !== this.digest (payload)) {
+            throw new SafetyError ('CONFIRM_MISMATCH', 'the call parameters differ from the ones the user confirmed', 'call the tool again so the user can confirm the new parameters');
+        }
+    }
+
+    private pruneExpired (): void {
+        const now = Date.now ();
+        for (const [ key, entry ] of this.states) {
+            if (now > entry.expiresAt) {
+                this.states.delete (key);
+            }
         }
     }
 

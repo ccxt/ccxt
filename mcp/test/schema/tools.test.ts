@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Client, InMemoryTransport } from '@modelcontextprotocol/client';
 import { createServer } from '../../ts/factory.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 
@@ -13,6 +12,10 @@ const MARKET_TOOLS = [
     'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
+    // the MCP Apps render tools: public market data, so they sit in the market tier
+    'show_chart', 'show_orderbook', 'show_tickers',
+    // and the views' app-only refresh tool
+    'live_update',
 ];
 const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
 const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'execute_route' ];
@@ -49,6 +52,21 @@ async function callTool (accounts: any, name: string, args: any, settings: any =
 }
 
 const ALL_TOOLS = [ ...MARKET_TOOLS, ...READ_TOOLS, ...TRADE_TOOLS, ...FUNDS_TOOLS, ...IMPLICIT_WRITE_TOOLS ];
+
+// the 34 tools of the release before the views, by name: the local server must keep every one
+const PREVIOUS_RELEASE_TOOLS = [
+    'call_implicit_get', 'call_implicit_write', 'call_read_method', 'call_write_method', 'cancel_all_orders', 'cancel_order',
+    'create_order', 'describe_exchange', 'describe_method', 'edit_order', 'execute_route', 'fetch_route', 'get_balance',
+    'get_deposit_address', 'get_my_trades', 'get_ohlcv', 'get_orderbook', 'get_orders', 'get_positions', 'get_safety_status',
+    'get_tickers', 'get_trades', 'list_accounts', 'list_exchanges', 'search_events', 'search_markets', 'set_leverage',
+    'set_margin_mode', 'transfer', 'watch_list', 'watch_read', 'watch_subscribe', 'watch_unsubscribe', 'withdraw',
+];
+
+test ('stdio tool list: the previous release\'s tools plus exactly the three views and their refresh tool', async () => {
+    const { names } = await listToolNames ({});
+    assert.equal (PREVIOUS_RELEASE_TOOLS.length, 34);
+    assert.deepEqual (names, [ ...PREVIOUS_RELEASE_TOOLS, 'live_update', 'show_chart', 'show_orderbook', 'show_tickers' ].sort ());
+});
 
 test ('default: every tool tier is listed even with no accounts (disabled tiers error at call time)', async () => {
     const { names } = await listToolNames ({});
@@ -103,8 +121,11 @@ test ('annotations: reads are readOnly, writes are destructive, cancel is the ex
     // fetch_route never takes the user's holdings — balances belong in a POST body from a
     // configured account, not a model-supplied parameter
     assert.ok (!('balances' in (byName.get ('fetch_route')?.inputSchema?.properties ?? {})), 'fetch_route must not expose balances');
-    // cancel_order is deliberately non-destructive (risk-reducing) and idempotent
-    assert.equal (byName.get ('cancel_order')?.annotations?.destructiveHint, false);
+    // cancel_order is the exception among writes in being idempotent. It is destructive by the
+    // MCP definition (destructiveHint false means "only additive updates"; a cancel deletes a
+    // resting order and its queue position for good), even though it usually reduces risk
+    assert.equal (byName.get ('cancel_order')?.annotations?.readOnlyHint, false);
+    assert.equal (byName.get ('cancel_order')?.annotations?.destructiveHint, true);
     assert.equal (byName.get ('cancel_order')?.annotations?.idempotentHint, true);
     // every tool name within the review limits
     for (const tool of tools) {
@@ -121,5 +142,34 @@ test ('no tool schema accepts credential-shaped parameters', async () => {
             const lower = property.toLowerCase ();
             assert.ok (!forbidden.some ((word) => lower.includes (word)), tool.name + ' exposes credential-shaped param ' + property);
         }
+    }
+});
+
+// ChatGPT and Codex weight (or cut) the start of the instructions, so the opening paragraph
+// must say on its own what the server is for, how to begin and how to show data
+test ('SERVER_INSTRUCTIONS: the opening paragraph fits in 512 characters and stands on its own', async () => {
+    const { SERVER_INSTRUCTIONS } = await import ('../../ts/tools/index.js');
+    const end = SERVER_INSTRUCTIONS.indexOf ('\n\n');
+    assert.ok (end > 0 && end <= 512, 'the first paragraph is ' + end + ' characters');
+    const opening = SERVER_INSTRUCTIONS.slice (0, end);
+    for (const name of [ 'list_exchanges', 'search_markets', 'get_tickers', 'show_chart', 'show_orderbook', 'show_tickers' ]) {
+        assert.ok (opening.includes (name), 'the opening names ' + name);
+    }
+    assert.ok (opening.endsWith ('https://docs.ccxt.com/'), 'the opening ends on a complete sentence');
+    // every tool the opening names exists
+    for (const name of opening.match (/\b[a-z]+_[a-z_]+\b/g) ?? []) {
+        assert.ok (ALL_TOOLS.includes (name), name + ' named in the opening is not a tool');
+    }
+});
+
+// exchanges do not all date their data (kraken, gate and bitfinex tickers carry no
+// timestamp), so neither the instructions nor the skill may promise both on every result
+test ('SERVER_INSTRUCTIONS and the ccxt-mcp skill promise timestamp/datetime only when the exchange provides them', async () => {
+    const { SERVER_INSTRUCTIONS } = await import ('../../ts/tools/index.js');
+    const skill = fs.readFileSync (new URL ('../../plugin/skills/ccxt-mcp/SKILL.md', import.meta.url), 'utf8');
+    for (const [ name, text ] of [ [ 'SERVER_INSTRUCTIONS', SERVER_INSTRUCTIONS ], [ 'SKILL.md', skill ] ]) {
+        assert.doesNotMatch (text, /carry both/, name);
+        assert.match (text, /when the exchange provides them/, name);
+        assert.match (text, /limitClamped/, name);
     }
 });

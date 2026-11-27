@@ -1,0 +1,615 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { LiveHub, selectCandles, timeframeMs, LIVE_CHART_LATEST, type LiveOptions, type LiveBackend } from '../../ts/live/hub.js';
+import { ToolError } from '../../ts/errors.js';
+import { FakeWs, FakeRest, wsControl, candle, candles, until, bookOf, NetworkError, NotSupported, BadRequest, BadSymbol, MINUTE, T0, type WsControl } from '../helpers/fake-live.js';
+
+// The shared market-data hub (ts/live/hub.ts) against a fake ccxt.pro exchange: no network.
+
+interface Setup {
+    hub: LiveHub;
+    rest: FakeRest;
+    ws: WsControl;
+    clock: { now: number };
+    backend: LiveBackend & { errors: any[], admitted: number };
+}
+
+function setup (options: Partial<LiveOptions> = {}, backendExtra: Partial<LiveBackend> = {}): Setup {
+    const ws = wsControl ();
+    const rest = new FakeRest ();
+    const clock = { 'now': T0 + 10 * MINUTE };
+    const backend: any = {
+        'errors': [],
+        'admitted': 0,
+        'openStreamInstance': (exchangeId: string, marketType: string | undefined) => new FakeWs (ws, exchangeId, marketType),
+        'reportStreamError': (_exchangeId: string, error: any) => backend.errors.push (error),
+        ...backendExtra,
+    };
+    const hub = new LiveHub (backend, { 'sweepIntervalMs': 0, 'statsIntervalMs': 0, ...options }, () => clock.now);
+    return { hub, rest, ws, clock, backend };
+}
+
+const chart = (extra: Record<string, any> = {}) => ({ 'view': 'chart' as const, 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'timeframe': '1m', ...extra });
+
+// polls until the hub answers from its stream
+async function servedFromStream (hub: LiveHub, request: any, rest: FakeRest): Promise<any> {
+    let served: any;
+    const started = Date.now ();
+    while (Date.now () - started < 2000) {
+        served = await hub.serve (request, rest);
+        if (served.source === 'stream') {
+            return served;
+        }
+        await new Promise ((resolve) => setTimeout (resolve, 5));
+    }
+    throw new Error ('never served from the stream: ' + JSON.stringify (served?.source));
+}
+
+test ('live hub: timeframes and candle selection', () => {
+    assert.equal (timeframeMs ('1m'), 60000);
+    assert.equal (timeframeMs ('4h'), 4 * 3600000);
+    assert.equal (timeframeMs ('1M'), 2592000000);
+    assert.equal (timeframeMs ('nope'), undefined);
+    const rows = candles (0, 9);
+    const now = rows[9][0] + 30000;
+    // the open candle (since) and everything after it
+    assert.deepEqual (selectCandles (rows, rows[7][0], MINUTE, now), rows.slice (7));
+    // a gap before since: the stream starts after the view's last candle
+    assert.equal (selectCandles (rows.slice (5), rows[2][0], MINUTE, now), undefined);
+    // since missing, or more than 50 candles back: the latest 200, which a short window lacks
+    assert.equal (selectCandles (rows, undefined, MINUTE, now), undefined);
+    assert.equal (selectCandles (rows, rows[9][0] - 60 * MINUTE, MINUTE, now), undefined);
+    const long = candles (0, 299);
+    assert.deepEqual (selectCandles (long, undefined, MINUTE, long[299][0]), long.slice (-LIVE_CHART_LATEST));
+});
+
+test ('live hub: the first poll is served from REST while the stream opens; later polls from the stream, with no REST call', async () => {
+    const { hub, rest, ws } = setup ();
+    ws.data.set ('ohlcv|BTC/USDT|1m', candles (290, 299));
+    const first = await hub.serve (chart ({ 'since': candle (297)[0] }), rest);
+    assert.equal (first.source, 'rest');
+    assert.equal (rest.restCalls (), 1);
+    assert.deepEqual (first.candles?.map ((row) => row[0]), [ 297, 298, 299 ].map ((i) => candle (i)[0]));
+    assert.equal (first.nextPollMs, 5000, 'REST cadence');
+    const live = await servedFromStream (hub, chart ({ 'since': candle (297)[0] }), rest);
+    const restCalls = rest.restCalls ();
+    assert.equal (live.nextPollMs, 2000, 'stream cadence');
+    // the open candle moved and a new one arrived: the view gets the open one replaced and the new one appended
+    ws.data.set ('ohlcv|BTC/USDT|1m', [ ...candles (290, 298), candle (299, 555), candle (300) ]);
+    let update: any;
+    const started = Date.now ();
+    do {
+        update = await hub.serve (chart ({ 'since': candle (299)[0] }), rest);
+        await new Promise ((resolve) => setTimeout (resolve, 5));
+    } while (update.candles.length < 2 && Date.now () - started < 2000);
+    assert.equal (update.source, 'stream');
+    assert.deepEqual (update.candles, [ candle (299, 555), candle (300) ]);
+    assert.equal (rest.restCalls (), restCalls, 'polls served from the stream never call REST');
+    assert.equal (hub.stats ().streams, 1);
+    await hub.close ();
+});
+
+test ('live hub: since before the stream window, or missing, goes to REST (latest 200)', async () => {
+    const { hub, rest, ws } = setup ();
+    ws.data.set ('ohlcv|BTC/USDT|1m', candles (295, 299));
+    await servedFromStream (hub, chart ({ 'since': candle (298)[0] }), rest);
+    const before = rest.restCalls ();
+    const gap = await hub.serve (chart ({ 'since': candle (280)[0] }), rest);
+    assert.equal (gap.source, 'rest');
+    assert.equal (gap.candles?.[0][0], candle (280)[0]);
+    const latest = await hub.serve (chart (), rest);
+    assert.equal (latest.source, 'rest');
+    assert.equal (latest.candles?.length, 200);
+    assert.equal (rest.calls.slice (before).length, 2);
+    assert.deepEqual (rest.calls[rest.calls.length - 1].args, [ 'BTC/USDT', '1m', undefined, 200 ]);
+    await hub.close ();
+});
+
+test ('live hub: leases — each poll renews; an unpolled stream is closed (unWatch while the instance has others, close with the last)', async () => {
+    const { hub, rest, ws, clock } = setup ({ 'idleMs': 60000 });
+    ws.data.set ('ohlcv|BTC/USDT|1m', candles (290, 299));
+    ws.data.set ('orderbook|BTC/USDT', bookOf (10));
+    await servedFromStream (hub, chart ({ 'since': candle (299)[0] }), rest);
+    await servedFromStream (hub, { 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 5 }, rest);
+    assert.equal (hub.stats ().streams, 2);
+    assert.equal (ws.instances.length, 1, 'one WebSocket instance per (exchange, market type)');
+    clock.now += 40000;
+    await hub.serve (chart ({ 'since': candle (299)[0] }), rest); // renews the chart only
+    clock.now += 30000;
+    assert.equal (hub.sweep (), 1, 'the order book lease ran out');
+    assert.deepEqual (ws.unwatched, [ 'orderbook|BTC/USDT' ]);
+    assert.equal (ws.instances[0].closed, false, 'the chart still uses the instance');
+    clock.now += 61000;
+    assert.equal (hub.sweep (), 1);
+    assert.equal (ws.instances[0].closed, true, 'the last stream closes the instance');
+    assert.equal (hub.stats ().streams, 0);
+    assert.equal (hub.stats ().instances, 0);
+    await hub.close ();
+});
+
+test ('live hub: caps — at the global or per-exchange cap a poll is served from REST and told to wait longer', async () => {
+    const { hub, rest, ws } = setup ({ 'maxStreams': 1 });
+    ws.data.set ('ticker|BTC/USDT', { 'symbol': 'BTC/USDT', 'last': 5 });
+    await servedFromStream (hub, { 'view': 'tickers', 'exchangeId': 'fakex', 'symbols': [ 'BTC/USDT' ] }, rest);
+    const capped = await hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'ETH/USDT', 'depth': 10 }, rest);
+    assert.equal (capped.source, 'rest');
+    assert.ok (capped.nextPollMs >= 10000, 'longer cadence at the cap: ' + capped.nextPollMs);
+    assert.equal (hub.stats ().streams, 1);
+    assert.equal (hub.stats ().fallbacks.cap, 1);
+    await hub.close ();
+    const perExchange = setup ({ 'maxStreamsPerExchange': 1 });
+    await perExchange.hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 10 }, perExchange.rest);
+    await perExchange.hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'ETH/USDT', 'depth': 10 }, perExchange.rest);
+    await perExchange.hub.serve ({ 'view': 'orderbook', 'exchangeId': 'other', 'symbol': 'ETH/USDT', 'depth': 10 }, perExchange.rest);
+    assert.deepEqual (perExchange.hub.stats ().streamsByExchange, { 'fakex': 1, 'other': 1 });
+    await perExchange.hub.close ();
+});
+
+test ('live hub: a refused stream open (breaker, open rate) is served from REST', async () => {
+    const { hub, rest } = setup ({}, { 'admitStream': () => 'breaker' });
+    const served = await hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 3 }, rest);
+    assert.equal (served.source, 'rest');
+    assert.equal (hub.stats ().streams, 0);
+    assert.equal (hub.stats ().fallbacks.refused, 1);
+    await hub.close ();
+});
+
+test ('live hub: repeated WebSocket failures pause streaming on that exchange (REST meanwhile), then it streams again', async () => {
+    const { hub, rest, ws, clock, backend } = setup ({ 'wsFailureThreshold': 2, 'wsCooldownMs': 300000 });
+    ws.data.set ('orderbook|BTC/USDT', bookOf (10));
+    ws.fail = () => new NetworkError ('socket hang');
+    const request = { 'view': 'orderbook' as const, 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 3 };
+    await hub.serve (request, rest);
+    await until (() => hub.stats ().disabledExchanges.includes ('fakex'), 5000);
+    assert.ok (backend.errors.length >= 2, 'stream errors are reported to the deployment (its breaker)');
+    assert.equal (hub.stats ().streams, 0, 'its streams are closed');
+    const paused = await hub.serve (request, rest);
+    assert.equal (paused.source, 'rest');
+    assert.equal (hub.stats ().streams, 0, 'no stream opens during the cooldown');
+    assert.ok ((hub.stats ().fallbacks.disabled ?? 0) >= 1);
+    ws.fail = undefined;
+    clock.now += 300001;
+    await servedFromStream (hub, request, rest);
+    assert.deepEqual (hub.stats ().disabledExchanges, []);
+    await hub.close ();
+});
+
+test ('live hub: a channel the exchange does not stream (NotSupported, no watch method) stays on REST without counting as a failure', async () => {
+    const { hub, rest, ws, backend } = setup ();
+    ws.fail = (method) => ((method === 'watchOHLCV') ? new NotSupported ('only 5m') : undefined);
+    ws.data.set ('ohlcv|BTC/USDT|1m', candles (290, 299));
+    await hub.serve (chart (), rest);
+    await until (() => hub.stats ().streams === 0);
+    const again = await hub.serve (chart (), rest);
+    assert.equal (again.source, 'rest');
+    assert.equal (hub.stats ().streams, 0, 'not reopened while marked unsupported');
+    assert.equal (backend.errors.length, 0);
+    assert.deepEqual (hub.stats ().disabledExchanges, []);
+    await hub.close ();
+    // an exchange without a WebSocket implementation at all
+    const none = setup ({}, { 'openStreamInstance': () => undefined });
+    await none.hub.serve (chart (), none.rest);
+    await until (() => none.hub.stats ().streams === 0);
+    assert.equal ((await none.hub.serve (chart (), none.rest)).source, 'rest');
+    await none.hub.close ();
+});
+
+test ('live hub: order book depth and a tickers subset', async () => {
+    const { hub, rest, ws } = setup ();
+    const book = { 'bids': Array.from ({ 'length': 40 }, (_, i) => [ 99 - i, 1 ]), 'asks': Array.from ({ 'length': 40 }, (_, i) => [ 101 + i, 1 ]), 'timestamp': 1700000000123 };
+    ws.data.set ('orderbook|BTC/USDT', book);
+    const served = await servedFromStream (hub, { 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 7 }, rest);
+    assert.equal (served.book?.bids.length, 7);
+    assert.equal (served.book?.asks.length, 7);
+    assert.deepEqual (served.book?.bids[0], [ 99, 1 ]);
+    assert.equal (served.book?.timestamp, 1700000000123);
+    // REST asks for one fixed depth (a limit every venue accepts, one cache entry per symbol) and slices
+    const rested = await hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'ETH/USDT', 'depth': 4 }, rest);
+    assert.equal (rested.book?.bids.length, 4);
+    assert.deepEqual (rest.calls.filter ((call) => call.method === 'fetchOrderBook').pop ()?.args, [ 'ETH/USDT', 100 ]);
+    ws.data.set ('ticker|BTC/USDT', { 'symbol': 'BTC/USDT', 'last': 7 });
+    ws.data.set ('ticker|ETH/USDT', { 'symbol': 'ETH/USDT', 'last': 8 });
+    ws.data.set ('ticker|SOL/USDT', { 'symbol': 'SOL/USDT', 'last': 9 });
+    const tickers = await servedFromStream (hub, { 'view': 'tickers', 'exchangeId': 'fakex', 'symbols': [ 'BTC/USDT', 'ETH/USDT' ] }, rest);
+    assert.deepEqual (Object.keys (tickers.tickers ?? {}).sort (), [ 'BTC/USDT', 'ETH/USDT' ]);
+    assert.equal (tickers.tickers?.['ETH/USDT'].last, 8);
+    // a partly streamed board fetches only the missing symbols over REST
+    const mixed = await hub.serve ({ 'view': 'tickers', 'exchangeId': 'fakex', 'symbols': [ 'BTC/USDT', 'SOL/USDT' ] }, rest);
+    assert.equal (mixed.source, 'rest');
+    assert.deepEqual (rest.calls[rest.calls.length - 1], { 'method': 'fetchTicker', 'args': [ 'SOL/USDT' ] }, 'one missing symbol: one fetchTicker');
+    assert.deepEqual (Object.keys (mixed.tickers ?? {}).sort (), [ 'BTC/USDT', 'SOL/USDT' ]);
+    await hub.close ();
+});
+
+test ('live hub: errors — guard errors pass through, anything else is LIVE_UNAVAILABLE, stale stream data beats an error', async () => {
+    const { hub, rest, ws, clock } = setup ({ 'staleMs': 10000 });
+    rest.fail = () => new ToolError ('RATE_LIMITED', 'busy', { 'retryable': true, 'retryAfterSeconds': 3 });
+    await assert.rejects (hub.serve (chart (), rest), (error: any) => error.code === 'RATE_LIMITED');
+    rest.fail = () => new NetworkError ('down');
+    await assert.rejects (hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'ETH/USDT', 'depth': 3 }, rest), (error: any) => error.code === 'LIVE_UNAVAILABLE' && error.retryAfterSeconds > 0);
+    rest.fail = undefined;
+    ws.data.set ('orderbook|BTC/USDT', bookOf (10));
+    const request = { 'view': 'orderbook' as const, 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 3 };
+    await servedFromStream (hub, request, rest);
+    // the socket goes quiet: after staleMs the data is not served while REST works ...
+    ws.data.delete ('orderbook|BTC/USDT');
+    await new Promise ((resolve) => setTimeout (resolve, 20));
+    clock.now += 20000;
+    assert.equal ((await hub.serve (request, rest)).source, 'rest');
+    // ... but when REST fails too, the stale book is better than an error, polled less often
+    rest.fail = () => new NetworkError ('down');
+    const stale = await hub.serve (request, rest);
+    assert.equal (stale.source, 'stream');
+    assert.ok (stale.nextPollMs >= 4000);
+    await hub.close ();
+});
+
+test ('live hub: streaming off serves everything from REST; close () stops every stream and instance', async () => {
+    const off = setup ({ 'enabled': false });
+    off.ws.data.set ('ohlcv|BTC/USDT|1m', candles (290, 299));
+    assert.equal ((await off.hub.serve (chart (), off.rest)).source, 'rest');
+    assert.equal (off.ws.instances.length, 0);
+    await off.hub.close ();
+    const { hub, rest, ws } = setup ();
+    ws.data.set ('ohlcv|BTC/USDT|1m', candles (290, 299));
+    ws.data.set ('ticker|ETH/USDT', { 'symbol': 'ETH/USDT', 'last': 1 });
+    await servedFromStream (hub, chart ({ 'since': candle (299)[0] }), rest);
+    await servedFromStream (hub, { 'view': 'tickers', 'exchangeId': 'fakex', 'marketType': 'swap', 'symbols': [ 'ETH/USDT' ] }, rest);
+    assert.equal (ws.instances.length, 2, 'one instance per market type');
+    await hub.close ();
+    assert.equal (hub.stats ().streams, 0);
+    assert.ok (ws.instances.every ((instance) => instance.closed));
+    const watchCalls = ws.watchCalls;
+    await new Promise ((resolve) => setTimeout (resolve, 30));
+    assert.ok (ws.watchCalls - watchCalls <= 2, 'no loop keeps running after close');
+    // a closed hub still answers, from REST
+    assert.equal ((await hub.serve (chart (), rest)).source, 'rest');
+});
+
+test ('live hub: nextPollMs honours the deployment floor and load factor, always within 1-30 s', async () => {
+    const { hub, rest } = setup ({ 'enabled': false }, { 'restPollMs': () => 60000, 'loadFactor': () => 1 });
+    assert.equal ((await hub.serve (chart (), rest)).nextPollMs, 30000);
+    await hub.close ();
+    const loaded = setup ({ 'enabled': false }, { 'loadFactor': () => 2 });
+    assert.equal ((await loaded.hub.serve (chart (), loaded.rest)).nextPollMs, 10000);
+    await loaded.hub.close ();
+});
+
+test ('live hub: periodic stats are logged only while there is activity', async () => {
+    const lines: any[] = [];
+    const { hub, rest } = setup ({ 'enabled': false }, { 'log': (level, message, attributes) => lines.push ({ level, message, attributes }) });
+    hub.logStats ();
+    assert.equal (lines.length, 0);
+    await hub.serve (chart (), rest);
+    hub.logStats ();
+    hub.logStats ();
+    const stats = lines.filter ((line) => line.message === 'live hub stats');
+    assert.equal (stats.length, 1);
+    assert.equal (stats[0].level, 'info');
+    assert.equal (stats[0].attributes.polls_rest, 1);
+    await hub.close ();
+});
+
+// ---- review findings: scoped refusals, failure events, abandoned subscriptions, quotas ----
+
+const tickers = (symbols: string[], extra: Record<string, any> = {}) => ({ 'view': 'tickers' as const, 'exchangeId': 'fakex', symbols, ...extra });
+
+// polls a board until every symbol is served from its stream
+async function boardStreaming (hub: LiveHub, request: any, rest: FakeRest): Promise<void> {
+    const started = Date.now ();
+    while (Date.now () - started < 2000) {
+        const served = await hub.serve (request, rest);
+        if (served.source === 'stream' && Object.keys (served.tickers ?? {}).length === request.symbols.length) {
+            return;
+        }
+        await new Promise ((resolve) => setTimeout (resolve, 5));
+    }
+    throw new Error ('the board never streamed');
+}
+
+test ('live hub: a refusal ccxt fans out to every stream of a socket bans only the stream it names; the channel keeps streaming', async () => {
+    const { hub, rest, ws, backend } = setup ();
+    rest.markets['USDT/USD'] = { 'symbol': 'USDT/USD', 'id': 'USDT_USD' };
+    for (const symbol of [ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'USDT/USD' ]) {
+        ws.data.set ('ticker|' + symbol, { symbol, 'last': 1 });
+    }
+    const board = tickers ([ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT' ]);
+    await boardStreaming (hub, board, rest);
+    // one poll for a listed symbol the WebSocket API does not know: gate answers its subscribe
+    // with an error ccxt cannot route, and rejects every future on the socket with it
+    await hub.serve (tickers ([ 'USDT/USD' ]), rest);
+    await until (() => hub.stats ().streams === 4);
+    await until (() => ws.instances[0].pending () >= 4);
+    ws.data.delete ('ticker|USDT/USD');
+    const refusal = new BadRequest ('gate {"event":"subscribe","error":{"code":2,"message":"unknown currency pair USDT_USD"}}');
+    assert.ok (ws.instances[0].drop (refusal) >= 4);
+    await until (() => hub.stats ().streams === 3);
+    await new Promise ((resolve) => setTimeout (resolve, 50));
+    assert.equal (hub.stats ().streams, 3, 'only the named stream is closed');
+    await boardStreaming (hub, board, rest);
+    assert.equal (hub.stats ().fallbacks.unsupported ?? 0, 0, 'no channel-wide ban');
+    // the named symbol stays on REST for the cooldown, without reopening its stream
+    const banned = await hub.serve (tickers ([ 'USDT/USD' ]), rest);
+    assert.equal (banned.source, 'rest');
+    assert.equal (hub.stats ().streams, 3);
+    assert.equal (hub.stats ().fallbacks.banned, 1);
+    assert.equal (backend.errors.length, 0, 'a refusal is not a WebSocket failure');
+    // a book of the same symbol is a different stream: not banned
+    ws.data.set ('orderbook|USDT/USD', bookOf (10));
+    await hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'USDT/USD', 'depth': 5 }, rest);
+    assert.equal (hub.stats ().streams, 4);
+    await hub.close ();
+});
+
+test ('live hub: a refusal that names no stream bans the newest subscription only', async () => {
+    const { hub, rest, ws } = setup ();
+    for (const symbol of [ 'BTC/USDT', 'ETH/USDT' ]) {
+        ws.data.set ('ticker|' + symbol, { symbol, 'last': 1 });
+    }
+    await boardStreaming (hub, tickers ([ 'BTC/USDT' ]), rest);
+    await hub.serve (tickers ([ 'ETH/USDT' ]), rest);
+    await until (() => ws.instances[0].pending () >= 2);
+    ws.instances[0].drop (new BadSymbol ('invalid subscription'));
+    await until (() => hub.stats ().streams === 1);
+    await boardStreaming (hub, tickers ([ 'BTC/USDT' ]), rest);
+    assert.equal ((await hub.serve (tickers ([ 'ETH/USDT' ]), rest)).source, 'rest', 'ETH (the newest) is banned');
+    await hub.close ();
+});
+
+test ('live hub: a market the exchange marks inactive is served from REST without opening a stream', async () => {
+    const { hub, rest, ws } = setup ();
+    rest.markets['OLD/USDT'] = { 'symbol': 'OLD/USDT', 'id': 'OLDUSDT', 'active': false };
+    ws.data.set ('ticker|OLD/USDT', { 'symbol': 'OLD/USDT', 'last': 1 });
+    const served = await hub.serve (tickers ([ 'OLD/USDT' ]), rest);
+    assert.equal (served.source, 'rest');
+    assert.equal (hub.stats ().streams, 0);
+    assert.equal (ws.instances.length, 0);
+    assert.equal (hub.stats ().fallbacks.inactive, 1);
+    await hub.close ();
+});
+
+test ('live hub: one dropped socket is one failure, however many streams it carried; streaming goes on', async () => {
+    const { hub, rest, ws, backend } = setup ({ 'wsFailureThreshold': 5 });
+    const symbols = [ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'XRP/USDT', 'ADA/USDT', 'DOT/USDT' ];
+    for (const symbol of symbols) {
+        rest.markets[symbol] = { symbol };
+        ws.data.set ('ticker|' + symbol, { symbol, 'last': 1 });
+    }
+    await boardStreaming (hub, tickers (symbols), rest);
+    await until (() => ws.instances[0].pending () >= 6);
+    // ccxt's onClose: one NetworkError for every future on the socket
+    const closed = new NetworkError ('connection closed by remote server, closing code 1006');
+    assert.ok (ws.instances[0].drop (closed) >= 6);
+    await new Promise ((resolve) => setTimeout (resolve, 50));
+    assert.equal (hub.stats ().streamErrors, 1, 'one failure event');
+    assert.equal (backend.errors.length, 1, 'reported once to the deployment');
+    assert.deepEqual (hub.stats ().disabledExchanges, [], 'not paused');
+    assert.equal (hub.stats ().streams, 6, 'every stream reconnects');
+    await until (() => ws.instances[0].pending () >= 6, 5000);
+    await boardStreaming (hub, tickers (symbols), rest);
+    await hub.close ();
+});
+
+test ('live hub: streams closed on a channel without unWatch stay counted (caps, stats) until the instance is recycled', async () => {
+    const { hub, rest, ws, clock } = setup ({ 'maxAbandonedPerInstance': 3, 'maxStreamsPerExchange': 5, 'idleMs': 60000 });
+    ws.has = { 'unWatchTicker': undefined };
+    const symbols = [ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'A/USDT', 'B/USDT', 'C/USDT' ];
+    for (const symbol of symbols) {
+        rest.markets[symbol] = { symbol };
+        ws.data.set ('ticker|' + symbol, { symbol, 'last': 1 });
+    }
+    ws.data.set ('ohlcv|BTC/USDT|1m', candles (290, 299));
+    // a chart keeps the instance busy while board symbols come and go
+    await servedFromStream (hub, chart ({ 'since': candle (299)[0] }), rest);
+    await boardStreaming (hub, tickers ([ 'ETH/USDT', 'SOL/USDT' ]), rest);
+    clock.now += 40000;
+    await hub.serve (chart ({ 'since': candle (299)[0] }), rest);
+    clock.now += 30000;
+    assert.equal (hub.sweep (), 2, 'the board is gone');
+    assert.deepEqual (ws.unwatched, [], 'nothing could be unsubscribed');
+    assert.equal (hub.stats ().streams, 1);
+    assert.equal (hub.stats ().abandoned, 2, 'the two subscriptions still run on the socket');
+    assert.equal (ws.instances.length, 1);
+    // the abandoned ones count against the caps: 1 stream + 2 abandoned + 2 new = 5
+    await hub.serve (tickers ([ 'A/USDT', 'B/USDT' ]), rest);
+    assert.equal (hub.stats ().streams, 3);
+    const capped = await hub.serve (tickers ([ 'C/USDT' ]), rest);
+    assert.equal (capped.source, 'rest');
+    assert.equal (hub.stats ().streams, 3, 'the per-exchange cap counts abandoned subscriptions');
+    // the third abandoned subscription recycles the instance: its live streams move to a new
+    // one (data kept, served meanwhile) and the old one closes with every subscription on it
+    await boardStreaming (hub, tickers ([ 'A/USDT', 'B/USDT' ]), rest);
+    clock.now += 50000;
+    await hub.serve (chart ({ 'since': candle (299)[0] }), rest);
+    await hub.serve (tickers ([ 'A/USDT' ]), rest);
+    clock.now += 20000;
+    assert.equal (hub.sweep (), 1);
+    assert.equal (hub.stats ().recycled, 1);
+    assert.equal (ws.instances.length, 2);
+    assert.equal (ws.instances[0].closed, true, 'the old instance (and its abandoned subscriptions) is closed');
+    assert.equal (hub.stats ().abandoned, 0);
+    assert.equal (hub.stats ().streams, 2, 'chart and A moved');
+    const moved = await servedFromStream (hub, chart ({ 'since': candle (299)[0] }), rest);
+    assert.equal (moved.candles?.length, 1);
+    await boardStreaming (hub, tickers ([ 'A/USDT' ]), rest);
+    await hub.close ();
+});
+
+test ('live hub: one client can keep at most maxStreamsPerClient streams alive and open maxOpensPerClientPerMinute', async () => {
+    const { hub, rest, ws, clock } = setup ({ 'maxStreamsPerClient': 2, 'maxOpensPerClientPerMinute': 3, 'idleMs': 60000 });
+    const symbols = [ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'A/USDT', 'B/USDT' ];
+    for (const symbol of symbols) {
+        rest.markets[symbol] = { symbol };
+        ws.data.set ('ticker|' + symbol, { symbol, 'last': 1 });
+    }
+    // a third symbol past the quota is answered from REST and opens nothing
+    const first = await hub.serve (tickers ([ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT' ], { 'client': 'ip:1' }), rest);
+    assert.equal (hub.stats ().streams, 2);
+    assert.equal (hub.stats ().fallbacks.quota, 1);
+    assert.equal (Object.keys (first.tickers ?? {}).length, 3, 'the poll is still answered in full');
+    // another client may open its own
+    await hub.serve (tickers ([ 'SOL/USDT' ], { 'client': 'ip:2' }), rest);
+    assert.equal (hub.stats ().streams, 3);
+    // ip:1 reads SOL from the stream ip:2 opened, but cannot keep it alive past its quota
+    await until (() => ws.calls.length >= 3);
+    await new Promise ((resolve) => setTimeout (resolve, 20));
+    for (let i = 0; i < 5; i++) {
+        clock.now += 20000;
+        await hub.serve (tickers ([ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT' ], { 'client': 'ip:1' }), rest);
+    }
+    assert.ok (hub.stats ().unrenewed >= 5);
+    hub.sweep ();
+    assert.equal (hub.stats ().streams, 2, 'SOL expired: only its opener renewed it, and it stopped');
+    // opens per minute: ip:3 opened 2 already this minute; a quota of 2 held, but the 4th open is refused
+    const quota3 = setup ({ 'maxStreamsPerClient': 10, 'maxOpensPerClientPerMinute': 3 });
+    for (const symbol of symbols) {
+        quota3.rest.markets[symbol] = { symbol };
+    }
+    await quota3.hub.serve (tickers ([ 'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'A/USDT' ], { 'client': 'ip:3' }), quota3.rest);
+    assert.equal (quota3.hub.stats ().streams, 3);
+    // an unnamed caller (the local server) has no quota
+    await quota3.hub.serve (tickers ([ 'A/USDT', 'B/USDT' ]), quota3.rest);
+    assert.equal (quota3.hub.stats ().streams, 5);
+    await quota3.hub.close ();
+    await hub.close ();
+});
+
+test ('live hub: the per-client quota reads the caller from the deployment', async () => {
+    let caller: string | undefined = 'subject:a';
+    const { hub, rest } = setup ({ 'maxStreamsPerClient': 1 }, { 'client': () => caller });
+    await hub.serve (tickers ([ 'BTC/USDT', 'ETH/USDT' ]), rest);
+    assert.equal (hub.stats ().streams, 1);
+    caller = undefined;
+    await hub.serve (tickers ([ 'ETH/USDT' ]), rest);
+    assert.equal (hub.stats ().streams, 2);
+    await hub.close ();
+});
+
+test ('live hub: a chart REST fallback always asks for the same arguments, whatever since the view sends', async () => {
+    const { hub, rest } = setup ({ 'enabled': false });
+    const sinces = [ 290, 291, 295, 298 ].map ((i) => candle (i)[0] + 17);
+    for (const since of sinces) {
+        const served = await hub.serve (chart ({ since }), rest);
+        assert.ok ((served.candles ?? []).every ((row) => row[0] >= since));
+        assert.ok ((served.candles ?? []).length > 0);
+    }
+    const argumentSets = new Set (rest.calls.map ((call) => JSON.stringify (call.args)));
+    assert.deepEqual ([ ...argumentSets ], [ JSON.stringify ([ 'BTC/USDT', '1m', undefined, 200 ]) ]);
+    await hub.close ();
+});
+
+test ('live hub: order-book streams ask venues with a shallow default for enough levels; a shallow stream book is not served', async () => {
+    const control = wsControl ();
+    const kraken = setup ({}, { 'openStreamInstance': (exchangeId: string, marketType: string | undefined) => new FakeWs (control, exchangeId, marketType) });
+    control.data.set ('orderbook|BTC/USDT', bookOf (100));
+    await servedFromStream (kraken.hub, { 'view': 'orderbook', 'exchangeId': 'kraken', 'symbol': 'BTC/USDT', 'depth': 50 }, kraken.rest);
+    assert.deepEqual (control.calls.find ((call) => call.method === 'watchOrderBook')?.args, [ 'BTC/USDT', 100 ]);
+    await kraken.hub.close ();
+    // a venue not listed keeps its default, and a stream book shallower than the REST book is
+    // answered from REST instead of shrinking the ladder
+    const { hub, rest, ws } = setup ();
+    ws.data.set ('orderbook|BTC/USDT', bookOf (10));
+    const request = { 'view': 'orderbook' as const, 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 50 };
+    const first = await hub.serve (request, rest);
+    assert.equal (first.book?.bids.length, 50);
+    assert.deepEqual (ws.calls.find ((call) => call.method === 'watchOrderBook')?.args, [ 'BTC/USDT' ]);
+    await until (() => ws.calls.length > 0);
+    await new Promise ((resolve) => setTimeout (resolve, 20));
+    const later = await hub.serve (request, rest);
+    assert.equal (later.source, 'rest');
+    assert.equal (later.book?.bids.length, 50, 'the requested depth');
+    assert.ok ((hub.stats ().fallbacks.shallow ?? 0) >= 1);
+    // a view asking for no more than the stream holds is served from it
+    assert.equal ((await servedFromStream (hub, { ...request, 'depth': 10 }, rest)).book?.bids.length, 10);
+    await hub.close ();
+});
+
+test ('live hub: stale stream tickers served when REST fails are marked stale and dated when they were streamed', async () => {
+    const { hub, rest, ws, clock } = setup ({ 'staleMs': 10000 });
+    ws.data.set ('ticker|BTC/USDT', { 'symbol': 'BTC/USDT', 'last': 5 });
+    await boardStreaming (hub, tickers ([ 'BTC/USDT' ]), rest);
+    const streamedAt = clock.now;
+    ws.data.delete ('ticker|BTC/USDT');
+    await new Promise ((resolve) => setTimeout (resolve, 20));
+    clock.now += 600000;
+    rest.fail = () => new NetworkError ('down');
+    const served = await hub.serve (tickers ([ 'BTC/USDT' ]), rest);
+    assert.equal (served.stale, true);
+    assert.equal (served.asOf, streamedAt, 'as of when it was streamed, not now');
+    assert.equal (served.tickers?.['BTC/USDT'].last, 5);
+    // the same for a book or a chart
+    ws.data.set ('orderbook|BTC/USDT', bookOf (10));
+    rest.fail = undefined;
+    await servedFromStream (hub, { 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 5 }, rest);
+    ws.data.delete ('orderbook|BTC/USDT');
+    await new Promise ((resolve) => setTimeout (resolve, 20));
+    clock.now += 60000;
+    rest.fail = () => new NetworkError ('down');
+    assert.equal ((await hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 5 }, rest)).stale, true);
+    await hub.close ();
+});
+
+test ('live hub: a REST book refused for its limit (fixed-depth venues) is asked again without one; a request refused either way is not masked', async () => {
+    const { hub, rest } = setup ({ 'enabled': false });
+    const original = rest.fetchOrderBook.bind (rest);
+    rest.fetchOrderBook = async (symbol: string, limit?: number) => {
+        if (limit !== undefined && ![ 5, 10, 20, 150 ].includes (limit)) {
+            rest.calls.push ({ 'method': 'fetchOrderBook', 'args': [ symbol, limit ] });
+            throw new BadRequest ('htx fetchOrderBook() limit argument must be undefined, 5, 10, 20, or 150');
+        }
+        return original (symbol, limit);
+    };
+    const served = await hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 30 }, rest);
+    assert.equal (served.book?.bids.length, 30);
+    assert.deepEqual (rest.calls.map ((call) => call.args[1]), [ 100, undefined ]);
+    rest.fetchOrderBook = async () => {
+        throw new BadRequest ('no');
+    };
+    await assert.rejects (hub.serve ({ 'view': 'orderbook', 'exchangeId': 'fakex', 'symbol': 'BTC/USDT', 'depth': 30 }, rest), (error: any) => error instanceof BadRequest);
+    await hub.close ();
+});
+
+test ('live hub: failed and refused polls are counted; the stats line reports totals and per-interval deltas', async () => {
+    const lines: any[] = [];
+    const { hub, rest } = setup ({ 'enabled': false }, { 'log': (level, message, attributes) => lines.push ({ level, message, attributes }) });
+    await hub.serve (chart (), rest);
+    rest.fail = () => new ToolError ('RATE_LIMITED', 'busy', { 'retryable': true, 'retryAfterSeconds': 3 });
+    await assert.rejects (hub.serve (chart (), rest));
+    hub.countRefused ('client');
+    hub.countRefused ('busy');
+    hub.logStats ();
+    rest.fail = undefined;
+    await hub.serve (chart (), rest);
+    await hub.serve (chart (), rest);
+    hub.logStats ();
+    hub.countRefused ('host');
+    hub.logStats ();
+    const stats = lines.filter ((line) => line.message === 'live hub stats').map ((line) => line.attributes);
+    assert.equal (stats.length, 3, 'a refusal alone is activity too');
+    assert.equal (stats[0].polls_failed, 1);
+    assert.equal (stats[0].polls_failed_by_code, 'RATE_LIMITED:1');
+    assert.equal (stats[0].refused_by_reason, 'client:1,busy:1');
+    assert.equal (stats[1].polls_rest, 3, 'totals since start');
+    assert.equal (stats[1].polls_rest_delta, 2, 'since the last line');
+    assert.equal (stats[1].polls_failed_delta, 0);
+    assert.equal (stats[2].refused_delta, 1);
+    assert.deepEqual (hub.stats ().pollsFailed, { 'RATE_LIMITED': 1 });
+    await hub.close ();
+});
+
+test ('live hub: prediction-class requests get their own instance and streams', async () => {
+    const opened: any[] = [];
+    const control = wsControl ();
+    const { hub, rest } = setup ({}, { 'openStreamInstance': (exchangeId: string, marketType: string | undefined, _rest: any, prediction: boolean) => {
+        opened.push ({ exchangeId, prediction });
+        return new FakeWs (control, exchangeId, marketType);
+    } });
+    control.data.set ('ticker|BTC/USDT', { 'symbol': 'BTC/USDT', 'last': 1 });
+    await hub.serve (tickers ([ 'BTC/USDT' ]), rest);
+    await hub.serve (tickers ([ 'BTC/USDT' ], { 'prediction': true }), rest);
+    await until (() => opened.length === 2);
+    assert.deepEqual (opened, [ { 'exchangeId': 'fakex', 'prediction': false }, { 'exchangeId': 'fakex', 'prediction': true } ]);
+    assert.equal (hub.stats ().streams, 2);
+    assert.equal (hub.stats ().instances, 2);
+    await hub.close ();
+});

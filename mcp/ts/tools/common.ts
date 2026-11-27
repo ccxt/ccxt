@@ -1,20 +1,50 @@
 import { z } from 'zod';
+import { inputRequired } from '@modelcontextprotocol/server';
+import type { AuthInfo, InputRequiredResult } from '@modelcontextprotocol/server';
 import type { ServerContext } from '../types.js';
 import { accountEnvironment } from '../types.js';
 import type { AccountConfig } from '../types.js';
-import { toErrorEnvelope, type ErrorContext } from '../errors.js';
+import { toErrorEnvelope, ToolError, type ErrorContext } from '../errors.js';
 import { toContent, ok, type Envelope } from '../format.js';
 import { SafetyError } from '../safety.js';
 import { UnknownExchangeError, UnknownAccountError } from '../pools.js';
 import { log } from '../logging.js';
+import { currentRequestScope } from '../request-scope.js';
+import { isUiPayload, toUiContent, type UiPayload } from '../ui.js';
 
-export type ToolResult = { content: { type: 'text', text: string }[], isError?: boolean };
+export type ToolResult = { content: { type: 'text', text: string }[], structuredContent?: Record<string, any>, isError?: boolean } | InputRequiredResult;
 
-export const exchangeParam = z.string ().describe ('exchange id, e.g. "binance" — validated against ccxt.exchanges; discover ids with list_exchanges');
-export const predictionParam = z.boolean ().optional ().describe ('set true to use the prediction-markets variant of an exchange that exists in both namespaces (e.g. hyperliquid)');
-export const paramsParam = z.record (z.any ()).optional ().describe ('extra exchange-specific parameters passed through to ccxt unchanged (e.g. {"until": 1673000000000}) — discover supported keys with describe_method');
-export const accountParam = z.string ().describe ('configured account name — discover with list_accounts; credentials are never tool parameters');
-export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry to fetch: timestamp in ms, or an ISO8601 string like "2024-01-01T00:00:00Z"');
+// Length caps on free-text identifiers: generous for every real value (the longest ccxt
+// exchange id is ~20 characters; prediction outcome handles run to ~100), tight enough that
+// a caller cannot push kilobytes into URLs, cache keys or log lines through one argument
+export const MAX_EXCHANGE_ID_LENGTH = 64;
+export const MAX_SYMBOL_LENGTH = 256;
+export const MAX_METHOD_NAME_LENGTH = 128;
+export const MAX_ACCOUNT_NAME_LENGTH = 128;
+export const MAX_CODE_LENGTH = 64; // currency/network codes, order types, field names
+export const MAX_TEXT_LENGTH = 256; // search queries and other free text
+export const MAX_SYMBOLS = 50; // symbols per call: get_tickers fans out one request per symbol where fetchTickers is missing
+
+// mirrors MarketType in ts/src/base/types.ts (a unit test keeps the two in step). An enum,
+// not a free string: the value becomes options.defaultType and, through it, part of the
+// markets disk-cache file name — a free string there was a path traversal
+export const MARKET_TYPES = [ 'spot', 'margin', 'swap', 'future', 'option', 'delivery', 'index', 'prediction' ] as const;
+export type MarketTypeName = typeof MARKET_TYPES[number];
+
+// These descriptions are repeated in ~30 tool schemas, and a host injects every schema into
+// the model's context (some cap the total — see CORE_TOOLS in ./profile.ts), so each word
+// here costs ~30x. Keep them to what the model cannot infer from the name and the type.
+export const exchangeParam = z.string ().min (1).max (MAX_EXCHANGE_ID_LENGTH).describe ('exchange id, e.g. "binance" (list_exchanges)');
+export const symbolParam = (description: string) => z.string ().min (1).max (MAX_SYMBOL_LENGTH).describe (description);
+export const methodNameParam = (description: string) => z.string ().min (1).max (MAX_METHOD_NAME_LENGTH).describe (description);
+export const accountNameParam = z.string ().min (1).max (MAX_ACCOUNT_NAME_LENGTH);
+export const marketTypeParam = z.enum (MARKET_TYPES).optional ().describe ('market type, for exchanges with several ("swap" = perpetuals); sets options.defaultType');
+export const predictionParam = z.boolean ().optional ().describe ('true = the prediction-markets variant of an exchange (e.g. hyperliquid)');
+export const paramsParam = z.record (z.string (), z.any ()).optional ().describe ('extra exchange-specific parameters passed through to ccxt unchanged (e.g. {"until": 1673000000000}) — discover supported keys with describe_method');
+// what a tool carries instead when the tool profile hides describe_method (./profile.ts)
+export const paramsParamNoPointer = z.record (z.string (), z.any ()).optional ().describe ('exchange-specific ccxt params, passed unchanged');
+export const accountParam = accountNameParam.describe ('configured account name (list_accounts); credentials are never parameters');
+export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry: ms timestamp or ISO8601 string, e.g. "2024-01-01T00:00:00Z"');
 
 export class ArgError extends Error {
     hint: string;
@@ -44,19 +74,49 @@ export function parseSince (exchange: any, since: number | string | undefined): 
     throw new ArgError ('could not parse "since" value ' + JSON.stringify (since), 'pass an ISO8601 string like "2024-01-01T00:00:00Z" or a millisecond timestamp');
 }
 
-// uniform tool wrapper: envelope + error mapping + size budget in one place
-export async function run (context: ErrorContext, fn: () => Promise<Envelope>): Promise<ToolResult> {
+// thrown by confirmWrite on a 2026-07-28 request to hand an input_required result (the
+// human confirmation prompt) back through run () to the SDK, which has the client ask
+// the user and retry the call with the answer
+export class InputRequiredSignal extends Error {
+    result: InputRequiredResult;
+    constructor (result: InputRequiredResult) {
+        super ('input required');
+        this.result = result;
+    }
+}
+
+// the caller identity for this call: a per-request token (ctx.http.authInfo) wins over the
+// one the server instance was built with. Undefined on stdio and on hosted phase 1
+export function requestAuthInfo (ctx: ServerContext): AuthInfo | undefined {
+    return currentRequestScope ()?.authInfo ?? ctx.authInfo;
+}
+
+// uniform tool wrapper: envelope + error mapping + size budget in one place. A render tool
+// (show_*) returns a UiPayload instead: the compact envelope for the model plus the
+// structuredContent its view reads. Its errors take the same path as every other tool's,
+// so a failed render call is a plain text isError result (no structuredContent).
+export async function run (context: ErrorContext, fn: () => Promise<Envelope | UiPayload>): Promise<ToolResult> {
     try {
-        return toContent (await fn ());
+        const result = await fn ();
+        return isUiPayload (result) ? toUiContent (result) : toContent (result);
     } catch (error: any) {
+        if (error instanceof InputRequiredSignal) {
+            return error.result;
+        }
         if (error instanceof SafetyError) {
             return toContent ({ 'ok': false, 'error': { 'code': error.code, 'message': error.message, 'retryable': false, 'hint': error.hint } });
         }
         if (error instanceof ArgError) {
             return toContent ({ 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': error.message, 'retryable': false, 'hint': error.hint } });
         }
+        if (error instanceof ToolError) {
+            return toContent (error.envelope (context.exchange));
+        }
         if (error instanceof UnknownExchangeError) {
-            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' } });
+            // the hosted server serves an allowlist, so "unknown" there usually means "not
+            // offered here" rather than a typo — say where the rest of ccxt is available
+            const hostedHint = (currentRequestScope ()?.hosted === true) ? ' — this hosted server offers a curated list of exchanges; every ccxt exchange is available through the local ccxt-mcp server (https://docs.ccxt.com/docs/mcp)' : '';
+            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' + hostedHint } });
         }
         if (error instanceof UnknownAccountError) {
             return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_ACCOUNT', 'message': error.message, 'retryable': false, 'hint': error.hint || 'list configured accounts with list_accounts' } });
@@ -80,12 +140,169 @@ export function marketTypeMismatchNotice (exchange: any, symbols: string[], mark
     return undefined;
 }
 
+// own-property lookup: a symbol or timeframe is caller text, and a plain lookup of
+// "__proto__" or "constructor" finds Object.prototype members instead of "not there"
+export function hasOwn (object: any, key: string): boolean {
+    return object !== null && typeof object === 'object' && Object.prototype.hasOwnProperty.call (object, key);
+}
+
+// a ticker that lacks `symbol`, as a copy: the object may be a cached result other callers
+// share, and writing onto an object we did not create is how "__proto__" became a write
+// to Object.prototype
+function withSymbol (ticker: any, symbol: string): any {
+    return (ticker.symbol === undefined) ? { ...ticker, 'symbol': symbol } : ticker;
+}
+
+// one ticker per requested symbol, in request order; backfills `symbol` so callers can match
+// rows to the handles they requested (some prediction/outcome tickers omit it). A symbol
+// the exchange did not answer for is left out (see missingTickersNotice in ./market.ts)
+export async function fetchTickerList (exchange: any, symbols: string[], params: Record<string, any>): Promise<any[]> {
+    if (exchange.has['fetchTickers'] && symbols.length > 1) {
+        const result = await exchange.fetchTickers (symbols, params);
+        const tickers: any[] = [];
+        for (const symbol of symbols) {
+            const ticker = hasOwn (result, symbol) ? result[symbol] : undefined;
+            if (ticker !== undefined && ticker !== null && typeof ticker === 'object') {
+                tickers.push (withSymbol (ticker, symbol));
+            }
+        }
+        return tickers;
+    }
+    const tickers: any[] = [];
+    for (const symbol of symbols) {
+        const ticker = await exchange.fetchTicker (symbol, params);
+        if (ticker !== undefined && ticker !== null && typeof ticker === 'object') {
+            tickers.push (withSymbol (ticker, symbol));
+        }
+    }
+    return tickers;
+}
+
+// some exchanges ignore the API-level limit — slice server-side; and normalize each level to
+// the unified [price, amount] (some venues, e.g. kraken, append a per-level timestamp as a
+// third element that an agent could misread as an order count)
+export function normalizeBookSide (side: any[] | undefined, levels: number): any[][] {
+    return (side ?? []).slice (0, levels).map ((level: any[]) => [ level?.[0], level?.[1] ]);
+}
+
+// shared by get_ohlcv and show_chart so both reject an unsupported timeframe identically
+export function badTimeframe (exchange: any, frame: string): Envelope | undefined {
+    const timeframes = exchange.timeframes;
+    if (timeframes !== null && timeframes !== undefined && !hasOwn (timeframes, frame)) {
+        return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
+    }
+    return undefined;
+}
+
+// Each notice is a sentence fragment without terminal punctuation (and several contain
+// dashes and semicolons of their own), so a bare space ran them into one garbled sentence.
+// The separator keeps every notice readable as a unit; undefined when there is none.
+const NOTICE_SEPARATOR = ' | ';
+
+export function joinNotices (notices: (string | undefined)[]): string | undefined {
+    const present = notices.filter ((notice) => typeof notice === 'string' && notice.length > 0);
+    return present.length ? present.join (NOTICE_SEPARATOR) : undefined;
+}
+
+// fetchTickerList drops a requested symbol the exchange did not answer for — say so, or the
+// caller reads a partial result as the complete one
+export function missingTickersNotice (missing: string[]): string | undefined {
+    if (missing.length === 0) {
+        return undefined;
+    }
+    return 'no ticker was returned for: ' + missing.join (', ') + ' — some exchanges serve one market type per call, so request spot and swap/future symbols in separate calls';
+}
+
 export function clampLimit (limit: number | undefined, defaultValue: number, max: number): number {
     if (limit === undefined) {
         return defaultValue;
     }
     return Math.max (1, Math.min (Math.floor (limit), max));
 }
+
+// a "limit" (or "depth") input: a positive integer. Zero and negative values are schema
+// errors, not silently read as 1; values over a tool's max are clamped and reported
+export const limitParam = (description: string) => z.number ().int ().positive ().optional ().describe (description);
+
+export interface LimitClamped {
+    requested: number;
+    applied: number;
+}
+
+// every tool that clamps a limit reports it the same way: meta.limitClamped plus a notice
+// (search_markets set the pattern), so a shorter answer is never mistaken for all there is
+export function limitClamped (requested: number | undefined, applied: number): LimitClamped | undefined {
+    return (requested !== undefined && requested !== applied) ? { requested, applied } : undefined;
+}
+
+export function limitClampedNotice (clamped: LimitClamped | undefined, reason = 'the max for this tool'): string | undefined {
+    return (clamped === undefined) ? undefined : 'limit ' + clamped.requested + ' was clamped to ' + clamped.applied + ' (' + reason + ')';
+}
+
+// meta with limitClamped and its notice added (ahead of any notice already there)
+export function withLimitClamped (meta: Record<string, any>, clamped: LimitClamped | undefined): Record<string, any> {
+    if (clamped === undefined) {
+        return meta;
+    }
+    return { ...meta, 'limitClamped': clamped, 'notice': joinNotices ([ limitClampedNotice (clamped), meta['notice'] ]) };
+}
+
+const TIMEFRAME_UNIT_MS: Record<string, number> = { 's': 1000, 'm': 60000, 'h': 3600000, 'd': 86400000, 'w': 604800000, 'M': 2592000000, 'y': 31536000000 };
+
+// the length of one candle, as ccxt's parseTimeframe counts it (a month is 30 days)
+export function timeframeMs (frame: string): number | undefined {
+    const match = /^([0-9]+)([smhdwMy])$/.exec (frame);
+    return (match === null) ? undefined : Number (match[1]) * TIMEFRAME_UNIT_MS[match[2]];
+}
+
+function isoOrMs (ms: number): string {
+    const date = new Date (ms);
+    return Number.isNaN (date.getTime ()) ? String (ms) : date.toISOString ();
+}
+
+function roughDuration (ms: number): string {
+    const units: [ number, string ][] = [ [ 86400000, 'days' ], [ 3600000, 'hours' ], [ 60000, 'minutes' ] ];
+    for (const [ size, name ] of units) {
+        if (ms >= 2 * size) {
+            return Math.round (ms / size) + ' ' + name;
+        }
+    }
+    return Math.round (ms / 1000) + ' seconds';
+}
+
+// ccxt hands "since" to the exchange only where the endpoint takes one. Elsewhere (okx
+// fetchTrades, for one) it fetches the latest page and drops what is older than since, so a
+// since in the past silently returns the most recent items. When the earliest item returned
+// is well after since (more than toleranceMs), say so rather than pass it off as the range
+// that starts at since. Generic: get_trades, get_ohlcv and show_chart all use it.
+export function sinceGapNotice (exchangeId: string, sinceMs: number | undefined, timestamps: any[], toleranceMs: number | undefined, what: string): string | undefined {
+    if (sinceMs === undefined || toleranceMs === undefined || !Number.isFinite (sinceMs)) {
+        return undefined;
+    }
+    let earliest = Infinity;
+    for (const timestamp of timestamps) {
+        if (typeof timestamp === 'number' && Number.isFinite (timestamp) && timestamp < earliest) {
+            earliest = timestamp;
+        }
+    }
+    if (earliest === Infinity || earliest - sinceMs <= toleranceMs) {
+        return undefined;
+    }
+    return 'the earliest ' + what + ' returned is at ' + isoOrMs (earliest) + ', ' + roughDuration (earliest - sinceMs) + ' after the requested since (' + isoOrMs (sinceMs) + '): ' + exchangeId + ' did not return data from since — its endpoint may serve only recent data, or there is none in between. Do not present this as the range starting at since';
+}
+
+// how far after since the first trade may be before sinceGapNotice speaks: a minute, or the
+// span of the page itself (an illiquid market's first trade after since can be far off, but
+// then its trades are sparse too)
+export function tradesSinceTolerance (timestamps: any[]): number {
+    const valid = timestamps.filter ((timestamp) => typeof timestamp === 'number' && Number.isFinite (timestamp));
+    if (valid.length === 0) {
+        return 60000;
+    }
+    return Math.max (60000, Math.max (...valid) - Math.min (...valid));
+}
+
+export const CONFIRM_PROMPT_TIMEOUT_MS = 300000;
 
 export interface AuthContext {
     exchange: any;
@@ -127,29 +344,58 @@ export async function confirmWrite (
     if (ctx.elicitationSupported ()) {
         const summary = action + ' on ' + account.exchange + ' (account ' + JSON.stringify (account.name) + ', ' + accountEnvironment (account).toUpperCase () + ')\n'
             + JSON.stringify (preview, null, 2);
+        const message = 'Confirm: ' + summary;
+        const requestedSchema = {
+            'type': 'object' as const,
+            'properties': {
+                'confirm': { 'type': 'boolean' as const, 'description': 'approve this action' },
+            },
+            'required': [ 'confirm' ],
+        };
+        const request: any = currentRequestScope ()?.request;
         let response: any;
-        try {
-            response = await ctx.elicit ('Confirm: ' + summary, {
-                'type': 'object',
-                'properties': {
-                    'confirm': { 'type': 'boolean', 'description': 'approve this action' },
-                },
-                'required': [ 'confirm' ],
-            });
-        } catch (e: any) {
-            // FAIL CLOSED: on an elicitation-capable host a failed/timed-out human prompt
-            // must never downgrade to the model-redeemable token flow — that would let the
-            // model confirm its own write
-            log ('warning', 'elicitation failed: ' + String (e?.message ?? e));
-            return {
-                'ok': false,
-                'error': {
-                    'code': 'CONFIRM_UNAVAILABLE',
-                    'message': 'the confirmation prompt could not be completed (' + String (e?.message ?? e) + ') — the ' + action + ' was NOT performed',
-                    'retryable': true,
-                    'hint': 'ask the user, then retry so they can answer the confirmation prompt',
-                },
-            };
+        if (ctx.era === 'modern') {
+            // 2026-07-28 has no server-to-client requests: return input_required, the client
+            // asks the human and retries this same call carrying the answer. The state is a
+            // single-use nonce bound to this exact payload, valid for the same 5 minutes the
+            // 2025-era prompt waits — a forged, replayed, stale or mismatched answer fails closed
+            const answer = request?.mcpReq?.inputResponses?.['confirm'];
+            if (answer === undefined) {
+                throw new InputRequiredSignal (inputRequired ({
+                    'inputRequests': { 'confirm': inputRequired.elicit ({ message, requestedSchema }) },
+                    'requestState': ctx.safety.issueConfirmState (payload),
+                }));
+            }
+            ctx.safety.redeemConfirmState (request.mcpReq.requestState (), payload);
+            // the answer is client-supplied data: anything but a well-formed accept reads as a dismissal
+            response = (answer !== null && typeof answer === 'object') ? answer : {};
+        } else {
+            try {
+                if (typeof request?.mcpReq?.elicitInput !== 'function') {
+                    throw new Error ('no request context to send the confirmation prompt on');
+                }
+                // humans reading a withdrawal preview take longer than the SDK's 60s default —
+                // give confirmations 5 minutes and keep resetting while the host reports progress
+                response = await request.mcpReq.elicitInput ({ message, requestedSchema }, {
+                    'timeout': CONFIRM_PROMPT_TIMEOUT_MS,
+                    'maxTotalTimeout': CONFIRM_PROMPT_TIMEOUT_MS,
+                    'resetTimeoutOnProgress': true,
+                });
+            } catch (e: any) {
+                // FAIL CLOSED: on an elicitation-capable host a failed/timed-out human prompt
+                // must never downgrade to the model-redeemable token flow — that would let the
+                // model confirm its own write
+                log ('warning', 'elicitation failed: ' + String (e?.message ?? e));
+                return {
+                    'ok': false,
+                    'error': {
+                        'code': 'CONFIRM_UNAVAILABLE',
+                        'message': 'the confirmation prompt could not be completed (' + String (e?.message ?? e) + ') — the ' + action + ' was NOT performed',
+                        'retryable': true,
+                        'hint': 'ask the user, then retry so they can answer the confirmation prompt',
+                    },
+                };
+            }
         }
         if (response.action === 'accept' && response.content?.confirm === true) {
             return 'confirmed';

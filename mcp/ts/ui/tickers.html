@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCXT prices</title>
+<style>
+/* @include shared.css */
+.asof { color: var(--text-2); margin-top: 2px; }
+.hero .value { font-variant-numeric: normal; }
+/* sits under the table: its height may change with the row, and rows must not move under the pointer */
+.readout { display: flex; flex-wrap: wrap; gap: 2px 14px; min-height: 20px; margin: 8px 0 0; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--text); font-weight: 600; }
+.readout .sym { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board.scroll { max-height: 520px; }
+th, td { padding: 6px 10px; }
+thead th { padding: 5px 10px; }
+thead button { border: 0; border-radius: 4px; padding: 2px 4px; margin: -2px -4px; color: inherit; font-weight: inherit; white-space: nowrap; }
+thead th[aria-sort="ascending"] button, thead th[aria-sort="descending"] button { color: var(--text); font-weight: 600; }
+thead .dir { display: inline-block; width: 1em; text-align: center; }
+tbody tr:hover, tbody tr.active { --row: var(--bg-2); background: var(--bg-2); }
+tbody tr:focus-visible { outline-offset: -2px; }
+tbody th { font-weight: 600; text-align: left; border-bottom: 1px solid var(--border); padding: 6px 10px; }
+tbody tr:last-child th { border-bottom: 0; }
+.name { display: block; max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.missing, .unit { color: var(--text-3); font-weight: 400; }
+/* a long unit ("contracts") drops under its number before the table would overflow */
+td.c-volume { white-space: normal; }
+/* 24h change: signed text carries the value, the bar (centred on zero) the comparison */
+.chg { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.chg .delta { min-width: 5.4em; text-align: right; }
+.dbar { position: relative; flex: none; width: 56px; height: 14px; }
+.dbar::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; margin-left: -0.5px; background: var(--text-3); }
+.dbar i { position: absolute; top: 4px; height: 6px; }
+.dbar i.up { left: calc(50% + 0.5px); background: var(--up); border-radius: 0 3px 3px 0; }
+.dbar i.down { right: calc(50% + 0.5px); background: var(--down); border-radius: 3px 0 0 3px; }
+/* 24h range: a neutral low–high track with one marker at the last price */
+.rng { position: relative; display: inline-block; vertical-align: middle; width: 96px; height: 14px; }
+.rng::before { content: ""; position: absolute; left: 0; right: 0; top: 5px; height: 4px; border-radius: 2px; background: var(--border); }
+.rng i { position: absolute; top: 3px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2px var(--row, var(--bg)); }
+.single { max-width: 460px; }
+.single .ends { display: flex; justify-content: space-between; gap: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.single .ends b, .stats dd { color: var(--text); font-weight: 600; }
+.single .rng { display: block; width: auto; margin: 2px 4px 14px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px 16px; margin: 0; padding-top: 12px; border-top: 1px solid var(--border); }
+.stats dt { color: var(--text-2); }
+.stats dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+thead .short { display: none; }
+/* narrower hosts shed decoration first, then whole columns — the table never overflows */
+@media (max-width: 639px) {
+    .rng { width: 72px; }
+    thead .long { display: none; }
+    thead .short { display: inline; }
+    tbody .unit { display: block; font-size: 11px; line-height: 1.2; }
+}
+@media (max-width: 559px) {
+    .dbar { display: none; }
+    .rng { width: 56px; }
+    .chg .delta { min-width: 0; }
+    th, td, thead th, tbody th { padding-left: 5px; padding-right: 5px; }
+}
+@media (max-width: 479px) {
+    .c-range { display: none; }
+    .name { max-width: 7.5em; }
+}
+@media (max-width: 399px) {
+    body { font-size: 12px; }
+    th, td, thead th, tbody th { padding-left: 4px; padding-right: 4px; }
+}
+@media (max-width: 349px) {
+    .c-volume { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="head">
+    <div>
+        <div class="title"><h1 id="heading">Prices</h1><span class="venue" id="venue"></span></div>
+        <div class="hero" id="hero" hidden><span class="value" id="last">–</span><span class="delta" id="change"></span><span class="context">24h change</span></div>
+        <div class="asof" id="asof"></div>
+    </div>
+    <div class="controls" id="controls">
+        <button type="button" id="refresh" title="Fetch the latest prices" hidden>Refresh</button>
+    </div>
+</div>
+<div class="board" id="board"></div>
+<div class="readout" id="readout" aria-live="off" hidden></div>
+<div class="status" id="status" role="status">Waiting for data…</div>
+<script>
+/* @include bridge.js */
+/* @include table.js */
+/* @include live.js */
+</script>
+<script>
+(function () {
+    'use strict';
+    var app = window.ccxtApp;
+    var table = window.ccxtTable;
+    var labelled = table.labelled;
+    var NUMERIC = [ 'last', 'percentage', 'change', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap', 'open', 'close', 'timestamp' ];
+    var rows = [];
+    var raw = []; // the tickers rows were normalized from, live updates merged in
+    var offset = 0; // live_update takes 20 symbols: a larger board is polled 20 at a time
+    var contracts = null;
+    var maxChange = 0; // the largest 24h change on the board: the scale of the change bars
+    var headerUnit = ''; // the volume unit every row shares, named once in the column header
+    var source; // the loader (payload, Refresh, host connection) and the grid, built at the end
+    var board;
+    var nodes = {};
+    [ 'heading', 'venue', 'hero', 'last', 'change', 'asof', 'refresh', 'readout', 'board', 'status', 'controls' ].forEach (function (id) {
+        nodes[id] = document.getElementById (id);
+    });
+
+    // bridge.price / bridge.percent print every digit: fine for prices, too wide for outliers
+    function price (value, digits) {
+        return (app.isNumber (value) && Math.abs (value) >= 1e9) ? app.compact (value) : app.price (value, digits);
+    }
+
+    // The prices of one market are read side by side (last, bid, ask, low, high): one decimal
+    // count for all of them — the finest the exchange wrote. A value with more decimals than
+    // bridge.price would print for the last price is float noise (or beyond what fits), so
+    // it is rounded with the rest instead of widening the row. The last price itself is
+    // never rounded below that limit: a sub-1 price written with 7 or 8 decimals (as some
+    // venues send DOGE, or as a live update carries it) shows 5 of them, not "0".
+    function rowDigits (row) {
+        var size = Math.abs (row.last);
+        if (!(size > 0) || size >= 1e9) {
+            return undefined;
+        }
+        var magnitude = Math.floor (Math.log (size) / Math.LN10 + 1e-9);
+        var most = (size >= 1) ? Math.max (2, 6 - magnitude) : (4 - magnitude);
+        var digits = (size >= 1) ? 2 : 0;
+        [ 'last', 'bid', 'ask', 'low', 'high' ].forEach (function (key) {
+            var count = app.decimals (row[key]);
+            if (count <= most) {
+                digits = Math.max (digits, count);
+            } else if (key === 'last') {
+                digits = Math.max (digits, most);
+            }
+        });
+        return digits;
+    }
+
+    function percent (value) {
+        if (app.isNumber (value) && Math.abs (value) >= 10000) {
+            return ((value > 0) ? '+' : '−') + app.compact (Math.abs (value)) + '%';
+        }
+        return app.percent (value);
+    }
+
+    function setDelta (node, value) {
+        var direction = app.isNumber (value) ? ((value > 0) ? 'up' : ((value < 0) ? 'down' : '')) : '';
+        var arrow = (direction === 'up') ? '▲ ' : ((direction === 'down') ? '▼ ' : '');
+        node.textContent = arrow + percent (value);
+        node.className = 'delta' + (direction ? ' ' + direction : '') + (app.isNumber (value) ? '' : ' missing');
+    }
+
+    function normalize (ticker, index) {
+        var row = { index: index, symbol: (typeof ticker.symbol === 'string' && ticker.symbol) ? ticker.symbol : '–' };
+        NUMERIC.forEach (function (key) {
+            row[key] = app.isNumber (ticker[key]) ? ticker[key] : undefined;
+        });
+        if (row.last === undefined) {
+            row.last = row.close;
+        }
+        // outside the range a Date can hold, bridge.dateTime would throw
+        if (row.timestamp !== undefined && Math.abs (row.timestamp) > 8.64e15) {
+            row.timestamp = undefined;
+        }
+        var codes = /^([^\/:\s]{1,12})\/([^\/:\s]{1,12})(?::|$)/.exec (row.symbol) || [];
+        row.base = codes[1];
+        row.quote = codes[2];
+        if (row.high !== undefined && row.low !== undefined && row.high >= row.low) {
+            row.ranged = true;
+            if (row.last !== undefined) {
+                row.position = (row.high === row.low) ? 0.5 : Math.max (0, Math.min (1, (row.last - row.low) / (row.high - row.low)));
+            }
+        }
+        row.digits = rowDigits (row);
+        // what focus and the active row are remembered by across a rebuild
+        row.key = row.symbol;
+        var reference = (row.vwap !== undefined) ? row.vwap : row.last;
+        // The payload marks the markets that trade in contracts, with the contract size: that
+        // much base currency per contract, or that much QUOTE currency on an inverse market.
+        // ccxt passes their 24h "base" volume through as the venue reports it — usually a
+        // contract count — so it is only called base currency when the ticker's own quote
+        // volume proves it (quote ≈ base × price, and not what a contract count would give).
+        var entry = (contracts && Object.prototype.hasOwnProperty.call (contracts, row.symbol)) ? contracts[row.symbol] : null;
+        var size = 1;
+        var inverse = false;
+        row.volumeUnit = row.base;
+        if (entry && typeof entry === 'object') {
+            size = (app.isNumber (entry.contractSize) && entry.contractSize > 0) ? entry.contractSize : 1;
+            inverse = entry.inverse === true;
+            row.volumeUnit = 'contracts';
+            if (row.baseVolume > 0 && row.quoteVolume > 0 && reference > 0) {
+                var ratio = Math.log (row.quoteVolume / (row.baseVolume * reference));
+                var counted = Math.log (inverse ? (size / reference) : size);
+                if (Math.abs (ratio) < Math.log (1.5) && Math.abs (ratio) < Math.abs (ratio - counted)) {
+                    row.volumeUnit = row.base;
+                }
+            }
+        }
+        // one comparable figure, in quote currency, for sorting a column that can mix quote,
+        // base and contract volumes
+        if (row.quoteVolume !== undefined) {
+            row.turnover = row.quoteVolume;
+        } else if (row.baseVolume !== undefined && inverse) {
+            row.turnover = row.baseVolume * size;
+        } else if (row.baseVolume !== undefined && reference !== undefined) {
+            row.turnover = row.baseVolume * reference * size;
+        }
+        if (!app.isNumber (row.turnover)) {
+            row.turnover = undefined;
+        }
+        return row;
+    }
+
+    function rangeLabel (row) {
+        if (!row.ranged) {
+            return '24h range not available';
+        }
+        var where = (row.position === undefined) ? '' : ', last ' + price (row.last, row.digits) + ' at ' + Math.round (row.position * 100) + '% of the range';
+        return '24h low ' + price (row.low, row.digits) + ', high ' + price (row.high, row.digits) + where;
+    }
+
+    function rangeTrack (row) {
+        var track = app.element ('span', 'rng');
+        track.setAttribute ('role', 'img');
+        track.setAttribute ('aria-label', rangeLabel (row));
+        track.title = rangeLabel (row);
+        if (row.position !== undefined) {
+            var marker = document.createElement ('i');
+            marker.style.left = (row.position * 100).toFixed (2) + '%';
+            track.appendChild (marker);
+        }
+        return track;
+    }
+
+    function volumeParts (row) {
+        if (row.quoteVolume !== undefined) {
+            return [ app.compact (row.quoteVolume), row.quote || 'quote' ];
+        }
+        if (row.baseVolume !== undefined) {
+            return [ app.compact (row.baseVolume), row.volumeUnit || 'base' ];
+        }
+        return [ '–', '' ];
+    }
+
+    // when every row reports volume in the same unit it is named once, in the column header
+    function sharedUnit () {
+        var units = {};
+        rows.forEach (function (row) {
+            var unit = volumeParts (row)[1];
+            if (unit) {
+                units['$' + unit] = unit;
+            }
+        });
+        var keys = Object.keys (units);
+        return (keys.length === 1) ? units[keys[0]] : '';
+    }
+
+    function readoutFor (row) {
+        var node = nodes.readout;
+        node.textContent = '';
+        if (!row) {
+            node.appendChild (app.element ('span', '', 'Point at, tap or focus a row for bid, ask, low, high and volume.'));
+            return;
+        }
+        var name = app.element ('b', 'sym', row.symbol);
+        node.appendChild (name);
+        var volumes = [];
+        if (row.baseVolume !== undefined) {
+            volumes.push (app.compact (row.baseVolume) + ' ' + (row.volumeUnit || 'base'));
+        }
+        if (row.quoteVolume !== undefined) {
+            volumes.push (app.compact (row.quoteVolume) + ' ' + (row.quote || 'quote'));
+        }
+        [ [ 'Bid', price (row.bid, row.digits) ], [ 'Ask', price (row.ask, row.digits) ], [ 'Low', price (row.low, row.digits) ], [ 'High', price (row.high, row.digits) ], [ 'Vol', volumes.join (' · ') || '–' ] ].forEach (function (pair) {
+            labelled (node, pair[0], pair[1]);
+        });
+    }
+
+    var COLUMNS = [
+        { key: 'symbol', label: 'Symbol', hint: 'Sort by symbol', text: true, header: true, fill: function (cell, row) {
+            var name = app.element ('span', 'name', row.symbol);
+            name.title = row.symbol;
+            cell.appendChild (name);
+        } },
+        { key: 'last', label: 'Last', hint: 'Sort by last price', fill: function (cell, row) {
+            cell.textContent = price (row.last, row.digits);
+            if (row.flash) {
+                cell.classList.add ('flash-' + row.flash);
+            }
+            if (row.last === undefined) {
+                cell.classList.add ('missing');
+            }
+        } },
+        { key: 'percentage', label: '24h change', hint: 'Sort by 24h change', fill: function (cell, row) {
+            var change = app.element ('span', 'chg');
+            if (row.percentage !== undefined) {
+                var bar = app.element ('span', 'dbar');
+                bar.setAttribute ('aria-hidden', 'true');
+                if (row.percentage !== 0 && maxChange > 0) {
+                    var fill = app.element ('i', (row.percentage > 0) ? 'up' : 'down');
+                    fill.style.width = 'max(1px, ' + ((Math.abs (row.percentage) / maxChange) * 50).toFixed (2) + '% - 0.5px)';
+                    bar.appendChild (fill);
+                }
+                change.appendChild (bar);
+            }
+            var delta = app.element ('span', 'delta');
+            setDelta (delta, row.percentage);
+            change.appendChild (delta);
+            cell.appendChild (change);
+        } },
+        { key: 'position', label: '24h range', hint: 'Sort by where the last price sits between the 24h low and high', className: 'c-range', fill: function (cell, row) {
+            if (row.ranged) {
+                cell.appendChild (rangeTrack (row));
+            } else {
+                cell.textContent = '–';
+                cell.classList.add ('missing');
+            }
+        } },
+        // "24h volume USDT" when there is room, "Vol USDT" when there is not
+        { key: 'turnover', label: '24h volume', short: 'Vol', hint: 'Sort by 24h volume in quote currency (base and contract volumes are valued at the average or last price)', className: 'c-volume', unit: function () {
+            headerUnit = sharedUnit ();
+            return headerUnit;
+        }, fill: function (cell, row) {
+            var volume = volumeParts (row);
+            cell.textContent = volume[0];
+            if (volume[0] === '–') {
+                cell.classList.add ('missing');
+            }
+            if (volume[1] && !headerUnit) {
+                cell.appendChild (document.createTextNode (' '));
+                cell.appendChild (app.element ('span', 'unit', volume[1]));
+            }
+        } }
+    ];
+
+    // exactly one market: the number is the view — a hero figure, its range and a few stats
+    function renderSingle (row) {
+        var wrap = app.element ('div', 'single');
+        if (row.ranged) {
+            var ends = app.element ('div', 'ends');
+            labelled (ends, '24h low', price (row.low, row.digits));
+            labelled (ends, '24h high', price (row.high, row.digits));
+            wrap.appendChild (ends);
+            wrap.appendChild (rangeTrack (row));
+        }
+        var stats = app.element ('dl', 'stats');
+        var volume = function (value, unit) {
+            return app.compact (value) + ((value !== undefined && unit) ? ' ' + unit : '');
+        };
+        [ [ 'Bid', price (row.bid, row.digits) ], [ 'Ask', price (row.ask, row.digits) ], [ 'Open', price (row.open, row.digits) ], [ 'Average (VWAP)', price (row.vwap, row.digits) ],
+            [ '24h volume', volume (row.baseVolume, row.volumeUnit) ], [ '24h quote volume', volume (row.quoteVolume, row.quote) ] ].forEach (function (pair) {
+            var item = document.createElement ('div');
+            item.appendChild (app.element ('dt', '', pair[0]));
+            item.appendChild (app.element ('dd', (pair[1] === '–') ? 'missing' : '', pair[1]));
+            stats.appendChild (item);
+        });
+        wrap.appendChild (stats);
+        nodes.board.className = 'board';
+        nodes.board.appendChild (wrap);
+    }
+
+    function asOf () {
+        var newest;
+        rows.forEach (function (row) {
+            if (row.timestamp !== undefined && (newest === undefined || row.timestamp > newest)) {
+                newest = row.timestamp;
+            }
+        });
+        nodes.asof.textContent = (newest === undefined) ? '' : 'as of ' + app.dateTime (newest);
+    }
+
+    function render () {
+        var data = source.data;
+        if (!data) {
+            return;
+        }
+        var kept = board.place ();
+        var single = rows.length === 1;
+        var venue = data.exchangeName || data.exchange || '';
+        asOf ();
+        nodes.heading.textContent = single ? rows[0].symbol : 'Prices';
+        nodes.venue.textContent = single ? venue : (venue + (venue ? ' · ' : '') + rows.length + ((rows.length === 1) ? ' market' : ' markets'));
+        nodes.hero.hidden = !single;
+        nodes.readout.hidden = rows.length < 2;
+        nodes.refresh.hidden = !app.canCallTools ();
+        nodes.refresh.disabled = source.busy;
+        nodes.board.textContent = '';
+        board.clear ();
+        if (!rows.length) {
+            nodes.board.className = 'board';
+            nodes.board.appendChild (app.element ('div', 'empty', 'No prices were returned for these symbols.'));
+        } else if (single) {
+            nodes.last.textContent = price (rows[0].last, rows[0].digits);
+            nodes.last.classList.remove ('flash-up', 'flash-down');
+            if (rows[0].flash) {
+                // restart the animation on the same element
+                void nodes.last.offsetWidth;
+                nodes.last.classList.add ('flash-' + rows[0].flash);
+            }
+            setDelta (nodes.change, rows[0].percentage);
+            renderSingle (rows[0]);
+        } else {
+            board.build ();
+            board.restore (kept);
+        }
+    }
+
+    board = table.grid ({
+        board: nodes.board,
+        columns: COLUMNS,
+        rows: function () { return rows; },
+        caption: function () {
+            return '24h prices on ' + (source.data.exchangeName || source.data.exchange || 'the exchange') + '.';
+        },
+        beforeRows: function () {
+            maxChange = 0;
+            rows.forEach (function (row) {
+                maxChange = Math.max (maxChange, Math.abs (row.percentage || 0));
+            });
+        },
+        onActive: function (index, row) { readoutFor (row || null); }
+    });
+
+    source = table.loader ({
+        name: 'tickers',
+        tool: 'show_tickers',
+        noun: 'prices',
+        nodes: nodes,
+        usable: function (payload) {
+            return !!payload && payload.view === 'tickers' && Array.isArray (payload.tickers);
+        },
+        apply: function (payload) {
+            contracts = (payload.contracts && typeof payload.contracts === 'object') ? payload.contracts : null;
+            raw = payload.tickers.filter (function (ticker) { return ticker && typeof ticker === 'object'; });
+            rows = raw.map (normalize);
+            offset = 0;
+            live.restart ();
+            var seen = {};
+            rows.forEach (function (row) { seen['$' + row.symbol] = true; });
+            var absent = (Array.isArray (payload.symbols) ? payload.symbols : []).filter (function (symbol) { return typeof symbol === 'string' && !seen['$' + symbol]; });
+            source.setStatus (absent.length ? 'No data for ' + absent.slice (0, 5).join (', ') + ((absent.length > 5) ? ' and ' + (absent.length - 5) + ' more' : '') + '.' : '');
+        },
+        render: render,
+        fallbackArgs: function () {
+            return { exchange: source.data.exchange, symbols: source.data.symbols };
+        },
+        defer: function (retry) {
+            if (!live.inFlight ()) {
+                return false;
+            }
+            live.run (retry);
+            return true;
+        },
+        connected: function () {
+            if (source.data) {
+                live.start ();
+            }
+        }
+    });
+
+    function symbolsToPoll () {
+        var symbols = [];
+        rows.forEach (function (row) {
+            if (row.symbol !== '–' && symbols.indexOf (row.symbol) === -1) {
+                symbols.push (row.symbol);
+            }
+        });
+        return symbols;
+    }
+
+    var LIVE_FIELDS = [ 'last', 'bid', 'ask', 'percentage', 'baseVolume', 'quoteVolume', 'timestamp' ];
+    // A stream's change % and volumes may cover another window than the REST ticker the board
+    // was rendered from (kraken: REST from today's open, WebSocket over a rolling 24 h), so a
+    // cell would switch meaning between polls: from a stream only the prices are taken
+    var STREAM_FIELDS = [ 'last', 'bid', 'ask', 'timestamp' ];
+
+    // the polled fields replace the held ones; the 24h range stretches to a last price
+    // outside it, every other field keeps its value from the full result
+    function merge (update, fromStream) {
+        var fields = fromStream ? STREAM_FIELDS : LIVE_FIELDS;
+        var all = symbolsToPoll ();
+        offset = (offset + 20 < all.length) ? offset + 20 : 0;
+        rows = raw.map (function (ticker, index) {
+            var fresh = (typeof ticker.symbol === 'string' && Object.prototype.hasOwnProperty.call (update, ticker.symbol)) ? update[ticker.symbol] : null;
+            if (!fresh || typeof fresh !== 'object') {
+                return normalize (ticker, index);
+            }
+            var next = {};
+            Object.keys (ticker).forEach (function (key) { next[key] = ticker[key]; });
+            fields.forEach (function (key) {
+                if (app.isNumber (fresh[key])) {
+                    next[key] = fresh[key];
+                }
+            });
+            if (app.isNumber (next.last)) {
+                if (app.isNumber (next.high) && next.last > next.high) {
+                    next.high = next.last;
+                }
+                if (app.isNumber (next.low) && next.last < next.low) {
+                    next.low = next.last;
+                }
+            }
+            raw[index] = next;
+            var row = normalize (next, index);
+            var before = app.isNumber (ticker.last) ? ticker.last : ticker.close;
+            if (app.isNumber (before) && row.last !== undefined && row.last !== before) {
+                row.flash = (row.last > before) ? 'up' : 'down';
+            }
+            return row;
+        });
+        var unit = headerUnit;
+        if (rows.length < 2 || sharedUnit () !== unit || !board.update ()) {
+            render ();
+        } else {
+            asOf ();
+        }
+        // a flash is shown once: a later sort or rebuild redraws the cell without it
+        rows.forEach (function (row) { delete row.flash; });
+    }
+
+    var live = window.ccxtLive.attach ({
+        view: 'tickers',
+        slot: nodes.controls,
+        busy: function () { return source.busy; },
+        request: function () {
+            var all = symbolsToPoll ();
+            var args = source.args;
+            // a render with exchange params cannot be repeated by live_update: stay static
+            if (!source.data || !all.length || (args && args.params && typeof args.params === 'object' && Object.keys (args.params).length)) {
+                return null;
+            }
+            var request = { exchange: source.data.exchange || (args && args.exchange), symbols: all.slice (offset, offset + 20) };
+            if (args && typeof args.marketType === 'string') {
+                request.marketType = args.marketType;
+            }
+            if (args && args.prediction === true) {
+                request.prediction = true;
+            }
+            return request;
+        },
+        apply: function (content) {
+            if (content.tickers && typeof content.tickers === 'object') {
+                merge (content.tickers, content.source === 'stream');
+            }
+        }
+    });
+
+    source.start ();
+}) ();
+</script>
+</body>
+</html>
