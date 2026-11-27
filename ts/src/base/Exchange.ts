@@ -5739,13 +5739,13 @@ export class BaseExchange {
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             const ohlcv = ohlcvs[i] as any[];
-            const rawTs = this.safeInteger (ohlcv, 0);
-            const resultTimestamp = result[timestamp];
-            if (ms || (rawTs === undefined)) {
-                resultTimestamp.push (rawTs);
-            } else {
-                resultTimestamp.push (this.parseToInt (rawTs / 1000));
+            const rawTs = this.safeInteger (ohlcvs[i], 0);
+            let ts: Int = rawTs;
+            if (!ms && (rawTs !== undefined)) {
+                ts = this.parseToInt (rawTs / 1000);
             }
+            const resultTimestamp = result[timestamp];
+            resultTimestamp.push (ts);
             const resultOpen = result[open];
             resultOpen.push (ohlcv[1]);
             const resultHigh = result[high];

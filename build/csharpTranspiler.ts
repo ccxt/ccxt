@@ -7605,8 +7605,14 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
         const base = (l.startsWith ('double') || r.startsWith ('double')) ? 'double' : ((l.startsWith ('Int64') || r.startsWith ('Int64')) ? 'Int64' : 'int');
         return base + ((l.endsWith ('?') || r.endsWith ('?')) ? '?' : '');
     }
-    const div = /^\(double\??\)([A-Za-z_]\w*|\([^()]*\))[ ]*\/[ ]*([A-Za-z_]\w*)$/.exec (bare);
-    if (div !== null) return 'double?';
+    const div = /^(?:\(double\??\))?([A-Za-z_]\w*|\([^()]*\))[ ]*\/[ ]*([A-Za-z_]\w*)$/.exec (bare);
+    if (div !== null) {
+        if (bare.startsWith ('(double')) return 'double?';
+        const l = emittedOperandType (div[1], typeOfName, results, file);
+        const r = emittedOperandType (div[2], typeOfName, results, file);
+        const num = [ 'int', 'Int64', 'double', 'int?', 'Int64?', 'double?' ];
+        if (num.includes (l) && num.includes (r)) return (l.endsWith ('?') || r.endsWith ('?')) ? 'double?' : 'double';
+    }
     const call = /^((?:this\.)?[A-Za-z_][\w.]*)\(/.exec (bare);
     if ((call !== null) && (csharpClosingParen (bare, call[0].length - 1) === bare.length - 1)) {
         const fixed: { [name: string]: string | undefined } = {
