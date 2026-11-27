@@ -417,11 +417,28 @@ export default class whitebit extends whitebitRest {
         }
         const data = this.safeList (params, 1, []);
         const parsedTrades = this.parseTrades (data, market);
-        for (let j = 0; j < parsedTrades.length; j++) {
-            stored.append (parsedTrades[j]);
+        // every re-subscribe replays the recent trades of the markets already subscribed
+        const storedIds: Dict = {};
+        for (let i = 0; i < stored.length; i++) {
+            const storedId = this.safeString (stored[i], 'id');
+            if (storedId !== undefined) {
+                storedIds[storedId] = true;
+            }
         }
-        const messageHash = 'trades:' + symbol;
-        client.resolve (stored, messageHash);
+        let appended = 0;
+        for (let j = 0; j < parsedTrades.length; j++) {
+            const trade = parsedTrades[j];
+            const tradeId = this.safeString (trade, 'id');
+            if ((tradeId !== undefined) && this.safeBool (storedIds, tradeId, false)) {
+                continue;
+            }
+            stored.append (trade);
+            appended = appended + 1;
+        }
+        if (appended > 0) {
+            const messageHash = 'trades:' + symbol;
+            client.resolve (stored, messageHash);
+        }
     }
 
     /**
