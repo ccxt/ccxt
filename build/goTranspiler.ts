@@ -3947,7 +3947,7 @@ function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: stri
         if (/\bfunc\b/.test (s)) { return false; }
         const li = indentOf (lines[k]);
         if (li < indent) { indent = li; continue; }
-        if ((li === indent) && (new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (s) || new RegExp ('^if \\(*(ccxt\\.)?IsEqual\\(' + name + ', nil\\)\\)* \\{$').test (s))) {
+        if ((li === indent) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (s)) {
             // body = following deeper lines; it must end in an exit and close with a bare `}`
             let j = k + 1;
             let last = '';
