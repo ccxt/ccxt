@@ -2898,6 +2898,10 @@ public class Hyperliquid extends HyperliquidApi
             defaultTimeInForce = "alo";
         }
         String timeInForceLower = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        if (java.util.Objects.equals(timeInForceLower, "po"))
+        {
+            timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+        }
         String timeInForce = this.capitalize(timeInForceLower);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -3611,6 +3615,10 @@ public class Hyperliquid extends HyperliquidApi
                 defaultTimeInForce = "alo";
             }
             String timeInForceLower = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
+            if (java.util.Objects.equals(timeInForceLower, "po"))
+            {
+                timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+            }
             String timeInForce = this.capitalize(timeInForceLower);
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
