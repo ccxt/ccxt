@@ -8729,9 +8729,8 @@ class binance(Exchange, ImplicitAPI):
             oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
             if (currentTimestamp - since) >= oneWeek:
                 if (endTime is None) and (self.safe_bool(market, 'linear', False)):
-                    endTime = self.sum(startTime, oneWeek)
-                    endTimeValue = 0 if (endTime is None) else endTime
-                    endTime = min(endTimeValue, currentTimestamp)
+                    endTimeValue = self.parse_to_int(self.sum(startTime, oneWeek))
+                    endTime = self.parse_to_int(min(endTimeValue, currentTimestamp))
         if endTime is not None:
             request['endTime'] = endTime
             paramsPaginate = self.omit(paramsPaginate, ['endTime', 'until'])

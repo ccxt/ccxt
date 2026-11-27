@@ -4123,7 +4123,7 @@ class BaseExchange(object):
             if subKey is None:
                 return methodDict[parentKey]
             # throw an exception for unsupported subKey
-            if not (subKey in methodDict[parentKey]):
+            if not (subKey in dictionary):
                 return defaultValue  # unsupported subKey, check "exchange.features" for details
             return self.safe_value(dictionary, subKey)
 

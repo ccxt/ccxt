@@ -7953,7 +7953,7 @@ class okx(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'until')
         end = None
         if until is not None:
-            end = self.sum(until, 1)
+            end = self.parse_to_int(self.sum(until, 1))
         if since is not None:
             # end the window after limit periods, so that the earliest entries from since on come back
             # okx periods are 5m, 1H, 2D, 1W, 1M, 3M and so on, optionally with a utc suffix that only moves the opening time
@@ -7969,8 +7969,8 @@ class okx(Exchange, ImplicitAPI):
                 request['limit'] = maxLimit
             else:
                 windowDuration = effectiveLimit * self.parse_timeframe(unitPeriod.lower()) * 1000
-            windowEnd = self.sum(since, windowDuration)
-            end = windowEnd if (end is None) else min(end, windowEnd)
+            windowEnd = self.parse_to_int(self.sum(since, windowDuration))
+            end = windowEnd if (end is None) else self.parse_to_int(min(end, windowEnd))
         if end is not None:
             request['end'] = end
         return [request, paramsOmitted]

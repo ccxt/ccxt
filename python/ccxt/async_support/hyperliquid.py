@@ -758,7 +758,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int maxDecimals: the maxDecimals to use in the calculation
         :returns int: The calculated price precision
         """
-        pricePrecision = 0
+        pricePrecision = self.parse_to_int(0)
         priceStr = self.number_to_string(price)
         if priceStr is None:
             return 0
@@ -769,7 +769,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if Precise.string_eq(priceStr, '0'):
             # Significant digits is always 5 in this case
             # and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5
+            pricePrecision = self.parse_to_int(5)
         elif Precise.string_gt(priceStr, '0') and Precise.string_lt(priceStr, '1'):
             # Significant digits, always 5 in this case
             significantDigits = 5
@@ -789,10 +789,9 @@ class hyperliquid(Exchange, ImplicitAPI):
             digitsLeft = 0
             if len(integerPart) <= 5:
                 digitsLeft = 5 - (len(integerPart))
-            pricePrecision = digitsLeft
+            pricePrecision = self.parse_to_int(digitsLeft)
         # cap by maxDecimals - szDecimals
-        pricePrecision = min(decimalsLeft, pricePrecision)
-        return self.parse_to_int(pricePrecision)
+        return self.parse_to_int(min(decimalsLeft, pricePrecision))
 
     async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         """

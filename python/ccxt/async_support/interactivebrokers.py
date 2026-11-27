@@ -1074,7 +1074,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             balanceResponse['orders'] = self.safe_list(results, index)
         return self.parse_balance(balanceResponse)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         #     {
         #         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },
