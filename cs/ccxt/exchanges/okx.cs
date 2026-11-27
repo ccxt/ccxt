@@ -10410,7 +10410,17 @@ public partial class okx : Exchange
         //     }
         //
         List<object> underlyings = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToStringList(this.safeList(underlyings, 0, new List<object>() {}));
+        List<object> first = this.safeList(underlyings, 0, new List<object>() {});
+        List<string> result = new List<string>() {};
+        for (int i = 0; i < first.Count; i++)
+        {
+            string? item = this.safeString(first, i);
+            if ((item != null))
+            {
+                result.Add(item);
+            }
+        }
+        return result;
     }
 
     /**

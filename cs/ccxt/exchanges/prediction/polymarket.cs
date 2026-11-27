@@ -1709,6 +1709,10 @@ public partial class polymarket : PredictionExchange
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         Int64? resolutionMs = ((fidelityMin * 60) * 1000);
+        if ((resolutionMs == null || resolutionMs <= 0))
+        {
+            throw new BadRequest ((this.id + " fetchOHLCV() invalid timeframe resolution")) ;
+        }
         Dictionary<string, object> buckets = new Dictionary<string, object>() {};
         for (int i = 0; i < (history?.Count ?? 0); i++)
         {
@@ -3374,7 +3378,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152332 && ((hxArr152332 is IList<object>) || (hxArr152332 is not null && hxArr152332.GetType().IsGenericType && hxArr152332.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152466 && ((hxArr152466 is IList<object>) || (hxArr152466 is not null && hxArr152466.GetType().IsGenericType && hxArr152466.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }

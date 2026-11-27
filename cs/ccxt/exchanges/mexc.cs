@@ -1417,7 +1417,7 @@ public partial class mexc : Exchange
             //
             return this.safeInteger(response, "data") ?? 0;
         }
-        return ccxt.BaseExchange.ToInt64Value(null);
+        return 0;
     }
 
     /**

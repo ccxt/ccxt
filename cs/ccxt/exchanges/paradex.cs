@@ -2480,7 +2480,8 @@ public partial class paradex : Exchange
         bool isTakeProfitOrStopLoss = isStopLossOrder || isTakeProfitOrder;
         string? sizeString = "0";
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if (!isTakeProfitOrStopLoss || ((!(amount == null)) && ((amount > 0))))
+        string? amountStr = this.numberToString(amount);
+        if (!isTakeProfitOrStopLoss || (((amountStr != null)) && Precise.stringGt(amountStr, "0")))
         {
             sizeString = this.amountToPrecision(symbol, amount);
         }

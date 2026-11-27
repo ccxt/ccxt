@@ -2194,6 +2194,10 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? symbol = this.safeSymbol(marketId);
         string? interval = this.safeString(subscription, "interval", "");
         string? timeframe = this.findTimeframe(interval);
+        if (((timeframe == null)) || ((symbol == null)))
+        {
+            return;
+        }
         string subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);

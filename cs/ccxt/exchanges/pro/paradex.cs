@@ -558,7 +558,7 @@ public partial class paradex : ccxt.paradex
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int j = 0; j < subMessageHashes.Count; j++)
         {
-            this.cleanUnsubscription(client, subMessageHashes[j], unsubHash, prefix);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), unsubHash, prefix);
         }
         this.cleanCache(subscription);
         client.resolve(true, unsubHash);
@@ -1306,7 +1306,8 @@ public partial class paradex : ccxt.paradex
             // the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for (int i = 0; i < (subMessageHashes?.Count ?? 0); i++)
             {
-                this.cleanUnsubscription(client, subMessageHashes[i], ("unsubscribe:" + (subMessageHashes[i])));
+                string? subHash = this.safeString(subMessageHashes, i, "");
+                this.cleanUnsubscription(client, subHash, ("unsubscribe:" + subHash));
             }
             this.cleanCache(new Dictionary<string, object>() {
                 { "topic", "ticker" },

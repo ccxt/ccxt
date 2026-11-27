@@ -1733,7 +1733,7 @@ public partial class hitbtc : ccxt.hitbtc
                 List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
                 for (int j = 0; j < subMessageHashes.Count; j++)
                 {
-                    this.cleanUnsubscription(client, subMessageHashes[j], this.safeString(messageHashes, j));
+                    this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), this.safeString(messageHashes, j));
                 }
                 this.cleanCache(subscription);
                 return;

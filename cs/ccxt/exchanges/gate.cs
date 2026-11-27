@@ -2675,7 +2675,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        List<object> underlyings = new List<object>() {};
+        List<string> underlyings = new List<string>() {};
         for (int i = 0; i < (underlyingsResponse?.Count ?? 0); i++)
         {
             IDictionary<string, object> underlying = this.safeDict(underlyingsResponse, i, new Dictionary<string, object>() {});
@@ -2685,7 +2685,7 @@ public partial class gate : Exchange
                 underlyings.Add(name);
             }
         }
-        return ccxt.BaseExchange.ToStringList(underlyings);
+        return underlyings;
     }
 
     public virtual (Dictionary<string, object>, IDictionary<string, object>) prepareRequest(IDictionary<string, object> market = null, object type = null, IDictionary<string, object> parameters = null)
@@ -9606,7 +9606,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        List<object> underlyings = new List<object>() {};
+        List<string> underlyings = new List<string>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             IDictionary<string, object> underlying = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -9616,7 +9616,7 @@ public partial class gate : Exchange
                 underlyings.Add(name);
             }
         }
-        return ccxt.BaseExchange.ToStringList(underlyings);
+        return underlyings;
     }
 
     /**

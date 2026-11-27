@@ -3539,7 +3539,7 @@ public partial class nado : Exchange
                     List<object> weights = this.safeList(byQuery, queryName, new List<object>() {});
                     Int64? baseWeight = this.safeInteger(weights, 0, 2);
                     Int64? rowsPerWeight = this.safeInteger(weights, 1);
-                    if ((rowsPerWeight == null))
+                    if (((rowsPerWeight == null)) || ((rowsPerWeight == null || rowsPerWeight <= 0)))
                     {
                         return baseWeight;
                     }
@@ -3560,6 +3560,10 @@ public partial class nado : Exchange
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             Int64? rowsBaseWeight = this.safeInteger(byRows, 0, 2);
             Int64? rowsDivisor = this.safeInteger(byRows, 1, 50);
+            if (rowsDivisor.GetValueOrDefault() <= 0)
+            {
+                return rowsBaseWeight;
+            }
             Int64? rowCount = this.safeInteger(parameters, "limit", 100); // the v2 default page
             return this.sum(rowsBaseWeight, this.parseToInt(((double?)rowCount / rowsDivisor)));
         }

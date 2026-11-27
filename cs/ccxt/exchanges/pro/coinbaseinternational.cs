@@ -251,7 +251,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         this.watchMultiple(url, unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes);
         for (int i = 0; i < channelsLength; i++)
         {
-            this.cleanUnsubscription(client, this.safeString(channels, i, ""), this.safeString(unWatchMessageHashes, i, ""));
+            string? channel = this.safeString(channels, i, "");
+            this.cleanUnsubscription(client, channel, this.safeString(unWatchMessageHashes, i, ""));
         }
         return true;
     }
@@ -1081,7 +1082,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49970 && ((hxArr49970 is IList<object>) || (hxArr49970 is not null && hxArr49970.GetType().IsGenericType && hxArr49970.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr50007 && ((hxArr50007 is IList<object>) || (hxArr50007 is not null && hxArr50007.GetType().IsGenericType && hxArr50007.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }

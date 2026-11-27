@@ -2754,7 +2754,7 @@ public partial class polymarket : Exchange
             { "marginMode", marginMode },
         };
         Int64? leverageInt = this.parseToInt(leverage);
-        return await this.SetLeverage(ccxt.BaseExchange.ToInt64ArgRequired(leverageInt), symbol, this.extend(request, paramsOmitted));
+        return await this.SetLeverage((leverageInt ?? 0L), symbol, this.extend(request, paramsOmitted));
     }
 
     /**

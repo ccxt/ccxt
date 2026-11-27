@@ -1160,12 +1160,12 @@ public partial class lighter : Exchange
         }
         if (((IDictionary<string, object>)parameters).ContainsKey("nonce"))
         {
-            return ccxt.BaseExchange.ToInt64Value(this.parseToInt(this.safeInteger(parameters, "nonce")));
+            return this.parseToInt(this.safeInteger(parameters, "nonce")) ?? 0;
         }
         Int64? nonceInOptions = this.safeInteger(this.options, "nonce");
         if ((nonceInOptions != null))
         {
-            return ccxt.BaseExchange.ToInt64Value(this.parseToInt(nonceInOptions));
+            return this.parseToInt(nonceInOptions) ?? 0;
         }
         // avoid skipNonce for l1 operations
         bool? skipNonce = this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true).Item1;
@@ -1177,7 +1177,7 @@ public partial class lighter : Exchange
             { "account_index", accountIndex },
             { "api_key_index", apiKeyIndex },
         });
-        return ccxt.BaseExchange.ToInt64Value(this.parseToInt(this.safeInteger(response, "nonce")));
+        return this.parseToInt(this.safeInteger(response, "nonce")) ?? 0;
     }
 
     public async virtual Task<object> signAndCreateOrder(string method, string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object> parameters = null)
@@ -3693,6 +3693,10 @@ public partial class lighter : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         double? leverageNum = this.parseNumber(leverage);
+        if (((leverageNum == null)) || ((!(leverageNum > 0))))
+        {
+            throw new BadRequest ((this.id + " modifyLeverageAndMarginMode() requires leverage > 0")) ;
+        }
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "initial_margin_fraction", this.parseToInt((10000 / leverageNum)) },

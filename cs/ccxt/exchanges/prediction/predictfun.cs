@@ -3345,7 +3345,7 @@ public partial class predictfun : PredictionExchange
         bool isWalletTopic = ((this.safeString(subscription, "topic") == "walletEvents"));
         for (int i = 0; i < messageHashesLength; i++)
         {
-            this.cleanUnsubscription(client, (subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null), (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null), isWalletTopic);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null), isWalletTopic);
         }
         this.cleanCache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -

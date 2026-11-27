@@ -2640,7 +2640,7 @@ public partial class kalshi : PredictionExchange
             {
                 this.requireEventQuery(paramsOmitted);
             }
-            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchSeriesEvents(seriesTickers, status,ccxt.BaseExchange.ToInt64ArgRequired(fetchCap), rest));
+            rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchSeriesEvents(seriesTickers, status, fetchCap, rest));
         }
         int rawEventsLength = (rawEvents?.Count ?? 0);
         List<object> result = new List<object>() {};
@@ -2857,8 +2857,8 @@ public partial class kalshi : PredictionExchange
         int seriesTickersLength = (seriesTickers?.Count ?? 0);
         Int64? pageLimit = this.parseToInt(this.safeInteger(this.options, "defaultFetchEventsLimit", 200));
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
-        bool hasLimit = (!(limit == null));
-        object limitOrZero = hasLimit ? limit : 0;
+        bool hasLimit = ((limit != null));
+        Int64? limitOrZero = hasLimit ? limit : 0;
         Int64? limitValue = this.parseToInt(limitOrZero);
         for (int si = 0; si < seriesTickersLength; si++)
         {
