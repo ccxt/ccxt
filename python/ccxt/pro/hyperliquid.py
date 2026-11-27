@@ -408,7 +408,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol')
         return self.safe_string(symbols, 0, '')
 
-    def handle_bid_ask(self, client: Client, message: dict):
+    def handle_bid_ask(self, client: Client, message: dict) -> None:
         #
         #     {
         #         "channel": "bbo",
@@ -1746,7 +1746,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         for i in range(0, len(symbols)):
             del self.tickers[symbols[i]]
 
-    def handle_bid_ask_unsubscription(self, client: Client, subscription: dict):
+    def handle_bid_ask_unsubscription(self, client: Client, subscription: dict) -> None:
         #
         #        "subscription":{
         #           "type":"bbo",
