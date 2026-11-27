@@ -4523,7 +4523,8 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
             $isNewCandle = $candle === -1;
             if (!$isNewCandle) {
-                $candleTimestamp = $ohlcvs[$candle][$i_timestamp];
+                $candleRow = $this->safe_list($ohlcvs, $candle);
+                $candleTimestamp = $this->safe_integer($candleRow, $i_timestamp);
                 if ($candleTimestamp === null) {
                     throw new ExchangeError($this->id . ' buildOHLCVC() missing candle timestamp');
                 }
