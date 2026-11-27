@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Liquidation, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -64,16 +64,16 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'editOrders': True,
-                'fetchAccounts': False,
+                'fetchAccounts': True,
                 'fetchBalance': True,
-                'fetchBorrowInterest': False,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
-                'fetchCrossBorrowRate': False,
-                'fetchCrossBorrowRates': False,
+                'fetchCrossBorrowRate': True,
+                'fetchCrossBorrowRates': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
@@ -88,11 +88,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
-                'fetchLeverage': False,
-                'fetchLeverageTiers': False,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': True,
                 'fetchLiquidations': False,
                 'fetchMarginMode': None,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyLiquidations': True,
@@ -1306,19 +1306,51 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
+
         :param str [params.dex]: perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+        :param str [params.method]: 'metaAndAssetCtxs'(default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
         :returns dict[]: an array of objects representing market data
         """
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
+        method = self.safe_string(self.handle_option_and_params(params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 0)
+        paramsMethod = self.safe_dict(self.handle_option_and_params(params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 1, {})
+        if method == 'predictedFundings':
+            predictedResponse = self.publicPostInfo(self.extend({'type': 'predictedFundings'}, paramsMethod))
+            #
+            #     [
+            #         [
+            #             "BTC",
+            #             [
+            #                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+            #                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+            #                 [ "BybitPerp", null ]
+            #             ]
+            #         ]
+            #     ]
+            #
+            predicted = []
+            if isinstance(predictedResponse, list):
+                for i in range(0, len(predictedResponse)):
+                    coinEntry = self.safe_list(predictedResponse, i, [])
+                    venues = self.safe_list(coinEntry, 1, [])
+                    venuesByName = {}
+                    for j in range(0, len(venues)):
+                        venue = self.safe_list(venues, j, [])
+                        venueName = self.safe_string(venue, 0, '')
+                        venuesByName[venueName] = self.safe_dict(venue, 1)
+                    predicted.append({'name': self.safe_string(coinEntry, 0), 'predictedFundings': venuesByName})
+            return self.parse_funding_rates(predicted, symbolsNormalized)
         request = {
             'type': 'metaAndAssetCtxs',
         }
         dexName = self.get_dex_from_symbols('fetchFundingRates', symbolsNormalized)
         if dexName is not None:
             request['dex'] = dexName
-        response = self.publicPostInfo(self.extend(request, params))
+        response = self.publicPostInfo(self.extend(request, paramsMethod))
         #
         #     [
         #         {
@@ -1386,6 +1418,41 @@ class hyperliquid(Exchange, ImplicitAPI):
         base = self.safe_string(info, 'name')
         marketId = self.coin_to_market_id(base)
         symbol = self.safe_symbol(marketId, market)
+        predictedFundings = self.safe_dict(info, 'predictedFundings')
+        if predictedFundings is not None:
+            #
+            #     {
+            #         "name": "BTC",
+            #         "predictedFundings": {
+            #             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+            #             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+            #             "BybitPerp": null
+            #         }
+            #     }
+            #
+            predictedFunding = self.safe_dict(predictedFundings, 'HlPerp', {})
+            nextFundingTimestamp = self.safe_integer(predictedFunding, 'nextFundingTime')
+            intervalHours = self.safe_string(predictedFunding, 'fundingIntervalHours', '1')
+            return {
+                'info': info,
+                'symbol': symbol,
+                'markPrice': None,
+                'indexPrice': None,
+                'interestRate': None,
+                'estimatedSettlePrice': None,
+                'timestamp': None,
+                'datetime': None,
+                'fundingRate': None,
+                'fundingTimestamp': None,
+                'fundingDatetime': None,
+                'nextFundingRate': self.safe_number(predictedFunding, 'fundingRate'),
+                'nextFundingTimestamp': nextFundingTimestamp,
+                'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+                'previousFundingRate': None,
+                'previousFundingTimestamp': None,
+                'previousFundingDatetime': None,
+                'interval': intervalHours + 'h',
+            }
         funding = self.safe_number(info, 'funding')
         markPx = self.safe_number(info, 'markPx')
         oraclePx = self.safe_number(info, 'oraclePx')
@@ -3509,6 +3576,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
         https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -3516,6 +3584,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade
         :param str [params.subAccountAddress]: sub account user address
+        :param boolean [params.twap]: set to True to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         userAddress = self.safe_string(self.handle_public_address('fetchMyTrades', params), 0)
@@ -3528,14 +3597,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         request = {
             'user': userAddress,
         }
-        if since is not None:
+        twap = self.safe_bool(paramsPublicAddress, 'twap', False)
+        until = self.safe_integer(paramsPublicAddress, 'until')
+        paramsOmitted = self.omit(paramsPublicAddress, ['until', 'twap'])
+        if twap:
+            request['type'] = 'userTwapSliceFills'
+        elif since is not None:
             request['type'] = 'userFillsByTime'
             request['startTime'] = since
         else:
             request['type'] = 'userFills'
-        until = self.safe_integer(paramsPublicAddress, 'until')
-        paramsOmitted = self.omit(paramsPublicAddress, 'until')
-        if until is not None:
+        if (until is not None) and not twap:
             request['endTime'] = until
         response = self.publicPostInfo(self.extend(request, paramsOmitted))
         #
@@ -3562,6 +3634,36 @@ class hyperliquid(Exchange, ImplicitAPI):
         myFills = []
         if isinstance(response, list):
             myFills = response
+        if twap:
+            #
+            #     [
+            #         {
+            #             "fill": {
+            #                 "closedPnl": "0.0",
+            #                 "coin": "AVAX",
+            #                 "crossed": true,
+            #                 "dir": "Open Long",
+            #                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            #                 "oid": 90542681,
+            #                 "px": "18.435",
+            #                 "side": "B",
+            #                 "startPosition": "26.86",
+            #                 "sz": "93.53",
+            #                 "time": 1681222254710,
+            #                 "fee": "0.01",
+            #                 "feeToken": "USDC",
+            #                 "tid": 118906512037719
+            #             },
+            #             "twapId": 3156
+            #         }
+            #     ]
+            #
+            twapFills = []
+            for i in range(0, len(myFills)):
+                twapFill = self.safe_dict(myFills, i, {})
+                fill = self.safe_dict(twapFill, 'fill', {})
+                twapFills.append(self.extend(fill, {'twapId': self.safe_string(twapFill, 'twapId')}))
+            myFills = twapFills
         return self.parse_trades(myFills, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
@@ -3964,6 +4066,164 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         #
         return response
+
+    def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+        https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+
+        :param str[] [symbols]: list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.dex]: the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        request = {
+            'type': 'meta',
+        }
+        dexName = self.get_dex_from_symbols('fetchLeverageTiers', symbolsNormalized)
+        if dexName is not None:
+            request['dex'] = dexName
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        #     {
+        #         "universe": [
+        #             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+        #             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+        #         ],
+        #         "marginTables": [
+        #             [
+        #                 54,
+        #                 {
+        #                     "description": "tiered 20x (2)",
+        #                     "marginTiers": [
+        #                         { "lowerBound": "0.0", "maxLeverage": 20 },
+        #                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        #                     ]
+        #                 }
+        #             ]
+        #         ],
+        #         "collateralToken": 0
+        #     }
+        #
+        universe = self.safe_list(response, 'universe', [])
+        marginTables = self.safe_list(response, 'marginTables', [])
+        tablesById = {}
+        for i in range(0, len(marginTables)):
+            marginTable = self.safe_list(marginTables, i, [])
+            tableId = self.safe_string(marginTable, 0, '')
+            tablesById[tableId] = self.safe_dict(marginTable, 1, {})
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        tiers = {}
+        for i in range(0, len(universe)):
+            asset = self.safe_dict(universe, i, {})
+            # the coin name resolves to the unified symbol, delisted assets have no market
+            symbol = self.coin_to_market_id(self.safe_string(asset, 'name'))
+            market = self.safe_dict(self.markets, symbol)
+            if market is None:
+                continue
+            if (symbolsLength > 0) and not self.in_array(symbol, symbolsNormalized):
+                continue
+            assetTable = self.safe_dict(tablesById, self.safe_string(asset, 'marginTableId'), {})
+            marginTiers = self.safe_list(assetTable, 'marginTiers')
+            if marginTiers is None:
+                # margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+                marginTiers = [{'lowerBound': '0.0', 'maxLeverage': self.safe_integer(asset, 'maxLeverage')}]
+            tiers[symbol] = self.parse_market_leverage_tiers(self.extend(asset, {'marginTiers': marginTiers}), market)
+        return tiers
+
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
+        #
+        #     {
+        #         "szDecimals": 2,
+        #         "name": "SOL",
+        #         "maxLeverage": 20,
+        #         "marginTableId": 54,
+        #         "marginTiers": [
+        #             { "lowerBound": "0.0", "maxLeverage": 20 },
+        #             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        #         ]
+        #     }
+        #
+        marginTiers = self.safe_list(info, 'marginTiers', [])
+        tiers = []
+        for i in range(0, len(marginTiers)):
+            tier = self.safe_dict(marginTiers, i, {})
+            nextTier = self.safe_dict(marginTiers, i + 1, {})
+            maxLeverage = self.safe_string(tier, 'maxLeverage')
+            # the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+            maintenanceMarginRate = Precise.string_div('1', Precise.string_mul('2', maxLeverage))
+            tiers.append({
+                'tier': i + 1,
+                'symbol': self.safe_string(market, 'symbol'),
+                'currency': self.safe_string(market, 'settle'),
+                'minNotional': self.safe_number(tier, 'lowerBound'),
+                'maxNotional': self.safe_number(nextTier, 'lowerBound'),
+                'maintenanceMarginRate': self.parse_number(maintenanceMarginRate),
+                'maxLeverage': self.parse_number(maxLeverage),
+                'info': tier,
+            })
+        return tiers
+
+    def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
+        """
+        fetch the set leverage and margin mode for a swap market
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise NotSupported(self.id + ' fetchLeverage() supports swap markets only')
+        userAddress = self.safe_string(self.handle_public_address('fetchLeverage', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchLeverage', params), 1, {})
+        request = {
+            'type': 'activeAssetData',
+            'user': userAddress,
+            'coin': self.safe_string(market, 'baseName'),
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     {
+        #         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        #         "coin": "SOL",
+        #         "leverage": {
+        #             "type": "cross", // or "isolated", which also carries "rawUsd"
+        #             "value": 20
+        #         },
+        #         "maxTradeSzs": [ "13.63", "13.63" ],
+        #         "availableToTrade": [ "48.103059", "48.103059" ],
+        #         "markPx": "70.58"
+        #     }
+        #
+        return self.parse_leverage(response, market)
+
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        leverageInfo = self.safe_dict(leverage, 'leverage', {})
+        leverageValue = self.safe_integer(leverageInfo, 'value')
+        coin = self.safe_string(leverage, 'coin')
+        marketId = None
+        if coin is not None:
+            marketId = self.coin_to_market_id(coin)
+        return {
+            'info': leverage,
+            'symbol': self.safe_symbol(marketId, market),
+            'marginMode': self.safe_string_lower(leverageInfo, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        }
 
     def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
@@ -4895,6 +5155,740 @@ class hyperliquid(Exchange, ImplicitAPI):
         request['signature'] = signature
         response = self.privatePostExchange(self.extend(request, params))
         return response
+
+    def build_approve_agent_sig(self, message: dict) -> dict:
+        messageTypes = {
+            'HyperliquidTransaction:ApproveAgent': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
+                {'name': 'agentAddress', 'type': 'address'},
+                {'name': 'agentName', 'type': 'string'},
+                {'name': 'nonce', 'type': 'uint64'},
+            ],
+        }
+        return self.sign_user_signed_action(messageTypes, message)
+
+    def approve_agent(self, agentAddress: str, agentName: Str = None, params: dict = {}) -> dict:
+        """
+        approves an API wallet(agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+
+        :param str agentAddress: the address of the API wallet to approve
+        :param str [agentName]: the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        nonce = self.incrementing_nonce()
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        hyperliquidChain = 'Testnet' if (isSandboxMode) else 'Mainnet'
+        # the name is always part of the signed message, it is empty for the unnamed API wallet
+        payload = {
+            'hyperliquidChain': hyperliquidChain,
+            'agentAddress': agentAddress,
+            'agentName': '' if (agentName is None) else agentName,
+            'nonce': nonce,
+        }
+        sig = self.build_approve_agent_sig(payload)
+        action = {
+            'hyperliquidChain': hyperliquidChain,
+            'signatureChainId': '0x66eee',
+            'agentAddress': agentAddress,
+            'nonce': nonce,
+            'type': 'approveAgent',
+        }
+        if agentName is not None:
+            action['agentName'] = agentName
+        request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+        }
+        #
+        #     {
+        #         "status": "ok",
+        #         "response": {
+        #             "type": "default"
+        #         }
+        #     }
+        #
+        response = self.privatePostExchange(self.extend(request, params))
+        return response
+
+    def noop(self, nonce: Int = None, params: dict = {}) -> dict:
+        """
+        sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+
+        :param int [nonce]: the nonce to mark as used, a new one is generated when omitted
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vaultAddress]: the vault or sub-account address to send the action for
+        :returns dict: a response object
+        """
+        action = {
+            'type': 'noop',
+        }
+        return self.post_l1_action(action, nonce, params)
+
+    def claim_rewards(self, params: dict = {}) -> dict:
+        """
+        claims the rewards earned by the account
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        action = {
+            'type': 'claimRewards',
+        }
+        return self.post_l1_action(action, None, params)
+
+    def post_l1_action(self, action: dict, nonce: Int = None, params: dict = {}) -> dict:
+        """
+ @ignore
+        signs an L1 action that has no market or order data and posts it to the exchange endpoint
+        :param dict action: the action to sign and send
+        :param int [nonce]: the nonce to sign with, a new one is generated when omitted
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vaultAddress]: the vault or sub-account address to send the action for
+        :returns dict: a response object
+        """
+        requestNonce = self.incrementing_nonce() if (nonce is None) else nonce
+        vaultAddressOption, paramsVault = self.handle_option_string_and_params(params, 'createOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddressOption)
+        signature = self.sign_l1_action(action, requestNonce, vaultAddress)
+        request = {
+            'action': action,
+            'nonce': requestNonce,
+            'signature': signature,
+        }
+        if vaultAddress is not None:
+            request['vaultAddress'] = vaultAddress
+        #
+        #     {
+        #         "status": "ok",
+        #         "response": {
+        #             "type": "default"
+        #         }
+        #     }
+        #
+        response = self.privatePostExchange(self.extend(request, paramsVault))
+        return response
+
+    def usd_send(self, amount: float, address: str, params: dict = {}) -> dict:
+        """
+        sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+
+        :param float amount: the amount of USDC to send
+        :param str address: the address to send to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        self.check_address(address)
+        nonce = self.incrementing_nonce()
+        messageTypes = [
+            {'name': 'hyperliquidChain', 'type': 'string'},
+            {'name': 'destination', 'type': 'string'},
+            {'name': 'amount', 'type': 'string'},
+            {'name': 'time', 'type': 'uint64'},
+        ]
+        message = {
+            'hyperliquidChain': self.hyperliquid_chain_name(),
+            'destination': address,
+            'amount': self.number_to_string(amount),
+            'time': nonce,
+        }
+        return self.post_user_signed_action('usdSend', 'HyperliquidTransaction:UsdSend', messageTypes, message, nonce, params)
+
+    def spot_send(self, code: str, amount: float, address: str, params: dict = {}) -> dict:
+        """
+        sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+
+        :param str code: unified currency code of the asset to send
+        :param float amount: the amount to send
+        :param str address: the address to send to
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        if self.markets is None:
+            self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        currencyInfo = self.safe_dict(currency, 'info', {})
+        nonce = self.incrementing_nonce()
+        messageTypes = [
+            {'name': 'hyperliquidChain', 'type': 'string'},
+            {'name': 'destination', 'type': 'string'},
+            {'name': 'token', 'type': 'string'},
+            {'name': 'amount', 'type': 'string'},
+            {'name': 'time', 'type': 'uint64'},
+        ]
+        message = {
+            'hyperliquidChain': self.hyperliquid_chain_name(),
+            'destination': address,
+            'token': self.safe_string(currencyInfo, 'name', '') + ':' + self.safe_string(currencyInfo, 'tokenId', ''),
+            'amount': self.number_to_string(amount),
+            'time': nonce,
+        }
+        return self.post_user_signed_action('spotSend', 'HyperliquidTransaction:SpotSend', messageTypes, message, nonce, params)
+
+    def staking_deposit(self, amount: float, params: dict = {}) -> dict:
+        """
+        moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+
+        :param float amount: the amount of HYPE to move into staking
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        nonce = self.incrementing_nonce()
+        messageTypes = [
+            {'name': 'hyperliquidChain', 'type': 'string'},
+            {'name': 'wei', 'type': 'uint64'},
+            {'name': 'nonce', 'type': 'uint64'},
+        ]
+        message = {
+            'hyperliquidChain': self.hyperliquid_chain_name(),
+            'wei': self.hype_to_wei(amount),
+            'nonce': nonce,
+        }
+        return self.post_user_signed_action('cDeposit', 'HyperliquidTransaction:CDeposit', messageTypes, message, nonce, params)
+
+    def staking_withdraw(self, amount: float, params: dict = {}) -> dict:
+        """
+        moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+
+        :param float amount: the amount of HYPE to move out of staking
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        nonce = self.incrementing_nonce()
+        messageTypes = [
+            {'name': 'hyperliquidChain', 'type': 'string'},
+            {'name': 'wei', 'type': 'uint64'},
+            {'name': 'nonce', 'type': 'uint64'},
+        ]
+        message = {
+            'hyperliquidChain': self.hyperliquid_chain_name(),
+            'wei': self.hype_to_wei(amount),
+            'nonce': nonce,
+        }
+        return self.post_user_signed_action('cWithdraw', 'HyperliquidTransaction:CWithdraw', messageTypes, message, nonce, params)
+
+    def token_delegate(self, validator: str, amount: float, isUndelegate: bool = False, params: dict = {}) -> dict:
+        """
+        delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+
+        :param str validator: the address of the validator
+        :param float amount: the amount of HYPE to delegate or undelegate
+        :param boolean [isUndelegate]: True to undelegate, False(default) to delegate
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        self.check_address(validator)
+        nonce = self.incrementing_nonce()
+        messageTypes = [
+            {'name': 'hyperliquidChain', 'type': 'string'},
+            {'name': 'validator', 'type': 'address'},
+            {'name': 'wei', 'type': 'uint64'},
+            {'name': 'isUndelegate', 'type': 'bool'},
+            {'name': 'nonce', 'type': 'uint64'},
+        ]
+        message = {
+            'hyperliquidChain': self.hyperliquid_chain_name(),
+            'validator': validator,
+            'wei': self.hype_to_wei(amount),
+            'isUndelegate': isUndelegate,
+            'nonce': nonce,
+        }
+        return self.post_user_signed_action('tokenDelegate', 'HyperliquidTransaction:TokenDelegate', messageTypes, message, nonce, params)
+
+    def hyperliquid_chain_name(self) -> str:
+        """
+ @ignore
+        the chain name that user-signed actions are signed for
+        :returns str: 'Testnet' in sandbox mode, 'Mainnet' otherwise
+        """
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        return 'Testnet' if (isSandboxMode) else 'Mainnet'
+
+    def hype_to_wei(self, amount: float) -> int:
+        """
+ @ignore
+        converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+        :param float amount: the amount of HYPE
+        :returns int: the amount in wei
+        """
+        return self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '100000000'))
+
+    def post_user_signed_action(self, actionType: str, primaryType: str, messageTypes: list, message: dict, nonce: int, params: dict = {}) -> dict:
+        """
+ @ignore
+        signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+        :param str actionType: the type of the action
+        :param str primaryType: the EIP-712 primary type of the message
+        :param dict[] messageTypes: the EIP-712 fields of the message
+        :param dict message: the message to sign, its fields are sent as the action
+        :param int nonce: the nonce of the request
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a response object
+        """
+        types = {}
+        types[primaryType] = messageTypes
+        signature = self.sign_user_signed_action(types, message)
+        action = self.extend(message, {
+            'signatureChainId': '0x66eee',
+            'type': actionType,
+        })
+        request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        }
+        #
+        #     {
+        #         "status": "ok",
+        #         "response": {
+        #             "type": "default"
+        #         }
+        #     }
+        #
+        response = self.privatePostExchange(self.extend(request, params))
+        return response
+
+    def fetch_approved_builders(self, params: dict = {}) -> list:
+        """
+        fetch the addresses of the builders the user approved a builder fee for
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns str[]: a list of builder addresses
+        """
+        userAddress = self.safe_string(self.handle_public_address('fetchApprovedBuilders', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchApprovedBuilders', params), 1, {})
+        request = {
+            'type': 'approvedBuilders',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+        #
+        return response
+
+    def fetch_vault_details(self, vaultAddress: str, params: dict = {}) -> dict:
+        """
+        fetch the details of a vault, its leader, description, portfolio history, apr and followers
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+
+        :param str vaultAddress: the address of the vault
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: a user address, when provided the response includes the state of that user as a follower of the vault
+        :returns dict: the vault details as returned by the exchange
+        """
+        request = {
+            'type': 'vaultDetails',
+            'vaultAddress': vaultAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        #     {
+        #         "name": "Test",
+        #         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+        #         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+        #         "description": "This community-owned vault provides liquidity to Hyperliquid",
+        #         "portfolio": [
+        #             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+        #         ],
+        #         "apr": 0.36387129259090006,
+        #         "followerState": null,
+        #         "leaderFraction": 0.0007904828725729887,
+        #         "leaderCommission": 0,
+        #         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+        #         "maxDistributable": 94856870.164485,
+        #         "maxWithdrawable": 742557.680863,
+        #         "isClosed": false,
+        #         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+        #         "allowDeposits": true,
+        #         "alwaysCloseOnWithdraw": false
+        #     }
+        #
+        return response
+
+    def fetch_staking_delegations(self, params: dict = {}) -> list:
+        """
+        fetch the amounts of HYPE the user delegated to each validator
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict[]: a list of delegations as returned by the exchange
+        """
+        userAddress = self.safe_string(self.handle_public_address('fetchStakingDelegations', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchStakingDelegations', params), 1, {})
+        request = {
+            'type': 'delegations',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     [
+        #         {
+        #             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        #             "amount": "12060.16529862",
+        #             "lockedUntilTimestamp": 1735466781353
+        #         }
+        #     ]
+        #
+        return response
+
+    def fetch_staking_summary(self, params: dict = {}) -> dict:
+        """
+        fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict: the staking summary as returned by the exchange
+        """
+        userAddress = self.safe_string(self.handle_public_address('fetchStakingSummary', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchStakingSummary', params), 1, {})
+        request = {
+            'type': 'delegatorSummary',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     {
+        #         "delegated": "12060.16529862",
+        #         "undelegated": "0.0",
+        #         "totalPendingWithdrawal": "0.0",
+        #         "nPendingWithdrawals": 0
+        #     }
+        #
+        return response
+
+    def fetch_staking_history(self, params: dict = {}) -> list:
+        """
+        fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict[]: a list of staking events as returned by the exchange
+        """
+        userAddress = self.safe_string(self.handle_public_address('fetchStakingHistory', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchStakingHistory', params), 1, {})
+        request = {
+            'type': 'delegatorHistory',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     [
+        #         {
+        #             "time": 1735380381353,
+        #             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+        #             "delta": {
+        #                 "delegate": {
+        #                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        #                     "amount": "10000.0",
+        #                     "isUndelegate": false
+        #                 }
+        #             }
+        #         }
+        #     ]
+        #
+        return response
+
+    def fetch_staking_rewards(self, params: dict = {}) -> list:
+        """
+        fetch the staking rewards earned by the user
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict[]: a list of staking rewards as returned by the exchange
+        """
+        userAddress = self.safe_string(self.handle_public_address('fetchStakingRewards', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchStakingRewards', params), 1, {})
+        request = {
+            'type': 'delegatorRewards',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     [
+        #         {
+        #             "time": 1736726400073,
+        #             "source": "delegation",
+        #             "totalAmount": "0.73117184"
+        #         }
+        #     ]
+        #
+        return response
+
+    def fetch_accounts(self, params: dict = {}) -> list[Account]:
+        """
+        fetch the sub-accounts of a master account
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: the master account address, will default to self.walletAddress if not provided
+        :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
+        """
+        userAddress = self.safe_string(self.handle_public_address('fetchAccounts', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchAccounts', params), 1, {})
+        request = {
+            'type': 'subAccounts',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     [
+        #         {
+        #             "name": "Test",
+        #             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+        #             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+        #             "clearinghouseState": {
+        #                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        #                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        #                 "crossMaintenanceMarginUsed": "0.0",
+        #                 "withdrawable": "29.78001",
+        #                 "assetPositions": [],
+        #                 "time": 1733968369395
+        #             },
+        #             "spotState": {
+        #                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+        #             }
+        #         }
+        #     ]
+        #
+        # the response is null when the account has no sub-accounts
+        result = []
+        if isinstance(response, list):
+            for i in range(0, len(response)):
+                result.append(self.parse_account(self.safe_dict(response, i, {})))
+        return result
+
+    def parse_account(self, account: dict) -> Account:
+        return {
+            'id': self.safe_string(account, 'subAccountUser'),
+            'type': 'subaccount',
+            'name': self.safe_string(account, 'name'),
+            'code': None,
+            'info': account,
+        }
+
+    def fetch_cross_borrow_rates(self, params: dict = {}) -> CrossBorrowRates:
+        """
+        fetch the borrow interest rates of all currencies of the borrow/lend protocol
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        request = {
+            'type': 'allBorrowLendReserveStates',
+        }
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        #     [
+        #         [
+        #             0,
+        #             {
+        #                 "borrowYearlyRate": "0.05",
+        #                 "supplyYearlyRate": "0.0249808267",
+        #                 "balance": "284714721.5832400322",
+        #                 "utilization": "0.5551294814",
+        #                 "oraclePx": "1.0",
+        #                 "ltv": "0.0",
+        #                 "totalSupplied": "639994288.7804760933",
+        #                 "totalBorrowed": "355279697.6056296229"
+        #             }
+        #         ]
+        #     ]
+        #
+        rates = {}
+        if isinstance(response, list):
+            for i in range(0, len(response)):
+                reserve = self.safe_list(response, i, [])
+                reserveState = self.safe_dict(reserve, 1, {})
+                rate = self.parse_borrow_rate(self.extend(reserveState, {'token': self.safe_string(reserve, 0)}))
+                code = self.safe_string(rate, 'currency', '')
+                rates[code] = rate
+        return rates
+
+    def fetch_cross_borrow_rate(self, code: str, params: dict = {}) -> CrossBorrowRate:
+        """
+        fetch the borrow interest rate of a currency of the borrow/lend protocol
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'type': 'borrowLendReserveState',
+            'token': self.parse_to_int(currency['id']),
+        }
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        #     {
+        #         "borrowYearlyRate": "0.05",
+        #         "supplyYearlyRate": "0.0008245002",
+        #         "balance": "3245939.4732256099",
+        #         "utilization": "0.018322226",
+        #         "oraclePx": "1.0",
+        #         "ltv": "0.0",
+        #         "totalSupplied": "3306509.7335290499",
+        #         "totalBorrowed": "60582.61869494"
+        #     }
+        #
+        return self.parse_borrow_rate(self.extend(response, {'token': currency['id']}), currency)
+
+    def token_index_to_currency_code(self, tokenIndex: Str) -> Str:
+        """
+ @ignore
+        resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+        :param str tokenIndex: the index of the token
+        :returns str: the unified currency code
+        """
+        cachedCurrencies = self.safe_dict(self.options, 'cachedCurrenciesById', {})
+        tokenName = self.safe_string(cachedCurrencies, tokenIndex)
+        if tokenName is not None:
+            return self.safe_currency_code(tokenName)
+        # the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currencyInfo = self.safe_dict(self.currencies[code], 'info', {})
+            if self.safe_string(currencyInfo, 'index') == tokenIndex:
+                return code
+        return self.safe_currency_code(tokenIndex)
+
+    def parse_borrow_rate(self, info: object, currency: Currency = None) -> dict:
+        #
+        #     {
+        #         "token": "0",
+        #         "borrowYearlyRate": "0.05",
+        #         "supplyYearlyRate": "0.0249808267",
+        #         "balance": "284714721.5832400322",
+        #         "utilization": "0.5551294814",
+        #         "oraclePx": "1.0",
+        #         "ltv": "0.0",
+        #         "totalSupplied": "639994288.7804760933",
+        #         "totalBorrowed": "355279697.6056296229"
+        #     }
+        #
+        return {
+            'currency': self.token_index_to_currency_code(self.safe_string(info, 'token')),
+            'rate': self.safe_number(info, 'borrowYearlyRate'),
+            'period': 31536000000,  # the rate is yearly
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
+
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[BorrowInterest]:
+        """
+        fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+
+        :param str [code]: unified currency code
+        :param str [symbol]: not used by hyperliquid fetchBorrowInterest
+        :param int [since]: not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+        :param int [limit]: the maximum number of structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        userAddress = self.safe_string(self.handle_public_address('fetchBorrowInterest', params), 0)
+        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchBorrowInterest', params), 1, {})
+        request = {
+            'type': 'borrowLendUserState',
+            'user': userAddress,
+        }
+        response = self.publicPostInfo(self.extend(request, paramsPublicAddress))
+        #
+        #     {
+        #         "tokenToState": [
+        #             [
+        #                 0,
+        #                 {
+        #                     "borrow": { "basis": "100.0", "value": "100.25" },
+        #                     "supply": { "basis": "0.0", "value": "0.0" }
+        #                 }
+        #             ]
+        #         ],
+        #         "health": "healthy",
+        #         "healthFactor": null
+        #     }
+        #
+        tokenToState = self.safe_list(response, 'tokenToState', [])
+        interests = []
+        for i in range(0, len(tokenToState)):
+            tokenState = self.safe_list(tokenToState, i, [])
+            state = self.safe_dict(tokenState, 1, {})
+            borrow = self.safe_dict(state, 'borrow', {})
+            # tokens that are only supplied have nothing borrowed
+            if Precise.string_gt(self.safe_string(borrow, 'value', '0'), '0'):
+                interests.append(self.extend(state, {'token': self.safe_string(tokenState, 0)}))
+        parsed = self.parse_borrow_interests(interests)
+        return self.filter_by_currency_since_limit(parsed, code, None, limit)
+
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
+        #
+        #     {
+        #         "token": "0",
+        #         "borrow": { "basis": "100.0", "value": "100.25" },
+        #         "supply": { "basis": "0.0", "value": "0.0" }
+        #     }
+        #
+        borrow = self.safe_dict(info, 'borrow', {})
+        borrowed = self.safe_string(borrow, 'value')
+        # the basis is the amount borrowed, the value includes the interest accrued since
+        interest = Precise.string_sub(borrowed, self.safe_string(borrow, 'basis'))
+        return {
+            'info': info,
+            'symbol': None,
+            'currency': self.token_index_to_currency_code(self.safe_string(info, 'token')),
+            'interest': self.parse_number(interest),
+            'interestRate': None,
+            'amountBorrowed': self.parse_number(borrowed),
+            'marginMode': 'cross',
+            'timestamp': None,
+            'datetime': None,
+        }
 
     def create_sub_account(self, name: str, params: dict = {}):
         """
