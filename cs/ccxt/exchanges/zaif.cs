@@ -941,8 +941,7 @@ public partial class zaif : Exchange
 
     public virtual string? customNonce()
     {
-        double nonce = ((double)this.milliseconds() / 1000);
-        return toFixed(nonce, 8);
+        return this.decimalToPrecision(((double)this.milliseconds() / 1000), ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

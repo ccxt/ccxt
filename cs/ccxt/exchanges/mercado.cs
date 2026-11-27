@@ -910,7 +910,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "quantity", toFixed(amount, 10) },
+            { "quantity", this.decimalToPrecision(amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO) },
             { "address", address },
         };
         if ((code == "BRL"))

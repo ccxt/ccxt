@@ -1985,8 +1985,8 @@ public partial class htx : ccxt.htx
             }
             return;
         }
-        List<object> newPositions = new List<object>() {};
-        Dictionary<string, object> positionsByMarginMode = new Dictionary<string, object>() {};
+        List<object> crossPositions = new List<object>() {};
+        List<object> isolatedPositions = new List<object>() {};
         Int64? timestamp = this.safeInteger(message, "ts");
         for (int i = 0; i < rawPositions.Count; i++)
         {
@@ -1994,7 +1994,7 @@ public partial class htx : ccxt.htx
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             string? marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
-            if (((marginMode != "cross")) && ((marginMode != "isolated")))
+            if ((marginMode != "cross") && (marginMode != "isolated"))
             {
                 marginMode = defaultMarginMode;
             }
@@ -2004,31 +2004,43 @@ public partial class htx : ccxt.htx
                 cache = new ArrayCacheBySymbolBySide();
                 this.positionsByType[(string)marginMode] = cache;
             }
-            newPositions.Add(position);
-            positionsByMarginMode[(string)marginMode] = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
-            ((IList<object>)(marginMode != null && positionsByMarginMode.ContainsKey(marginMode) ? positionsByMarginMode[marginMode] : null)).Add(position);
+            if (marginMode == "cross")
+            {
+                crossPositions.Add(position);
+            } else
+            {
+                isolatedPositions.Add(position);
+            }
             ccxt.pro.BaseCache.appendTo(cache, position);
         }
-        List<object> marginModes = new List<object>(positionsByMarginMode.Keys);
-        for (int i = 0; i < marginModes.Count; i++)
+        int crossLength = (crossPositions?.Count ?? 0);
+        if (crossLength > 0)
         {
-            string marginMode = ((string)marginModes[i]);
-            List<object> marginModePositions = this.safeList(positionsByMarginMode, marginMode, new List<object>() {});
-            List<object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
-            for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
-            {
-                string? messageHash = ((string)messageHashes[j]);
-                List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
-                string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
-                List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-                IList<object> positions = ((IList<object>)this.filterByArray(marginModePositions, "symbol", symbols, false));
-                if (!this.isEmpty(positions))
-                {
-                    client.resolve(positions, messageHash);
-                }
-            }
-            client.resolve(marginModePositions, (marginMode + ":positions"));
+            this.resolvePositionsByMarginMode(client, "cross", crossPositions);
         }
+        int isolatedLength = (isolatedPositions?.Count ?? 0);
+        if (isolatedLength > 0)
+        {
+            this.resolvePositionsByMarginMode(client, "isolated", isolatedPositions);
+        }
+    }
+
+    public virtual void resolvePositionsByMarginMode(WebSocketClient client, string marginMode, IList<object> marginModePositions)
+    {
+        List<object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
+        for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
+        {
+            string? messageHash = ((string)messageHashes[j]);
+            List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
+            List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
+            IList<object> positions = ((IList<object>)this.filterByArray(marginModePositions, "symbol", symbols, false));
+            if (!this.isEmpty(positions))
+            {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(marginModePositions, (marginMode + ":positions"));
     }
 
     /**
