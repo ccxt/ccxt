@@ -311,7 +311,7 @@ class ndax extends \ccxt\async\ndax {
                 if ($timestamp === null) {
                     continue;
                 }
-                $candleTimestamp = $this->parse_to_int(($timestamp / $duration) * $duration);
+                $candleTimestamp = $this->parse_to_int($timestamp / $duration) * $duration;
                 $parsed = array(
                     $candleTimestamp,
                     $this->safe_float($ohlcv, 3),

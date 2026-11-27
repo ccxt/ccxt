@@ -6013,7 +6013,11 @@ class BaseExchange {
         $result[$volume] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $ohlcv = $ohlcvs[$i];
-            $ts = $ms ? $ohlcv[0] : $this->parse_to_int($ohlcvs[$i][0] / 1000);
+            $rawTs = $this->safe_integer($ohlcvs[$i], 0);
+            $ts = $rawTs;
+            if (!$ms && ($rawTs !== null)) {
+                $ts = $this->parse_to_int($rawTs / 1000);
+            }
             $resultTimestamp = $result[$timestamp];
             $resultTimestamp[] = $ts;
             $resultOpen = $result[$open];
