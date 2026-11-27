@@ -48,16 +48,16 @@ export default class etoro extends Exchange {
                 'cancelOrder': true,
                 'closeAllPositions': false,
                 'closePosition': true,
-                'createMarketBuyOrderWithCost': false,
-                'createMarketOrderWithCost': false,
-                'createMarketSellOrderWithCost': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': true,
+                'createMarketSellOrderWithCost': true,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createReduceOnlyOrder': false,
                 'createStopLossOrder': false,
                 'createTakeProfitOrder': false,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -80,6 +80,7 @@ export default class etoro extends Exchange {
                 'fetchOrders': false,
                 'fetchPosition': true,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -263,6 +264,13 @@ export default class etoro extends Exchange {
                 },
                 'orderCurrency': 'usd',
                 'fetchMyTradesDaysBack': 364, // the trade history lookback must be less than a year
+                'fetchTickers': {
+                    'chunkSize': 600, // longer instrument id lists are rejected with 414 URI Too Long
+                },
+                'pollOrder': {
+                    'attempts': 4, // createOrder, cancelOrder and closePosition poll the order lookup for the outcome, 0 disables it
+                    'delay': 500,
+                },
             },
             'features': {
                 'default': {
@@ -347,6 +355,9 @@ export default class etoro extends Exchange {
                     'ValidationFailed': BadRequest,
                     'AccountNotFound': BadRequest,
                     'INSTRUMENT_NOT_FOUND': BadSymbol,
+                    'INVALID_INSTRUMENT_ID': BadSymbol,
+                    'INVALID_TIME_RANGE': BadRequest, // {"success":false,"error":{"code":"INVALID_TIME_RANGE","message":"`from` must be earlier than `to`"}}
+                    'INVALID_REQUEST': BadRequest, // {"success":false,"error":{"code":"INVALID_REQUEST","message":"The request is invalid"}}
                     'InvalidAmountInUsd': InvalidOrder,
                     'TooManyRequests': RateLimitExceeded,
                     'DEPENDENCY_UNAVAILABLE': ExchangeNotAvailable,
@@ -359,6 +370,9 @@ export default class etoro extends Exchange {
                     'Instrument not found': BadSymbol, // {"message":"Instrument not found for ID: 99999999"}
                     'Order not found': OrderNotFound, // {"message":"Order not found for OrderId 123"}
                     'Order category for': OrderNotFound, // {"message":"Order category for 123 not found"}
+                    'Order was not found': OrderNotFound, // Order was not found for OrderID=1 with RefereceID=
+                    'No external operation was found': OrderNotFound, // {"message":"No external operation was found for referenceId 16e59c4a-..."}
+                    'Position not found': OrderNotFound, // {"message":"Position not found for PositionId 1."}
                     'Exactly one of amount, units, or contracts': InvalidOrder,
                     'stopLossRate': InvalidOrder,
                     'insufficient': InsufficientFunds,
@@ -947,8 +961,9 @@ export default class etoro extends Exchange {
      * @name etoro#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://api-portal.etoro.com/api-reference/market-data/get-instrument-market-rates.md
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all active markets are fetched by default, 1000 instruments are sent per request
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all active markets are fetched by default, 600 instruments are sent per request
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.chunkSize] the number of instruments sent per request, default 600, longer lists exceed the url length limit
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
      */
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
@@ -976,14 +991,17 @@ export default class etoro extends Exchange {
             }
             symbolsById[marketId].push (market['symbol']);
         }
-        const chunkSize = 1000;
+        // longer instrument id lists are rejected with 414 URI Too Long
+        let chunkSize = undefined;
+        let query = undefined;
+        [ chunkSize, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'chunkSize', 600);
         const promises: Promise<any>[] = [];
         for (let i = 0; i < ids.length; i += chunkSize) {
             const chunk = this.arraySlice (ids, i, i + chunkSize);
             const request: Dict = {
                 'instrumentIds': chunk.join (','),
             };
-            promises.push (this.publicGetV1MarketDataInstrumentsRates (this.extend (request, params)));
+            promises.push (this.publicGetV1MarketDataInstrumentsRates (this.extend (request, query)));
         }
         const responses = await Promise.all (promises);
         const result: Dict = {};
@@ -1069,25 +1087,41 @@ export default class etoro extends Exchange {
     /**
      * @method
      * @name etoro#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market, the latest 1000 candles come from the live endpoint, older ranges from the data endpoint, which lags several hours behind
      * @see https://api-portal.etoro.com/api-reference/market-data/get-instrument-candle-history.md
      * @see https://api-portal.etoro.com/api-reference/data/get-price-candles-for-an-instrument.md
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch, default 100, max 1000 (2000 when since is provided)
+     * @param {int} [limit] the maximum amount of candles to fetch, default 100, max 1000 (2000 for ranges older than the latest 1000 candles)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.side] 'bid', 'ask' or 'both', only used when since is provided, default is 'bid'
+     * @param {boolean} [params.historical] set to true to force the data endpoint, it is used automatically for ranges older than the latest 1000 candles
+     * @param {string} [params.side] 'bid', 'ask' or 'both', only used by the data endpoint, default is 'bid'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until');
-        const query = this.omit (params, 'until');
-        if ((since === undefined) && (until === undefined)) {
-            const candlesCount = (limit === undefined) ? 100 : Math.min (limit, 1000);
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        const now = this.milliseconds ();
+        // the live endpoint serves the latest 1000 candles, the data endpoint is hours behind it
+        const windowStart = now - duration * 1000;
+        const isOlder = ((since !== undefined) && (since < windowStart)) || ((until !== undefined) && (until < windowStart));
+        const historical = this.safeBool (params, 'historical', isOlder);
+        const query = this.omit (params, [ 'until', 'historical' ]);
+        if (!historical) {
+            const maxCount = (limit === undefined) ? 100 : limit;
+            let candlesCount = maxCount;
+            if (since !== undefined) {
+                // enough candles to reach back to since
+                candlesCount = this.parseToInt ((now - since) / duration) + 2;
+            } else if (until !== undefined) {
+                // enough candles to reach back past until
+                candlesCount = this.parseToInt ((now - until) / duration) + maxCount + 2;
+            }
+            candlesCount = Math.min (candlesCount, 1000);
             const candlesRequest: Dict = {
                 'instrumentId': market['id'],
                 'direction': 'desc',
@@ -1124,10 +1158,20 @@ export default class etoro extends Exchange {
             const outer = this.safeList (candlesResponse, 'candles', []);
             const first = this.safeDict (outer, 0, {});
             const candles = this.safeList (first, 'candles', []);
-            return this.parseOHLCVs (candles, market, timeframe, since, limit);
+            if (until === undefined) {
+                return this.parseOHLCVs (candles, market, timeframe, since, limit);
+            }
+            const parsed = this.parseOHLCVs (candles, market, timeframe);
+            const filtered = [];
+            for (let i = 0; i < parsed.length; i++) {
+                const candleTimestamp = this.safeInteger (parsed[i], 0);
+                if ((candleTimestamp !== undefined) && (candleTimestamp < until)) {
+                    filtered.push (parsed[i]);
+                }
+            }
+            return this.filterBySinceLimit (filtered, since, limit, 0);
         }
         const dataLimit = (limit === undefined) ? 100 : Math.min (limit, 2000);
-        const duration = this.parseTimeframe (timeframe) * 1000;
         const request: Dict = {
             'instrumentId': market['id'],
             'interval': timeframe,
@@ -1376,6 +1420,15 @@ export default class etoro extends Exchange {
         //         "referenceId": "2c4a382a-9725-40a4-9708-c9dc29e17d21"
         //     }
         //
+        // the response only means that the order was accepted, its outcome is polled from the orders lookup
+        const orderId = this.safeString (response, 'orderId');
+        const polled = await this.pollOrder (orderId, market, false, [ '1', '2' ]);
+        if (polled !== undefined) {
+            if (polled['clientOrderId'] === undefined) {
+                polled['clientOrderId'] = this.safeString (response, 'referenceId');
+            }
+            return polled;
+        }
         const order = this.parseOrder (response, market);
         order['type'] = type;
         order['side'] = side;
@@ -1383,6 +1436,120 @@ export default class etoro extends Exchange {
         order['price'] = price;
         order['status'] = 'open';
         return order;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name etoro#pollOrder
+     * @description polls the order lookup until an accepted order leaves the in-flight statuses, the lookup answers 404 for a moment after the order is accepted
+     * @param {string} id the order id
+     * @param {object} [market] the market of the order
+     * @param {boolean} isCloseOrder true to poll a close order created by closePosition
+     * @param {string[]} inFlightStatuses the status ids to keep polling on
+     * @returns {object|undefined} the last parsed [order structure](https://docs.ccxt.com/?id=order-structure), undefined when the order did not show up, options.pollOrder.attempts set to 0 disables polling
+     */
+    async pollOrder (id: Str, market: Market, isCloseOrder: boolean, inFlightStatuses: string[]): Promise<any> {
+        if (id === undefined) {
+            return undefined;
+        }
+        const pollOptions = this.safeDict (this.options, 'pollOrder', {});
+        const attempts = this.safeInteger (pollOptions, 'attempts', 4);
+        const delay = this.safeInteger (pollOptions, 'delay', 500);
+        let order = undefined;
+        for (let i = 0; i < attempts; i++) {
+            if (i > 0) {
+                await this.sleep (delay);
+            }
+            let response: Dict = {};
+            let notFound = false;
+            const request: Dict = {
+                'orderId': id,
+            };
+            try {
+                if (isCloseOrder) {
+                    if (this.isSandboxModeEnabled) {
+                        response = await this.privateGetV1TradingInfoDemoCloseOrdersOrderId (request);
+                    } else {
+                        response = await this.privateGetV1TradingInfoRealCloseOrdersOrderId (request);
+                    }
+                } else {
+                    if (this.isSandboxModeEnabled) {
+                        response = await this.privateGetV2TradingInfoDemoOrdersLookup (request);
+                    } else {
+                        response = await this.privateGetV2TradingInfoOrdersLookup (request);
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof OrderNotFound)) {
+                    throw e;
+                }
+                notFound = true;
+            }
+            if (!notFound) {
+                const statusDict = this.safeDict (response, 'status', {});
+                const statusId = this.safeString (statusDict, 'id', this.safeString (response, 'statusID'));
+                if (statusId === undefined) {
+                    // not an order lookup body
+                    return order;
+                }
+                order = this.parseOrder (response, market);
+                if (!this.inArray (statusId, inFlightStatuses)) {
+                    return order;
+                }
+            }
+        }
+        return order;
+    }
+
+    /**
+     * @method
+     * @name etoro#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost, the cost is the amount to invest in options.orderCurrency (usd), not in the quote currency of the market
+     * @see https://api-portal.etoro.com/api-reference/trading--real/create-an-order.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/create-an-order.md
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell', sell opens a short position and is only supported on swap markets
+     * @param {float} cost how much to invest in usd
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
+     * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
+     */
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}): Promise<Order> {
+        const request: Dict = {
+            'cost': cost,
+        };
+        // the amount argument is ignored when params.cost is set
+        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name etoro#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost, the cost is the amount to invest in options.orderCurrency (usd)
+     * @see https://api-portal.etoro.com/api-reference/trading--real/create-an-order.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/create-an-order.md
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much to invest in usd
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
+     * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
+     */
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
+        return await this.createMarketOrderWithCost (symbol, 'buy', cost, params);
+    }
+
+    /**
+     * @method
+     * @name etoro#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost, it opens a short position, the cost is the amount to invest in options.orderCurrency (usd)
+     * @see https://api-portal.etoro.com/api-reference/trading--real/create-an-order.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/create-an-order.md
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {float} cost how much to invest in usd
+     * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
+     * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
+     */
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
+        return await this.createMarketOrderWithCost (symbol, 'sell', cost, params);
     }
 
     /**
@@ -1516,6 +1683,11 @@ export default class etoro extends Exchange {
             //         "referenceId": ""
             //     }
             //
+        }
+        // the response only means that the cancelation was accepted, the resulting status is polled from the order lookup
+        const polled = await this.pollOrder (id, market, isCloseOrder, [ '1', '2', '6' ]);
+        if (polled !== undefined) {
+            return polled;
         }
         const order = this.parseOrder (response, market);
         if (order['id'] === undefined) {
@@ -1651,6 +1823,7 @@ export default class etoro extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            '0': 'open', // the instrument breakdown reports resting orders with status 0
             '1': 'open', // Received
             '2': 'open', // Placed
             '3': 'closed', // Filled
@@ -2017,6 +2190,22 @@ export default class etoro extends Exchange {
 
     /**
      * @method
+     * @name etoro#fetchPositionsForSymbol
+     * @description fetch all open positions of a market, etoro positions are hedged, so there can be several in each direction
+     * @see https://api-portal.etoro.com/api-reference/trading--real/get-instrument-breakdown.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/get-instrument-breakdown-demo.md
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures](https://docs.ccxt.com/?id=position-structure)
+     */
+    override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        return await this.fetchPositions ([ market['symbol'] ], params);
+    }
+
+    /**
+     * @method
      * @name etoro#fetchPosition
      * @description fetch data on an open position
      * @see https://api-portal.etoro.com/api-reference/trading--real/get-instrument-breakdown.md
@@ -2217,7 +2406,9 @@ export default class etoro extends Exchange {
         //     }
         //
         const orderForClose = this.safeDict (response, 'orderForClose', {});
-        const order = this.parseOrder (orderForClose, market);
+        // the close order is executed asynchronously, its outcome is polled from the close order details
+        const polled = await this.pollOrder (this.safeString (orderForClose, 'orderID'), market, true, [ '1', '2', '5', '6', '11' ]);
+        const order = (polled !== undefined) ? polled : this.parseOrder (orderForClose, market);
         order['side'] = closeSide;
         order['type'] = 'market';
         order['reduceOnly'] = true;
@@ -2235,6 +2426,8 @@ export default class etoro extends Exchange {
      * @param {float} [params.stopLossPrice] the new stop loss price
      * @param {float} [params.takeProfitPrice] the new take profit price
      * @param {bool} [params.trailing] set to true for a trailing stop loss
+     * @param {bool} [params.clearStopLoss] set to true to remove the stop loss, usually not allowed for leveraged and futures positions
+     * @param {bool} [params.clearTakeProfit] set to true to remove the take profit
      * @returns {object} the response from the exchange
      */
     async editPosition (positionId: string, params: Dict = {}): Promise<Dict> {
@@ -2253,7 +2446,15 @@ export default class etoro extends Exchange {
         if (trailing !== undefined) {
             request['stopLossType'] = trailing ? 'trailing' : 'fixed';
         }
-        const query = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'trailing' ]);
+        const clearStopLoss = this.safeBool (params, 'clearStopLoss', false);
+        if (clearStopLoss) {
+            request['clearStopLoss'] = true;
+        }
+        const clearTakeProfit = this.safeBool (params, 'clearTakeProfit', false);
+        if (clearTakeProfit) {
+            request['clearTakeProfit'] = true;
+        }
+        const query = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'trailing', 'clearStopLoss', 'clearTakeProfit' ]);
         let response = undefined;
         if (this.isSandboxModeEnabled) {
             response = await this.privatePatchV2TradingDemoPositionsPositionId (this.extend (request, query));
@@ -2268,6 +2469,91 @@ export default class etoro extends Exchange {
         //     }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name etoro#editOrder
+     * @description edits the stop loss and the take profit of an open position, the id is the position id, the amount and the price of a position cannot be edited, the edit is processed asynchronously
+     * @see https://api-portal.etoro.com/api-reference/trading--real/modify-stop-loss-and-take-profit-settings-on-an-open-position.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/modify-stop-loss-and-take-profit-settings-on-an-open-position.md
+     * @param {string} id the position id
+     * @param {string} symbol unified symbol of the market of the position
+     * @param {string} type not used by etoro editOrder
+     * @param {string} side not used by etoro editOrder
+     * @param {float} [amount] not used by etoro editOrder, use closePosition to reduce a position
+     * @param {float} [price] not used by etoro editOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLossPrice] the new stop loss price
+     * @param {float} [params.takeProfitPrice] the new take profit price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the new triggerPrice of the stop loss
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the new triggerPrice of the take profit
+     * @param {bool} [params.trailing] set to true for a trailing stop loss, false for a fixed one
+     * @param {bool} [params.clearStopLoss] set to true to remove the stop loss, usually not allowed for leveraged and futures positions
+     * @param {bool} [params.clearTakeProfit] set to true to remove the take profit
+     * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure) with the id of the position
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        if (stopLoss !== undefined) {
+            stopLossPrice = this.safeString2 (stopLoss, 'triggerPrice', 'price');
+        }
+        let takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        if (takeProfit !== undefined) {
+            takeProfitPrice = this.safeString2 (takeProfit, 'triggerPrice', 'price');
+        }
+        const trailing = this.safeBool (params, 'trailing');
+        const clearStopLoss = this.safeBool (params, 'clearStopLoss', false);
+        const clearTakeProfit = this.safeBool (params, 'clearTakeProfit', false);
+        if ((stopLossPrice === undefined) && (takeProfitPrice === undefined) && (trailing === undefined) && !clearStopLoss && !clearTakeProfit) {
+            throw new ArgumentsRequired (this.id + ' editOrder() edits the stop loss and the take profit of an open position, it requires a stopLossPrice, takeProfitPrice, trailing, clearStopLoss or clearTakeProfit parameter');
+        }
+        const request: Dict = this.omit (params, [ 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice' ]);
+        if (stopLossPrice !== undefined) {
+            request['stopLossPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+        }
+        if (takeProfitPrice !== undefined) {
+            request['takeProfitPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+        }
+        const response = await this.editPosition (id, request);
+        //
+        //     {
+        //         "operationId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        //         "positionId": 3650871436,
+        //         "referenceId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+        //     }
+        //
+        return this.safeOrder ({
+            'info': response,
+            'id': this.safeString (response, 'positionId', id),
+            'clientOrderId': this.safeString (response, 'referenceId'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'reduceOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'triggerPrice': undefined,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'fee': undefined,
+            'trades': undefined,
+            'status': 'open',
+        }, market);
     }
 
     async fetchTradeHistory (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<List> {
@@ -2506,6 +2792,14 @@ export default class etoro extends Exchange {
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
+            // some endpoints answer with plain text, e.g. 404 "Order was not found for OrderID=1 with RefereceID="
+            if ((code >= 400) && (code < 500) && (body !== undefined) && (body.length > 0)) {
+                const plainFeedback = this.id + ' ' + body;
+                this.throwBroadlyMatchedException (this.exceptions['broad'], body, plainFeedback);
+                if (code === 404) {
+                    throw new BadRequest (plainFeedback);
+                }
+            }
             return undefined; // fallback to default error handler
         }
         //
@@ -2529,6 +2823,10 @@ export default class etoro extends Exchange {
         const errorCode = this.safeStringN (response, [ 'errorCode', 'code' ], this.safeString (error, 'code'));
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+        if ((code === 400) && (url.indexOf ('/trading/execution/') !== -1)) {
+            // {"message":"Validation failed: \n -- Amount: ... Severity: Error"}
+            throw new InvalidOrder (feedback);
+        }
         if (code === 404) {
             if (url.indexOf ('orders') !== -1) {
                 throw new OrderNotFound (feedback);
