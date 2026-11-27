@@ -647,7 +647,7 @@ public partial class htx : ccxt.htx
                 Int64? maxAttempts = this.parseToInt(this.handleOption("watchOrderBook", "maxRetries", 3));
                 Int64? numAttempts = this.safeInteger(subscription, "numAttempts", 0);
                 // retry to synchronize if we have not reached maxAttempts yet
-                if (numAttempts.GetValueOrDefault() < maxAttempts)
+                if (numAttempts.GetValueOrDefault() < maxAttempts.GetValueOrDefault())
                 {
                     // safety guard
                     if (((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))

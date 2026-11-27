@@ -2264,7 +2264,7 @@ public partial class paradex : ccxt.paradex
         Int64? blockLength = this.parseToInt(this.sbeReadUint(frameHex, 0, 2));
         Int64? templateId = this.parseToInt(this.sbeReadUint(frameHex, 2, 2));
         Int64? schemaId = this.parseToInt(this.sbeReadUint(frameHex, 4, 2));
-        if (((schemaId != 1)) || (((frameLength == null || frameLength < this.sum(blockLength, 8)))))
+        if (((schemaId != 1)) || ((frameLength < this.sum(blockLength, 8))))
         {
             return new Dictionary<string, object>() {};
         }

@@ -9932,10 +9932,10 @@ public partial class okx : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "until");
-        object end = null;
+        Int64? end = null;
         if ((until != null))
         {
-            end = this.sum(until, 1);
+            end = this.parseToInt(this.sum(until, 1));
         }
         if ((since != null))
         {
@@ -9950,16 +9950,16 @@ public partial class okx : Exchange
                 // all entries in it are requested and the caller keeps the earliest limit of them
                 Int64? months = this.parseToInt(((unitPeriod == null) ? null : unitPeriod.Substring(0, Math.Max(unitPeriod.Length - 1, 0))));
                 int day = 86400000;
-                windowDuration = mathMin((((effectiveLimit * months) * 31) * day), (((maxLimit * months) * 28) * day));
+                windowDuration = ((months != null) ? (Int64?)Math.Min((((effectiveLimit.GetValueOrDefault() * months.Value) * 31) * day), (((maxLimit * months.Value) * 28) * day)) : null);
                 request["limit"] = maxLimit;
             } else
             {
                 windowDuration = ((effectiveLimit * this.parseTimeframe(unitPeriod.ToLower())) * 1000);
             }
-            object windowEnd = this.sum(since, windowDuration);
-            end = ((end == null)) ? windowEnd : mathMin(end, windowEnd);
+            Int64? windowEnd = this.parseToInt(this.sum(since, windowDuration));
+            end = ((end == null)) ? windowEnd : this.parseToInt(((windowEnd != null) ? (Int64?)Math.Min(end.Value, windowEnd.Value) : null));
         }
-        if (!(end == null))
+        if ((end != null))
         {
             request["end"] = end;
         }

@@ -3625,7 +3625,7 @@ public partial class interactivebrokers : Exchange
         {
             return (this.numberToString(months) + "m");
         }
-        object years = mathMin(this.parseToInt(((double?)((months + 11)) / 12)), 15); // 15y is the documented maximum period
+        Int64 years = Math.Min(this.parseToInt(((double?)((months + 11)) / 12)).GetValueOrDefault(), 15); // 15y is the documented maximum period
         return (this.numberToString(years) + "y");
     }
 

@@ -2322,7 +2322,7 @@ public partial class whitebit : Exchange
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
                 Int64? rangeEnd = this.parseToInt(this.sum(start, (duration * cappedLimit)));
-                if (((endTime == null)) || ((endTime != null && (rangeEnd == null || rangeEnd < endTime))))
+                if (((endTime == null)) || (rangeEnd.GetValueOrDefault() < endTime))
                 {
                     endTime = rangeEnd;
                 }

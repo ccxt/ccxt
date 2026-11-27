@@ -1492,7 +1492,7 @@ public partial class bigone : Exchange
             Int64? endByLimit = this.parseToInt(this.sum(since, ((limitResolved * duration) * 1000)));
             if ((until != null))
             {
-                request["time"] = this.iso8601(mathMin(endByLimit, (until + 1)));
+                request["time"] = this.iso8601(((endByLimit != null) ? (Int64?)Math.Min(endByLimit.Value, (until.Value + 1)) : null));
             } else
             {
                 request["time"] = this.iso8601(endByLimit);

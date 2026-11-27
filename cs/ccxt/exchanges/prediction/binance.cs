@@ -521,7 +521,7 @@ public partial class binance : PredictionExchange
             limitValue = this.parseToInt(limit);
         }
         Int64? limitResolved = limitValue;
-        if (limitValue > 50)
+        if (limitValue.GetValueOrDefault() > 50)
         {
             limitResolved = 50;
         }

@@ -1144,7 +1144,7 @@ public partial class bithumb : Exchange
                 marketIdsChunk.Add((marketIds != null && i < marketIds.Count ? marketIds[i] : null));
                 int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
                 bool isLastMarketId = ((i == ((marketIdsLength - 1))));
-                if (((maxMarketIdsPerRequest == null || marketIdsChunkLength >= maxMarketIdsPerRequest)) || isLastMarketId)
+                if ((marketIdsChunkLength >= maxMarketIdsPerRequest.GetValueOrDefault()) || isLastMarketId)
                 {
                     marketIdsChunks.Add(marketIdsChunk);
                     request["markets"] = String.Join(",", marketIdsChunk.ToArray());

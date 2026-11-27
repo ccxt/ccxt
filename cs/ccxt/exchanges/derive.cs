@@ -1950,7 +1950,7 @@ public partial class derive : Exchange
             Int64? sinceSeconds = this.parseToInt(((double?)since / 1000));
             start = sinceSeconds;
             // the window is anchored at since: otherwise the venue clamp would silently drop the head of a wider range and deterministic pagination would collect the same tail on every page
-            if ((windowStart != null && (sinceSeconds == null || sinceSeconds < windowStart)))
+            if (sinceSeconds.GetValueOrDefault() < windowStart)
             {
                 end = this.sum(sinceSeconds, span);
             }

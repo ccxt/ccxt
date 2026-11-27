@@ -3775,7 +3775,7 @@ public partial class gate : Exchange
             // gateeu returns an empty book for a spot limit above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
             Int64? maxLimit = (this.safeBool(market, "spot", false) == true) ? maxSpotLimit : 300;
-            request["limit"] = mathMin(limit, maxLimit);
+            request["limit"] = Math.Min(limit.Value, maxLimit.GetValueOrDefault());
         }
         request["with_id"] = true;
         Dictionary<string, object> response = null;
@@ -4517,7 +4517,7 @@ public partial class gate : Exchange
             {
                 Int64? untilSeconds = this.parseToInt(((double?)untilMs / 1000));
                 Int64? toValue = to;
-                if (((untilSeconds == null || untilSeconds < to)))
+                if (untilSeconds.GetValueOrDefault() < to)
                 {
                     toValue = untilSeconds;
                 }
@@ -8195,7 +8195,7 @@ public partial class gate : Exchange
             tiers = this.extend(tiers, grouped);
             List<object> contracts = new List<object>(grouped.Keys);
             int numContracts = contracts.Count;
-            if ((contract != "") || (numContracts < limit))
+            if ((contract != "") || (numContracts < limit.GetValueOrDefault()))
             {
                 break;
             }

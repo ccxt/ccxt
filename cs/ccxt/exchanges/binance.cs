@@ -11503,7 +11503,7 @@ public partial class binance : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
-        object endTime = this.safeInteger2(paramsPaginate, "until", "endTime");
+        Int64? endTime = this.safeInteger2(paramsPaginate, "until", "endTime");
         if ((since != null))
         {
             Int64? startTime = since;
@@ -11517,13 +11517,12 @@ public partial class binance : Exchange
             {
                 if (((endTime == null)) && (this.safeBool(market, "linear", false) == true))
                 {
-                    endTime = this.sum(startTime, oneWeek);
-                    object endTimeValue = ((endTime == null)) ? 0 : endTime;
-                    endTime = mathMin(endTimeValue, currentTimestamp);
+                    Int64? endTimeValue = this.parseToInt(this.sum(startTime, oneWeek));
+                    endTime = this.parseToInt(Math.Min(endTimeValue.GetValueOrDefault(), currentTimestamp));
                 }
             }
         }
-        if (!(endTime == null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
             paramsPaginate = this.omit(paramsPaginate, new List<object>() {"endTime", "until"});

@@ -808,7 +808,7 @@ public partial class hyperliquid : Exchange
      */
     public virtual Int64? calculatePricePrecision(double? price, Int64? amountPrecision, Int64 maxDecimals)
     {
-        object pricePrecision = 0;
+        Int64? pricePrecision = this.parseToInt(0);
         string? priceStr = this.numberToString(price);
         if ((priceStr == null))
         {
@@ -822,7 +822,7 @@ public partial class hyperliquid : Exchange
         {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5;
+            pricePrecision = this.parseToInt(5);
         } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
@@ -848,11 +848,10 @@ public partial class hyperliquid : Exchange
             {
                 digitsLeft = (5 - (integerPart.Length));
             }
-            pricePrecision = digitsLeft;
+            pricePrecision = this.parseToInt(digitsLeft);
         }
         // cap by maxDecimals - szDecimals
-        pricePrecision = mathMin(decimalsLeft, pricePrecision);
-        return this.parseToInt(pricePrecision);
+        return this.parseToInt((((decimalsLeft != null) && (pricePrecision != null)) ? (Int64?)Math.Min(decimalsLeft.Value, pricePrecision.Value) : null));
     }
 
     /**

@@ -524,7 +524,7 @@ public partial class gate : ccxt.gate
         {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             Int64? maxSpotLimit = this.parseToInt(this.handleOption("fetchOrderBook", "maxSpotLimit", 1000));
-            limitResolved = this.parseToInt(mathMin(limitResolved, maxSpotLimit));
+            limitResolved = this.parseToInt(Math.Min(limitResolved.GetValueOrDefault(), maxSpotLimit.GetValueOrDefault()));
         }
         List<object> payload = new List<object>() {};
         string channel = "";

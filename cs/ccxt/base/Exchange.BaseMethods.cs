@@ -1888,7 +1888,7 @@ public partial class BaseExchange
                 return (methodDict != null && parentKey != null && methodDict.ContainsKey(parentKey) ? methodDict[parentKey] : null);
             }
             // throw an exception for unsupported subKey
-            if (!(inOp((methodDict != null && parentKey != null && methodDict.ContainsKey(parentKey) ? methodDict[parentKey] : null), subKey)))
+            if (!(((subKey != null) && dictionary.ContainsKey(subKey))))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
