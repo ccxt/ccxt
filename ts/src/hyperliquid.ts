@@ -800,7 +800,7 @@ export default class hyperliquid extends Exchange {
         if (Precise.stringEq (priceStr, '0')) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5;
+            pricePrecision = this.parseToInt (5);
         } else if (Precise.stringGt (priceStr, '0') && Precise.stringLt (priceStr, '1')) {
             // Significant digits, always 5 in this case
             const significantDigits = 5;
@@ -822,11 +822,10 @@ export default class hyperliquid extends Exchange {
             if (integerPart.length <= 5) {
                 digitsLeft = 5 - (integerPart.length);
             }
-            pricePrecision = digitsLeft;
+            pricePrecision = this.parseToInt (digitsLeft);
         }
         // cap by maxDecimals - szDecimals
-        pricePrecision = Math.min (decimalsLeft, pricePrecision);
-        return this.parseToInt (pricePrecision);
+        return this.parseToInt (Math.min (decimalsLeft, pricePrecision));
     }
 
     /**
