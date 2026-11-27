@@ -10900,7 +10900,17 @@ public class Okx extends OkxApi
         //     }
         //
         List<Object> underlyings = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.toArray(this.safeList(underlyings, 0, new ArrayList<Object>(Arrays.asList())));
+        List<Object> first = this.safeList(underlyings, 0, new ArrayList<Object>(Arrays.asList()));
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < first.size(); i++)
+        {
+            String item = this.safeString(first, i);
+            if (!java.util.Objects.equals(item, null))
+            {
+                result.add(item);
+            }
+        }
+        return result;
 
     }
 

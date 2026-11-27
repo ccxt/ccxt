@@ -289,7 +289,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         this.watchMultiple(url, unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes, null);
         for (var i = 0; (channelsLength != null && i < channelsLength); i++)
         {
-            this.cleanUnsubscription(client, this.safeString(channels, i, ""), this.safeString(unWatchMessageHashes, i, ""), false);
+            String channel = this.safeString(channels, i, "");
+            this.cleanUnsubscription(client, channel, this.safeString(unWatchMessageHashes, i, ""), false);
         }
         return true;
 

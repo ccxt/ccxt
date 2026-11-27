@@ -1788,6 +1788,10 @@ public class Polymarket extends PolymarketApi
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         Long resolutionMs = ((fidelityMin * 60L) * 1000L);
+        if ((resolutionMs == null || resolutionMs <= 0))
+        {
+            throw new BadRequest((this.id + " fetchOHLCV() invalid timeframe resolution")) ;
+        }
         Map<String, Object> buckets = new HashMap<String, Object>() {{}};
         for (var i = 0; i < history.size(); i++)
         {

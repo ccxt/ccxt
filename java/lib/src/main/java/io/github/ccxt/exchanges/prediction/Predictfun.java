@@ -3521,7 +3521,7 @@ public class Predictfun extends PredictfunApi
         Boolean isWalletTopic = (java.util.Objects.equals(this.safeString(subscription, "topic"), "walletEvents"));
         for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
         {
-            this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), isWalletTopic);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), isWalletTopic);
         }
         this.cleanCache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -

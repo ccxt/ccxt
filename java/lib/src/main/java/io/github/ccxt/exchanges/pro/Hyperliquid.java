@@ -2382,6 +2382,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String symbol = this.safeSymbol(marketId, null, null, null);
         String interval = this.safeString(subscription, "interval", "");
         String timeframe = this.findTimeframe(interval, null);
+        if ((java.util.Objects.equals(timeframe, null)) || (java.util.Objects.equals(symbol, null)))
+        {
+            return;
+        }
         String subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);

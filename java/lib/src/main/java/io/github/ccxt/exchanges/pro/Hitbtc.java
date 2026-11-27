@@ -1896,7 +1896,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 List<Object> messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < subMessageHashes.size(); j++)
                 {
-                    this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), this.safeString(messageHashes, j), false);
+                    this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), this.safeString(messageHashes, j), false);
                 }
                 this.cleanCache(subscription);
                 return;

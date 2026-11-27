@@ -2640,7 +2640,8 @@ public class Paradex extends ParadexApi
         Boolean isTakeProfitOrStopLoss = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
         String sizeString = "0";
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if (!Boolean.TRUE.equals(isTakeProfitOrStopLoss) || ((!java.util.Objects.equals(amount, null)) && ((amount != null && amount > 0))))
+        String amountStr = this.numberToString(amount);
+        if (!Boolean.TRUE.equals(isTakeProfitOrStopLoss) || ((!java.util.Objects.equals(amountStr, null)) && Precise.stringGt(amountStr, "0")))
         {
             sizeString = this.amountToPrecision(symbol, amount);
         }

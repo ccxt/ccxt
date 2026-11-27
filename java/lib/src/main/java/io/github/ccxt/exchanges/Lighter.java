@@ -3956,6 +3956,10 @@ public class Lighter extends LighterApi
         Map<String, Object> market = this.market(symbol);
         Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex)).join();
         Double leverageNum = this.parseNumber(leverage);
+        if ((java.util.Objects.equals(leverageNum, null)) || ((leverageNum == null || !(leverageNum > 0))))
+        {
+            throw new BadRequest((this.id + " modifyLeverageAndMarginMode() requires leverage > 0")) ;
+        }
         Map<String, Object> signRaw = new HashMap<String, Object>();
         signRaw.put("market_index", this.parseToInt(market.get("id")));
         signRaw.put("initial_margin_fraction", this.parseToInt((((double) 10000) / ((double) leverageNum))));

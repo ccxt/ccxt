@@ -3482,7 +3482,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        this.cleanUnsubscription(client, (String) (((channel + ":") + this.marketId(symbol))), null, false);
+        String marketId = this.marketId(symbol);
+        if (!java.util.Objects.equals(marketId, null))
+        {
+            String marketSubHash = ((channel + ":") + marketId);
+            this.cleanUnsubscription(client, marketSubHash, null, false);
+        } else
+        {
+            this.cleanUnsubscription(client, null, null, false);
+        }
         if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
         {
             ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);

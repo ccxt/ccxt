@@ -3799,7 +3799,7 @@ public class Nado extends NadoApi
                     List<Object> weights = this.safeList(byQuery, queryName, new ArrayList<Object>(Arrays.asList()));
                     Long baseWeight = this.safeInteger(weights, 0, 2);
                     Long rowsPerWeight = this.safeInteger(weights, 1);
-                    if (java.util.Objects.equals(rowsPerWeight, null))
+                    if ((java.util.Objects.equals(rowsPerWeight, null)) || ((rowsPerWeight == null || rowsPerWeight <= 0)))
                     {
                         return baseWeight;
                     }
@@ -3820,6 +3820,10 @@ public class Nado extends NadoApi
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             Long rowsBaseWeight = this.safeInteger(byRows, 0, 2);
             Long rowsDivisor = this.safeInteger(byRows, 1, 50);
+            if ((rowsDivisor == null || rowsDivisor <= 0))
+            {
+                return rowsBaseWeight;
+            }
             Long rowCount = this.safeInteger(parameters, "limit", 100); // the v2 default page
             return this.sum(rowsBaseWeight, this.parseToInt((((double) rowCount) / ((double) rowsDivisor))));
         }

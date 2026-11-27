@@ -644,7 +644,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<Object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < subMessageHashes.size(); j++)
         {
-            this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), unsubHash, prefix);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), unsubHash, prefix);
         }
         this.cleanCache(subscription);
         client.resolve(true, unsubHash);
@@ -1458,7 +1458,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Client client = this.client(url);
         List<String> marketIds = new ArrayList<String>(Arrays.asList());
         List<String> subscribeHashes = new ArrayList<String>(Arrays.asList());
-        List<Object> subMessageHashes = new ArrayList<Object>(Arrays.asList());
+        List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Object symbol = (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i));
@@ -1474,7 +1474,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for (var i = 0; i < subMessageHashes.size(); i++)
             {
-                this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), ("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), false);
+                String subHash = this.safeString(subMessageHashes, i, "");
+                this.cleanUnsubscription(client, subHash, ("unsubscribe:" + subHash), false);
             }
             this.cleanCache(new HashMap<String, Object>() {{
                 put( "topic", "ticker" );
