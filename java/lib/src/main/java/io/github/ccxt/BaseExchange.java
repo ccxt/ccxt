@@ -7982,7 +7982,12 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
             List<Object> ohlcv = (List<Object>)((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)));
-            Object ts = ((java.util.Objects.requireNonNullElse(ms, false))) ? (ohlcv == null || 0 >= ((List<?>)ohlcv).size() ? null : ((List<?>)ohlcv).get(0)) : this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0), 1000));
+            Long rawTs = this.safeInteger((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0);
+            Long ts = rawTs;
+            if (!java.util.Objects.requireNonNullElse(ms, false) && (!java.util.Objects.equals(rawTs, null)))
+            {
+                ts = this.parseToInt((((double) rawTs) / ((double) 1000)));
+            }
             List<Object> resultTimestamp = (List<Object>) ((result == null || java.util.Objects.requireNonNullElse(timestamp, "t") == null ? null : result.get(java.util.Objects.requireNonNullElse(timestamp, "t"))));
             resultTimestamp.add(ts);
             List<Object> resultOpen = (List<Object>) ((result == null || java.util.Objects.requireNonNullElse(open, "o") == null ? null : result.get(java.util.Objects.requireNonNullElse(open, "o"))));
