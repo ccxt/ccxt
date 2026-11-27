@@ -7,7 +7,7 @@ The written rules in the Anthropic and OpenAI directories that affect a crypto m
 - Phase 1 (read-only public data) is not clearly allowed by either directory. Anthropic needs written permission. At OpenAI the main risk is the "unofficial connector" rule.
 - Phase-2 **trading** is excluded by both directories as written.
 - Phase-2 **server-stored exchange keys**, even for read-only account data, conflict with OpenAI's restricted-data rule.
-- Nothing here limits the custom-connector route: anyone can add `https://docs.ccxt.com/mcp` by URL today, with no review (wiki/MCP.md documents it).
+- Nothing here limits the custom-connector route: anyone can add `https://mcp.ccxt.com/mcp` by URL today, with no review (wiki/MCP.md documents it).
 
 ## Anthropic
 
@@ -63,7 +63,7 @@ Directory vs custom:
 
 > A supported pattern is to list a connector in the directory with safe, broadly applicable defaults, and provide enterprise customers a separate URL to add as a custom connector with elevated permissions or tenant-specific configuration.
 
-Trading, if it is ever hosted, would live on a separate URL added as a custom connector, never on the listed `https://docs.ccxt.com/mcp`. Today trading exists only in the local server.
+Trading, if it is ever hosted, would live on a separate URL added as a custom connector, never on the listed `https://mcp.ccxt.com/mcp`. Today trading exists only in the local server.
 
 ### Recommended next step (Anthropic)
 

@@ -2,7 +2,7 @@
 
 OpenAI's final submission asks for "a justification for each value on every MCP tool" (submission errors, `justification_required`); its plugin guidelines (§6.3) say justifications "are no longer required". Paste these into the portal if it asks. Anthropic's review checks the same three hints.
 
-Values are what `tools/list` on `https://docs.ccxt.com/mcp` returns. `test/directory.test.ts` fails when this table and the server disagree, so a changed annotation updates this file in the same commit.
+Values are what `tools/list` on `https://mcp.ccxt.com/mcp` returns. `test/directory.test.ts` fails when this table and the server disagree, so a changed annotation updates this file in the same commit.
 
 Hints: **RO** `readOnlyHint`, **D** `destructiveHint`, **OW** `openWorldHint`.
 

@@ -1,6 +1,6 @@
 # Screenshots and demo video
 
-What to capture for the two directories once `https://docs.ccxt.com/mcp` is deployed. Nothing here can be captured before then: use the deployed server, not a local run, so the hosts load the views exactly as users will see them.
+What to capture for the two directories once `https://mcp.ccxt.com/mcp` is deployed. Nothing here can be captured before then: use the deployed server, not a local run, so the hosts load the views exactly as users will see them.
 
 ## Before capturing
 

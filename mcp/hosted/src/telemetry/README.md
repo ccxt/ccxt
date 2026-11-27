@@ -1,6 +1,6 @@
 # Telemetry: what the hosted server collects
 
-This file is the authoritative list of what the hosted CCXT MCP server (`https://docs.ccxt.com/mcp`) records about its use. The code is in this directory, and the tests in `mcp/hosted/test/telemetry/` check every rule below. If this file and the code disagree, the code is wrong.
+This file is the authoritative list of what the hosted CCXT MCP server (`https://mcp.ccxt.com/mcp`) records about its use. The code is in this directory, and the tests in `mcp/hosted/test/telemetry/` check every rule below. If this file and the code disagree, the code is wrong.
 
 The local stdio server (`ccxt-mcp` on npm) collects nothing. Nothing in this directory runs there.
 

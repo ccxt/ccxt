@@ -47,7 +47,7 @@ test ('http: a Host outside the allowlist gets 403; the public name and localhos
     const headers = { 'content-type': 'application/json', 'accept': 'application/json, text/event-stream' };
     const evil = await rawRequest ({ 'method': 'POST', 'path': '/mcp', 'headers': { ...headers, 'host': 'evil.example' }, body });
     assert.equal (evil.status, 403);
-    for (const host of [ 'docs.ccxt.com', 'localhost:8080', '127.0.0.1' ]) {
+    for (const host of [ 'mcp.ccxt.com', 'localhost:8080', '127.0.0.1' ]) {
         const ok = await rawRequest ({ 'method': 'POST', 'path': '/mcp', 'headers': { ...headers, host }, body });
         assert.equal (ok.status, 200, host);
     }

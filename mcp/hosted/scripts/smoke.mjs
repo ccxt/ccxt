@@ -5,7 +5,7 @@
 //   node scripts/smoke.mjs --url http://127.0.0.1:8080/mcp   # check a running server
 //   node scripts/smoke.mjs --live                # also call market tools (needs exchange access)
 //   node scripts/smoke.mjs --require-ready       # fail unless /readyz turns 200
-//   node scripts/smoke.mjs --url https://docs.ccxt.com/mcp --live   # a deployed server (no /healthz, /readyz)
+//   node scripts/smoke.mjs --url https://mcp.ccxt.com/mcp --live   # a deployed server (no /healthz, /readyz)
 //
 // Without --url it starts the bundle with EXCHANGES (default "kraken", or "kraken,coinbase,okx"
 // with --live: the live checks call those). The default checks
@@ -81,7 +81,7 @@ try {
     }
     const origin = new URL (url).origin;
     // /healthz and /readyz are served on the service's own port only; nginx does not proxy
-    // them, so a public --url (https://docs.ccxt.com/mcp) skips them
+    // them, so a public --url (https://mcp.ccxt.com/mcp) skips them
     const local = [ '127.0.0.1', 'localhost', '[::1]' ].includes (new URL (url).hostname);
     if (local) {
         check (await waitFor (origin + '/healthz', 200, 30000), '/healthz answers 200');

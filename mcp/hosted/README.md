@@ -1,6 +1,6 @@
 # Hosted CCXT MCP server
 
-The public, anonymous, read-only CCXT MCP server served at **`https://docs.ccxt.com/mcp`**. Anyone can add that URL to Claude, ChatGPT, Claude Code or Codex. There is nothing to install and no API key to provide.
+The public, anonymous, read-only CCXT MCP server served at **`https://mcp.ccxt.com/mcp`**. Anyone can add that URL to Claude, ChatGPT, Claude Code or Codex. There is nothing to install and no API key to provide.
 
 - **Phase 1 (this code):** public market data from an exchange allowlist, plus interactive views (MCP Apps) in the chat. Account tools are listed, but they answer `ACCOUNT_REQUIRED` with a pointer to the [local server](https://docs.ccxt.com/docs/mcp).
 - **Phase 2 (designed, not built):** sign-in and server-stored exchange keys. See [DESIGN.md](DESIGN.md).
@@ -160,7 +160,7 @@ Deploys are automated by [`.github/workflows/deploy-mcp-hosted.yml`](../../.gith
 - It builds the image on the self-hosted `deploy` runner and pushes it to `ghcr.io/ccxt/ccxt-mcp-hosted:<short sha>`.
 - It copies this release's `docker-compose.yml` and `deploy/` to `/srv/ccxt-mcp-hosted/releases/<short sha>` on the machine, then runs [`deploy/remote-deploy.sh`](deploy/remote-deploy.sh) there over SSH.
 - It reaches the machine with the same repository secrets as the docs and playground deploys: `DOCS_DEPLOY_SSH_KEY`, `DOCS_DEPLOY_KNOWN_HOSTS`, `DOCS_DEPLOY_HOST`, `DOCS_DEPLOY_USER`. Nothing else is stored in GitHub.
-- Finally it checks that `https://docs.ccxt.com/mcp` reports the new build as its `serverInfo.version`.
+- Finally it checks that `https://mcp.ccxt.com/mcp` reports the new build as its `serverInfo.version`.
 
 `remote-deploy.sh` switches without downtime, like the docs site's own deploy:
 
@@ -220,8 +220,8 @@ IMAGE=ccxt-mcp-hosted BUILD_ID=<id> RELEASE_DIR=/srv/ccxt-mcp-hosted/releases/<i
 **Check from outside:**
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' https://docs.ccxt.com/mcp        # 405 (GET)
-claude mcp add --transport http ccxt https://docs.ccxt.com/mcp && claude mcp list
+curl -s -o /dev/null -w '%{http_code}\n' https://mcp.ccxt.com/mcp        # 405 (GET)
+claude mcp add --transport http ccxt https://mcp.ccxt.com/mcp && claude mcp list
 ```
 
 **The container** (`docker-compose.yml`):
@@ -251,7 +251,7 @@ Nothing in the container alerts anyone; an outage is otherwise reported by users
 - **An external uptime check** from outside the VM, every minute, alerting on anything but 200:
 
   ```bash
-  curl -fsS -X POST https://docs.ccxt.com/mcp -H 'content-type: application/json' \
+  curl -fsS -X POST https://mcp.ccxt.com/mcp -H 'content-type: application/json' \
     -H 'accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' >/dev/null
   ```
 

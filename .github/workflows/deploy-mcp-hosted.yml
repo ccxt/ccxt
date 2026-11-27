@@ -2,7 +2,7 @@ name: Deploy hosted MCP
 run-name: ${{ github.event_name == 'workflow_dispatch' && format('deploy {0}', inputs.build_id || github.sha) || github.event.workflow_run.head_commit.message }}
 
 # Builds the hosted CCXT MCP server (mcp/hosted) as a container and deploys it behind nginx
-# at https://docs.ccxt.com/mcp, on the same machine and with the same DOCS_DEPLOY_* secrets
+# at https://mcp.ccxt.com/mcp, on the same machine and with the same DOCS_DEPLOY_* secrets
 # as docs-fumadocs.yml and deploy-playground.yml: build image -> push to GHCR -> the machine
 # pulls it, smoke-tests it on the spare port, switches nginx, drains the old container
 # (mcp/hosted/deploy/remote-deploy.sh; no downtime, auto-abort on failure).
@@ -48,7 +48,7 @@ jobs:
     env:
       IMAGE: ghcr.io/ccxt/ccxt-mcp-hosted
       DEPLOY_DIR: /srv/ccxt-mcp-hosted
-      PUBLIC_URL: https://docs.ccxt.com/mcp
+      PUBLIC_URL: https://mcp.ccxt.com/mcp
       # the commit that passed the MCP workflow (workflow_run), or the ref picked by hand
       REF: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:

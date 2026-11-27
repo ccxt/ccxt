@@ -4,7 +4,7 @@ CCXT ships an official **MCP (Model Context Protocol) server** so AI agents — 
 
 | | Hosted server | Local server |
 |---|---|---|
-| How | Install the `ccxt` plugin, or add the URL `https://docs.ccxt.com/mcp` to your assistant | Install the `ccxt-local` plugin, or run `npx -y ccxt-mcp` on your own computer (Node.js ≥ 20) |
+| How | Install the `ccxt` plugin, or add the URL `https://mcp.ccxt.com/mcp` to your assistant | Install the `ccxt-local` plugin, or run `npx -y ccxt-mcp` on your own computer (Node.js ≥ 20) |
 | Data | Public market data from a curated set of major exchanges, with interactive charts | Public data on 100+ exchanges and prediction markets, plus balances, orders, positions and opt‑in trading |
 | Keys | None accepted | Stay on your machine, never visible to the model |
 | Works in | Claude (web, desktop, mobile), ChatGPT, Claude Code, Codex, Cursor, VS Code and any host that can add a remote MCP server | Hosts that run local (stdio) MCP servers: Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, … |
@@ -44,10 +44,10 @@ Recommended exchange‑side backstops (they hold even if your machine is comprom
 The hosted server is a public, read‑only MCP endpoint run by CCXT:
 
 ```
-https://docs.ccxt.com/mcp
+https://mcp.ccxt.com/mcp
 ```
 
-Install the CCXT plugin, or add that URL to your assistant, and ask for prices, order books, candles, trades or a chart. There is nothing to install, no sign‑in and no API key. It speaks MCP over Streamable HTTP and is stateless.
+Install the CCXT plugin, or add that URL to your assistant, and ask for prices, order books, candles, trades or a chart. There is nothing to install, no sign‑in and no API key. It speaks MCP over Streamable HTTP and is stateless. The earlier address, `https://docs.ccxt.com/mcp`, keeps working.
 
 **Status: phase 1.** Public market data only. Signing in to use your own exchange accounts through the hosted server is planned for a later phase. Until then, account data and trading need the [local server](#local-server).
 
@@ -59,10 +59,10 @@ There are two ways to add it. Both connect to the same server.
 
 **Connector (every plan, including Free).**
 
-- **One click:** open [this link](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp). claude.ai opens the **Add custom connector** dialog with the name and URL filled in. Review them, then add the connector. The link only fills in the form; nothing is added until you confirm.
-- **By hand:** go to [Customize > Connectors](https://claude.ai/customize/connectors), select **Add**, then **Add custom connector**. Enter the name `CCXT` and the URL `https://docs.ccxt.com/mcp`, click **Continue**, choose **No sign-in** under **Authentication** (or keep the option marked **Detected**), then click **Add**.
+- **One click:** open [this link](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fmcp.ccxt.com%2Fmcp). claude.ai opens the **Add custom connector** dialog with the name and URL filled in. Review them, then add the connector. The link only fills in the form; nothing is added until you confirm.
+- **By hand:** go to [Customize > Connectors](https://claude.ai/customize/connectors), select **Add**, then **Add custom connector**. Enter the name `CCXT` and the URL `https://mcp.ccxt.com/mcp`, click **Continue**, choose **No sign-in** under **Authentication** (or keep the option marked **Detected**), then click **Add**.
 - Custom connectors work on the Free, Pro, Max, Ultra, Team and Enterprise plans. The Free plan allows one custom connector.
-- **Team and Enterprise:** an Owner adds the connector for the organization under [Organization settings > Connectors](https://claude.ai/admin-settings/connectors): **Add**, then **Custom**, then **Web** if asked. Members then find it in their connectors, labelled as custom. Owners can also use the [admin version of the prefilled link](https://claude.ai/admin-settings/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp).
+- **Team and Enterprise:** an Owner adds the connector for the organization under [Organization settings > Connectors](https://claude.ai/admin-settings/connectors): **Add**, then **Custom**, then **Web** if asked. Members then find it in their connectors, labelled as custom. Owners can also use the [admin version of the prefilled link](https://claude.ai/admin-settings/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fmcp.ccxt.com%2Fmcp).
 - Turn the connector on or off for a conversation from the **+** button in the chat, under **Connectors**.
 - **Stop the approval prompts:** every tool on this server is read-only (it marks them `readOnlyHint: true`), but whether Claude asks before a call is your setting, not the server's. Open [Customize > Connectors](https://claude.ai/customize/connectors/yours), select **CCXT**, and under **Tool permissions** set the group to **Always allow**. You can also pick **Always allow** in the first approval prompt of a chat. An organization's connector restrictions, where an Owner has set them, still apply.
 - Claude shows custom connectors as unverified services. CCXT is not listed in the Claude directory yet.
@@ -84,7 +84,7 @@ claude plugin install ccxt --marketplace ccxt/ccxt-plugins
 `--marketplace` needs Claude Code 2.1.292 or later. On older versions, or inside a session, add the marketplace first: `claude plugin marketplace add ccxt/ccxt-plugins` then `claude plugin install ccxt@ccxt` (in a session: `/plugin marketplace add ccxt/ccxt-plugins`, then `/plugin install ccxt@ccxt`). Or add only the server:
 
 ```bash
-claude mcp add --transport http ccxt https://docs.ccxt.com/mcp
+claude mcp add --transport http ccxt https://mcp.ccxt.com/mcp
 ```
 
 If you already use the local server under the name `ccxt`, give this one another name, such as `ccxt-hosted`.
@@ -103,7 +103,7 @@ The same marketplace also has the local server's plugin, `ccxt-local` ([below](#
 
 1. Go to [ChatGPT Plugins](https://chatgpt.com/plugins).
 2. Select the plus button, then **Add custom MCP server**.
-3. Enter the name `CCXT`. Under **Connection**, enter the **Server URL** `https://docs.ccxt.com/mcp`.
+3. Enter the name `CCXT`. Under **Connection**, enter the **Server URL** `https://mcp.ccxt.com/mcp`.
 4. Choose **No authentication**.
 5. Read the risk warning and select **I understand and want to continue**.
 6. Select **Create as a plugin**, then install the plugin from your personal plugins.
@@ -127,13 +127,13 @@ Then restart the ChatGPT desktop app. On a ChatGPT workspace, an admin can impor
 
 Or add only the server ([OpenAI docs](https://learn.chatgpt.com/docs/extend/mcp)):
 
-- **ChatGPT desktop app:** open **Settings**, then **MCP servers**. Select **Add server**, enter the name `ccxt`, choose **Streamable HTTP** and enter `https://docs.ccxt.com/mcp`. Save, then select **Restart**.
+- **ChatGPT desktop app:** open **Settings**, then **MCP servers**. Select **Add server**, enter the name `ccxt`, choose **Streamable HTTP** and enter `https://mcp.ccxt.com/mcp`. Save, then select **Restart**.
 - **Codex IDE extension:** the gear menu, then **MCP servers**, then the same steps. Finish with **Restart extension**.
 - **Codex CLI:** add to `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
 
   ```toml
   [mcp_servers.ccxt]
-  url = "https://docs.ccxt.com/mcp"
+  url = "https://mcp.ccxt.com/mcp"
   ```
 
   Run `codex mcp list` to check it.
@@ -143,7 +143,7 @@ Or add only the server ([OpenAI docs](https://learn.chatgpt.com/docs/extend/mcp)
 `~/.cursor/mcp.json` (every project) or `.cursor/mcp.json` (one project):
 
 ```json
-{ "mcpServers": { "ccxt": { "url": "https://docs.ccxt.com/mcp" } } }
+{ "mcpServers": { "ccxt": { "url": "https://mcp.ccxt.com/mcp" } } }
 ```
 
 #### VS Code (hosted)
@@ -151,7 +151,7 @@ Or add only the server ([OpenAI docs](https://learn.chatgpt.com/docs/extend/mcp)
 Run **MCP: Add Server** from the Command Palette, or add to `.vscode/mcp.json`:
 
 ```json
-{ "servers": { "ccxt": { "type": "http", "url": "https://docs.ccxt.com/mcp" } } }
+{ "servers": { "ccxt": { "type": "http", "url": "https://mcp.ccxt.com/mcp" } } }
 ```
 
 VS Code lists MCP Apps as "Interactive results (Experimental)".
@@ -159,12 +159,12 @@ VS Code lists MCP Apps as "Interactive results (Experimental)".
 #### Gemini CLI
 
 ```bash
-gemini mcp add --transport http ccxt https://docs.ccxt.com/mcp
+gemini mcp add --transport http ccxt https://mcp.ccxt.com/mcp
 ```
 
 #### Other hosts
 
-Any MCP host that can add a remote server over Streamable HTTP works. Use the URL `https://docs.ccxt.com/mcp`, with no headers and no authentication.
+Any MCP host that can add a remote server over Streamable HTTP works. Use the URL `https://mcp.ccxt.com/mcp`, with no headers and no authentication.
 
 #### What works on the hosted server
 

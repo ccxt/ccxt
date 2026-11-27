@@ -2,7 +2,7 @@
     "name": "ccxt-mcp-hosted",
     "version": "0.1.0",
     "private": true,
-    "description": "The hosted (public, stateless HTTP) CCXT MCP server served at https://docs.ccxt.com/mcp",
+    "description": "The hosted (public, stateless HTTP) CCXT MCP server served at https://mcp.ccxt.com/mcp",
     "type": "module",
     "engines": {
         "node": ">=22.22.0"

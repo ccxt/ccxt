@@ -23,7 +23,7 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://docs.ccxt.com/mcp"
+      "url": "https://mcp.ccxt.com/mcp"
     }
   ]
 }

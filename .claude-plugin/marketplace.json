@@ -40,7 +40,7 @@
       "name": "ccxt",
       "source": "./mcp/hosted/plugin",
       "displayName": "CCXT",
-      "description": "The hosted CCXT MCP server (https://docs.ccxt.com/mcp) plus a usage skill — read-only public market data and interactive charts from major crypto exchanges. No install, no API keys.",
+      "description": "The hosted CCXT MCP server (https://mcp.ccxt.com/mcp) plus a usage skill — read-only public market data and interactive charts from major crypto exchanges. No install, no API keys.",
       "version": "0.1.0",
       "author": {
         "name": "CCXT",

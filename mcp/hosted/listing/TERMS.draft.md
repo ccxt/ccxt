@@ -4,7 +4,7 @@
 
 Last updated: **[date of publication]**
 
-These terms govern your use of the hosted CCXT MCP server at `https://docs.ccxt.com/mcp` (the "Service"), which you use through an AI assistant such as Claude or ChatGPT. **[Legal entity name]** ("we") operates the Service. By adding the Service to an assistant or using it, you accept these terms.
+These terms govern your use of the hosted CCXT MCP server at `https://mcp.ccxt.com/mcp` (the "Service"), which you use through an AI assistant such as Claude or ChatGPT. **[Legal entity name]** ("we") operates the Service. By adding the Service to an assistant or using it, you accept these terms.
 
 The CCXT library and the local CCXT MCP server are open-source software under the MIT License. That license covers the software; these terms cover the hosted Service.
 

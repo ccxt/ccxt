@@ -1,6 +1,6 @@
 # Directory submission checklist — hosted CCXT MCP server
 
-Everything the Anthropic and OpenAI directories ask for, for the hosted server at `https://docs.ccxt.com/mcp` and its plugin in `mcp/hosted/plugin/`. Each row names its source; quotes were read on 2026-11-25 and rechecked on 2026-11-26. Re-read the sources before submitting: both directories change their forms often.
+Everything the Anthropic and OpenAI directories ask for, for the hosted server at `https://mcp.ccxt.com/mcp` and its plugin in `mcp/hosted/plugin/`. Each row names its source; quotes were read on 2026-11-25 and rechecked on 2026-11-26. Re-read the sources before submitting: both directories change their forms often.
 
 **Do not submit to either directory before the policy questions in [POLICY-RISKS.md](POLICY-RISKS.md) are answered.** Both directories have written rules that a crypto market-data connector may not pass.
 
@@ -8,7 +8,7 @@ Everything the Anthropic and OpenAI directories ask for, for the hosted server a
 
 ## Launch steps
 
-1. DONE (2026-11-26): `"remotes": [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` is back in `mcp/server.json`. The next ccxt-mcp release publishes it to the MCP Registry.
+1. DONE (2026-11-26): `"remotes": [{ "type": "streamable-http", "url": "https://mcp.ccxt.com/mcp" }]` is back in `mcp/server.json`. The next ccxt-mcp release publishes it to the MCP Registry.
 2. DONE (2026-11-26): the "not deployed yet" status lines are gone from `wiki/MCP.md`, `mcp/README.md`, `.claude/skills/ccxt-mcp/SKILL.md` and `mcp/hosted/plugin/README.md`.
 3. Legal review approves the two legal pages; the directory-submission pull request publishes them (see above).
 4. Put the OpenAI domain-verification token in `OPENAI_APPS_CHALLENGE` in the VM's `.env` and run `docker compose up -d` (README, Deploy).
@@ -25,7 +25,7 @@ Status values:
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Server deployed at `https://docs.ccxt.com/mcp` | DONE | Deployed 2026-11-25 on the docs.ccxt.com machine (container on `127.0.0.1:8099`, `HOST_PORT`). `node scripts/smoke.mjs --url https://docs.ccxt.com/mcp --live` passed in both protocol eras on 2026-11-26; `live_update` served from the shared stream. `DEPLOYMENT_ENV` is still `staging`: set `production` at launch. |
+| Server deployed at `https://mcp.ccxt.com/mcp` | DONE | Deployed 2026-11-25 on the docs.ccxt.com machine (container on `127.0.0.1:8099`, `HOST_PORT`). `node scripts/smoke.mjs --url https://mcp.ccxt.com/mcp --live` passed in both protocol eras on 2026-11-26; `live_update` served from the shared stream. `DEPLOYMENT_ENV` is still `staging`: set `production` at launch. |
 | The URL is final | DECIDE | It is Claude's `_meta.ui.domain` hash input, the phase-2 OAuth audience and the registry `remotes[].url`. OpenAI: "To change an existing MCP server's URL, contact support" ([submission](https://developers.openai.com/plugins/deploy/submission)). Pinned by `mcp/test/schema/hosted-plugin.test.ts`. |
 | Privacy policy published at `https://docs.ccxt.com/docs/mcp-privacy` | TODO (legal) | Text: [PRIVACY-POLICY.draft.md](PRIVACY-POLICY.draft.md); published by the submission PR (wiki page + `mcp-privacy` route); reviewer notes in [PRIVACY-POLICY.notes.md](PRIVACY-POLICY.notes.md). Awaiting legal review (the **[bracketed]** items, then the draft banner comes off). The URL is in both manifests but not live (404). Publishing it needs a `wiki/` page plus a route in `PAGE_TO_ROUTE` of `build/wiki-to-fumadocs.ts`. Do not point the manifests at `https://ccxt.com/privacy`: that page is the CCXT Terminal privacy policy, a different product. |
 | Terms of service published at `https://docs.ccxt.com/docs/mcp-terms` | TODO (legal) | Text: [TERMS.draft.md](TERMS.draft.md); published by the submission PR (wiki page + `mcp-terms` route); notes in [TERMS.notes.md](TERMS.notes.md). Same notes as the privacy policy (`https://ccxt.com/terms` is the CCXT Terminal terms). |
@@ -116,7 +116,7 @@ Source: [registry remote servers](https://modelcontextprotocol.io/registry/remot
 
 | Requirement | Status | Notes |
 |---|---|---|
-| `remotes: [{ "type": "streamable-http", "url": "https://docs.ccxt.com/mcp" }]` in `mcp/server.json` | DONE (launch step 1) | Valid against the schema with ajv on 2026-11-25. Removed again until launch: `mcp-release.yml` publishes `server.json` on every ccxt-mcp release, which would list a remote that answers 404. `server-json.test.ts` accepts it once added. |
+| `remotes: [{ "type": "streamable-http", "url": "https://mcp.ccxt.com/mcp" }]` in `mcp/server.json` | DONE (launch step 1) | Valid against the schema with ajv on 2026-11-25. Removed again until launch: `mcp-release.yml` publishes `server.json` on every ccxt-mcp release, which would list a remote that answers 404. `server-json.test.ts` accepts it once added. |
 | "A remote server MUST be publicly accessible at its specified URL" | DONE | Publish the registry entry (`mcp-publisher publish`) only after the endpoint is live. The registry does not check URL ownership. |
 | Listing in the registry does not make the server discoverable in Claude | — | "Only a directory listing makes your connector discoverable inside Claude" ([directory vs custom](https://claude.com/docs/connectors/building/directory-vs-custom)). |
 

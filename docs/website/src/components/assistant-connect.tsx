@@ -2,7 +2,7 @@
 
 // Homepage block: use CCXT inside an AI assistant. Plugins first (github.com/ccxt/ccxt-plugins:
 // the hosted server plus its usage skill), the bare MCP URL where a host has no plugins (ChatGPT
-// web, Cursor, VS Code, ...). The hosted server (https://docs.ccxt.com/mcp) is public market
+// web, Cursor, VS Code, ...). The hosted server (https://mcp.ccxt.com/mcp) is public market
 // data only; the last line links to the local server for accounts and trading.
 // Docs: wiki/MCP.md (/docs/mcp).
 
@@ -12,7 +12,7 @@ import { BotIcon } from 'lucide-react';
 import { CommandLine } from '@/components/install-commands';
 import homeStrings from '@/lib/i18n-home.json';
 
-export const MCP_URL = 'https://docs.ccxt.com/mcp';
+export const MCP_URL = 'https://mcp.ccxt.com/mcp';
 const MARKETPLACE = 'ccxt/ccxt-plugins';
 // claude.ai's documented prefill link: opens "Add custom connector" with the name and URL
 // filled in; nothing is added until the user confirms

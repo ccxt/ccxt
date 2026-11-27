@@ -167,13 +167,13 @@ export function parseUiDomain (raw: string | undefined, publicBaseUrl: string): 
         throw new Error ('UI_DOMAIN_OPENAI must be an https origin or "off", got ' + JSON.stringify (value));
     }
     if (url.protocol !== 'https:' || url.origin !== candidate.replace (/\/+$/, '')) {
-        throw new Error ('UI_DOMAIN_OPENAI must be an https origin with no path (e.g. https://docs.ccxt.com) or "off", got ' + JSON.stringify (candidate));
+        throw new Error ('UI_DOMAIN_OPENAI must be an https origin with no path (e.g. https://mcp.ccxt.com) or "off", got ' + JSON.stringify (candidate));
     }
     return url.origin;
 }
 
 export function loadConfig (env: Record<string, string | undefined> = process.env, version = '0.0.0'): HostedConfig {
-    const publicBaseUrl = (env['PUBLIC_BASE_URL'] ?? 'https://docs.ccxt.com').replace (/\/+$/, '');
+    const publicBaseUrl = (env['PUBLIC_BASE_URL'] ?? 'https://mcp.ccxt.com').replace (/\/+$/, '');
     try {
         new URL (publicBaseUrl);
     } catch (e) {

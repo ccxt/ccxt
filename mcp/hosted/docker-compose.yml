@@ -2,7 +2,7 @@
 #   cp .env.example .env    # then edit; .env is never committed
 #   sed -i "s/^BUILD_ID=.*/BUILD_ID=$(git rev-parse --short HEAD)/" .env
 #   docker compose up -d --build
-# nginx on the host proxies https://docs.ccxt.com/mcp to 127.0.0.1:${HOST_PORT} (default 8080)
+# nginx on the host proxies https://mcp.ccxt.com/mcp (and https://docs.ccxt.com/mcp) to 127.0.0.1:${HOST_PORT} (default 8080)
 # (deploy/nginx/). README.md, "Deploy", has the whole procedure.
 name: ccxt-mcp
 

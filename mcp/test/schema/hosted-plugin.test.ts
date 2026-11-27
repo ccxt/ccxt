@@ -93,7 +93,7 @@ function contrast (a: string, b: string): number {
 }
 
 test ('the hosted URL is an https URL ending in /mcp', () => {
-    assert.equal (HOSTED_URL, 'https://docs.ccxt.com/mcp');
+    assert.equal (HOSTED_URL, 'https://mcp.ccxt.com/mcp');
 });
 
 test ('every manifest points at the same hosted URL, with one server', () => {

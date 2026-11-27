@@ -18,8 +18,9 @@ Accounts, stored keys, private endpoints, trading, `watch_*` tools (an internal 
 
 ## Endpoint and URL layout
 
-- **Canonical MCP URL:** `https://docs.ccxt.com/mcp` (config `PUBLIC_BASE_URL` + `MCP_PATH`). It is also the phase-2 OAuth resource identifier (RFC 8707 audience), the input of Claude's `_meta.ui.domain` hash and the MCP Registry `remotes[].url`, so it must not change once submitted to a directory.
-- docs.ccxt.com is served by nginx. That nginx proxies these paths to the MCP service and nothing else:
+- **Canonical MCP URL:** `https://mcp.ccxt.com/mcp` (config `PUBLIC_BASE_URL` + `MCP_PATH`). It is also the phase-2 OAuth resource identifier (RFC 8707 audience), the input of Claude's `_meta.ui.domain` hash and the MCP Registry `remotes[].url`, so it must not change once submitted to a directory.
+- `https://docs.ccxt.com/mcp`, the address before mcp.ccxt.com, stays served for earlier installs (same container, `ALLOWED_HOSTS` lists both names).
+- mcp.ccxt.com and docs.ccxt.com are served by nginx. That nginx proxies these paths to the MCP service and nothing else:
   - `/mcp` — the MCP endpoint (POST only; GET and DELETE answer 405 as the spec allows).
   - `/.well-known/openai-apps-challenge` — OpenAI directory domain verification (plain-text token from config).
   - `/.well-known/oauth-protected-resource/mcp` — reserved for phase 2 (Protected Resource Metadata, RFC 9728); 404 in phase 1.

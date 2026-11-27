@@ -4,7 +4,7 @@
 
 Last updated: **[date of publication]**
 
-This policy covers the hosted CCXT MCP server at `https://docs.ccxt.com/mcp` (the "Service"): the connector or plugin you add to an AI assistant such as Claude or ChatGPT to read public cryptocurrency market data. It does not cover the CCXT library, the local CCXT MCP server (`ccxt-mcp` on npm, which runs on your own computer and sends us nothing), the ccxt.com website, or CCXT Terminal.
+This policy covers the hosted CCXT MCP server at `https://mcp.ccxt.com/mcp` (the "Service"): the connector or plugin you add to an AI assistant such as Claude or ChatGPT to read public cryptocurrency market data. It does not cover the CCXT library, the local CCXT MCP server (`ccxt-mcp` on npm, which runs on your own computer and sends us nothing), the ccxt.com website, or CCXT Terminal.
 
 **Who we are:** **[legal entity name, address and contact email for privacy requests]**.
 

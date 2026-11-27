@@ -188,8 +188,8 @@ test ('unit: the embedded OpenAI range snapshot parses and is non-trivial', () =
 
 test ('unit: config defaults are safe and every override is validated', () => {
     const config = loadConfig ({}, '1.2.3');
-    assert.equal (canonicalUrl (config), 'https://docs.ccxt.com/mcp');
-    assert.deepEqual (config.allowedHosts, [ 'docs.ccxt.com', 'localhost', '127.0.0.1', '[::1]' ]);
+    assert.equal (canonicalUrl (config), 'https://mcp.ccxt.com/mcp');
+    assert.deepEqual (config.allowedHosts, [ 'mcp.ccxt.com', 'localhost', '127.0.0.1', '[::1]' ]);
     assert.deepEqual (config.corsOrigins, []);
     assert.deepEqual (config.trustedProxy, { 'kind': 'none' });
     assert.equal (config.host, '127.0.0.1');
