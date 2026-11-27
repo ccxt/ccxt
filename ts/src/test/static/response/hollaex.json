@@ -2,6 +2,70 @@
     "exchange": "hollaex",
     "skipKeys": [],
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "fetchTickers skips delisted pairs - live-captured 2026-11-25, httpResponse trimmed to btc-usdt plus the delisted eos-usdt that is missing from constants",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "btc-usdt": {
+                        "symbol": "btc-usdt",
+                        "open": 59874.95,
+                        "close": 58980,
+                        "high": 60552.25,
+                        "low": 58690.05,
+                        "last": 58980,
+                        "volume": 25.659,
+                        "timestamp": "2026-11-25T10:29:34.486Z"
+                    },
+                    "eos-usdt": {
+                        "symbol": "eos-usdt",
+                        "open": 0,
+                        "close": 0,
+                        "high": 0,
+                        "low": 0,
+                        "last": 0,
+                        "volume": 0,
+                        "timestamp": "2026-11-25T10:27:47.355Z"
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "info": {
+                            "symbol": "btc-usdt",
+                            "open": 59874.95,
+                            "close": 58980,
+                            "high": 60552.25,
+                            "low": 58690.05,
+                            "last": 58980,
+                            "volume": 25.659,
+                            "timestamp": "2026-11-25T10:29:34.486Z"
+                        },
+                        "timestamp": 1795602574486,
+                        "datetime": "2026-11-25T10:29:34.486Z",
+                        "high": 60552.25,
+                        "low": 58690.05,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 59874.95,
+                        "close": 58980,
+                        "last": 58980,
+                        "previousClose": null,
+                        "change": -894.95,
+                        "percentage": -1.494698534195018,
+                        "average": 59427.47,
+                        "baseVolume": 25.659,
+                        "quoteVolume": null,
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetch my trades for sandbox",
