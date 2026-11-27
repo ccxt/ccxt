@@ -648,6 +648,17 @@ impl ClientState {
         });
     }
 
+    /// Snapshot of `rejections` as a `Value::Map { hash: error }`.
+    pub fn rejections_value(&self) -> Value {
+        self.with(|c| {
+            let mut m = indexmap::IndexMap::new();
+            for (h, e) in c.rejections.iter() {
+                m.insert(h.clone(), e.clone());
+            }
+            Value::Map(m)
+        })
+    }
+
     /// Snapshot of `futures` as a `Value::Map { hash: true }`.
     pub fn futures_value(&self) -> Value {
         let url = self.url.clone();
@@ -967,6 +978,7 @@ pub async fn ensure_client_with_options(
 pub fn client_field_live(url: &str, field: &str) -> Value {
     match get_client(url) {
         Some(c) if field == "futures" => c.futures_value(),
+        Some(c) if field == "rejections" => c.rejections_value(),
         Some(c) => c.subscriptions_value(),
         None => Value::Map(indexmap::IndexMap::new()),
     }
@@ -1145,11 +1157,41 @@ impl ClientHandle {
     }
 
     /// `delete client.subscriptions[key]`: drops the live client's entry and
-    /// the handle's snapshot entry (what `remove(&mut subscriptions, key)` did).
+    /// the handle's snapshot entry.
     pub fn remove_subscription<'k>(&mut self, key: impl Into<Option<&'k str>>) {
         if let (Value::Dict(m), Some(k)) = (&mut self.subscriptions, key.into()) {
             crate::value::try_ws_subs_remove(m, k);
             Arc::make_mut(m).shift_remove(k);
+        }
+    }
+
+    /// `delete client.futures[key]`: drops the live client's entry and the handle's snapshot entry.
+    pub fn remove_future<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let Some(k) = key.into() {
+            if let Value::Str(u) = &self.url {
+                if let Some(c) = get_client(u) {
+                    let ks = k.to_string();
+                    c.with_mut(move |core| { core.futures.remove(&ks); });
+                }
+            }
+            if let Value::Dict(m) = &mut self.futures {
+                Arc::make_mut(m).shift_remove(k);
+            }
+        }
+    }
+
+    /// `delete client.rejections[key]`: drops the live client's entry and the handle's snapshot entry.
+    pub fn remove_rejection<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let Some(k) = key.into() {
+            if let Value::Str(u) = &self.url {
+                if let Some(c) = get_client(u) {
+                    let ks = k.to_string();
+                    c.with_mut(move |core| { core.rejections.remove(&ks); });
+                }
+            }
+            if let Value::Dict(m) = &mut self.rejections {
+                Arc::make_mut(m).shift_remove(k);
+            }
         }
     }
 
@@ -1190,6 +1232,14 @@ impl ClientHandle {
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(self.field("futures").as_ref().unwrap_or(&self.futures)).as_array().cloned().unwrap_or_default()
+    }
+    /// `key in client.rejections`, read live.
+    pub fn has_rejection<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("rejections").as_ref().unwrap_or(&self.rejections), key.into()) }
+    /// `client.rejections[key]` (Null when absent).
+    pub fn get_rejection<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(self.field("rejections").as_ref().unwrap_or(&self.rejections), key.into()) }
+    /// `Object.keys(client.rejections)`.
+    pub fn rejection_keys(&self) -> Vec<Value> {
+        crate::runtime::object_keys(self.field("rejections").as_ref().unwrap_or(&self.rejections)).as_array().cloned().unwrap_or_default()
     }
     pub fn future(&self, hash: impl Into<Value>) -> Flight {
         self.value.future(hash)

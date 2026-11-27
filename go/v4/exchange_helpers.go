@@ -1241,14 +1241,6 @@ func IsNumber(v any) bool {
 	}
 }
 
-func ToLower(v any) string {
-	v = derefScalar(v)
-	if str, ok := v.(string); ok {
-		return strings.ToLower(str)
-	}
-	return ""
-}
-
 // ToUpper converts a string to uppercase
 func ToUpper(v any) string {
 	v = derefScalar(v)

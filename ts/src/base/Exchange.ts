@@ -5550,7 +5550,8 @@ export class BaseExchange {
         let result: any[] = [];
         const feeValues = Object.values (reduced);
         for (let i = 0; i < feeValues.length; i++) {
-            const reducedFeeValues = Object.values (feeValues[i] as Dict);
+            const feeValue = this.safeDict (feeValues, i, {});
+            const reducedFeeValues = Object.values (feeValue);
             result = this.arrayConcat (result, reducedFeeValues);
         }
         return result;

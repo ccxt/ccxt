@@ -390,21 +390,6 @@ pub fn add_element_to_object(obj: &mut impl AddTarget, key: impl crate::value::V
     key.with_key(|k| obj.add_element(k, val));
 }
 
-pub fn remove(obj: &mut Value, key: &Value) {
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => {
-            crate::value::try_ws_subs_remove(m, k);
-            Arc::make_mut(m).shift_remove(k.as_ref());
-        }
-        (Value::Arr(a), Value::Int(i)) => {
-            let idx = *i as usize;
-            let a = Arc::make_mut(a);
-            if idx < a.len() { a.remove(idx); }
-        }
-        _ => {}
-    }
-}
-
 pub fn in_op(obj: &Value, key: &Value) -> bool {
     match (obj, key) {
         (Value::Dict(m), Value::Str(k)) => m.contains_key(k.as_ref()),

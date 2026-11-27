@@ -1806,7 +1806,7 @@ export default class PredictionExchange extends BaseExchange {
         return await this.ethRpc (rpcUrl, 'eth_sendRawTransaction', [ signed ]);
     }
 
-    async waitForTransactionReceipt (rpcUrl: Str, txHash: Str, timeout = 60000): Promise<any> {
+    async waitForTransactionReceipt (rpcUrl: Str, txHash: Str, timeout: Int = 60000): Promise<any> {
         const start = this.milliseconds ();
         while ((this.milliseconds () - start) < timeout) {
             const receipt = await this.ethRpc (rpcUrl, 'eth_getTransactionReceipt', [ txHash ]);
