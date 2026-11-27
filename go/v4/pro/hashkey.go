@@ -1036,15 +1036,15 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	var typeVar string = "spot"
 	typeMarketType, _ := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("balance:", typeMarketType))
+	var messageHash string = "balance:" + *typeMarketType
 	var url any = this.GetPrivateUrl(listenKey)
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetBalanceCache(client, typeMarketType, *messageHash)
+	this.SetBalanceCache(client, *typeMarketType, messageHash)
 	fetchBalanceSnapshot, _ := this.HandleOptionBoolAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
 	awaitBalanceSnapshot, _ := this.HandleOptionBoolAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
 	if fetchBalanceSnapshot && awaitBalanceSnapshot {
 
-		r2 := <-client.Future(ccxt.Add(typeMarketType, ":fetchBalanceSnapshot"))
+		r2 := <-client.Future(*typeMarketType + ":fetchBalanceSnapshot")
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -1057,22 +1057,20 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Hashkey) SetBalanceCache(client ccxt.ClientInterface, typeVar *string, subscribeHash string) {
+func (this *Hashkey) SetBalanceCache(client ccxt.ClientInterface, typeVar string, subscribeHash string) {
 	if client.SubscriptionHas(subscribeHash) {
 		return
 	}
 	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var snapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
 	if snapshot != nil && *snapshot {
-		var messageHash string = *typeVar + ":fetchBalanceSnapshot"
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
 		if _, ok := client.GetFutures()[messageHash]; !ok {
 			client.Future(messageHash)
-			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, *typeVar)
+			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)
 		}
 	}
-	if typeVar != nil {
-		this.Balance[*typeVar] = map[string]any{}
-	}
+	this.Balance[typeVar] = map[string]any{}
 }
 func (this *Hashkey) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
