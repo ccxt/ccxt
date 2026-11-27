@@ -12096,8 +12096,19 @@ func (this *Okx) fetchUnderlyingAssetsBody(ch chan AsyncResult[[]string], option
 	//
 	var underlyings []any
 	underlyings, _ = response["data"].([]any)
+	var first []any
+	if 0 < len(underlyings) {
+		first, _ = underlyings[0].([]any)
+	}
+	var result []any = []any{}
+	for i := 0; i < len(first); i++ {
+		var item *string = this.SafeString(first, i)
+		if item != nil {
+			result = append(result, *item)
+		}
+	}
 
-	ch <- AsyncResult[[]string]{Value: StringSliceFromList(this.ToArray(this.SafeList(underlyings, 0, []any{})))}
+	ch <- AsyncResult[[]string]{Value: StringSliceFromList(result)}
 	return nil
 }
 
@@ -12437,14 +12448,14 @@ func (this *Okx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict914232 map[string]any
+	var dataDict915032 map[string]any
 	if len(data) > 0 {
-		dataDict914232, _ = data[0].(map[string]any)
+		dataDict915032, _ = data[0].(map[string]any)
 	}
-	if dataDict914232 == nil {
-		dataDict914232 = map[string]any{}
+	if dataDict915032 == nil {
+		dataDict915032 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict914232, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict915032, market)}
 	return nil
 }
 

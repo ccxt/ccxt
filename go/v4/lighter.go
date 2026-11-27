@@ -2937,7 +2937,7 @@ func (this *Lighter) ParsePosition(position map[string]any, optionalArgs ...any)
 	if imfStr != nil {
 		var imf int64 = this.ParseToInt(imfStr)
 		if imf > 0 {
-			leverage = Divide(100, imf)
+			leverage = (100 / float64(imf))
 		}
 	}
 	var contractsString *string = this.SafeString(position, "position")
@@ -4671,9 +4671,12 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	}
 	var nonce *int64 = &r2.Value
 	var leverageNum *float64 = this.ParseNumber(leverage)
+	if (leverageNum == nil) || (!(*leverageNum > 0)) {
+		panic(BadRequest(this.Id + " modifyLeverageAndMarginMode() requires leverage > 0"))
+	}
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(market["id"]),
-		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverageNum)),
+		"initial_margin_fraction": this.ParseToInt(10000 / *leverageNum),
 		"margin_mode": func() int {
 			if marginMode == "cross" {
 				return 0

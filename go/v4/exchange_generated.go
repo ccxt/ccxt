@@ -9260,26 +9260,26 @@ func (this *BaseExchange) unWatchBidsAsksBody(ch chan AsyncResult[bool], optiona
 	_ = params
 	panic(NotSupported(this.Id + " unWatchBidsAsks () is not supported yet"))
 }
-func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsubHash any, optionalArgs ...any) {
+func (this *BaseExchange) CleanUnsubscription(client *Client, subHash *string, unsubHash any, optionalArgs ...any) {
 	var subHashIsPrefix bool = GetArgBool(optionalArgs, 0, false)
 	_ = subHashIsPrefix
 	if (!IsEqual(unsubHash, nil)) && (client.SubscriptionHas(unsubHash)) {
 		client.SubscriptionDel(unsubHash)
 	}
-	if !IsEqual(subHash, nil) {
+	if subHash != nil {
 		if !(subHashIsPrefix == true) {
 			if client.SubscriptionHas(subHash) {
 				client.SubscriptionDel(subHash)
 			}
 			if client.FutureHas(subHash) {
-				error := UnsubscribeError(Add(this.Id+" ", subHash))
+				error := UnsubscribeError(this.Id + " " + *subHash)
 				client.Reject(error, subHash)
 			}
 		} else {
 			var clientSubscriptions []string = client.SubscriptionKeys()
 			for i := 0; i < len(clientSubscriptions); i++ {
 				var sub string = clientSubscriptions[i]
-				if StartsWith(sub, subHash) {
+				if strings.HasPrefix(sub, *subHash) {
 					client.SubscriptionDel(sub)
 				}
 			}
@@ -9289,7 +9289,7 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 			}
 			for i := 0; i < len(clientFutures); i++ {
 				var future string = clientFutures[i]
-				if StartsWith(future, subHash) {
+				if strings.HasPrefix(future, *subHash) {
 					error := UnsubscribeError(this.Id + " " + future)
 					client.Reject(error, future)
 				}

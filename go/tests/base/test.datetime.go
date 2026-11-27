@@ -181,7 +181,7 @@ func TestYymmdd() {
 	var value2 string = exchange.Yymmdd(exchange.Milliseconds())
 	Assert((len(value2) == 6))
 	var intNum any = exchange.ParseToInt(value2)
-	Assert(ccxt.IsGreaterThan(intNum, 260000) && IsLessThan(intNum, 360000)) // date between 2026 and 2036
+	Assert(IsGreaterThan(intNum, 260000) && IsLessThan(intNum, 360000)) // date between 2026 and 2036
 }
 func TestYyyymmdd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -195,7 +195,7 @@ func TestYyyymmdd() {
 	var value2 string = exchange.Yyyymmdd(exchange.Milliseconds())
 	Assert((len(value2) == 10))
 	var intNum any = exchange.ParseToInt(strings.Replace((strings.Replace(value2, "-", "", 1)), "-", "", 1))
-	Assert(ccxt.IsGreaterThan(intNum, 20260000) && IsLessThan(intNum, 20360000)) // date between 2026 and 2036
+	Assert(IsGreaterThan(intNum, 20260000) && IsLessThan(intNum, 20360000)) // date between 2026 and 2036
 }
 func TestYmd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

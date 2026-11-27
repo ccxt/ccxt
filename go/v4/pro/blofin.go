@@ -1500,7 +1500,7 @@ func (this *Blofin) HandleUnsubscription(client ccxt.ClientInterface, message ma
 			"topic":   "trades",
 			"symbols": []any{symbol},
 		})
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, "unsubscribe:"+subMessageHash)
 	} else if strings.HasPrefix(channel, "candle") {
 		var timeframe *string = this.FindTimeframe(strings.Replace(channel, "candle", "", 1))
 		if timeframe != nil {
@@ -1509,7 +1509,7 @@ func (this *Blofin) HandleUnsubscription(client ccxt.ClientInterface, message ma
 				"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
 			})
 		}
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, "unsubscribe:"+subMessageHash)
 	}
 }
 func (this *Blofin) GetSubscriptionRequest(args []any) map[string]any {

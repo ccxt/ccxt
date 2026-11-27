@@ -18,7 +18,7 @@ func HelperTestInitThrottler() {
 	var rateLimit any = ExchangeProp(exchange, "rateLimit")
 	Assert(ccxt.IsEqual(rateLimit, 10.8))
 	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "delay"), 0.001))
-	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "refillRate"), ccxt.Divide(1, rateLimit)))
+	Assert(ccxt.IsEqual(ccxt.GetValue(tokenBucket, "refillRate"), Divide(1, rateLimit)))
 	// fix decimal/integer issues across langs
 	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []any{1, 1}))
 	var cost any = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix

@@ -284,7 +284,8 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, unWatchMessageHashes, this.DeepExtend(request, paramsResolved), unWatchMessageHashes)
 	for i := 0; i < channelsLength; i++ {
-		this.CleanUnsubscription(ccxt.AsClient(client), channels[i], this.SafeString(unWatchMessageHashes, i, ""))
+		var channel string = channels[i]
+		this.CleanUnsubscription(ccxt.AsClient(client), &channel, this.SafeString(unWatchMessageHashes, i, ""))
 	}
 
 	ch <- ccxt.AsyncResult[bool]{Value: true}
@@ -2111,18 +2112,18 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 			this.Spawn(this.ResubscribeOrderBookAsync, *channel)
 			return
 		}
-		var deltas130712 []any
-		deltas130712, _ = data["asks"].([]any)
-		if deltas130712 == nil {
-			deltas130712 = []any{}
-		}
-		this.HandleDeltas(orderbook.GetAsks(), deltas130712)
 		var deltas130812 []any
-		deltas130812, _ = data["bids"].([]any)
+		deltas130812, _ = data["asks"].([]any)
 		if deltas130812 == nil {
 			deltas130812 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetBids(), deltas130812)
+		this.HandleDeltas(orderbook.GetAsks(), deltas130812)
+		var deltas130912 []any
+		deltas130912, _ = data["bids"].([]any)
+		if deltas130912 == nil {
+			deltas130912 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetBids(), deltas130912)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2154,13 +2155,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var ternaryStr133022 string = "public/unsubscribe"
+	var ternaryStr133122 string = "public/unsubscribe"
 	if isPrivate {
-		ternaryStr133022 = "private/unsubscribe"
+		ternaryStr133122 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method":  ternaryStr133022,
+		"method":  ternaryStr133122,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},

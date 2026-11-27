@@ -1181,7 +1181,7 @@ func (this *Interactivebrokers) IbkrUpdateOHLCVs(client ccxt.ClientInterface, sy
 		var timeframe string = timeframes[i]
 		var stored any = ohlcvsBySymbol[timeframe]
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var candleTimestamp int64 = this.ParseToInt(ccxt.Divide(timestamp, duration)) * duration
+		var candleTimestamp int64 = this.ParseToInt(float64(*timestamp)/float64(duration)) * duration
 		var length int = ccxt.GetArrayLength(stored)
 		var candle any = nil
 		if length > 0 {
@@ -1633,7 +1633,8 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	}
 	url := r.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	this.CleanUnsubscription(ccxt.AsClient(client), "orders", "unsubscribe::orders", true)
+	argStr := "orders"
+	this.CleanUnsubscription(ccxt.AsClient(client), &argStr, "unsubscribe::orders", true)
 	var emptyArgs string = "{}" // a separate literal, the php transpiler turns '+{}' into '+array()'
 
 	r1 := <-this.IbkrUnsubscribeAsync(client, []any{"sor"}, "uor+"+emptyArgs, map[string]any{
@@ -1842,7 +1843,8 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	}
 	url := r.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	this.CleanUnsubscription(ccxt.AsClient(client), "myTrades", "unsubscribe::myTrades", true)
+	argStr := "myTrades"
+	this.CleanUnsubscription(ccxt.AsClient(client), &argStr, "unsubscribe::myTrades", true)
 
 	r1 := <-this.IbkrUnsubscribeAsync(client, []any{"str"}, "utr", map[string]any{
 		"topic": "myTrades",

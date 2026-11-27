@@ -2447,7 +2447,7 @@ func (this *Kraken) HandleUnsubscriptionStatus(client ccxt.ClientInterface, mess
 			"topic":   "trades",
 			"symbols": []any{symbol},
 		})
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, "unsubscribe:"+subMessageHash)
 	} else if channel != nil && *channel == "ohlc" {
 		var interval *int64 = this.SafeInteger(result, "interval")
 		var timeframe *string = this.FindTimeframe(interval)
@@ -2457,7 +2457,7 @@ func (this *Kraken) HandleUnsubscriptionStatus(client ccxt.ClientInterface, mess
 			"topic":                "ohlcv",
 			"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
 		})
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, unsubMessageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, unsubMessageHash)
 	}
 	return message
 }

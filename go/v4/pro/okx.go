@@ -3901,7 +3901,7 @@ func (this *Okx) HandleMessage(client ccxt.ClientInterface, message map[string]a
 func (this *Okx) HandleUnSubscriptionTrades(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + ":" + symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if _, ok := this.Trades[symbol]; ok {
 		delete(this.Trades, symbol)
 	}
@@ -3909,7 +3909,7 @@ func (this *Okx) HandleUnSubscriptionTrades(client ccxt.ClientInterface, symbol 
 func (this *Okx) HandleUnsubscriptionOrderBook(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + ":" + symbol
 	var messageHash string = "unsubscribe:orderbook:" + symbol
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if this.Orderbooks[symbol] != nil {
 		delete(this.Orderbooks, symbol)
 	}
@@ -3922,10 +3922,12 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client ccxt.ClientInterface, symbol s
 	}
 	var subMessageHash string = "multi:" + channel + ":" + symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	// watchOHLCV subscribes through subscribe () under channel:marketId
-	if argPiece := this.MarketId(&symbol); argPiece != nil {
-		this.CleanUnsubscription(ccxt.AsClient(client), channel+":"+*argPiece, nil)
+	var marketId *string = this.MarketId(&symbol)
+	if marketId != nil {
+		var marketSubHash string = channel + ":" + *marketId
+		this.CleanUnsubscription(ccxt.AsClient(client), &marketSubHash, nil)
 	} else {
 		this.CleanUnsubscription(ccxt.AsClient(client), nil, nil)
 	}
@@ -3936,7 +3938,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client ccxt.ClientInterface, symbol s
 func (this *Okx) HandleUnsubscriptionTicker(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + "::" + symbol
 	var messageHash string = "unsubscribe:ticker:" + symbol
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if _, ok := this.Tickers[symbol]; ok {
 		delete(this.Tickers, symbol)
 	}
@@ -3944,7 +3946,7 @@ func (this *Okx) HandleUnsubscriptionTicker(client ccxt.ClientInterface, symbol 
 func (this *Okx) HandleUnsubscriptionMarkPrice(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + "::" + symbol
 	var messageHash string = "unsubscribe:mark-price:" + symbol
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if _, ok := this.Tickers[symbol]; ok {
 		delete(this.Tickers, symbol)
 	}

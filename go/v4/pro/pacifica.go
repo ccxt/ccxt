@@ -1951,7 +1951,7 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client ccxt.ClientInterface,
 	}
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil && this.Orderbooks[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
@@ -1967,7 +1967,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client ccxt.ClientInterface, su
 	}
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil && this.Trades[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Trades, *symbol)
@@ -1977,7 +1977,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client ccxt.ClientInterface, su
 func (this *Pacifica) HandleTickersUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	var symbols []string = slices.Collect(maps.Keys(this.Tickers))
 	for i := 0; i < len(symbols); i++ {
 		delete(this.Tickers, symbols[i])
@@ -1997,7 +1997,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client ccxt.ClientInterface, sub
 	}
 	var subMessageHash string = "candles:" + *timeframe + ":" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil {
 		if _, ok := this.Ohlcvs[*symbol]; ok {
 			if _, ok := this.Ohlcvs[*symbol][*timeframe]; ok {
@@ -2009,7 +2009,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client ccxt.ClientInterface, sub
 func (this *Pacifica) HandleOrderUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subHash string = "order"
 	var unSubHash string = "unsubscribe:" + subHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "orders",
 	}
@@ -2018,7 +2018,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client ccxt.ClientInterface, sub
 func (this *Pacifica) HandleMyTradesUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subHash string = "myTrades"
 	var unSubHash string = "unsubscribe:" + subHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subHash, unSubHash, true)
 	var topicStructure map[string]any = map[string]any{
 		"topic": "myTrades",
 	}

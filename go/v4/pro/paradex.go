@@ -715,7 +715,7 @@ func (this *Paradex) CleanUnsubscribed(client ccxt.ClientInterface, unsubHash st
 	var prefix *bool = this.SafeBool(subscription, "prefix", false)
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	for j := 0; j < len(subMessageHashes); j++ {
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHashes[j], unsubHash, prefix)
+		this.CleanUnsubscription(ccxt.AsClient(client), this.SafeString(subMessageHashes, j), unsubHash, prefix)
 	}
 	this.CleanCache(subscription)
 	client.Resolve(true, unsubHash)
@@ -1761,7 +1761,8 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	if (symbolsLength > 0) && (client.SubscriptionHas(channel)) {
 		// the all-markets subscription has no market filter to remove these from, their watchers are ended here
 		for i := 0; i < len(subMessageHashes); i++ {
-			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHashes[i], ccxt.Add("unsubscribe:", subMessageHashes[i]))
+			var subHash *string = this.SafeString(subMessageHashes, i, "")
+			this.CleanUnsubscription(ccxt.AsClient(client), subHash, "unsubscribe:"+*subHash)
 		}
 		this.CleanCache(map[string]any{
 			"topic":   "ticker",
@@ -3329,15 +3330,15 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		return nil
 	}
 	var isSnapshot bool = (pkgType == 0)
-	var ternaryStr230127 string = "d"
+	var ternaryStr230227 string = "d"
 	if isSnapshot {
-		ternaryStr230127 = "s"
+		ternaryStr230227 = "s"
 	}
 	var result map[string]any = map[string]any{
 		"seq_no":          this.SbeReadInt64(frameHex, 16),
 		"market":          this.SafeString(strings, 0),
 		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
-		"update_type":     ternaryStr230127,
+		"update_type":     ternaryStr230227,
 		"inserts":         []any{},
 		"updates":         []any{},
 		"deletes":         []any{},

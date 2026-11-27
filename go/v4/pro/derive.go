@@ -607,7 +607,7 @@ func (this *Derive) HandleOrderBookUnSubscription(client ccxt.ClientInterface, t
 			delete(this.Orderbooks, *symbol)
 		}
 	}
-	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
+	this.CleanUnsubscription(ccxt.AsClient(client), &topic, "unwatch"+topic)
 }
 func (this *Derive) HandleTradesUnSubscription(client ccxt.ClientInterface, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
@@ -617,7 +617,7 @@ func (this *Derive) HandleTradesUnSubscription(client ccxt.ClientInterface, topi
 	if _, ok := this.Trades[symbol]; ok {
 		delete(this.Trades, symbol)
 	}
-	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
+	this.CleanUnsubscription(ccxt.AsClient(client), &topic, "unwatch"+topic)
 }
 func (this *Derive) HandleTickerUnSubscription(client ccxt.ClientInterface, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
@@ -636,15 +636,15 @@ func (this *Derive) HandleTickerUnSubscription(client ccxt.ClientInterface, topi
 		error := ccxt.UnsubscribeError(this.Id + " " + bidAskHash)
 		client.Reject(error, bidAskHash)
 	}
-	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
+	this.CleanUnsubscription(ccxt.AsClient(client), &topic, "unwatch"+topic)
 }
 func (this *Derive) HandleOrdersUnSubscription(client ccxt.ClientInterface, topic string) {
 	this.Orders = nil
-	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic, true)
+	this.CleanUnsubscription(ccxt.AsClient(client), &topic, "unwatch"+topic, true)
 }
 func (this *Derive) HandleMyTradesUnSubscription(client ccxt.ClientInterface, topic string) {
 	this.MyTrades = nil
-	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic, true)
+	this.CleanUnsubscription(ccxt.AsClient(client), &topic, "unwatch"+topic, true)
 }
 func (this *Derive) HandleUnSubscribe(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//

@@ -3830,12 +3830,7 @@ func (this *Predictfun) HandleUnSubscription(client ccxt.ClientInterface, subscr
 	// every outcome of the market, and an exact match is what keeps a sibling market out of it
 	var isWalletTopic bool = (this.SafeString(subscription, "topic") != nil && *this.SafeString(subscription, "topic") == "walletEvents")
 	for i := 0; i < messageHashesLength; i++ {
-		this.CleanUnsubscription(ccxt.AsClient(client), func() any {
-			if i >= 0 && i < len(subMessageHashes) {
-				return subMessageHashes[i]
-			}
-			return nil
-		}(), messageHashes[i], isWalletTopic)
+		this.CleanUnsubscription(ccxt.AsClient(client), this.SafeString(subMessageHashes, i), messageHashes[i], isWalletTopic)
 	}
 	this.CleanCache(subscription)
 	// the subscription itself is keyed by the topic, which is what watchOrderBook registered -

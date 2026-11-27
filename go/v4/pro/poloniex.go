@@ -2074,13 +2074,13 @@ func (this *Poloniex) HandleUnsubscription(client ccxt.ClientInterface, message 
 				"topic":   "trades",
 				"symbols": []any{symbol},
 			})
-			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+			this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, "unsubscribe:"+subMessageHash)
 		} else if timeframe != nil {
 			this.CleanCache(map[string]any{
 				"topic":                "ohlcv",
 				"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
 			})
-			this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, "unsubscribe:"+subMessageHash)
+			this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, "unsubscribe:"+subMessageHash)
 		}
 	}
 }

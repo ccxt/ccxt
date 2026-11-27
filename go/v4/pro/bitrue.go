@@ -643,7 +643,7 @@ func (this *Bitrue) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash stri
 	// bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
 	// so the subscription is cleaned up as soon as the request is sent
 	this.CleanCache(subscription)
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, "unsubscribe:"+subHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subHash, "unsubscribe:"+subHash)
 
 	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil

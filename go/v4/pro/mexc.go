@@ -2521,7 +2521,7 @@ func (this *Mexc) HandleUnsubscriptions(client ccxt.ClientInterface, messageHash
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = this.SafeString(messageHashes, i, "")
 		var subMessageHash string = strings.Replace(*messageHash, "unsubscribe:", "", 1)
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 		if strings.Index(*messageHash, "ticker") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:ticker:", "", 1)
 			if strings.Index(symbol, "unsubscribe") >= 0 {

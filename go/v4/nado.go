@@ -4262,7 +4262,7 @@ func (this *Nado) CalculateRateLimiterCost(api []string, method string, path str
 				var weights []any = SafeListTyped(byQuery, queryName)
 				var baseWeight *int64 = this.SafeInteger(weights, 0, 2)
 				var rowsPerWeight *int64 = this.SafeInteger(weights, 1)
-				if rowsPerWeight == nil {
+				if (rowsPerWeight == nil) || (*rowsPerWeight <= 0) {
 					return baseWeight
 				}
 				var query map[string]any = SafeMapTyped(params, queryName)
@@ -4271,17 +4271,20 @@ func (this *Nado) CalculateRateLimiterCost(api []string, method string, path str
 				if nestedLimit != nil {
 					rows = this.SafeInteger(nestedLimit, "raw", 100)
 				}
-				return *baseWeight + this.ParseToInt(Divide(rows, rowsPerWeight))
+				return *baseWeight + this.ParseToInt(float64(*rows)/float64(*rowsPerWeight))
 			}
 		}
 	}
 	var byRows []any = SafeListTyped(config, "byRows")
 	if byRows != nil {
 		// distinct local names: the C# emitter rejects a name already used in a sibling block
-		var rowsBaseWeight int64 = *this.SafeInteger(byRows, 0, 2)
+		var rowsBaseWeight *int64 = this.SafeInteger(byRows, 0, 2)
 		var rowsDivisor int64 = *this.SafeInteger(byRows, 1, 50)
+		if rowsDivisor <= 0 {
+			return rowsBaseWeight
+		}
 		var rowCount *int64 = this.SafeInteger(params, "limit", 100) // the v2 default page
-		return rowsBaseWeight + this.ParseToInt(Divide(rowCount, rowsDivisor))
+		return *rowsBaseWeight + this.ParseToInt(float64(*rowCount)/float64(rowsDivisor))
 	}
 	return this.SafeValue(config, "cost", 1)
 }

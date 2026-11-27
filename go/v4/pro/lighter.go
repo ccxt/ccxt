@@ -2235,7 +2235,7 @@ func (this *Lighter) HandleOrderBookUnSubscription(client ccxt.ClientInterface, 
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("orderbook", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil && this.Orderbooks[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
@@ -2280,7 +2280,7 @@ func (this *Lighter) HandleTickerUnSubscription(client ccxt.ClientInterface, mar
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("ticker", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil {
 		if _, ok := this.Tickers[*symbol]; ok {
 			if symbol != nil {
@@ -2293,7 +2293,7 @@ func (this *Lighter) HandleTradesUnSubscription(client ccxt.ClientInterface, mar
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("trade", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	if symbol != nil && this.Trades[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Trades, *symbol)
@@ -2303,7 +2303,8 @@ func (this *Lighter) HandleTradesUnSubscription(client ccxt.ClientInterface, mar
 func (this *Lighter) HandleMyTradesUnSubscription(client ccxt.ClientInterface) {
 	// one account-wide channel feeds the plural hash and every per-symbol hash
 	var messageHash string = "unsubscribe:" + this.GetMessageHash("myTrades")
-	this.CleanUnsubscription(ccxt.AsClient(client), "myTrades", messageHash, true)
+	argStr := "myTrades"
+	this.CleanUnsubscription(ccxt.AsClient(client), &argStr, messageHash, true)
 	var myTradesStructure map[string]any = map[string]any{
 		"topic": "myTrades",
 	}
@@ -2313,14 +2314,14 @@ func (this *Lighter) HandleOrdersUnSubscription(client ccxt.ClientInterface, mar
 	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash string = this.GetMessageHash("orders", symbol)
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 }
 func (this *Lighter) HandleAllOrdersUnSubscription(client ccxt.ClientInterface) {
 	// only the plural hash is awaited on this channel, per-symbol order hashes
 	// belong to the account_orders/<marketId> channels and stay untouched here
 	var subMessageHash string = this.GetMessageHash("orders")
 	var messageHash string = "unsubscribe:" + subMessageHash
-	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 	var ordersStructure map[string]any = map[string]any{
 		"topic": "orders",
 	}

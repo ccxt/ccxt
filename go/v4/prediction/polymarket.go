@@ -1894,6 +1894,9 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	// ccxt.Client-side bucket aggregation: snap each tick to its candle boundary and
 	// build open/high/low/close/volume. Assumes history is sorted ascending by time.
 	var resolutionMs int64 = (*fidelityMin * 60) * 1000
+	if resolutionMs <= 0 {
+		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() invalid timeframe resolution"))
+	}
 	var buckets map[string]any = map[string]any{}
 	for i := 0; i < len(history); i++ {
 		var item, _ = history[i].(map[string]any)
@@ -1903,7 +1906,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 			continue
 		}
 		var rawMs int64 = *t * 1000
-		var snappedMs int64 = this.ParseToInt(ccxt.Divide(rawMs, resolutionMs)) * resolutionMs
+		var snappedMs int64 = this.ParseToInt(float64(rawMs)/float64(resolutionMs)) * resolutionMs
 		// the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
 		// rather than fabricating a 0, probing s/v in case the field ever appears
 		var vol *float64 = this.SafeNumber(item, "s")
@@ -2037,12 +2040,12 @@ func (this *Polymarket) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], o
 	//     OK
 	//
 	var ok bool = (response == "OK") || (response == "ok")
-	var ternaryStr142722 string = "maintenance"
+	var ternaryStr143022 string = "maintenance"
 	if ok {
-		ternaryStr142722 = "ok"
+		ternaryStr143022 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr142722,
+		"status":  ternaryStr143022,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2433,7 +2436,7 @@ func (this *Polymarket) ParsePredictionTrade(trade map[string]any, optionalArgs 
 			"rate":     this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")),
 		}
 	}
-	var literal165741 map[string]any = map[string]any{
+	var literal166041 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -2452,12 +2455,12 @@ func (this *Polymarket) ParsePredictionTrade(trade map[string]any, optionalArgs 
 		"fee":          fee,
 	}
 	if side != nil {
-		literal165741["side"] = *side
+		literal166041["side"] = *side
 	}
 	if takerOrMaker != nil {
-		literal165741["takerOrMaker"] = *takerOrMaker
+		literal166041["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafePredictionTrade(literal165741, mkt)
+	return this.SafePredictionTrade(literal166041, mkt)
 }
 
 /**
@@ -3030,14 +3033,14 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			result = append(result, parsedItem)
 		}
 	} else {
-		var responseDict205452 map[string]any
+		var responseDict205752 map[string]any
 		if len(response) > 0 {
-			responseDict205452, _ = response[0].(map[string]any)
+			responseDict205752, _ = response[0].(map[string]any)
 		}
-		if responseDict205452 == nil {
-			responseDict205452 = map[string]any{}
+		if responseDict205752 == nil {
+			responseDict205752 = map[string]any{}
 		}
-		result = append(result, this.ParsePredictionOrder(responseDict205452))
+		result = append(result, this.ParsePredictionOrder(responseDict205752))
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(result)}
@@ -3911,7 +3914,7 @@ func (this *Polymarket) ParseEvent(rawEvent map[string]any) map[string]any {
 			parsedTags = append(parsedTags, *tagLabel)
 		}
 	}
-	var literal266728 map[string]any = map[string]any{
+	var literal267028 map[string]any = map[string]any{
 		"id":                    this.SafeString(rawEvent, "id"),
 		"slug":                  slug,
 		"title":                 this.SafeString(rawEvent, "title"),
@@ -3932,11 +3935,11 @@ func (this *Polymarket) ParseEvent(rawEvent map[string]any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if (slug != nil) && (slug == nil || *slug != "") {
-		literal266728["event"] = this.ShortenSlug(slug)
+		literal267028["event"] = this.ShortenSlug(slug)
 	} else {
-		literal266728["event"] = nil
+		literal267028["event"] = nil
 	}
-	return this.Extend(literal266728)
+	return this.Extend(literal267028)
 }
 
 /**
@@ -4111,16 +4114,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 		}
 	}
-	var literal285615 map[string]any = map[string]any{
+	var literal285915 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal285615["body"] = *bodyValue
+		literal285915["body"] = *bodyValue
 	}
-	return literal285615
+	return literal285915
 }
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
@@ -4421,11 +4424,11 @@ func (this *Polymarket) HandleMessage(client ccxt.ClientInterface, message map[s
 func (this *Polymarket) HandleListMessage(client ccxt.ClientInterface, message []any) {
 	for i := 0; i < len(message); i++ {
 		// a non-object element reads as {}, which carries no event_type and is ignored
-		messageDict304145, _ := message[i].(map[string]any)
-		if messageDict304145 == nil {
-			messageDict304145 = map[string]any{}
+		messageDict304445, _ := message[i].(map[string]any)
+		if messageDict304445 == nil {
+			messageDict304445 = map[string]any{}
 		}
-		this.HandleMessageEvent(client, messageDict304145)
+		this.HandleMessageEvent(client, messageDict304445)
 	}
 }
 func (this *Polymarket) HandleMessageEvent(client ccxt.ClientInterface, event map[string]any) {

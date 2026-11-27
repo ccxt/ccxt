@@ -255,7 +255,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		}
 		if unwatch == true {
 			subscriptions = this.OmitDict(subscriptions, messageHash)
-			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, "unsubscribe:"+messageHash)
+			this.CleanUnsubscription(ccxt.AsClient(client), &messageHash, "unsubscribe:"+messageHash)
 			if bidAsk == true {
 				delete(this.Bidsasks, symbol)
 			} else {
@@ -412,7 +412,7 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash *string = this.SafeString(messageHashes, i, "")
 		var subMessageHash string = strings.Replace(*messageHash, "unsubscribe:", "", 1)
-		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), &subMessageHash, messageHash)
 		if strings.Index(*messageHash, "ticker") >= 0 {
 			var symbol string = strings.Replace(*messageHash, "unsubscribe:ticker:", "", 1)
 			if _, ok := this.Tickers[symbol]; ok {
