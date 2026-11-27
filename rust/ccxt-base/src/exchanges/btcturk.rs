@@ -1195,14 +1195,13 @@ impl Btcturk {
         if (since.is_some()) {
             request.insert("from".into(), Value::from(self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
-        let mut limitResolved: Value = Value::Null;
+        let mut limitResolved: Option<i64> = limit.as_i64();
         if (limit != Value::Null) {
-            limitResolved = limit.clone();
             if limit.as_f64().unwrap_or(f64::NAN) > ((11000i64) as f64) {
-                limitResolved = Value::Int(11000); // max 11000 candles diapason can be covered
+                limitResolved = Some(11000); // max 11000 candles diapason can be covered
             }
         }  else if (since.is_none()) {
-            limitResolved = Value::Int(100); // default value
+            limitResolved = Some(100); // default value
         }
         if (limit != Value::Null) || (since.is_none()) {
             if (timeframe.as_str() == Some("1y")) {
@@ -1281,7 +1280,7 @@ impl Btcturk {
             }));
         }
         }
-        return Value::Arr(self.parse_ohlc_vs(Value::from(rows), Some(&market), &[timeframe, Value::from(since), limitResolved]));
+        return Value::Arr(self.parse_ohlc_vs(Value::from(rows), Some(&market), &[timeframe, Value::from(since), Value::from(limitResolved)]));
         Value::Null
         }).await?))
     }
