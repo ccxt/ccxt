@@ -2466,14 +2466,14 @@ class polymarket(Exchange, ImplicitAPI):
     def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: str, privateKey: Str) -> str:
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = self.safe_string(signature, 'r', '')
         sVal = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + sVal.rjust(64, '0') + v
 
-    def sign_message(self, message: object, privateKey: Str) -> str:
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey)
 
     def create_proxy_credentials(self, params: dict = {}) -> dict:
@@ -2596,7 +2596,7 @@ class polymarket(Exchange, ImplicitAPI):
             'ts': ts,
         }
         encoded = self.eth_encode_structured_data(domain, messageTypes, message)
-        proxyPrivateKey = self.safe_string(credentials, 'privateKey')
+        proxyPrivateKey = self.safe_string(credentials, 'privateKey', '')
         signature = self.sign_message(encoded, proxyPrivateKey)
         envelope = {
             'op': bodyOp,
