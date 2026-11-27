@@ -11840,7 +11840,7 @@ impl Okx {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
         let mut end: Option<i64> = None;
         if (until.is_some()) {
-            end = (if let Some(__m0) = until { Some((__m0 + 1)) } else { None });
+            end = self.parse_to_int(Value::from((if let Some(__m0) = until { Some((__m0 + 1)) } else { None })));
         }
         if (since != Value::Null) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -11860,8 +11860,8 @@ impl Okx {
             }  else {
                 windowDuration = (if let Some(__l) = ((if let Some(__l) = effectiveLimit { Some(__l * (self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) } else { None })) { Some(__l * 1000) } else { None });
             }
-            let windowEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), windowDuration) { Some((__m0 + __m1)) } else { None });
-            end = (if (end.is_none()) { windowEnd } else { (if let (Some(__m0), Some(__m1)) = (end, windowEnd) { Some(i64::min(__m0, __m1)) } else { None }) });
+            let windowEnd: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), windowDuration) { Some((__m0 + __m1)) } else { None })));
+            end = (if (end.is_none()) { windowEnd } else { self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (end, windowEnd) { Some(i64::min(__m0, __m1)) } else { None }))) });
         }
         if (end.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), Value::from(end)); }

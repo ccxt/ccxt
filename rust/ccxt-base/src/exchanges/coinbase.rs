@@ -7114,7 +7114,7 @@ if _try_result.is_err() {
             }
         }
         let advancedTrade: bool = self.safe_bool_k_opt(&self.options, "advanced", &[Value::Bool(false)]).unwrap_or(false);
-        if !(in_op(&response, &Value::Str("data".into()))) && !advancedTrade {
+        if !(response.as_map().is_some_and(|__m| __m.contains_key("data"))) && !advancedTrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " failed due to a malformed response ").into()), json_stringify(&response))));
         }
         return None;

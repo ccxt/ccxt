@@ -10718,7 +10718,7 @@ impl Bybit {
             let mut __for_first_21: bool = true;
             while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (positions.len() as i64) } {
             let rawPosition: Value = crate::value::KeyRead::read(&&positions, &Value::Int(i));
-            if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
+            if (rawPosition.as_map().is_some_and(|__m| __m.contains_key("data"))) && (rawPosition.as_map().is_some_and(|__m| __m.contains_key("is_valid"))) {
                 // futures only
                 let futuresData: crate::value::Dict = self.safe_dict_k_t(&rawPosition, "data");
                 let futuresPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, Some(&futuresData), None).unwrap_or_default();

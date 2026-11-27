@@ -2504,7 +2504,7 @@ pub trait ExchangeBase:
             let mut featureBlock: Value = get_value(&featuresObj, key.as_deref());
             if !self.in_array(Value::from(key.as_deref()), Value::from(vec![Value::Str("sandbox".into())])) && (featureBlock != Value::Null) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if !(in_op(&featureBlock, &Value::Str("symbolRequired".into()))) {
+                if !(featureBlock.as_map().is_some_and(|__m| __m.contains_key("symbolRequired"))) {
                     add_element_to_object(&mut featureBlock, &Value::Str("symbolRequired".into()), Value::Bool(self.in_array(Value::from(key.as_deref()), Value::from(vec![Value::Str("createOrder".into()), Value::Str("createOrders".into()), Value::Str("fetchOHLCV".into())]))));
                 }
             }
@@ -2603,11 +2603,11 @@ pub trait ExchangeBase:
         }
         let splited: crate::value::List = crate::value::List::new(if let Some(__s) = paramName.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         let parentKey: Option<String> = splited.get(0).and_then(Value::as_str).map(str::to_owned);
-        let subKey: Option<String> = self.safe_string_opt(&splited, Value::Int(1), &[]);
+        let mut subKey: Option<String> = self.safe_string_opt(&splited, Value::Int(1), &[]);
         if !(matches!((&methodDict, parentKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             return defaultValue;
         }
-        let dictionary: Option<crate::value::Dict> = self.safe_dict_o(&methodDict, Value::from(parentKey.as_deref()));
+        let mut dictionary: Option<crate::value::Dict> = self.safe_dict_o(&methodDict, Value::from(parentKey.as_deref()));
         if (dictionary.is_none()) {
             return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
@@ -2616,7 +2616,7 @@ pub trait ExchangeBase:
                 return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
             // throw an exception for unsupported subKey
-            if !(in_op(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &Value::from(&subKey))) {
+            if !(matches!(dictionary.as_deref(), Some(__d) if matches!(subKey.as_deref(), Some(__k) if __d.contains_key(__k)))) {
                 return defaultValue;
             }
             return self.safe_value(&dictionary, subKey.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3914,7 +3914,7 @@ pub trait ExchangeBase:
 })); }
                 }
                 let rateKey: Value = (if (rate.is_none()) { Value::Str("".into()) } else { Value::from(rate.as_deref()) });
-                if (in_op(&(if let (Some(__m), Some(__k)) = (reduced.as_map(), feeCurrencyCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &rateKey)) {
+                if ((if let (Some(__m), Some(__k)) = (reduced.as_map(), feeCurrencyCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| rateKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); }
                 }  else {
                     let mut newRateFee: indexmap::IndexMap<String, Value> = ({

@@ -892,7 +892,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         }
         }
         // every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
-        if (in_op(&response, &Value::Str("orders".into()))) {
+        if (matches!(&response, Value::Dict(__d) if __d.contains_key("orders"))) {
             let codes: Vec<Value> = Value::Array(result.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;

@@ -2117,7 +2117,7 @@ impl Indodax {
         }
         if (self.safe_integer_k(&response, "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {
             // { success: 1, return: { orders: [] }}
-            if !(in_op(&response, &Value::Str("return".into()))) {
+            if !(response.as_map().is_some_and(|__m| __m.contains_key("return"))) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, ": malformed response: ").into()), json_stringify(&response))));
             }  else {
                 return None;

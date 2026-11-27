@@ -14381,9 +14381,8 @@ impl Binance {
             let oneWeek: i64 = 604800000; // 7 * 24 * 60 * 60 * 1000
             if ((if let Some(__r) = since { Some(currentTimestamp - __r) } else { None })) >= Some(oneWeek) {
                 if (endTime.is_none()) && matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) {
-                    endTime = (if let Some(__m0) = startTime { Some((__m0 + oneWeek)) } else { None });
-                    let endTimeValue: i64 = endTime.unwrap_or(0);
-                    endTime = Some(i64::min(endTimeValue, currentTimestamp));
+                    let endTimeValue: Option<i64> = self.parse_to_int(Value::from((if let Some(__m0) = startTime { Some((__m0 + oneWeek)) } else { None })));
+                    endTime = self.parse_to_int(Value::from((if let Some(__m0) = endTimeValue { Some(i64::min(__m0, currentTimestamp)) } else { None })));
                 }
             }
         }

@@ -2245,7 +2245,7 @@ impl Hyperliquid {
  * @returns {int} The calculated price precision
  */
     pub fn calculate_price_precision(&self, price: f64, amountPrecision: i64, maxDecimals: i64) -> Value {
-        let mut pricePrecision: i64 = 0;
+        let mut pricePrecision: Option<i64> = self.parse_to_int(Value::Int(0));
         let priceStr: Option<String> = self.number_to_string(Value::from(price));
         if (priceStr.is_none()) {
             return Value::Int(0);
@@ -2257,7 +2257,7 @@ impl Hyperliquid {
         if crate::precise::Precise::stringEq(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5;
+            pricePrecision = self.parse_to_int(Value::Int(5));
         }  else if crate::precise::Precise::stringGt(&priceStr, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringLt(&priceStr, &Value::Str("1".into())).as_bool() == Some(true) {
             // Significant digits, always 5 in this case
             let significantDigits: i64 = 5;
@@ -2269,7 +2269,7 @@ impl Hyperliquid {
                 leadingZeros = (leadingZeros + 1);
             }
             // Calculate price precision based on leading zeros and significant digits
-            pricePrecision = (leadingZeros + significantDigits);
+            pricePrecision = Some((leadingZeros + significantDigits));
         }  else {
             // Count the numbers before the decimal separator
             let mut integerPart: String = self.safe_string(&priceSplitted, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2279,11 +2279,9 @@ impl Hyperliquid {
             if ((integerPart.chars().count() as i64)) <= 5 {
                 digitsLeft = (5 - ((integerPart.chars().count() as i64)));
             }
-            pricePrecision = digitsLeft;
+            pricePrecision = self.parse_to_int(Value::from(digitsLeft));
         }
-        // cap by maxDecimals - szDecimals
-        pricePrecision = i64::min(decimalsLeft, pricePrecision);
-        return Value::from(self.parse_to_int(Value::from(pricePrecision)));
+        return Value::from(self.parse_to_int(Value::from((if let Some(__m1) = pricePrecision { Some(i64::min(decimalsLeft, __m1)) } else { None }))));
 
     Value::Null
 }

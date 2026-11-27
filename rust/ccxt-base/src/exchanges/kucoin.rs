@@ -1263,7 +1263,7 @@ if _try_result.is_err() {
         //        "chain": "ERC20"
         //    }
         //
-        if (in_op(&fee, &Value::Str("chains".into()))) {
+        if (fee.as_map().is_some_and(|__m| __m.contains_key("chains"))) {
             // if data obtained through `currencies` endpoint
             let mut resultNew: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
