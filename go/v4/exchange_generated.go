@@ -5332,7 +5332,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 				} else {
 					branchValue = prevHigh
 				}
-				ohlcvs[candle][i_high] = mathMax(branchValue, price)
+				ohlcvs[candle][i_high] = math.Max(*branchValue, *price)
 			}
 			if candle >= 0 && candle < int64(len(ohlcvs)) {
 				var branchValue2 *float64

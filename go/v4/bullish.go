@@ -2195,7 +2195,7 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) map[string]any {
 	var untilKey string = GetArgString(optionalArgs, 3, "createdAtDatetime[lte]")
 	_ = untilKey
 	var untilParam *int64 = this.SafeInteger(params, "until")
-	var until any = nil
+	var until *int64 = nil
 	if untilParam != nil {
 		until = untilParam
 	}
@@ -2212,9 +2212,11 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) map[string]any {
 			var now int64 = this.Milliseconds()
 			var latestSince int64 = now - timeDelta
 			if *since > latestSince {
-				until = now
+				untilValue := now
+				until = &untilValue
 			} else {
-				until = this.Sum(since, timeDelta)
+				untilValue2 := *since + timeDelta
+				until = &untilValue2
 			}
 		}
 		if ptrValue := this.Iso8601(sinceResolved); ptrValue != nil {

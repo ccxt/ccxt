@@ -2901,7 +2901,7 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 	// so edit = cancel the resting order then place a fresh one with the new terms. validate the
 	// new order's required inputs BEFORE cancelling so a bad edit doesn't leave the user with the
 	// order cancelled and nothing to replace it (kalshi is limit-only, so price + amount are required)
-	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	var amount *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
@@ -2924,7 +2924,7 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 		panic(r1.Err)
 	}
 
-	r2 := <-this.CreateOrderAsync(outcome, typeVar, side, ccxt.Float64Arg(amount), price, params)
+	r2 := <-this.CreateOrderAsync(outcome, typeVar, side, *amount, price, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

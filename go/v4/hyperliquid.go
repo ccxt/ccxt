@@ -2066,7 +2066,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var priceStr *string = this.NumberToString(price)
 	var priceStrParts []string = strings.Split(*priceStr, ".")
 	var integerPart *string = &priceStrParts[0]
-	var significantDigits any = mathMax(5, len(*integerPart))
+	var significantDigits any = math.Max(5, float64(len(*integerPart)))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = 6
 	if *this.SafeBool(market, "spot", false) {

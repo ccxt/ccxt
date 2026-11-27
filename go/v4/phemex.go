@@ -2595,7 +2595,7 @@ func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 	//         ]
 	//     }
 	//
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -2619,10 +2619,11 @@ func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 		var lockedWithdraw any = this.FromEn(lockedWithdrawEv, scale)
 		var used *string = Precise.StringAdd(lockedTradingBalance, lockedWithdraw)
 		var lastUpdateTimeNs *int64 = this.SafeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001)
-		if (IsEqual(timestamp, nil)) || (lastUpdateTimeNs == nil) {
+		if (timestamp == nil) || (lastUpdateTimeNs == nil) {
 			timestamp = lastUpdateTimeNs
 		} else {
-			timestamp = mathMax(timestamp, lastUpdateTimeNs)
+			timestampValue := max(*timestamp, *lastUpdateTimeNs)
+			timestamp = &timestampValue
 		}
 		account["total"] = total
 		account["used"] = used
