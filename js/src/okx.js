@@ -8455,7 +8455,7 @@ export default class okx extends Exchange {
         const paramsOmitted = this.omit(params, 'until');
         let end = undefined;
         if (until !== undefined) {
-            end = this.sum(until, 1);
+            end = this.parseToInt(this.sum(until, 1));
         }
         if (since !== undefined) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -8474,8 +8474,8 @@ export default class okx extends Exchange {
             else {
                 windowDuration = effectiveLimit * this.parseTimeframe(unitPeriod.toLowerCase()) * 1000;
             }
-            const windowEnd = this.sum(since, windowDuration);
-            end = (end === undefined) ? windowEnd : Math.min(end, windowEnd);
+            const windowEnd = this.parseToInt(this.sum(since, windowDuration));
+            end = (end === undefined) ? windowEnd : this.parseToInt(Math.min(end, windowEnd));
         }
         if (end !== undefined) {
             request['end'] = end;

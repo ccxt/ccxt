@@ -773,7 +773,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {int} The calculated price precision
      */
     calculatePricePrecision(price, amountPrecision, maxDecimals) {
-        let pricePrecision = 0;
+        let pricePrecision = this.parseToInt(0);
         const priceStr = this.numberToString(price);
         if (priceStr === undefined) {
             return 0;
@@ -785,7 +785,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (Precise["default"].stringEq(priceStr, '0')) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5;
+            pricePrecision = this.parseToInt(5);
         }
         else if (Precise["default"].stringGt(priceStr, '0') && Precise["default"].stringLt(priceStr, '1')) {
             // Significant digits, always 5 in this case
@@ -809,11 +809,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (integerPart.length <= 5) {
                 digitsLeft = 5 - (integerPart.length);
             }
-            pricePrecision = digitsLeft;
+            pricePrecision = this.parseToInt(digitsLeft);
         }
         // cap by maxDecimals - szDecimals
-        pricePrecision = Math.min(decimalsLeft, pricePrecision);
-        return this.parseToInt(pricePrecision);
+        return this.parseToInt(Math.min(decimalsLeft, pricePrecision));
     }
     /**
      * @method

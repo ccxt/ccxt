@@ -181767,7 +181767,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 return methodDict[parentKey];
             }
             // throw an exception for unsupported subKey
-            if (!(subKey in methodDict[parentKey])) {
+            if (!(subKey in dictionary)) {
                 return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
             return this.safeValue(dictionary, subKey);
@@ -213318,9 +213318,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if (currentTimestamp - since >= oneWeek) {
                 if (endTime === undefined && this.safeBool(market, 'linear', false)) {
-                    endTime = this.sum(startTime, oneWeek);
-                    const endTimeValue = endTime === undefined ? 0 : endTime;
-                    endTime = Math.min(endTimeValue, currentTimestamp);
+                    const endTimeValue = this.parseToInt(this.sum(startTime, oneWeek));
+                    endTime = this.parseToInt(Math.min(endTimeValue, currentTimestamp));
                 }
             }
         }
@@ -402878,7 +402877,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */ calculatePricePrecision(price, amountPrecision, maxDecimals) {
-        let pricePrecision = 0;
+        let pricePrecision = this.parseToInt(0);
         const priceStr = this.numberToString(price);
         if (priceStr === undefined) {
             return 0;
@@ -402890,7 +402889,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (_base_Precise_js__rspack_import_3/* .Precise.stringEq */.Y.stringEq(priceStr, '0')) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5;
+            pricePrecision = this.parseToInt(5);
         } else if (_base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(priceStr, '0') && _base_Precise_js__rspack_import_3/* .Precise.stringLt */.Y.stringLt(priceStr, '1')) {
             // Significant digits, always 5 in this case
             const significantDigits = 5;
@@ -402912,11 +402911,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             if (integerPart.length <= 5) {
                 digitsLeft = 5 - integerPart.length;
             }
-            pricePrecision = digitsLeft;
+            pricePrecision = this.parseToInt(digitsLeft);
         }
         // cap by maxDecimals - szDecimals
-        pricePrecision = Math.min(decimalsLeft, pricePrecision);
-        return this.parseToInt(pricePrecision);
+        return this.parseToInt(Math.min(decimalsLeft, pricePrecision));
     }
     /**
      * @method
@@ -477893,7 +477891,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         const paramsOmitted = this.omit(params, 'until');
         let end = undefined;
         if (until !== undefined) {
-            end = this.sum(until, 1);
+            end = this.parseToInt(this.sum(until, 1));
         }
         if (since !== undefined) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -477911,8 +477909,8 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             } else {
                 windowDuration = effectiveLimit * this.parseTimeframe(unitPeriod.toLowerCase()) * 1000;
             }
-            const windowEnd = this.sum(since, windowDuration);
-            end = end === undefined ? windowEnd : Math.min(end, windowEnd);
+            const windowEnd = this.parseToInt(this.sum(since, windowDuration));
+            end = end === undefined ? windowEnd : this.parseToInt(Math.min(end, windowEnd));
         }
         if (end !== undefined) {
             request['end'] = end;

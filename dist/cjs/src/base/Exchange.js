@@ -3838,7 +3838,7 @@ class BaseExchange {
                 return methodDict[parentKey];
             }
             // throw an exception for unsupported subKey
-            if (!(subKey in methodDict[parentKey])) {
+            if (!(subKey in dictionary)) {
                 return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
             return this.safeValue(dictionary, subKey);

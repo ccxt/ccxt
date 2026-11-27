@@ -9450,9 +9450,8 @@ export default class binance extends Exchange {
             const oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if ((currentTimestamp - since) >= oneWeek) {
                 if ((endTime === undefined) && (this.safeBool(market, 'linear', false))) {
-                    endTime = this.sum(startTime, oneWeek);
-                    const endTimeValue = (endTime === undefined) ? 0 : endTime;
-                    endTime = Math.min(endTimeValue, currentTimestamp);
+                    const endTimeValue = this.parseToInt(this.sum(startTime, oneWeek));
+                    endTime = this.parseToInt(Math.min(endTimeValue, currentTimestamp));
                 }
             }
         }
