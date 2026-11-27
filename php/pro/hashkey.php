@@ -794,7 +794,7 @@ class hashkey extends \ccxt\async\hashkey {
             Async\await($this->load_markets());
         }
         $type = 'spot';
-        list($typeMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
+        $typeMarketType = $this->handle_market_type_and_params('watchBalance', null, $params, $type)[0];
         $messageHash = 'balance:' . $typeMarketType;
         $url = $this->get_private_url($listenKey);
         $client = $this->client($url);
