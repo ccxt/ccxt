@@ -1227,6 +1227,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         # Client-side bucket aggregation: snap each tick to its candle boundary and
         # build open/high/low/close/volume. Assumes history is sorted ascending by time.
         resolutionMs = fidelityMin * 60 * 1000
+        if resolutionMs <= 0:
+            raise BadRequest(self.id + ' fetchOHLCV() invalid timeframe resolution')
         buckets = {}
         for i in range(0, len(history)):
             item = self.safe_dict(history, i)

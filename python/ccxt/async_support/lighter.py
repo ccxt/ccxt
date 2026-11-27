@@ -2985,6 +2985,8 @@ class lighter(Exchange, ImplicitAPI):
         market = self.market(symbol)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
         leverageNum = self.parse_number(leverage)
+        if (leverageNum is None) or (leverageNum <= 0):
+            raise BadRequest(self.id + ' modifyLeverageAndMarginMode() requires leverage > 0')
         signRaw = {
             'market_index': self.parse_to_int(market['id']),
             'initial_margin_fraction': self.parse_to_int(10000 / leverageNum),

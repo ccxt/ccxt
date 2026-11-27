@@ -442,7 +442,7 @@ class paradex(ccxt.async_support.paradex):
         prefix = self.safe_bool(subscription, 'prefix', False)
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
         for j in range(0, len(subMessageHashes)):
-            self.clean_unsubscription(client, subMessageHashes[j], unsubHash, prefix)
+            self.clean_unsubscription(client, self.safe_string(subMessageHashes, j), unsubHash, prefix)
         self.clean_cache(subscription)
         client.resolve(True, unsubHash)
 
@@ -1034,7 +1034,8 @@ class paradex(ccxt.async_support.paradex):
         if (symbolsLength > 0) and (channel in client.subscriptions):
             # the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for i in range(0, len(subMessageHashes)):
-                self.clean_unsubscription(client, subMessageHashes[i], 'unsubscribe:' + subMessageHashes[i])
+                subHash = self.safe_string(subMessageHashes, i, '')
+                self.clean_unsubscription(client, subHash, 'unsubscribe:' + subHash)
             self.clean_cache({'topic': 'ticker', 'symbols': tickerSymbols})
             return True
         # the markets left in the scoped subscription once these are removed

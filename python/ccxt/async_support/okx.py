@@ -8337,7 +8337,13 @@ class okx(Exchange, ImplicitAPI):
         #     }
         #
         underlyings = self.safe_list(response, 'data', [])
-        return self.to_array(self.safe_list(underlyings, 0, []))
+        first = self.safe_list(underlyings, 0, [])
+        result = []
+        for i in range(0, len(first)):
+            item = self.safe_string(first, i)
+            if item is not None:
+                result.append(item)
+        return result
 
     async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
         """

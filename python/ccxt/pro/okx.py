@@ -2593,7 +2593,12 @@ class okx(ccxt.async_support.okx):
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)
         # watchOHLCV subscribes through subscribe () under channel:marketId
-        self.clean_unsubscription(client, channel + ':' + self.market_id(symbol), None)
+        marketId = self.market_id(symbol)
+        if marketId is not None:
+            marketSubHash = channel + ':' + marketId
+            self.clean_unsubscription(client, marketSubHash, None)
+        else:
+            self.clean_unsubscription(client, None, None)
         if timeframe in self.ohlcvs[symbol]:
             del self.ohlcvs[symbol][timeframe]
 

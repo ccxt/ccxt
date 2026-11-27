@@ -1779,6 +1779,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbol = self.safe_symbol(marketId)
         interval = self.safe_string(subscription, 'interval', '')
         timeframe = self.find_timeframe(interval)
+        if (timeframe is None) or (symbol is None):
+            return
         subMessageHash = 'candles:' + timeframe + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
         self.clean_unsubscription(client, subMessageHash, messageHash)

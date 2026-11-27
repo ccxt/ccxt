@@ -1979,7 +1979,8 @@ class paradex(Exchange, ImplicitAPI):
         isTakeProfitOrStopLoss = isStopLossOrder or isTakeProfitOrder
         sizeString = '0'
         # a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if not isTakeProfitOrStopLoss or ((amount is not None) and (amount > 0)):
+        amountStr = self.number_to_string(amount)
+        if not isTakeProfitOrStopLoss or ((amountStr is not None) and Precise.string_gt(amountStr, '0')):
             sizeString = self.amount_to_precision(symbol, amount)
         stopPrice = None
         if isStopOrder:

@@ -3060,7 +3060,7 @@ class nado(Exchange, ImplicitAPI):
                     weights = self.safe_list(byQuery, queryName, [])
                     baseWeight = self.safe_integer(weights, 0, 2)
                     rowsPerWeight = self.safe_integer(weights, 1)
-                    if rowsPerWeight is None:
+                    if (rowsPerWeight is None) or (rowsPerWeight <= 0):
                         return baseWeight
                     query = self.safe_dict(params, queryName, {})
                     rows = self.safe_integer(query, 'limit', 100)  # the archive default page
@@ -3073,6 +3073,8 @@ class nado(Exchange, ImplicitAPI):
             # distinct local names: the C# emitter rejects a name already used in a sibling block
             rowsBaseWeight = self.safe_integer(byRows, 0, 2)
             rowsDivisor = self.safe_integer(byRows, 1, 50)
+            if rowsDivisor <= 0:
+                return rowsBaseWeight
             rowCount = self.safe_integer(params, 'limit', 100)  # the v2 default page
             return self.sum(rowsBaseWeight, self.parse_to_int(rowCount / rowsDivisor))
         return self.safe_value(config, 'cost', 1)

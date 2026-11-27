@@ -2880,7 +2880,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # every outcome of the market, and an exact match is what keeps a sibling market out of it
         isWalletTopic = (self.safe_string(subscription, 'topic') == 'walletEvents')
         for i in range(0, messageHashesLength):
-            self.clean_unsubscription(client, subMessageHashes[i], messageHashes[i], isWalletTopic)
+            self.clean_unsubscription(client, self.safe_string(subMessageHashes, i), messageHashes[i], isWalletTopic)
         self.clean_cache(subscription)
         # the subscription itself is keyed by the topic, which is what watchOrderBook registered -
         # leaving it behind would make a later watch believe it is still subscribed

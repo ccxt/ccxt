@@ -222,7 +222,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client = self.client(url)
         self.watch_multiple(url, unWatchMessageHashes, self.deep_extend(request, paramsResolved), unWatchMessageHashes)
         for i in range(0, channelsLength):
-            self.clean_unsubscription(client, self.safe_string(channels, i, ''), self.safe_string(unWatchMessageHashes, i, ''))
+            channel = self.safe_string(channels, i, '')
+            self.clean_unsubscription(client, channel, self.safe_string(unWatchMessageHashes, i, ''))
         return True
 
     async def watch_balance(self, params: dict = {}) -> Balances:
