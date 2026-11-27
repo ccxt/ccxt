@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"reflect"
@@ -164,7 +165,7 @@ func IsGreaterThanOrEqual(a, b interface{}) bool {
 }
 
 func IsLessThanOrEqual(a, b interface{}) bool {
-	return ccxt.IsLessThanOrEqual(a, b)
+	return ccxt.IsLessThan(a, b) || ccxt.IsEqual(a, b)
 }
 
 func IsEqual(a, b interface{}) bool {
@@ -203,7 +204,12 @@ func GetIndexOf(str interface{}, target interface{}) int {
 }
 
 func IsBool(v interface{}) bool {
-	return ccxt.IsBool(v)
+	v = ccxt.DerefScalar(v)
+	if v == nil {
+		return false
+	}
+	_, ok := v.(bool)
+	return ok
 }
 
 func IsString(v interface{}) bool {
@@ -231,11 +237,24 @@ func ToLower(v interface{}) string {
 }
 
 func ToUpper(v interface{}) string {
-	return ccxt.ToUpper(v)
+	v = ccxt.DerefScalar(v)
+	if str, ok := v.(string); ok {
+		return strings.ToUpper(str)
+	}
+	return ""
 }
 
 func IsInt(v interface{}) bool {
-	return ccxt.IsInt(v)
+	v = ccxt.DerefScalar(v)
+	if v == nil {
+		return false
+	}
+	switch v.(type) {
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return true
+	default:
+		return false
+	}
 }
 
 func StartsWith(v interface{}, prefix interface{}) bool {
@@ -304,15 +323,25 @@ func IsArray(v interface{}) bool {
 }
 
 func Replace(input interface{}, old interface{}, new interface{}) string {
-	return ccxt.Replace(input, old, new)
+	input = ccxt.DerefScalar(input)
+	return strings.ReplaceAll(ccxt.ToString(input), ccxt.ToString(old), ccxt.ToString(new))
 }
 
 func DateNow() string {
-	return ccxt.DateNow()
+	return time.Now().Format(time.RFC3339)
 }
 
 func GetLength(v interface{}) int {
-	return ccxt.GetLength(v)
+	v = ccxt.DerefScalar(v)
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.String:
+		return len(val.String())
+	case reflect.Array, reflect.Slice:
+		return val.Len()
+	default:
+		return 0
+	}
 }
 
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
@@ -424,11 +453,36 @@ func ParseJSON(input interface{}) interface{} {
 }
 
 func OpNeg(value interface{}) interface{} {
-	return ccxt.OpNeg(value)
+	value = ccxt.DerefScalar(value)
+	val := reflect.ValueOf(value)
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return -val.Int()
+	case reflect.Float32, reflect.Float64:
+		return -val.Float()
+	case reflect.Complex64, reflect.Complex128:
+		return -val.Complex()
+	default:
+		return nil
+	}
 }
 
 func JsonStringify(obj interface{}) string {
-	return ccxt.JsonStringify(obj)
+	obj = ccxt.DerefScalar(obj)
+	if obj == nil {
+		return ""
+	}
+	if err, ok := obj.(error); ok {
+		errorObj := struct {
+			Name string `json:"name"`
+		}{
+			Name: reflect.TypeOf(err).Name(),
+		}
+		jsonData, _ := json.Marshal(errorObj)
+		return string(jsonData)
+	}
+	jsonData, _ := json.Marshal(obj)
+	return string(jsonData)
 }
 
 func Remove(dict interface{}, key interface{}) {

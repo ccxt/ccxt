@@ -14,7 +14,7 @@ type IPredictionDispatch interface {
 // createOrder/cancelOrder as prediction venues carry them (a prediction order map); regular venues
 // carry them as AsyncResult[Order] through ICreateOrder/ICancelOrder.
 type IPredictionCreateOrder interface {
-	CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
+	CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
 }
 type IPredictionCancelOrder interface {
 	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
@@ -28,7 +28,7 @@ type IPredictionCancelOrder interface {
 // each per-method assertion succeeds because it requires only that one method. Regular venues have
 // all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
 type ICreateOrder interface {
-	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order]
+	CreateOrderAsync(symbol string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICancelOrder interface {
 	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
@@ -318,7 +318,7 @@ type ICoreExchange interface {
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
 	FetchMarginModeAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarginMode]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier]
-	SafeCurrency(currencyId any, optionalArgs ...any) map[string]any
+	SafeCurrency(optionalArgs ...any) map[string]any
 	Parse8601(datetime2 any) *int64
 	Iso8601(ts2 any) *string
 	FetchTransactionsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]

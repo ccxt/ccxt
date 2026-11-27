@@ -849,7 +849,7 @@ export default class gemini extends Exchange {
             settleId = this.safeString (response, 'contract_price_currency');
         } else {
             // if no detailed API was called, then parse either string or array
-            if (isString) {
+            if (typeof response === 'string') {
                 marketId = response;
             } else {
                 marketId = this.safeStringLower (response, 0);
@@ -857,7 +857,10 @@ export default class gemini extends Exchange {
                 amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber (response, 3); // quantityMinimum
             }
-            const marketIdUpper = (marketId as string).toUpperCase ();
+            if (marketId === undefined) {
+                throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+            }
+            const marketIdUpper = marketId.toUpperCase ();
             const isPerp = (marketIdUpper.indexOf ('PERP') >= 0);
             const marketIdWithoutPerp = marketIdUpper.replace ('PERP', '');
             const conflictingMarkets: Dictionary<Dict> = this.safeDict (this.options, 'conflictingMarkets', {});

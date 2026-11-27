@@ -125,7 +125,7 @@ func IsGreaterThanOrEqual(a any, b any) bool {
 }
 
 func IsLessThanOrEqual(a any, b any) bool {
-	return base.IsLessThanOrEqual(a, b)
+	return base.IsLessThan(a, b) || base.IsEqual(a, b)
 }
 
 func ToString(value any) string {

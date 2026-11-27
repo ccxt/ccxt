@@ -7052,7 +7052,7 @@ export class BaseExchange {
         return bidAsk;
     }
 
-    safeCurrency (currencyId: Str, currency: Currency = undefined): CurrencyInterface {
+    safeCurrency (currencyId: Str = undefined, currency: Currency = undefined): CurrencyInterface {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }

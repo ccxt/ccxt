@@ -29,54 +29,6 @@ public partial class BaseExchange
         }
         return a;
     }
-    public static object postFixIncrement(ref object a)
-    {
-        if (a is Int64)
-        {
-            a = (Int64)a + 1;
-        }
-        else if (a is int)
-        {
-            a = (int)a + 1;
-        }
-        else if (a is double)
-        {
-            a = (double)a + 1;
-        }
-        else if (a is string)
-        {
-            a = (string)a + 1;
-        }
-        else
-        {
-            return null;
-        }
-        return a;
-    }
-
-    // Typed counterparts for locals the transpiler declares as `int` / `Int64` / `double`
-    // (for-loop counters and numeric locals). A `ref` argument binds only to its exact
-    // type, so `ref int` never competes with the `ref object` overload above. The
-    // arithmetic is the same unchecked `+ 1` / `- 1` the `object` overload applies to an
-    // int / Int64 / double box, and the return value is the incremented value exactly as
-    // above (it is only ever discarded).
-    public static int postFixIncrement(ref int a)
-    {
-        a = a + 1;
-        return a;
-    }
-
-    public static Int64 postFixIncrement(ref Int64 a)
-    {
-        a = a + 1;
-        return a;
-    }
-
-    public static double postFixIncrement(ref double a)
-    {
-        a = a + 1;
-        return a;
-    }
 
     public object parseJson(object json)
     {
@@ -264,20 +216,9 @@ public partial class BaseExchange
         }
     }
 
-    public static bool isLessThan(object a, object b)
-    {
-
-        return !isGreaterThan(a, b) && !isEqual(a, b);
-    }
-
     public static bool isGreaterThanOrEqual(object a, object b)
     {
         return isGreaterThan(a, b) || isEqual(a, b);
-    }
-
-    public static bool isLessThanOrEqual(object a, object b)
-    {
-        return isLessThan(a, b) || isEqual(a, b);
     }
 
     public static object add(object a, object b)
@@ -364,48 +305,6 @@ public partial class BaseExchange
     // {
     //     return a + b;
     // }
-
-    public static object subtract(object a, object b)
-    {
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        // subtract logic
-        if (a.GetType() == typeof(Int64))
-        {
-            return (Int64)a - (Int64)b;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            return (int)a - (int)b;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            return (double)a - Convert.ToDouble(b);
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    public static int subtract(int a, int b)
-    {
-        return a - b;
-    }
-
-    public static Int64 subtract(Int64 a, Int64 b)
-    {
-        return a - b;
-    }
-
-    // subtract(double, double): the object overload's double branch for a (double,
-    // int-like/double) pair, so the box, the value and the exception are identical;
-    // its mixed (int-like, double) class is pinned at 0 sites by the bind audit.
-    public static double subtract(double a, double b)
-    {
-        return a - b;
-    }
 
     // public static float subtract(float a, float b)
     // {

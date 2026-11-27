@@ -100,14 +100,22 @@ public partial class BaseTest
     // statically List<object>/IList<object> must resolve to the library's own list branch
     public static int getArrayLength(List<object> a) => Exchange.getArrayLength(a);
     public static int getArrayLength(IList<object> a) => Exchange.getArrayLength(a);
-    public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
+    public static bool isLessThan(object a, object b) => !Exchange.isGreaterThan(a, b) && !Exchange.isEqual(a, b);
     public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
     public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
-    public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
-    public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
-    public static int postFixIncrement(ref int a) => Exchange.postFixIncrement(ref a);
-    public static Int64 postFixIncrement(ref Int64 a) => Exchange.postFixIncrement(ref a);
-    public static double postFixIncrement(ref double a) => Exchange.postFixIncrement(ref a);
+    public static bool isLessThanOrEqual(object a, object b) => isLessThan(a, b) || Exchange.isEqual(a, b);
+    public static object postFixIncrement(ref object a)
+    {
+        if (a is Int64) { a = (Int64)a + 1; }
+        else if (a is int) { a = (int)a + 1; }
+        else if (a is double) { a = (double)a + 1; }
+        else if (a is string) { a = (string)a + 1; }
+        else { return null; }
+        return a;
+    }
+    public static int postFixIncrement(ref int a) { a = a + 1; return a; }
+    public static Int64 postFixIncrement(ref Int64 a) { a = a + 1; return a; }
+    public static double postFixIncrement(ref double a) { a = a + 1; return a; }
     public static object mathMax(object a, object b) => Exchange.mathMax(a, b);
     public static object add(object a, object b) => Exchange.add(a, b);
     // the two string overloads of the base `add` family, so generated test locals that name
@@ -131,10 +139,18 @@ public partial class BaseTest
     // a typed residue declaration would bind (object, object) and return the other box
     public static Int64 multiply(Int64 a, Int64 b) => Exchange.multiply(a, b);
     public static Int64? multiply(Int64? a, Int64? b) => Exchange.multiply(a, b);
-    public static object subtract(object a, object b) => Exchange.subtract(a, b);
-    public static int subtract(int a, int b) => Exchange.subtract(a, b);
-    public static Int64 subtract(Int64 a, Int64 b) => Exchange.subtract(a, b);
-    public static double subtract(double a, double b) => Exchange.subtract(a, b);
+    public static object subtract(object a, object b)
+    {
+        a = Exchange.normalizeIntIfNeeded(a);
+        b = Exchange.normalizeIntIfNeeded(b);
+        if (a.GetType() == typeof(Int64)) { return (Int64)a - (Int64)b; }
+        if (a.GetType() == typeof(int)) { return (int)a - (int)b; }
+        if (a.GetType() == typeof(double)) { return (double)a - System.Convert.ToDouble(b); }
+        return null;
+    }
+    public static int subtract(int a, int b) => a - b;
+    public static Int64 subtract(Int64 a, Int64 b) => a - b;
+    public static double subtract(double a, double b) => a - b;
     public static object divide(object a, object b) => Exchange.divide(a, b);
     public static double divide(Int64 a, Int64 b) => Exchange.divide(a, b);
     public static double divide(double a, double b) => Exchange.divide(a, b);

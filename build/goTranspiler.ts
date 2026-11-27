@@ -3947,7 +3947,7 @@ function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: stri
         if (/\bfunc\b/.test (s)) { return false; }
         const li = indentOf (lines[k]);
         if (li < indent) { indent = li; continue; }
-        if ((li === indent) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (s)) {
+        if ((li === indent) && (new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (s) || new RegExp ('^if \\(*(ccxt\\.)?IsEqual\\(' + name + ', nil\\)\\)* \\{$').test (s))) {
             // body = following deeper lines; it must end in an exit and close with a bare `}`
             let j = k + 1;
             let last = '';
@@ -5633,7 +5633,7 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = goGroupedTable
     [ [1], 'createLimitBuyOrder createLimitBuyOrderWs createLimitSellOrder createLimitSellOrderWs createMarketBuyOrder createMarketBuyOrderWs'
         + ' createMarketSellOrder createMarketSellOrderWs createMarketBuyOrderWithCost createMarketSellOrderWithCost withdraw withdrawWs'
         + ' transfer transferIn transferOut addMargin reduceMargin setMargin borrowCrossMargin repayCrossMargin repayMargin' ],
-    [ [3], 'createTrailingAmountOrder createTrailingAmountOrderWs createTrailingPercentOrder createTrailingPercentOrderWs createTriggerOrder'
+    [ [3], 'createOrder createTrailingAmountOrder createTrailingAmountOrderWs createTrailingPercentOrder createTrailingPercentOrderWs createTriggerOrder'
         + ' createTriggerOrderWs createStopLossOrder createStopLossOrderWs createTakeProfitOrder createTakeProfitOrderWs'
         + ' createOrderWithTakeProfitAndStopLoss createOrderWithTakeProfitAndStopLossWs createPostOnlyOrder createPostOnlyOrderWs'
         + ' createReduceOnlyOrder createReduceOnlyOrderWs createStopOrder createStopOrderWs' ],

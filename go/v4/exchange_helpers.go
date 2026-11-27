@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 // These helpers lock nothing: every map they touch is goroutine-local or owned by one
@@ -678,11 +677,6 @@ func IsGreaterThanOrEqual(a, b any) bool {
 	return IsGreaterThan(a, b) || IsEqual(a, b)
 }
 
-// IsLessThanOrEqual checks if a is less than or equal to b
-func IsLessThanOrEqual(a, b any) bool {
-	return IsLessThan(a, b) || IsEqual(a, b)
-}
-
 // IsEqual checks for equality of a and b with dynamic type support
 func IsEqual(a, b any) bool {
 	a = derefScalar(a)
@@ -1151,16 +1145,6 @@ func GetIndexOf(str any, target any) int {
 	return -1
 }
 
-// IsBool checks if the input is a boolean
-func IsBool(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	_, ok := v.(bool)
-	return ok
-}
-
 // IsString checks if the input is a string
 func IsString(v any) bool {
 	v = derefScalar(v)
@@ -1169,22 +1153,6 @@ func IsString(v any) bool {
 	}
 	_, ok := v.(string)
 	return ok
-}
-
-// IsInt checks if the input is an integer
-func IsInt(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	switch v.(type) {
-	case int, int8, int16, int32, int64:
-		return true
-	case uint, uint8, uint16, uint32, uint64:
-		return true
-	default:
-		return false
-	}
 }
 
 // IsFunction checks if the input is a function
@@ -1211,15 +1179,6 @@ func IsNumber(v any) bool {
 	default:
 		return false
 	}
-}
-
-// ToUpper converts a string to uppercase
-func ToUpper(v any) string {
-	v = derefScalar(v)
-	if str, ok := v.(string); ok {
-		return strings.ToUpper(str)
-	}
-	return ""
 }
 
 // IsInt checks if the input is an integer
@@ -1513,32 +1472,6 @@ func castToSlice(slice any) ([]any, bool) {
 		sliceVal[i] = val.Index(i).Interface()
 	}
 	return sliceVal, true
-}
-
-func Replace(input any, old any, new any) string {
-	input = derefScalar(input)
-	str := ToString(input)
-	oldStr := ToString(old)
-	newStr := ToString(new)
-	return strings.ReplaceAll(str, oldStr, newStr)
-}
-
-// DateNow returns the current date and time as a string
-func DateNow() string {
-	return time.Now().Format(time.RFC3339)
-}
-
-func GetLength(v any) int {
-	v = derefScalar(v)
-	val := reflect.ValueOf(v)
-	switch val.Kind() {
-	case reflect.String:
-		return len(val.String())
-	case reflect.Array, reflect.Slice:
-		return val.Len()
-	default:
-		return 0
-	}
 }
 
 func IsNil(x any) bool {
@@ -2462,48 +2395,6 @@ func ThrowDynamicException(exceptionType any, message any) {
 
 	// // err := constructor(messageStr)
 	// // panic(err)
-}
-
-func OpNeg(value any) any {
-	value = derefScalar(value)
-	val := reflect.ValueOf(value)
-
-	switch val.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return -val.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return nil // Cannot negate unsigned integers, return nil
-	case reflect.Float32, reflect.Float64:
-		return -val.Float()
-	case reflect.Complex64, reflect.Complex128:
-		return -val.Complex()
-	default:
-		return nil // Unsupported type, return nil
-	}
-}
-
-func JsonStringify(obj any) string {
-	obj = derefScalar(obj)
-	if obj == nil {
-		return ""
-	}
-
-	// Check if the object is an error (Go's equivalent of an exception)
-	if err, ok := obj.(error); ok {
-		// Create an anonymous struct with the error type name
-		errorObj := struct {
-			Name string `json:"name"`
-		}{
-			Name: reflect.TypeOf(err).Name(),
-		}
-		// Serialize the error object to JSON
-		jsonData, _ := json.Marshal(errorObj)
-		return string(jsonData)
-	}
-
-	// Serialize the object to JSON
-	jsonData, _ := json.Marshal(obj)
-	return string(jsonData)
 }
 
 func Remove(dict any, key any) {

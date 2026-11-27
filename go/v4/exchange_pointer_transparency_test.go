@@ -141,7 +141,6 @@ func unaryShims() []unaryShim {
 	return []unaryShim{
 		// exchange_helpers.go
 		{"EvalTruthy", func(v any) any { return EvalTruthy(v) }},
-		{"JsonStringify", func(v any) any { return JsonStringify(v) }},
 		{"JsonParse", func(v any) any { return JsonParse(v) }},
 		{"IsFunction", func(v any) any { return IsFunction(v) }},
 		{"ObjectKeys", func(v any) any { return ObjectKeys(v) }},
@@ -149,18 +148,13 @@ func unaryShims() []unaryShim {
 		{"IsInteger", func(v any) any { return IsInteger(v) }},
 		{"GetArrayLength", func(v any) any { return GetArrayLength(v) }},
 		{"ToFloat64", func(v any) any { return ToFloat64(v) }},
-		{"IsBool", func(v any) any { return IsBool(v) }},
 		{"IsString", func(v any) any { return IsString(v) }},
-		{"IsInt", func(v any) any { return IsInt(v) }},
 		{"IsNumber", func(v any) any { return IsNumber(v) }},
 		{"IsArray", func(v any) any { return IsArray(v) }},
 		{"IsNil", func(v any) any { return IsNil(v) }},
-		{"ToUpper", func(v any) any { return ToUpper(v) }},
 		{"ToString", func(v any) any { return ToString(v) }},
-		{"GetLength", func(v any) any { return GetLength(v) }},
 		{"ParseInt", func(v any) any { return ParseInt(v) }},
 		{"ParseFloat", func(v any) any { return ParseFloat(v) }},
-		{"OpNeg", func(v any) any { return OpNeg(v) }},
 		// exchange_precise.go
 		{"StringAbs", func(v any) any { return StringAbs(v) }},
 		{"StringNeg", func(v any) any { return StringNeg(v) }},
