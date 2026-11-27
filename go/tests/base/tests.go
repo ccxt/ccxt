@@ -1285,12 +1285,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan ccxt.AsyncResult[any],
 					// derive one from the selected outcome handle (the market words with
 					// separators as spaces) so the scoped contract holds even without a pin
 					var handleParts []string = Split(outcomeSymbol, ":")
-					var marketPart any
-					if 0 >= 0 && 0 < len(handleParts) {
-						marketPart = handleParts[0]
-					} else {
-						marketPart = nil
-					}
+					var marketPart any = ccxt.DerefScalar(exchange.SafeString(handleParts, 0, ""))
 					var lowerPart string = ToLower(marketPart)
 					var dedashed string = strings.ReplaceAll(lowerPart, "-", " ")
 					eventQuery = strings.ReplaceAll(dedashed, "_", " ")
