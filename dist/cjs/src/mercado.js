@@ -807,7 +807,7 @@ class mercado extends mercado$1["default"] {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'quantity': amount.toFixed(10),
+            'quantity': this.decimalToPrecision(amount, number.ROUND, 10, number.DECIMAL_PLACES, number.PAD_WITH_ZERO),
             'address': address,
         };
         if (code === 'BRL') {

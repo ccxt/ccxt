@@ -1801,8 +1801,8 @@ export default class htx extends htxRest {
             }
             return;
         }
-        const newPositions = [];
-        const positionsByMarginMode = {};
+        const crossPositions = [];
+        const isolatedPositions = [];
         const timestamp = this.safeInteger(message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
             const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
@@ -1817,28 +1817,36 @@ export default class htx extends htxRest {
                 cache = new ArrayCacheBySymbolBySide();
                 this.positionsByType[marginMode] = cache;
             }
-            newPositions.push(position);
-            positionsByMarginMode[marginMode] = this.safeList(positionsByMarginMode, marginMode, []);
-            positionsByMarginMode[marginMode].push(position);
+            if (marginMode === 'cross') {
+                crossPositions.push(position);
+            }
+            else {
+                isolatedPositions.push(position);
+            }
             cache.append(position);
         }
-        const marginModes = Object.keys(positionsByMarginMode);
-        for (let i = 0; i < marginModes.length; i++) {
-            const marginMode = marginModes[i];
-            const marginModePositions = this.safeList(positionsByMarginMode, marginMode, []);
-            const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
-            for (let j = 0; j < messageHashes.length; j++) {
-                const messageHash = messageHashes[j];
-                const parts = messageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                const positions = this.filterByArray(marginModePositions, 'symbol', symbols, false);
-                if (!this.isEmpty(positions)) {
-                    client.resolve(positions, messageHash);
-                }
-            }
-            client.resolve(marginModePositions, marginMode + ':positions');
+        const crossLength = crossPositions.length;
+        if (crossLength > 0) {
+            this.resolvePositionsByMarginMode(client, 'cross', crossPositions);
         }
+        const isolatedLength = isolatedPositions.length;
+        if (isolatedLength > 0) {
+            this.resolvePositionsByMarginMode(client, 'isolated', isolatedPositions);
+        }
+    }
+    resolvePositionsByMarginMode(client, marginMode, marginModePositions) {
+        const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
+        for (let j = 0; j < messageHashes.length; j++) {
+            const messageHash = messageHashes[j];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(marginModePositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(marginModePositions, marginMode + ':positions');
     }
     /**
      * @method

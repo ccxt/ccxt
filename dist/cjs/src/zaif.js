@@ -830,8 +830,7 @@ class zaif extends zaif$1["default"] {
         };
     }
     customNonce() {
-        const nonce = this.milliseconds() / 1000;
-        return nonce.toFixed(8);
+        return this.decimalToPrecision(this.milliseconds() / 1000, number.ROUND, 8, number.DECIMAL_PLACES, number.PAD_WITH_ZERO);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         const apiName = api[0];

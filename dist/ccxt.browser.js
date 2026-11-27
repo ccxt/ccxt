@@ -449820,7 +449820,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
-            'quantity': amount.toFixed(10),
+            'quantity': this.decimalToPrecision(amount, (/* inlined export .ROUND */1), 10, (/* inlined export .DECIMAL_PLACES */2), (/* inlined export .PAD_WITH_ZERO */6)),
             'address': address
         };
         if (code === 'BRL') {
@@ -588409,8 +588409,8 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
             }
             return;
         }
-        const newPositions = [];
-        const positionsByMarginMode = {};
+        const crossPositions = [];
+        const isolatedPositions = [];
         const timestamp = this.safeInteger(message, 'ts');
         for(let i = 0; i < rawPositions.length; i++){
             const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
@@ -588425,28 +588425,35 @@ class htx extends _htx_js__rspack_import_0/* ["default"] */.A {
                 cache = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheBySymbolBySide */.Hk();
                 this.positionsByType[marginMode] = cache;
             }
-            newPositions.push(position);
-            positionsByMarginMode[marginMode] = this.safeList(positionsByMarginMode, marginMode, []);
-            positionsByMarginMode[marginMode].push(position);
+            if (marginMode === 'cross') {
+                crossPositions.push(position);
+            } else {
+                isolatedPositions.push(position);
+            }
             cache.append(position);
         }
-        const marginModes = Object.keys(positionsByMarginMode);
-        for(let i = 0; i < marginModes.length; i++){
-            const marginMode = marginModes[i];
-            const marginModePositions = this.safeList(positionsByMarginMode, marginMode, []);
-            const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
-            for(let j = 0; j < messageHashes.length; j++){
-                const messageHash = messageHashes[j];
-                const parts = messageHash.split('::');
-                const symbolsString = parts[1];
-                const symbols = symbolsString.split(',');
-                const positions = this.filterByArray(marginModePositions, 'symbol', symbols, false);
-                if (!this.isEmpty(positions)) {
-                    client.resolve(positions, messageHash);
-                }
-            }
-            client.resolve(marginModePositions, marginMode + ':positions');
+        const crossLength = crossPositions.length;
+        if (crossLength > 0) {
+            this.resolvePositionsByMarginMode(client, 'cross', crossPositions);
         }
+        const isolatedLength = isolatedPositions.length;
+        if (isolatedLength > 0) {
+            this.resolvePositionsByMarginMode(client, 'isolated', isolatedPositions);
+        }
+    }
+    resolvePositionsByMarginMode(client, marginMode, marginModePositions) {
+        const messageHashes = this.findMessageHashes(client, marginMode + ':positions::');
+        for(let j = 0; j < messageHashes.length; j++){
+            const messageHash = messageHashes[j];
+            const parts = messageHash.split('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split(',');
+            const positions = this.filterByArray(marginModePositions, 'symbol', symbols, false);
+            if (!this.isEmpty(positions)) {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(marginModePositions, marginMode + ':positions');
     }
     /**
      * @method
@@ -675128,8 +675135,7 @@ class zaif extends _abstract_zaif_js__rspack_import_0/* ["default"] */.A {
         };
     }
     customNonce() {
-        const nonce = this.milliseconds() / 1000;
-        return nonce.toFixed(8);
+        return this.decimalToPrecision(this.milliseconds() / 1000, (/* inlined export .ROUND */1), 8, (/* inlined export .DECIMAL_PLACES */2), (/* inlined export .PAD_WITH_ZERO */6));
     }
     sign(path, api = [
         'public'

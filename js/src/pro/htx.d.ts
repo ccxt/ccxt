@@ -164,6 +164,7 @@ export default class htx extends htxRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
+    resolvePositionsByMarginMode(client: Client, marginMode: string, marginModePositions: Position[]): void;
     /**
      * @method
      * @name htx#watchBalance
