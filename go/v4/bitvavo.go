@@ -791,9 +791,9 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
-	var ternaryStr68120 string = "crypto"
+	var ternaryStr68220 string = "crypto"
 	if isFiat {
-		ternaryStr68120 = "fiat"
+		ternaryStr68220 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -806,7 +806,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) map[string]any {
 		"networks":  networks,
 		"fee":       withdrawFee,
 		"precision": nil,
-		"type":      ternaryStr68120,
+		"type":      ternaryStr68220,
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -3608,16 +3608,16 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	var literal273315 map[string]any = map[string]any{
+	var literal273415 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal273315["body"] = *requestBody
+		literal273415["body"] = *requestBody
 	}
-	return literal273315
+	return literal273415
 }
 func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
