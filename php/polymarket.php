@@ -2588,7 +2588,7 @@ class polymarket extends Exchange {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash(string $hash, ?string $privateKey): string {
+    public function sign_hash(string $hash, string $privateKey): string {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $this->safe_string($signature, 'r', '');
         $sVal = $this->safe_string($signature, 's', '');
@@ -2596,7 +2596,7 @@ class polymarket extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($sVal, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message(mixed $message, ?string $privateKey): string {
+    public function sign_message(mixed $message, string $privateKey): string {
         return $this->sign_hash($this->hash_message($message), $privateKey);
     }
 
@@ -2725,7 +2725,7 @@ class polymarket extends Exchange {
             'ts' => $ts,
         );
         $encoded = $this->eth_encode_structured_data($domain, $messageTypes, $message);
-        $proxyPrivateKey = $this->safe_string($credentials, 'privateKey');
+        $proxyPrivateKey = $this->safe_string($credentials, 'privateKey', '');
         $signature = $this->sign_message($encoded, $proxyPrivateKey);
         $envelope = array(
             'op' => $bodyOp,
