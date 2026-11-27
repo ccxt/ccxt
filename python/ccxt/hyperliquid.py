@@ -1921,9 +1921,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             # "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             #
             if response is not None:
-                response = response.replace('"', '')
-                response = response.replace('"', '')
-                enableUnifiedMargin = response == 'unifiedAccount'
+                enableUnifiedMargin = (response.replace('"', '') == 'unifiedAccount')
             # don't cache this result if this is a different addresss
             self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache this for future calls
         return [enableUnifiedMargin, paramsEnableUnifiedMargin]

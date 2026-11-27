@@ -5223,18 +5223,26 @@ class BaseExchange(object):
                         raise e
                 if shouldBreak:
                     break  # this is needed because of GO
-            content = response
-            if content is None:
+            if response is None:
                 raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
+            if not isinstance(response, str):
+                if (startRegex is not None) or (endRegex is not None):
+                    raise BadResponse(self.id + ' fetchWebEndpoint() returned non-string content')
+                return response
+            content = response
             if startRegex is not None:
                 splitted_by_start = content.split(startRegex)
+                startLen = len(splitted_by_start)
+                if startLen < 2:
+                    raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
                 content = splitted_by_start[1]  # we need second part after start
-            if content is None:
-                raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
             if endRegex is not None:
                 splitted_by_end = content.split(endRegex)
+                endLen = len(splitted_by_end)
+                if endLen < 1:
+                    raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
                 content = splitted_by_end[0]  # we need first part after start
-            if (returnAsJson is True) and (isinstance(content, str)):
+            if returnAsJson is True:
                 jsoned = self.parse_json(content.strip())  # content should be trimmed before json parsing
                 if (jsoned is not None) and (jsoned is not None):
                     return jsoned  # if parsing was not successfull, exception should be thrown
