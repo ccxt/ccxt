@@ -72,6 +72,19 @@ test ('deploy: the workflow uses the docs deploy secrets and ships what the scri
     }
 });
 
+test ('deploy: mcp.ccxt.com serves the MCP locations, and only them, under its own certificate', () => {
+    const site = read ('deploy/nginx/mcp.ccxt.com.conf');
+    assert.match (site, /server_name mcp\.ccxt\.com;/);
+    assert.match (site, /include snippets\/ccxt-mcp-locations\.conf;/);
+    assert.match (site, /ssl_certificate \/etc\/letsencrypt\/live\/mcp\.ccxt\.com\/fullchain\.pem;/);
+    assert.match (site, /client_header_timeout 10s;/);
+    // the bare host is the endpoint for POSTs; nothing else reaches the app
+    assert.match (site, /location = \/ \{\s*if \(\$request_method = POST\) \{ rewrite \^ \/mcp last; \}/);
+    assert.doesNotMatch (site, /proxy_pass/);
+    // the ACME webroot is served on port 80 only
+    assert.equal ((site.match (/acme-challenge/g) ?? []).length, 1);
+});
+
 test ('deploy: the smoke test checks tools this server actually lists', async () => {
     const { HOSTED_TOOLS } = await import ('../src/profile.js');
     const checked = [ ...script.matchAll (/for tool in ([a-z_ ]+); do/g) ].flatMap ((m) => m[1].trim ().split (/\s+/));
