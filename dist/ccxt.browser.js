@@ -184237,7 +184237,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             }
             let isNewCandle = candle === -1;
             if (!isNewCandle) {
-                const candleTimestamp = ohlcvs[candle][i_timestamp];
+                const candleRow = this.safeList(ohlcvs, candle);
+                const candleTimestamp = this.safeInteger(candleRow, i_timestamp);
                 if (candleTimestamp === undefined) {
                     throw new _errors_js__rspack_import_2.ExchangeError(this.id + ' buildOHLCVC() missing candle timestamp');
                 }
