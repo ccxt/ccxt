@@ -231,12 +231,20 @@ jobs:
               OLD_WORKERS=$(pgrep -f '^nginx: worker process' || true)
               nginx -s reload
               DRAIN_MAX=60                                         # >= the longest response (/api/chat maxDuration 30 s)
-              for _ in $(seq 1 "$DRAIN_MAX"); do
-                alive=0
-                for pid in $OLD_WORKERS; do kill -0 "$pid" 2>/dev/null && alive=1; done
-                [ "$alive" = 0 ] && break
-                sleep 1
-              done
+              if [ -n "$OLD_WORKERS" ]; then
+                echo "nginx drain: waiting on $(echo $OLD_WORKERS | wc -w) pre-reload workers"
+                for _ in $(seq 1 "$DRAIN_MAX"); do
+                  alive=0
+                  for pid in $OLD_WORKERS; do kill -0 "$pid" 2>/dev/null && alive=1; done
+                  [ "$alive" = 0 ] && break
+                  sleep 1
+                done
+              else
+                # no worker PIDs visible (other process title, hidepid, non-root user): fall back
+                # to the old fixed wait, and say so in the deploy log
+                echo "nginx drain: no worker PIDs found, waiting 3 s instead"
+                sleep 3
+              fi
               # SIGTERM, then remove: the old container finishes anything still in flight instead
               # of being killed mid-response (the 3 s sleep + rm -f this replaces cut them)
               docker stop -t 30 "${CONTAINER}-${CUR_PORT}" "${CONTAINER}" 2>/dev/null || true
