@@ -14910,13 +14910,13 @@ function goSliceTypedBoundNative (recv: { kind: string, text: string } | undefin
     if (rawArgs[2] === 'nil') { return { text: s + '[' + (a.nonneg ? a.text : 'max(' + a.text + ', 0)') + ':]', pkg: '' }; }
     const b = one (rawArgs[2]);
     if ((b === undefined) || ((a.kind === 'const') && (b.kind === 'const'))) { return undefined; }
-    const lenType = ((b.kind === 'int64') || (a.kind === 'int64')) ? 'int64' : 'int';
-    const lenExpr = (lenType === 'int64') ? 'int64(len(' + recv.text + '))' : 'len(' + recv.text + ')';
+    const startLenExpr = (a.kind === 'int64') ? 'int64(len(' + recv.text + '))' : 'len(' + recv.text + ')';
     // a general non-negative local start (not 0, not len(s), not a for counter, not initialized to len(s)) clamps to len(s) so short strings answer "" instead of panicking
     const isLenLocal = /^\w+$/.test (a.text) && new RegExp ('^\\s*var ' + a.text + ' \\w+ = len\\(').test (masked.split ('\n').find ((x) => new RegExp ('^\\s*var ' + a.text + ' ').test (x)) ?? '');
     const clampStart = a.nonneg && (a.kind !== 'const') && !a.forCounter && !isLenLocal && (rawArgs[1] !== 'len(' + recv.text + ')');
-    const startExpr = clampStart ? 'min(' + a.text + ', ' + lenExpr + ')' : a.text;
-    const end = (rawArgs[2] === 'len(' + recv.text + ')') ? b.text : 'min(' + (clampStart ? 'max(' + b.text + ', ' + a.text + ')' : b.text) + ', ' + lenExpr + ')';
+    const endLenExpr = ((b.kind === 'int64') || (clampStart && (a.kind === 'int64'))) ? 'int64(len(' + recv.text + '))' : 'len(' + recv.text + ')';
+    const startExpr = clampStart ? 'min(' + a.text + ', ' + startLenExpr + ')' : a.text;
+    const end = (rawArgs[2] === 'len(' + recv.text + ')') ? b.text : 'min(' + (clampStart ? 'max(' + b.text + ', ' + a.text + ')' : b.text) + ', ' + endLenExpr + ')';
     return { text: s + '[' + startExpr + ':' + end + ']', pkg: '' };
 }
 
@@ -15185,6 +15185,7 @@ function goTypedStrSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar s string = "a:b"\n\tvar c int = strings.Index(s, ":")\n\tif c >= 0 {\n\t\ts = Slice(s, 0, c)\n\t}\n\treturn s\n').includes ('s[0:min(c, len(s))]'), 'guarded >= 0 Slice end goes native without clamp');
     ok (f ('\tvar pem string = ""\n\tfor i := 0; i < 2; i++ {\n\t\tvar st int64 = int64(i) * 64\n\t\tvar en int64 = st + 64\n\t\tpem += Slice(this.Secret, st, en)\n\t}\n\treturn pem\n').includes ('this.Secret[min(st, int64(len(this.Secret))):min(max(en, st), int64(len(this.Secret)))]'), 'this.Secret product bounds slice natively');
     ok (goTypedStrNativeStringHelpers ('x/foo.go', hdr + 'func (this *X) f(id *string) any {\n\tif id == nil {\n\t\treturn nil\n\t}\n\tvar a int = 3\n\tvar b int = 6\n\treturn Slice(id, a, b)\n}\n').includes ('(*id)[min(a, len(*id)):min(max(b, a), len(*id))]'), 'nil-exited *string param slices natively');
+    ok (f ('\tvar s string = "abcd"\n\tvar n int = len(s)\n\tvar st int64 = int64(n) - 3\n\treturn Slice(s, st, n)\n').includes (':min(n, len(s))]'), 'mixed int64 start and int end keeps int len for end');
 }
 
 // ===== native len() on block-scoped typed operands =====
