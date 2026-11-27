@@ -11,6 +11,7 @@ from ccxt.pro.test.base.test_cache_native import test_ws_cache_python_regression
 from ccxt.pro.test.base.test_future import test_ws_future  # noqa: F401
 from ccxt.pro.test.base.test_client_reset import test_ws_client_reset  # noqa: F401  # hand-written python-only
 from ccxt.pro.test.base.test_on_close import test_ws_on_close  # noqa: F401  # hand-written python-only
+from ccxt.pro.test.base.test_client_receive_loop import test_client_receive_loop  # noqa: F401  # hand-written python-only
 from ccxt.pro.test.base.test_abnormal_close import test_abnormal_close  # noqa: F401
 
 async def test_base_init_ws():
@@ -21,4 +22,5 @@ async def test_base_init_ws():
     await test_ws_future()
     await test_ws_client_reset()  # hand-written python-only
     await test_ws_on_close()  # hand-written python-only
+    await test_client_receive_loop()  # hand-written python-only
     # run(test_abnormal_close()) stays in infinite loop in travis
