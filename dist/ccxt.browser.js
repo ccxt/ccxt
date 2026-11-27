@@ -285480,9 +285480,8 @@ class btcturk extends _abstract_btcturk_js__rspack_import_0/* ["default"] */.A {
         if (since !== undefined) {
             request['from'] = this.parseToInt(since / 1000);
         }
-        let limitResolved = undefined;
+        let limitResolved = limit;
         if (limit !== undefined) {
-            limitResolved = limit;
             if (limit > 11000) {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
             }
