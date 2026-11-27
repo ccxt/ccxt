@@ -23,6 +23,19 @@
                     "AAPL/USD"
                 ],
                 "output": null
+            },
+            {
+                "description": "filled close order",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/real/close-orders/396974883",
+                "input": [
+                    "396974883",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ],
+                "output": null
             }
         ],
         "cancelOrder": [
@@ -33,6 +46,19 @@
                 "input": [
                     "1656133143",
                     "AAPL/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel a close order",
+                "method": "cancelOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/market-close-orders/396974883",
+                "input": [
+                    "396974883",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
                 ],
                 "output": null
             }
@@ -69,6 +95,22 @@
                     }
                 ],
                 "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1001,\"settlementType\":\"real\",\"orderType\":\"mkt\",\"amount\":14,\"orderCurrency\":\"usd\"}"
+            },
+            {
+                "description": "reduceOnly market order closes a position",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/market-close-orders/positions/3650867027",
+                "input": [
+                    "SAP.DE/EUR",
+                    "market",
+                    "sell",
+                    0.070408,
+                    null,
+                    {
+                        "positionId": "3650867027"
+                    }
+                ],
+                "output": "{\"InstrumentID\":1202,\"UnitsToDeduct\":0.070408}"
             }
         ],
         "fetchPositionsHistory": [
@@ -127,7 +169,7 @@
             {
                 "description": "real account balance",
                 "method": "fetchBalance",
-                "url": "https://public-api.etoro.com/api/v1/trading/info/real/pnl",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/aggregate-portfolio",
                 "input": [],
                 "output": null
             }
@@ -192,7 +234,70 @@
                 ],
                 "output": null
             }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "real and demo accounts",
+                "method": "fetchAccounts",
+                "url": "https://public-api.etoro.com/api/v1/me",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "bids and asks of a stock and a crypto",
+                "method": "fetchBidsAsks",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=1202%2C100000",
+                "input": [
+                    [
+                        "SAP.DE/EUR",
+                        "BTC/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "open stock position",
+                "method": "fetchPosition",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/instrument-breakdown?positionLevel=Normal&orderLevel=None",
+                "input": [
+                    "SAP.DE/EUR"
+                ],
+                "output": null
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close a long position by id",
+                "method": "closePosition",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/market-close-orders/positions/3650867027",
+                "input": [
+                    "SAP.DE/EUR",
+                    "sell",
+                    {
+                        "positionId": "3650867027"
+                    }
+                ],
+                "output": "{\"InstrumentID\":1202}"
+            },
+            {
+                "description": "close a part of a position",
+                "method": "closePosition",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/market-close-orders/positions/3650867027",
+                "input": [
+                    "SAP.DE/EUR",
+                    "sell",
+                    {
+                        "positionId": "3650867027",
+                        "amount": 0.03
+                    }
+                ],
+                "output": "{\"InstrumentID\":1202,\"UnitsToDeduct\":0.03}"
+            }
         ]
-  },
+    },
     "outputType": "both"
 }

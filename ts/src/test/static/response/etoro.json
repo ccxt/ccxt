@@ -1858,6 +1858,98 @@
                     "fees": [],
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "filled close order",
+                "method": "fetchOrder",
+                "input": [
+                    "396974883",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ],
+                "httpResponse": {
+                    "token": "47e9ab8e-9b6f-4793-a8e1-dd8d529dddcb",
+                    "orderID": 396974883,
+                    "CID": 11111111,
+                    "statusID": 3,
+                    "orderType": 19,
+                    "closeActionType": 0,
+                    "operationType": 2,
+                    "errorCode": 0,
+                    "assetCurrencyID": 2,
+                    "accountCurrencyID": 1,
+                    "instrumentID": 1202,
+                    "requestOccurred": "2026-11-27T10:58:34.923Z",
+                    "proceeds": 13.99,
+                    "externalOperationType": 0,
+                    "positions": [
+                        {
+                            "positionID": 3650867027,
+                            "occurred": "2026-11-27T10:58:35.043Z",
+                            "rate": 194.29,
+                            "units": 0.070408,
+                            "conversionRate": 1.09646,
+                            "amount": 14.98
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "id": "396974883",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-27T10:58:34.923Z",
+                    "timestamp": 1795777114923,
+                    "lastTradeTimestamp": 1795777115043,
+                    "lastUpdateTimestamp": null,
+                    "status": "closed",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": null,
+                    "price": 194.29,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 0.070408,
+                    "filled": 0.070408,
+                    "remaining": 0,
+                    "cost": 13.67957032,
+                    "average": 194.29,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "47e9ab8e-9b6f-4793-a8e1-dd8d529dddcb",
+                        "orderID": 396974883,
+                        "CID": 11111111,
+                        "statusID": 3,
+                        "orderType": 19,
+                        "closeActionType": 0,
+                        "operationType": 2,
+                        "errorCode": 0,
+                        "assetCurrencyID": 2,
+                        "accountCurrencyID": 1,
+                        "instrumentID": 1202,
+                        "requestOccurred": "2026-11-27T10:58:34.923Z",
+                        "proceeds": 13.99,
+                        "externalOperationType": 0,
+                        "positions": [
+                            {
+                                "positionID": 3650867027,
+                                "occurred": "2026-11-27T10:58:35.043Z",
+                                "rate": 194.29,
+                                "units": 0.070408,
+                                "conversionRate": 1.09646,
+                                "amount": 14.98
+                            }
+                        ]
+                    },
+                    "rejectReason": null,
+                    "fees": [],
+                    "stopPrice": null
+                }
             }
         ],
         "cancelOrder": [
@@ -1945,6 +2037,52 @@
                     "info": {
                         "orderId": 1656133143,
                         "referenceId": ""
+                    },
+                    "rejectReason": null,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "cancel a close order",
+                "method": "cancelOrder",
+                "input": [
+                    "396974883",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ],
+                "httpResponse": {
+                    "token": "bd906f61-7f26-4d26-b90e-f7b109805eb8"
+                },
+                "parsedResponse": {
+                    "id": "396974883",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "SAP.DE/EUR",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "token": "bd906f61-7f26-4d26-b90e-f7b109805eb8"
                     },
                     "rejectReason": null,
                     "fees": [],
@@ -2115,95 +2253,48 @@
         ],
         "fetchBalance": [
             {
-                "description": "demo account balance with equity",
-                "method": "fetchBalance",
-                "input": [],
-                "httpResponse": {
-                    "clientPortfolio": {
-                        "positions": [],
-                        "unrealizedPnL": 0,
-                        "mirrors": [],
-                        "accountCurrencyId": 1,
-                        "credit": 99986.01,
-                        "orders": [],
-                        "stockOrders": [],
-                        "entryOrders": [],
-                        "exitOrders": [],
-                        "ordersForOpen": [],
-                        "ordersForClose": [],
-                        "ordersForCloseMultiple": [],
-                        "bonusCredit": 0
-                    }
-                },
-                "parsedResponse": {
-                    "info": {
-                        "positions": [],
-                        "unrealizedPnL": 0,
-                        "mirrors": [],
-                        "accountCurrencyId": 1,
-                        "credit": 99986.01,
-                        "orders": [],
-                        "stockOrders": [],
-                        "entryOrders": [],
-                        "exitOrders": [],
-                        "ordersForOpen": [],
-                        "ordersForClose": [],
-                        "ordersForCloseMultiple": [],
-                        "bonusCredit": 0
-                    },
-                    "USD": {
-                        "free": 99986.01,
-                        "used": 0,
-                        "total": 99986.01
-                    },
-                    "free": {
-                        "USD": 99986.01
-                    },
-                    "used": {
-                        "USD": 0
-                    },
-                    "total": {
-                        "USD": 99986.01
-                    }
-                }
-            },
-            {
                 "description": "real account balance",
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": {
-                    "clientPortfolio": {
-                        "positions": [],
-                        "unrealizedPnL": 0,
-                        "mirrors": [],
-                        "accountCurrencyId": 1,
-                        "credit": 0,
-                        "orders": [],
-                        "stockOrders": [],
-                        "entryOrders": [],
-                        "exitOrders": [],
-                        "ordersForOpen": [],
-                        "ordersForClose": [],
-                        "ordersForCloseMultiple": [],
-                        "bonusCredit": 0
-                    }
+                    "cid": 22222222,
+                    "timestamp": "2026-11-27T11:00:09.0039643Z",
+                    "accountCurrency": "USD",
+                    "tradingFundingType": "cash",
+                    "accountTotals": {
+                        "accountAvailableCash": 0,
+                        "accountAvailableMargin": 0,
+                        "cryptoAvailableMargin": 0,
+                        "accountFrozenCash": 0,
+                        "accountCurrentPnl": 0,
+                        "accountTotalValue": 0,
+                        "accountTotalUsedMargin": 0,
+                        "accountBalance": 0
+                    },
+                    "instrumentAggregates": [],
+                    "mirrors": []
                 },
                 "parsedResponse": {
                     "info": {
-                        "positions": [],
-                        "unrealizedPnL": 0,
-                        "mirrors": [],
-                        "accountCurrencyId": 1,
-                        "credit": 0,
-                        "orders": [],
-                        "stockOrders": [],
-                        "entryOrders": [],
-                        "exitOrders": [],
-                        "ordersForOpen": [],
-                        "ordersForClose": [],
-                        "ordersForCloseMultiple": [],
-                        "bonusCredit": 0
+                        "cid": 22222222,
+                        "timestamp": "2026-11-27T11:00:09.0039643Z",
+                        "accountCurrency": "USD",
+                        "tradingFundingType": "cash",
+                        "accountTotals": {
+                            "accountAvailableCash": 0,
+                            "accountAvailableMargin": 0,
+                            "cryptoAvailableMargin": 0,
+                            "accountFrozenCash": 0,
+                            "accountCurrentPnl": 0,
+                            "accountTotalValue": 0,
+                            "accountTotalUsedMargin": 0,
+                            "accountBalance": 0
+                        },
+                        "instrumentAggregates": [],
+                        "mirrors": []
                     },
+                    "timestamp": 1795777209003,
+                    "datetime": "2026-11-27T11:00:09.003Z",
                     "USD": {
                         "free": 0,
                         "used": 0,
@@ -2217,6 +2308,63 @@
                     },
                     "total": {
                         "USD": 0
+                    }
+                }
+            },
+            {
+                "description": "demo account balance with a pending order",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "cid": 11111111,
+                    "timestamp": "2026-11-27T09:41:20.517",
+                    "accountCurrency": "USD",
+                    "accountTotals": {
+                        "accountAvailableCash": 99969.01,
+                        "accountAvailableMargin": 99969.01,
+                        "cryptoAvailableMargin": 99969.01,
+                        "accountFrozenCash": 15,
+                        "accountCurrentPnl": 0,
+                        "accountTotalValue": 99984.01,
+                        "accountTotalUsedMargin": 0,
+                        "accountBalance": 99984.01
+                    },
+                    "instrumentAggregates": [],
+                    "mirrors": []
+                },
+                "parsedResponse": {
+                    "info": {
+                        "cid": 11111111,
+                        "timestamp": "2026-11-27T09:41:20.517",
+                        "accountCurrency": "USD",
+                        "accountTotals": {
+                            "accountAvailableCash": 99969.01,
+                            "accountAvailableMargin": 99969.01,
+                            "cryptoAvailableMargin": 99969.01,
+                            "accountFrozenCash": 15,
+                            "accountCurrentPnl": 0,
+                            "accountTotalValue": 99984.01,
+                            "accountTotalUsedMargin": 0,
+                            "accountBalance": 99984.01
+                        },
+                        "instrumentAggregates": [],
+                        "mirrors": []
+                    },
+                    "timestamp": 1795772480517,
+                    "datetime": "2026-11-27T09:41:20.517Z",
+                    "USD": {
+                        "free": 99969.01,
+                        "used": 15,
+                        "total": 99984.01
+                    },
+                    "free": {
+                        "USD": 99969.01
+                    },
+                    "used": {
+                        "USD": 15
+                    },
+                    "total": {
+                        "USD": 99984.01
                     }
                 }
             }
@@ -2771,6 +2919,383 @@
                     }
                 }
             }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "real and demo accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "gcid": 33333333,
+                    "realCid": 22222222,
+                    "demoCid": 11111111,
+                    "username": "username",
+                    "playerLevel": 1,
+                    "language": 1,
+                    "scopes": [
+                        "etoro-public:trade.demo:read",
+                        "etoro-public:trade.real:read"
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "22222222",
+                        "type": "trading",
+                        "code": "USD",
+                        "info": {
+                            "gcid": 33333333,
+                            "realCid": 22222222,
+                            "demoCid": 11111111,
+                            "username": "username",
+                            "playerLevel": 1,
+                            "language": 1,
+                            "scopes": [
+                                "etoro-public:trade.demo:read",
+                                "etoro-public:trade.real:read"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "11111111",
+                        "type": "demo",
+                        "code": "USD",
+                        "info": {
+                            "gcid": 33333333,
+                            "realCid": 22222222,
+                            "demoCid": 11111111,
+                            "username": "username",
+                            "playerLevel": 1,
+                            "language": 1,
+                            "scopes": [
+                                "etoro-public:trade.demo:read",
+                                "etoro-public:trade.real:read"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "bids and asks of a stock and a crypto",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "SAP.DE/EUR",
+                        "BTC/USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "rates": [
+                        {
+                            "instrumentID": 1202,
+                            "ask": 194.3,
+                            "bid": 194.24,
+                            "lastExecution": 194.24,
+                            "conversionRateAsk": 1.09647,
+                            "conversionRateBid": 1.09646,
+                            "date": "2026-11-27T10:58:16.4300786Z",
+                            "unitMargin": 212.9763904,
+                            "unitMarginAsk": 213.044121,
+                            "unitMarginBid": 212.9763904,
+                            "priceRateID": 166376547704,
+                            "bidDiscounted": 194.24,
+                            "askDiscounted": 194.3,
+                            "unitMarginBidDiscounted": 212.9763904,
+                            "unitMarginAskDiscounted": 213.044121
+                        },
+                        {
+                            "instrumentID": 100000,
+                            "ask": 61564.78,
+                            "bid": 61564.77,
+                            "lastExecution": 61564.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-27T10:58:16.1547083Z",
+                            "unitMargin": 61564.77,
+                            "unitMarginAsk": 61564.78,
+                            "unitMarginBid": 61564.77,
+                            "priceRateID": 166376564377,
+                            "bidDiscounted": 61564.77,
+                            "askDiscounted": 61564.78,
+                            "unitMarginBidDiscounted": 61564.77,
+                            "unitMarginAskDiscounted": 61564.78
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "SAP.DE/EUR": {
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795777096430,
+                        "datetime": "2026-11-27T10:58:16.430Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 194.24,
+                        "bidVolume": null,
+                        "ask": 194.3,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 194.24,
+                        "last": 194.24,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 1202,
+                            "ask": 194.3,
+                            "bid": 194.24,
+                            "lastExecution": 194.24,
+                            "conversionRateAsk": 1.09647,
+                            "conversionRateBid": 1.09646,
+                            "date": "2026-11-27T10:58:16.4300786Z",
+                            "unitMargin": 212.9763904,
+                            "unitMarginAsk": 213.044121,
+                            "unitMarginBid": 212.9763904,
+                            "priceRateID": 166376547704,
+                            "bidDiscounted": 194.24,
+                            "askDiscounted": 194.3,
+                            "unitMarginBidDiscounted": 212.9763904,
+                            "unitMarginAskDiscounted": 213.044121
+                        }
+                    },
+                    "BTC/USD": {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795777096154,
+                        "datetime": "2026-11-27T10:58:16.154Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 61564.77,
+                        "bidVolume": null,
+                        "ask": 61564.78,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 61564.77,
+                        "last": 61564.77,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "instrumentID": 100000,
+                            "ask": 61564.78,
+                            "bid": 61564.77,
+                            "lastExecution": 61564.77,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-27T10:58:16.1547083Z",
+                            "unitMargin": 61564.77,
+                            "unitMarginAsk": 61564.78,
+                            "unitMarginBid": 61564.77,
+                            "priceRateID": 166376564377,
+                            "bidDiscounted": 61564.77,
+                            "askDiscounted": 61564.78,
+                            "unitMarginBidDiscounted": 61564.77,
+                            "unitMarginAskDiscounted": 61564.78
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "open stock position",
+                "method": "fetchPosition",
+                "input": [
+                    "SAP.DE/EUR"
+                ],
+                "httpResponse": {
+                    "accountCurrency": "USD",
+                    "timestamp": "2026-11-27T10:58:30.3849243Z",
+                    "instruments": [
+                        {
+                            "instrumentId": 1202,
+                            "symbol": "SAP.DE",
+                            "positions": [
+                                {
+                                    "redeemEligibility": "",
+                                    "positionId": 3650867027,
+                                    "symbol": "SAP.DE",
+                                    "instrumentId": 1202,
+                                    "assetCurrency": "EUR",
+                                    "settlementType": "real",
+                                    "direction": "long",
+                                    "leverage": 1,
+                                    "isSettled": true,
+                                    "openTime": "2026-11-27T10:58:21.307",
+                                    "openRate": 194.1,
+                                    "openConversionRate": 1.09646,
+                                    "totalFeesAcctCcy": 1,
+                                    "totalTaxesAcctCcy": 0,
+                                    "units": 0.070408,
+                                    "contracts": 0.070408,
+                                    "marginAcctCcy": 14.98,
+                                    "margin": 13.67,
+                                    "addedFundsAcctCcy": 0,
+                                    "addedFunds": 0,
+                                    "overnightFeesAndDividends": 0,
+                                    "repayLoanEligibility": false,
+                                    "currentRate": 194.26,
+                                    "currentConversionRate": 1.09645,
+                                    "rateTimestamp": "2026-11-27T10:58:31.3749225",
+                                    "currentExposure": 13.68,
+                                    "currentExposureAcctCcy": 15,
+                                    "acctCcyReturn": 0.01,
+                                    "acctCcyRoePercent": 0.07,
+                                    "liquidationValueAcctCcy": 14.99,
+                                    "liquidationValue": 13.68,
+                                    "pnl": 0.02,
+                                    "pnlPercent": 0.09,
+                                    "fxValueImpact": 0.01,
+                                    "roePercent": 0.12
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "redeemEligibility": "",
+                        "positionId": 3650867027,
+                        "symbol": "SAP.DE",
+                        "instrumentId": 1202,
+                        "assetCurrency": "EUR",
+                        "settlementType": "real",
+                        "direction": "long",
+                        "leverage": 1,
+                        "isSettled": true,
+                        "openTime": "2026-11-27T10:58:21.307",
+                        "openRate": 194.1,
+                        "openConversionRate": 1.09646,
+                        "totalFeesAcctCcy": 1,
+                        "totalTaxesAcctCcy": 0,
+                        "units": 0.070408,
+                        "contracts": 0.070408,
+                        "marginAcctCcy": 14.98,
+                        "margin": 13.67,
+                        "addedFundsAcctCcy": 0,
+                        "addedFunds": 0,
+                        "overnightFeesAndDividends": 0,
+                        "repayLoanEligibility": false,
+                        "currentRate": 194.26,
+                        "currentConversionRate": 1.09645,
+                        "rateTimestamp": "2026-11-27T10:58:31.3749225",
+                        "currentExposure": 13.68,
+                        "currentExposureAcctCcy": 15,
+                        "acctCcyReturn": 0.01,
+                        "acctCcyRoePercent": 0.07,
+                        "liquidationValueAcctCcy": 14.99,
+                        "liquidationValue": 13.68,
+                        "pnl": 0.02,
+                        "pnlPercent": 0.09,
+                        "fxValueImpact": 0.01,
+                        "roePercent": 0.12
+                    },
+                    "id": "3650867027",
+                    "symbol": "SAP.DE/EUR",
+                    "timestamp": 1795777101307,
+                    "datetime": "2026-11-27T10:58:21.307Z",
+                    "lastUpdateTimestamp": 1795777111374,
+                    "initialMargin": 13.67,
+                    "initialMarginPercentage": 1,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "entryPrice": 194.1,
+                    "notional": 13.68,
+                    "leverage": 1,
+                    "unrealizedPnl": 0.02,
+                    "realizedPnl": null,
+                    "contracts": 0.070408,
+                    "contractSize": 1,
+                    "marginRatio": null,
+                    "liquidationPrice": null,
+                    "markPrice": 194.26,
+                    "lastPrice": null,
+                    "collateral": 13.67,
+                    "marginMode": "isolated",
+                    "side": "long",
+                    "percentage": 0.09,
+                    "hedged": true,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "positionMargin": 13.67
+                }
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close a long position by id",
+                "method": "closePosition",
+                "input": [
+                    "SAP.DE/EUR",
+                    "sell",
+                    {
+                        "positionId": "3650867027"
+                    }
+                ],
+                "httpResponse": {
+                    "orderForClose": {
+                        "positionID": 3650867027,
+                        "instrumentID": 1202,
+                        "orderID": 396974883,
+                        "orderType": 19,
+                        "statusID": 1,
+                        "CID": 11111111,
+                        "openDateTime": "2026-11-27T10:58:34.9243113Z",
+                        "lastUpdate": "2026-11-27T10:58:34.9243113Z"
+                    },
+                    "token": "47e9ab8e-9b6f-4793-a8e1-dd8d529dddcb"
+                },
+                "parsedResponse": {
+                    "id": "396974883",
+                    "clientOrderId": null,
+                    "datetime": "2026-11-27T10:58:34.924Z",
+                    "timestamp": 1795777114924,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795777114924,
+                    "status": "open",
+                    "symbol": "SAP.DE/EUR",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "average": null,
+                    "trades": [],
+                    "fee": null,
+                    "info": {
+                        "positionID": 3650867027,
+                        "instrumentID": 1202,
+                        "orderID": 396974883,
+                        "orderType": 19,
+                        "statusID": 1,
+                        "CID": 11111111,
+                        "openDateTime": "2026-11-27T10:58:34.9243113Z",
+                        "lastUpdate": "2026-11-27T10:58:34.9243113Z"
+                    },
+                    "rejectReason": null,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
         ]
-  }
+    }
 }

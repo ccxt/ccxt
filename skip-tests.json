@@ -1,5 +1,7 @@
 {
     "etoro": {
+        "preferredSpotSymbol": "BTC/USD",
+        "preferredSwapSymbol": "EUR/USD:USD",
         "skipMethods": {
             "fetchOrderBook": "etoro does not provide an orderbook endpoint",
             "watchOrderBook": "etoro does not provide an orderbook stream"

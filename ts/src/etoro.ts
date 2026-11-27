@@ -2,9 +2,9 @@
 
 import Exchange from './abstract/etoro.js';
 import { Precise } from './base/Precise.js';
-import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, NotSupported, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, NotSupported, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, MarketClosed, DuplicateOrderId } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Dict, Endpoint, Int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Account, Balances, Dict, Endpoint, Int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ export default class etoro extends Exchange {
             'rateLimit': 500, // market-data endpoints allow 120 requests per 60 seconds
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'urls': {
                 'logo': 'https://etoro-cdn.etorostatic.com/web-client/img/etoro-logo-green.svg',
                 'api': {
@@ -58,8 +58,9 @@ export default class etoro extends Exchange {
                 'createTakeProfitOrder': false,
                 'createTriggerOrder': true,
                 'editOrder': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
+                'fetchBidsAsks': true,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
@@ -77,7 +78,7 @@ export default class etoro extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrders': false,
-                'fetchPosition': false,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsHistory': true,
                 'fetchTicker': true,
@@ -234,8 +235,20 @@ export default class etoro extends Exchange {
                     '42': 'GBX',
                     '43': 'GBX',
                     '44': 'GBX',
+                    '45': 'CNY',
+                    '46': 'CNY',
+                    '47': 'INR',
+                    '48': 'CAD',
+                    '49': 'SGD',
+                    '50': 'ISK',
+                    '51': 'EUR',
+                    '52': 'EUR',
+                    '53': 'EUR',
+                    '54': 'KRW',
+                    '55': 'TWD',
                     '56': 'JPY',
                     '57': 'USD',
+                    '58': 'ILS',
                 },
                 'cryptoQuotes': [ 'EUR', 'GBP', 'JPY', 'AUD', 'NZD', 'CAD', 'CHF', 'CNH', 'BTC', 'ETH', 'LTC', 'BCH', 'DASH', 'XRP', 'XLM', 'A' ],
                 // the exchange does not expose tick sizes, these are defaults by instrument type id
@@ -249,7 +262,7 @@ export default class etoro extends Exchange {
                     'default': '0.000001',
                 },
                 'orderCurrency': 'usd',
-                'fetchMyTradesDaysBack': 30,
+                'fetchMyTradesDaysBack': 364, // the trade history lookback must be less than a year
             },
             'features': {
                 'default': {
@@ -325,8 +338,19 @@ export default class etoro extends Exchange {
             'exceptions': {
                 'exact': {
                     'Unauthorized': AuthenticationError, // {"errorCode":"Unauthorized","errorMessage":"Unauthorized"}
+                    'InvalidKey': AuthenticationError,
+                    'GCID_REQUIRED': AuthenticationError,
+                    'InsufficientPermissions': PermissionDenied, // {"errorCode":"InsufficientPermissions","errorMessage":"UserToken does not have permission to access"}
+                    'Forbidden': PermissionDenied,
                     'RequestIdRequired': BadRequest, // {"errorCode":"RequestIdRequired","errorMessage":"X-Request-Id header is required"}
+                    'VALIDATION_ERROR': BadRequest,
+                    'ValidationFailed': BadRequest,
+                    'AccountNotFound': BadRequest,
+                    'INSTRUMENT_NOT_FOUND': BadSymbol,
+                    'InvalidAmountInUsd': InvalidOrder,
                     'TooManyRequests': RateLimitExceeded,
+                    'DEPENDENCY_UNAVAILABLE': ExchangeNotAvailable,
+                    'UnhandledException': ExchangeError,
                     '720': InvalidOrder, // minimum position amount
                     '741': InvalidOrder, // Order cannot be placed because the requested position is already closed
                     '759': PermissionDenied, // manual Trading is disallowed for this instrument type(10:CRYPTO)
@@ -340,6 +364,11 @@ export default class etoro extends Exchange {
                     'insufficient': InsufficientFunds,
                     'Insufficient': InsufficientFunds,
                     'One or more validation errors occurred': BadRequest,
+                    'market is closed': MarketClosed,
+                    'Market is closed': MarketClosed,
+                    'market closed': MarketClosed,
+                    'duplicate': DuplicateOrderId,
+                    'Duplicate': DuplicateOrderId,
                 },
             },
         });
@@ -974,6 +1003,19 @@ export default class etoro extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name etoro#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://api-portal.etoro.com/api-reference/market-data/get-instrument-market-rates.md
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all active markets are fetched by default
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+     */
+    override async fetchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        return await this.fetchTickers (symbols, params);
+    }
+
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
@@ -1161,69 +1203,100 @@ export default class etoro extends Exchange {
         ];
     }
 
-    async fetchPnl (params: Dict = {}): Promise<Dict> {
-        let response = undefined;
-        if (this.isSandboxModeEnabled) {
-            response = await this.privateGetV1TradingInfoDemoPnl (params);
-        } else {
-            response = await this.privateGetV1TradingInfoRealPnl (params);
-        }
-        return this.safeDict (response, 'clientPortfolio', {});
-    }
-
     /**
      * @method
      * @name etoro#fetchBalance
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://api-portal.etoro.com/api-reference/trading--real/get-account-pnl-and-portfolio-details.md
-     * @see https://api-portal.etoro.com/api-reference/trading--demo/get-demo-account-pnl-and-portfolio-details.md
-     * @see https://api-portal.etoro.com/core/guides/calculate-available-cash.md
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders and positions
+     * @see https://api-portal.etoro.com/api-reference/trading--real/get-a-filtered-aggregated-portfolio-snapshot.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/get-a-filtered-aggregated-portfolio-snapshot.md
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/?id=balance-structure)
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const portfolio = await this.fetchPnl (params);
-        return this.parseBalance (portfolio);
+        let response = undefined;
+        if (this.isSandboxModeEnabled) {
+            response = await this.privateGetV1TradingInfoDemoAggregatePortfolio (params);
+        } else {
+            response = await this.privateGetV1TradingInfoAggregatePortfolio (params);
+        }
+        return this.parseBalance (response);
     }
 
-    override parseBalance (portfolio: Dict): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         //     {
-        //         "positions": [ ... ],
-        //         "unrealizedPnL": 0,
-        //         "mirrors": [],
-        //         "accountCurrencyId": 1,
-        //         "credit": 99984,
-        //         "orders": [ { "amount": 15, ... } ],
-        //         "ordersForOpen": [ { "amount": 20, "mirrorID": 0, ... } ],
-        //         "ordersForClose": [],
-        //         "bonusCredit": 0
+        //         "cid": 34374239,
+        //         "timestamp": "2026-11-27T10:05:52.527",
+        //         "accountCurrency": "USD",
+        //         "accountTotals": {
+        //             "accountAvailableCash": 99969.01,
+        //             "accountAvailableMargin": 99969.01,
+        //             "cryptoAvailableMargin": 99969.01,
+        //             "accountFrozenCash": 15,
+        //             "accountCurrentPnl": 0,
+        //             "accountTotalValue": 99984.01,
+        //             "accountTotalUsedMargin": 15,
+        //             "accountBalance": 99984.01
+        //         },
+        //         "instrumentAggregates": [ ... ],
+        //         "mirrors": []
         //     }
         //
+        const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
         const result: Dict = {
-            'info': portfolio,
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         };
-        const credit = this.safeString (portfolio, 'credit');
-        let used = '0';
-        const ordersForOpen = this.safeList (portfolio, 'ordersForOpen', []);
-        for (let i = 0; i < ordersForOpen.length; i++) {
-            const order = ordersForOpen[i];
-            const mirrorId = this.safeString2 (order, 'mirrorID', 'mirrorId', '0');
-            if (mirrorId === '0') {
-                used = Precise.stringAdd (used, this.safeString (order, 'amount', '0')) as string;
-            }
-        }
-        const orders = this.safeList (portfolio, 'orders', []);
-        for (let i = 0; i < orders.length; i++) {
-            used = Precise.stringAdd (used, this.safeString (orders[i], 'amount', '0')) as string;
-        }
+        const totals = this.safeDict (response, 'accountTotals', {});
+        const code = this.safeString (response, 'accountCurrency', 'USD');
         const account = this.account ();
-        account['total'] = credit;
-        account['used'] = used;
-        account['free'] = Precise.stringSub (credit, used);
-        result['USD'] = account;
+        // the total value includes the cash, the pending orders and the current value of the open positions
+        account['free'] = this.safeString (totals, 'accountAvailableCash');
+        account['total'] = this.safeString (totals, 'accountTotalValue');
+        result[code] = account;
         return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name etoro#fetchAccounts
+     * @description fetch all the accounts associated with a profile, the real (trading) and the demo account
+     * @see https://api-portal.etoro.com/api-reference/users-info/get-user-profile-and-account-summary.md
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
+     */
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
+        const response = await this.privateGetV1Me (params);
+        //
+        //     {
+        //         "gcid": 11111111,
+        //         "realCid": 22222222,
+        //         "demoCid": 33333333,
+        //         "username": "...",
+        //         "scopes": [ "etoro-public:market-data:read", ... ]
+        //     }
+        //
+        const accounts = [];
+        const realCid = this.safeString (response, 'realCid');
+        if (realCid !== undefined) {
+            accounts.push (this.extend (response, { 'accountId': realCid, 'accountType': 'trading' }));
+        }
+        const demoCid = this.safeString (response, 'demoCid');
+        if (demoCid !== undefined) {
+            accounts.push (this.extend (response, { 'accountId': demoCid, 'accountType': 'demo' }));
+        }
+        return this.parseAccounts (accounts, params);
+    }
+
+    override parseAccount (account: Dict): Account {
+        return {
+            'id': this.safeString (account, 'accountId'),
+            'type': this.safeString (account, 'accountType'),
+            'code': 'USD',
+            'info': this.omit (account, [ 'accountId', 'accountType' ]),
+        };
     }
 
     safeEtoroMarket (instrumentId: Str, settlementType: Str = undefined, market: Market = undefined): MarketInterface {
@@ -1270,11 +1343,25 @@ export default class etoro extends Exchange {
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {bool} [params.trailing] set to true for a trailing stop loss
      * @param {string} [params.clientOrderId] a uuid sent as the request id, can be used to fetch the order afterwards
+     * @param {bool} [params.reduceOnly] set to true to close (a part of) an open position with a market order, see closePosition
+     * @param {string} [params.positionId] the id of the position to close, implies reduceOnly
      * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const reduceOnly = this.safeBool (params, 'reduceOnly', false);
+        const positionId = this.safeString (params, 'positionId');
+        if (reduceOnly || (positionId !== undefined)) {
+            if (type !== 'market') {
+                throw new NotSupported (this.id + ' createOrder() supports only market orders to reduce a position');
+            }
+            const closeParams = this.omit (params, 'reduceOnly');
+            if ((amount !== undefined) && !('amount' in closeParams)) {
+                closeParams['amount'] = amount;
+            }
+            return await this.closePosition (symbol, side, closeParams);
+        }
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (this.isSandboxModeEnabled) {
@@ -1386,9 +1473,12 @@ export default class etoro extends Exchange {
      * @description cancels an open order that has not been executed yet
      * @see https://api-portal.etoro.com/api-reference/trading--real/cancels-an-order-before-it-is-executed.md
      * @see https://api-portal.etoro.com/api-reference/trading--demo/cancels-an-order-before-it-is-executed.md
+     * @see https://api-portal.etoro.com/api-reference/trading--real/cancel-pending-close-order.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/cancel-pending-demo-close-order.md
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.isCloseOrder] set to true to cancel a pending close order, created by closePosition
      * @returns {object} An [order structure](https://docs.ccxt.com/?id=order-structure)
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -1397,22 +1487,43 @@ export default class etoro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const isCloseOrder = this.safeBool (params, 'isCloseOrder', false);
+        const query = this.omit (params, 'isCloseOrder');
         const request: Dict = {
             'orderId': id,
         };
         let response = undefined;
-        if (this.isSandboxModeEnabled) {
-            response = await this.privateDeleteV2TradingExecutionDemoOrdersOrderId (this.extend (request, params));
+        if (isCloseOrder) {
+            if (this.isSandboxModeEnabled) {
+                response = await this.privateDeleteV1TradingExecutionDemoMarketCloseOrdersOrderId (this.extend (request, query));
+            } else {
+                response = await this.privateDeleteV1TradingExecutionMarketCloseOrdersOrderId (this.extend (request, query));
+            }
+            //
+            //     {
+            //         "token": "bd906f61-7f26-4d26-b90e-f7b109805eb8"
+            //     }
+            //
         } else {
-            response = await this.privateDeleteV2TradingExecutionOrdersOrderId (this.extend (request, params));
+            if (this.isSandboxModeEnabled) {
+                response = await this.privateDeleteV2TradingExecutionDemoOrdersOrderId (this.extend (request, query));
+            } else {
+                response = await this.privateDeleteV2TradingExecutionOrdersOrderId (this.extend (request, query));
+            }
+            //
+            //     {
+            //         "orderId": 396858310,
+            //         "referenceId": ""
+            //     }
+            //
         }
-        //
-        //     {
-        //         "orderId": 396858310,
-        //         "referenceId": ""
-        //     }
-        //
         const order = this.parseOrder (response, market);
+        if (order['id'] === undefined) {
+            order['id'] = id;
+        }
+        if (isCloseOrder) {
+            order['reduceOnly'] = true;
+        }
         order['status'] = 'canceled';
         return order;
     }
@@ -1423,10 +1534,13 @@ export default class etoro extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://api-portal.etoro.com/api-reference/trading--real/get-order-information-and-position-details.md
      * @see https://api-portal.etoro.com/api-reference/trading--demo/get-order-information-and-position-details.md
-     * @param {string} id the order id
+     * @see https://api-portal.etoro.com/api-reference/trading--real/get-close-order-information-and-closed-position-details.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/get-close-order-information-and-closed-position-details.md
+     * @param {string} id the order id, a uuid is treated as the client order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] the client order id (the request id used when the order was created)
+     * @param {bool} [params.isCloseOrder] set to true to fetch a close order, created by closePosition
      * @returns {object} An [order structure](https://docs.ccxt.com/?id=order-structure)
      */
     override async fetchOrder (id: Str, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -1435,11 +1549,26 @@ export default class etoro extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request: Dict = {};
+        const isCloseOrder = this.safeBool (params, 'isCloseOrder', false);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const query = this.omit (params, 'clientOrderId');
+        const query = this.omit (params, [ 'clientOrderId', 'isCloseOrder' ]);
+        if (isCloseOrder) {
+            const closeRequest: Dict = {
+                'orderId': id,
+            };
+            let closeResponse = undefined;
+            if (this.isSandboxModeEnabled) {
+                closeResponse = await this.privateGetV1TradingInfoDemoCloseOrdersOrderId (this.extend (closeRequest, query));
+            } else {
+                closeResponse = await this.privateGetV1TradingInfoRealCloseOrdersOrderId (this.extend (closeRequest, query));
+            }
+            return this.parseOrder (closeResponse, market);
+        }
+        const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['referenceId'] = clientOrderId;
+        } else if ((id !== undefined) && (id.indexOf ('-') !== -1)) {
+            request['referenceId'] = id;
         } else {
             request['orderId'] = id;
         }
@@ -1673,6 +1802,35 @@ export default class etoro extends Exchange {
         //         "lastUpdate": "2026-11-26T13:49:21.8291957Z"
         //     }
         //
+        // fetchOrder (close order)
+        //
+        //     {
+        //         "token": "a7300e3a-3f38-4d57-b08c-5de01706f337",
+        //         "orderID": 396982481,
+        //         "CID": 34374239,
+        //         "statusID": 3,
+        //         "orderType": 19,
+        //         "closeActionType": 0,
+        //         "operationType": 2,
+        //         "errorCode": 0,
+        //         "assetCurrencyID": 2,
+        //         "accountCurrencyID": 1,
+        //         "instrumentID": 1202,
+        //         "requestOccurred": "2026-11-27T10:03:53.21Z",
+        //         "proceeds": 14,
+        //         "externalOperationType": 0,
+        //         "positions": [
+        //             {
+        //                 "positionID": 3650861095,
+        //                 "occurred": "2026-11-27T10:03:53.3Z",
+        //                 "rate": 193.89,
+        //                 "units": 0.070616,
+        //                 "conversionRate": 1.09582,
+        //                 "amount": 15
+        //             }
+        //         ]
+        //     }
+        //
         let asset = this.safeDict (order, 'asset');
         if (asset === undefined) {
             const assets = this.safeList (order, 'asset', []);
@@ -1696,10 +1854,19 @@ export default class etoro extends Exchange {
             }
         } else {
             status = this.parseOrderStatus (this.safeString2 (order, 'status', 'statusID'));
+            // close order details report the error at the top level
+            const topErrorCode = this.safeString (order, 'errorCode');
+            if ((topErrorCode !== undefined) && (topErrorCode !== '0')) {
+                rejectReason = topErrorCode + ' ' + this.safeString (order, 'errorMessage', '');
+            }
         }
-        const timestamp = this.parse8601 (this.safeString2 (order, 'requestTime', 'openDateTime'));
+        const timestamp = this.parse8601 (this.safeStringN (order, [ 'requestTime', 'openDateTime', 'requestOccurred' ]));
         const lastUpdateTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
-        const rawType = this.safeString (order, 'type');
+        let rawType = this.safeString (order, 'type');
+        const isCloseOrder = (this.safeString (order, 'orderType') === '19');
+        if ((rawType === undefined) && isCloseOrder) {
+            rawType = 'mkt'; // close orders are market orders
+        }
         const triggerPrice = this.safeString2 (order, 'requestedTriggerRate', 'triggerRate');
         let timeInForce: Str = undefined;
         if ((rawType === 'limitIOC') || (rawType === 'limitIoc')) {
@@ -1711,16 +1878,18 @@ export default class etoro extends Exchange {
         }
         const action = this.safeString (order, 'action');
         let reduceOnly = (action === 'close');
-        if (this.safeString (order, 'orderType') === '19') {
-            reduceOnly = true; // close order
+        if (isCloseOrder) {
+            reduceOnly = true;
         }
         let filled: Str = undefined;
         let cost: Str = undefined;
         let feeCost: Str = undefined;
+        let lastTradeTimestamp: Int = undefined;
         const executions = this.safeList (order, 'positionExecutions', []);
         const isFuture = (marketResolved !== undefined) && marketResolved['future'];
         for (let i = 0; i < executions.length; i++) {
-            const openingData = this.safeDict (executions[i], 'openingData', {});
+            // the executions of a close order (websocket) have closingData instead of openingData
+            const openingData = this.safeDict2 (executions[i], 'openingData', 'closingData', {});
             let units = this.safeString (openingData, 'units');
             if (isFuture) {
                 units = this.safeString (openingData, 'contracts', units);
@@ -1736,6 +1905,28 @@ export default class etoro extends Exchange {
             const fees = this.safeString (openingData, 'fees');
             if (fees !== undefined) {
                 feeCost = (feeCost === undefined) ? fees : Precise.stringAdd (feeCost, fees);
+            }
+            const executionTimestamp = this.parse8601 (this.safeString (openingData, 'executionTime'));
+            if ((executionTimestamp !== undefined) && ((lastTradeTimestamp === undefined) || (executionTimestamp > lastTradeTimestamp))) {
+                lastTradeTimestamp = executionTimestamp;
+            }
+        }
+        // the positions closed by a close order
+        const closedPositions = this.safeList (order, 'positions', []);
+        for (let i = 0; i < closedPositions.length; i++) {
+            const closedPosition = closedPositions[i];
+            const units = this.safeString (closedPosition, 'units');
+            const rate = this.safeString (closedPosition, 'rate');
+            if (units !== undefined) {
+                filled = (filled === undefined) ? units : Precise.stringAdd (filled, units);
+                if (rate !== undefined) {
+                    const closeCost = Precise.stringMul (units, rate);
+                    cost = (cost === undefined) ? closeCost : Precise.stringAdd (cost, closeCost);
+                }
+            }
+            const occurred = this.parse8601 (this.safeString (closedPosition, 'occurred'));
+            if ((occurred !== undefined) && ((lastTradeTimestamp === undefined) || (occurred > lastTradeTimestamp))) {
+                lastTradeTimestamp = occurred;
             }
         }
         let average: Str = undefined;
@@ -1769,7 +1960,7 @@ export default class etoro extends Exchange {
             'clientOrderId': this.safeString (order, 'referenceId'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': status,
             'symbol': this.safeString (marketResolved, 'symbol'),
@@ -1822,6 +2013,39 @@ export default class etoro extends Exchange {
         }
         const result = this.parsePositions (positions);
         return this.filterByArrayPositions (result, 'symbol', marketSymbolsList);
+    }
+
+    /**
+     * @method
+     * @name etoro#fetchPosition
+     * @description fetch data on an open position
+     * @see https://api-portal.etoro.com/api-reference/trading--real/get-instrument-breakdown.md
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/get-instrument-breakdown-demo.md
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionId] the id of the position, required if there is more than one position for the symbol
+     * @returns {object} a [position structure](https://docs.ccxt.com/?id=position-structure)
+     */
+    override async fetchPosition (symbol: string, params: Dict = {}): Promise<Position> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const positionId = this.safeString (params, 'positionId');
+        const query = this.omit (params, 'positionId');
+        const positions = await this.fetchPositions ([ market['symbol'] ], query);
+        const numPositions = positions.length;
+        if (positionId !== undefined) {
+            for (let i = 0; i < numPositions; i++) {
+                if (positions[i]['id'] === positionId) {
+                    return positions[i];
+                }
+            }
+            throw new BadRequest (this.id + ' fetchPosition() could not find an open position with id ' + positionId + ' for ' + market['symbol']);
+        }
+        if (numPositions === 0) {
+            throw new BadRequest (this.id + ' fetchPosition() could not find an open position for ' + market['symbol']);
+        }
+        // etoro positions are hedged, the earliest one is returned when there are several, use positionId or fetchPositions to get a specific one
+        return positions[0];
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -1924,9 +2148,9 @@ export default class etoro extends Exchange {
      * @see https://api-portal.etoro.com/api-reference/trading--real/close-position-by-units.md
      * @see https://api-portal.etoro.com/api-reference/trading--demo/close-demo-position-by-units.md
      * @param {string} symbol unified market symbol
-     * @param {string} [side] not used by etoro.closePosition
+     * @param {string} [side] 'buy' or 'sell', the side of the closing order, selects a long (sell) or a short (buy) position when positionId is not provided
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.positionId] the id of the position to close, required if there is more than one position for the symbol
+     * @param {string} [params.positionId] the id of the position to close, required if there is more than one matching position for the symbol
      * @param {float} [params.amount] the amount of units to close, the whole position is closed by default
      * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
      */
@@ -1936,16 +2160,33 @@ export default class etoro extends Exchange {
         let positionId = this.safeString (params, 'positionId');
         const amount = this.safeString (params, 'amount');
         const query = this.omit (params, [ 'positionId', 'amount' ]);
+        let closeSide = side;
         if (positionId === undefined) {
             const positions = await this.fetchPositions ([ symbol ]);
-            const numPositions = positions.length;
+            let positionSide: Str = undefined;
+            if (side === 'buy') {
+                positionSide = 'short';
+            } else if (side === 'sell') {
+                positionSide = 'long';
+            }
+            const matching = [];
+            for (let i = 0; i < positions.length; i++) {
+                const position = positions[i];
+                if ((positionSide === undefined) || (position['side'] === positionSide)) {
+                    matching.push (position);
+                }
+            }
+            const numPositions = matching.length;
             if (numPositions === 0) {
                 throw new InvalidOrder (this.id + ' closePosition() could not find an open position for ' + symbol);
             }
             if (numPositions > 1) {
                 throw new ArgumentsRequired (this.id + ' closePosition() requires a positionId parameter, there is more than one open position for ' + symbol);
             }
-            positionId = this.safeString (positions[0], 'id');
+            positionId = this.safeString (matching[0], 'id');
+            if (closeSide === undefined) {
+                closeSide = (this.safeString (matching[0], 'side') === 'short') ? 'buy' : 'sell';
+            }
         }
         const request: Dict = {
             'positionId': positionId,
@@ -1977,14 +2218,9 @@ export default class etoro extends Exchange {
         //
         const orderForClose = this.safeDict (response, 'orderForClose', {});
         const order = this.parseOrder (orderForClose, market);
-        let closeSide: Str = undefined;
-        if (side === 'buy') {
-            closeSide = 'sell';
-        } else if (side === 'sell') {
-            closeSide = 'buy';
-        }
         order['side'] = closeSide;
         order['type'] = 'market';
+        order['reduceOnly'] = true;
         return order;
     }
 
@@ -2037,7 +2273,7 @@ export default class etoro extends Exchange {
     async fetchTradeHistory (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<List> {
         let sinceResolved = since;
         if (sinceResolved === undefined) {
-            const daysBack = this.safeInteger (this.options, 'fetchMyTradesDaysBack', 30);
+            const daysBack = this.safeInteger (this.options, 'fetchMyTradesDaysBack', 364);
             sinceResolved = this.milliseconds () - daysBack * 86400000;
         }
         const request: Dict = {
@@ -2087,7 +2323,7 @@ export default class etoro extends Exchange {
      * @see https://api-portal.etoro.com/api-reference/trading--real/list-trading-history.md
      * @see https://api-portal.etoro.com/api-reference/trading--demo/list-trading-history.md
      * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for, default is 30 days ago
+     * @param {int} [since] the earliest time in ms to fetch trades for, default is 364 days ago
      * @param {int} [limit] the maximum number of closed positions to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.page] the page number
@@ -2182,7 +2418,7 @@ export default class etoro extends Exchange {
      * @see https://api-portal.etoro.com/api-reference/trading--real/list-trading-history.md
      * @see https://api-portal.etoro.com/api-reference/trading--demo/list-trading-history.md
      * @param {string[]} [symbols] unified market symbols
-     * @param {int} [since] the earliest time in ms to fetch positions for, default is 30 days ago
+     * @param {int} [since] the earliest time in ms to fetch positions for, default is 364 days ago
      * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.page] the page number
@@ -2291,7 +2527,6 @@ export default class etoro extends Exchange {
         const feedback = this.id + ' ' + body;
         const error = this.safeDict (response, 'error', {});
         const errorCode = this.safeStringN (response, [ 'errorCode', 'code' ], this.safeString (error, 'code'));
-        const message = this.safeStringN (response, [ 'errorMessage', 'message', 'detail', 'title' ], this.safeString (error, 'message'));
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
         if (code === 404) {
@@ -2300,13 +2535,21 @@ export default class etoro extends Exchange {
             }
             throw new BadRequest (feedback);
         }
-        const codeAsString = code.toString ();
-        if ((message !== undefined) && !(codeAsString in this.httpExceptions)) {
-            throw new ExchangeError (feedback);
+        if (code === 401) {
+            throw new AuthenticationError (feedback);
         }
-        if (code < 400) {
-            throw new ExchangeError (feedback);
+        if (code === 403) {
+            throw new PermissionDenied (feedback);
         }
-        return undefined;
+        if (code === 429) {
+            throw new RateLimitExceeded (feedback);
+        }
+        if (code >= 500) {
+            throw new ExchangeNotAvailable (feedback);
+        }
+        if (code === 400) {
+            throw new BadRequest (feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 }
