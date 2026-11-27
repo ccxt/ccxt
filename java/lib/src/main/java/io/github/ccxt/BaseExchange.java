@@ -8037,26 +8037,40 @@ public Map<String, Object> describe()
                     break; // this is needed because of GO
                 }
             }
-            Object content = response;
-            if (java.util.Objects.equals(content, null))
+            if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
             }
+            if (!(response instanceof String))
+            {
+                if ((!java.util.Objects.equals(startRegex, null)) || (!java.util.Objects.equals(endRegex, null)))
+                {
+                    throw new BadResponse((this.id + " fetchWebEndpoint() returned non-string content")) ;
+                }
+                return response;
+            }
+            Object content = response;
             if (!java.util.Objects.equals(startRegex, null))
             {
-                List<Object> splitted_by_start = (List<Object>) Helpers.split(content, startRegex);
+                List<Object> splitted_by_start = new ArrayList<Object>(Arrays.asList(((String)content).split(java.util.regex.Pattern.quote(startRegex))));
+                Integer startLen = splitted_by_start.size();
+                if (((startLen == null || startLen < 2)))
+                {
+                    throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
+                }
                 content = (splitted_by_start == null || 1 >= splitted_by_start.size() ? null : splitted_by_start.get(1)); // we need second part after start
-            }
-            if (java.util.Objects.equals(content, null))
-            {
-                throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
             }
             if (!java.util.Objects.equals(endRegex, null))
             {
-                List<Object> splitted_by_end = (List<Object>) Helpers.split(content, endRegex);
+                List<Object> splitted_by_end = new ArrayList<Object>(Arrays.asList(((String)content).split(java.util.regex.Pattern.quote(endRegex))));
+                Integer endLen = splitted_by_end.size();
+                if (((endLen == null || endLen < 1)))
+                {
+                    throw new NullResponse((this.id + " fetchWebEndpoint() returned empty content")) ;
+                }
                 content = (splitted_by_end == null || 0 >= splitted_by_end.size() ? null : splitted_by_end.get(0)); // we need first part after start
             }
-            if ((java.util.Objects.equals(returnAsJson, true)) && ((content instanceof String)))
+            if (java.util.Objects.equals(returnAsJson, true))
             {
                 Object jsoned = this.parseJson(((String)content).trim()); // content should be trimmed before json parsing
                 if ((!java.util.Objects.equals(jsoned, null)) && (!java.util.Objects.equals(jsoned, null)))

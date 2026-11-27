@@ -2399,9 +2399,7 @@ public class Hyperliquid extends HyperliquidApi
             //
             if (!java.util.Objects.equals(response, null))
             {
-                response = ((String)response).replaceFirst("\"", "");
-                response = ((String)response).replaceFirst("\"", "");
-                enableUnifiedMargin = java.util.Objects.equals(response, "unifiedAccount");
+                enableUnifiedMargin = (java.util.Objects.equals(((String)response).replace("\"", ""), "unifiedAccount"));
             }
             // don't cache this result if this is a different addresss
             this.options.put("enableUnifiedMargin", enableUnifiedMargin); // cache this for future calls
