@@ -1782,11 +1782,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return Async\await($this->eth_rpc($rpcUrl, 'eth_sendRawTransaction', array( $signed )));
     }
 
-    public function wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
+    public function wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, ?int $timeout = 60000) {
         return Async\async(self::do_wait_for_transaction_receipt(...))($rpcUrl, $txHash, $timeout);
     }
 
-    private function do_wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, $timeout = 60000) {
+    private function do_wait_for_transaction_receipt(?string $rpcUrl, ?string $txHash, ?int $timeout = 60000) {
         $start = $this->milliseconds();
         while (($this->milliseconds() - $start) < $timeout) {
             $receipt = Async\await($this->eth_rpc($rpcUrl, 'eth_getTransactionReceipt', array( $txHash )));

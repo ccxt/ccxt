@@ -5824,7 +5824,8 @@ class BaseExchange {
         $result = array();
         $feeValues = is_array($reduced) ? array_values($reduced) : array();
         for ($i = 0; $i < count($feeValues); $i++) {
-            $reducedFeeValues = is_array($feeValues[$i]) ? array_values($feeValues[$i]) : array();
+            $feeValue = $this->safe_dict($feeValues, $i, array());
+            $reducedFeeValues = is_array($feeValue) ? array_values($feeValue) : array();
             $result = $this->array_concat($result, $reducedFeeValues);
         }
         return $result;
@@ -9864,9 +9865,8 @@ class BaseExchange {
                 $clients = is_array($this->clients) ? array_values($this->clients) : array();
                 for ($i = 0; $i < count($clients); $i++) {
                     $client = $clients[$i];
-                    $futures = $client->futures;
-                    if (is_array($futures) && array_key_exists('fetchPositionsSnapshot' ?? '', $futures)) {
-                        unset($futures['fetchPositionsSnapshot']);
+                    if (is_array($client->futures) && array_key_exists('fetchPositionsSnapshot' ?? '', $client->futures)) {
+                        unset($client->futures['fetchPositionsSnapshot']);
                     }
                 }
             } elseif (($topic === 'ticker' || $topic === 'markPrice') && ($this->tickers !== null)) {

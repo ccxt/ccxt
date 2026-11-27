@@ -901,7 +901,7 @@ class testMainClass {
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
                     $handle_parts = explode(':', $outcome_symbol);
-                    $market_part = $handle_parts[0];
+                    $market_part = $exchange->safe_string($handle_parts, 0, '');
                     $lower_part = strtolower($market_part);
                     $dedashed = str_replace('-', ' ', $lower_part);
                     $event_query = str_replace('_', ' ', $dedashed);
