@@ -9492,6 +9492,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goStringSliceIndexPtr (goAsyncStringValue (content, path)) : content;  // typed async string value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
     content = path.endsWith ('.go') ? goPlainBoxIsEqual (content) : content;
+    content = path.endsWith ('.go') ? goInt64RetypeArith (content) : content;  // re-run after goChan3Pass + goTypedIsEqualNative (e.g. loadTimeDifference serverTime)
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
     if (path.endsWith ('.go')) {
         content = goDropRedundantTyped (goStructReturnsPass (content));
@@ -14232,7 +14233,8 @@ function goTypedIsEqualNativeForm (a: string, b: string, maskedFunc: string, sig
         const t = declType (x);
         // scalar local/param against a literal of its kind
         if ((lit !== undefined) && (t !== undefined) && goTypedIsEqualScalarVsLiteral (t, y)) { return x + eq + y; }
-        // pointer local/param: nil never equals a literal
+        // pointer local/param: nil never equals a literal, and nil comparison is native `== nil` / `!= nil`
+        if ((y === 'nil') && (t !== undefined) && t.startsWith ('*') && scalar.includes (t.slice (1))) { return x + eq + 'nil'; }
         if ((lit !== undefined) && (t !== undefined) && t.startsWith ('*') && goTypedIsEqualScalarVsLiteral (t.slice (1), y)) {
             return negate ? ('(' + x + ' == nil || *' + x + ' != ' + y + ')') : ('(' + x + ' != nil && *' + x + ' == ' + y + ')');
         }

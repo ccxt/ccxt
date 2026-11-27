@@ -184,7 +184,6 @@ func binaryShims() []binaryShim {
 		{"Join", func(a, b any) any { return Join(a, b) }},
 		{"Multiply", func(a, b any) any { return Multiply(a, b) }},
 		{"Divide", func(a, b any) any { return Divide(a, b) }},
-		{"Subtract", func(a, b any) any { return Subtract(a, b) }},
 		{"mathMin", func(a, b any) any { return mathMin(a, b) }},
 		{"mathMax", func(a, b any) any { return mathMax(a, b) }},
 		{"IsGreaterThan", func(a, b any) any { return IsGreaterThan(a, b) }},

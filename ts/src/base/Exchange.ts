@@ -6981,7 +6981,7 @@ export class BaseExchange {
             }
             let isNewCandle = candle === -1;
             if (!isNewCandle) {
-                const candleTimestamp = ohlcvs[candle][i_timestamp];
+                const candleTimestamp = this.safeInteger (ohlcvs[candle], i_timestamp);
                 if (candleTimestamp === undefined) {
                     throw new ExchangeError (this.id + ' buildOHLCVC() missing candle timestamp');
                 }
@@ -8973,7 +8973,7 @@ export class BaseExchange {
         const maxEntriesPerRequestValue: Int = this.requireValue (maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required');
         const step = time * this.parseToInt (maxEntriesPerRequestValue);
         const until = this.safeInteger2 (paramsOmitted, 'until', 'till'); // do not omit it here
-        let currentSince = current - (maxCallsLimit * step) - 1;
+        let currentSince: Int = current - (maxCallsLimit * step) - 1;
         if (since !== undefined) {
             if (until !== undefined) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]

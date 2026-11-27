@@ -12,7 +12,7 @@ import (
 // kind the generated test can pass must report a round quotient
 func TestIsRoundNumberOfTimestampQuotient(t *testing.T) {
 	ex := &BaseExchange{}
-	diffs := []any{int64(60000), float64(60000), int64(120000), Subtract(int64(1794676500000), int64(1794676440000)), Subtract(float64(1794676500000), int64(1794676440000))}
+	diffs := []any{int64(60000), float64(60000), int64(120000), int64(1794676500000) - int64(1794676440000), float64(1794676500000) - float64(1794676440000)}
 	for _, diff := range diffs {
 		if !ex.IsRoundNumber(Float64Arg(Divide(diff, int64(60000)))) {
 			t.Errorf("IsRoundNumber(Divide(%T %v, int64 60000)) = false", diff, diff)

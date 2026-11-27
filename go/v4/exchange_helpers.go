@@ -507,27 +507,6 @@ func Divide(a, b any) any {
 	}
 }
 
-func Subtract(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if a == nil || b == nil {
-		return nil
-	}
-
-	// aVal := reflect.ValueOf(a)
-	// bVal := reflect.ValueOf(b)
-
-	aFloat := ToFloat64(a)
-	bFloat := ToFloat64(b)
-	res := aFloat - bFloat
-	if IsInteger(res) {
-		return ParseInt(res)
-	}
-	return res
-
-}
-
 type Dict map[string]any
 
 // GetArrayLength returns the length of various array or slice types or string length.
@@ -667,16 +646,6 @@ func IsGreaterThan(a, b any) bool {
 // }
 // }
 
-// IsLessThan checks if a is less than b
-func IsLessThan(a, b any) bool {
-	return !IsGreaterThan(a, b) && !IsEqual(a, b)
-}
-
-// IsGreaterThanOrEqual checks if a is greater than or equal to b
-func IsGreaterThanOrEqual(a, b any) bool {
-	return IsGreaterThan(a, b) || IsEqual(a, b)
-}
-
 // IsEqual checks for equality of a and b with dynamic type support
 func IsEqual(a, b any) bool {
 	a = derefScalar(a)
@@ -758,24 +727,6 @@ func IsEqual(a, b any) bool {
 	// default:
 	// 	return false
 	// }
-}
-
-// NormalizeAndConvert normalizes and attempts to convert a and b to a common type
-func NormalizeAndConvert(a, b any) (reflect.Value, reflect.Value, bool) {
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	if aVal.Kind() != bVal.Kind() {
-		if aVal.Kind() < bVal.Kind() {
-			aVal = reflect.ValueOf(ToFloat64(a))
-			bVal = reflect.ValueOf(ToFloat64(b))
-		} else {
-			bVal = reflect.ValueOf(ToFloat64(b))
-			aVal = reflect.ValueOf(ToFloat64(a))
-		}
-	}
-
-	return aVal, bVal, true
 }
 
 func ToFloat64(v any) float64 {

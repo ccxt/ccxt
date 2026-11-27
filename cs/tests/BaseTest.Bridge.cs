@@ -100,9 +100,20 @@ public partial class BaseTest
     // statically List<object>/IList<object> must resolve to the library's own list branch
     public static int getArrayLength(List<object> a) => Exchange.getArrayLength(a);
     public static int getArrayLength(IList<object> a) => Exchange.getArrayLength(a);
-    public static bool isLessThan(object a, object b) => !Exchange.isGreaterThan(a, b) && !Exchange.isEqual(a, b);
-    public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
-    public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
+    public static bool isGreaterThan(object a, object b)
+    {
+        if (a != null && b == null) return true;
+        if (a == null || b == null) return false;
+        a = Exchange.normalizeIntIfNeeded(a);
+        b = Exchange.normalizeIntIfNeeded(b);
+        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64)) return Convert.ToInt64(a) > Convert.ToInt64(b);
+        if (a.GetType() == typeof(int) && b.GetType() == typeof(int)) return (int)a > (int)b;
+        if (a.GetType() == typeof(double) || b.GetType() == typeof(double)) return Convert.ToDouble(a) > Convert.ToDouble(b);
+        if (a.GetType() == typeof(string)) return ((string)a).CompareTo((string)b) > 0;
+        return false;
+    }
+    public static bool isLessThan(object a, object b) => !isGreaterThan(a, b) && !Exchange.isEqual(a, b);
+    public static bool isGreaterThanOrEqual(object a, object b) => isGreaterThan(a, b) || Exchange.isEqual(a, b);
     public static bool isLessThanOrEqual(object a, object b) => isLessThan(a, b) || Exchange.isEqual(a, b);
     public static object postFixIncrement(ref object a)
     {
@@ -116,7 +127,11 @@ public partial class BaseTest
     public static int postFixIncrement(ref int a) { a = a + 1; return a; }
     public static Int64 postFixIncrement(ref Int64 a) { a = a + 1; return a; }
     public static double postFixIncrement(ref double a) { a = a + 1; return a; }
-    public static object mathMax(object a, object b) => Exchange.mathMax(a, b);
+    public static object mathMax(object a, object b)
+    {
+        if (a == null || b == null) return null;
+        return Convert.ToDouble(a) > Convert.ToDouble(b) ? a : b;
+    }
     public static object add(object a, object b) => Exchange.add(a, b);
     // the two string overloads of the base `add` family, so generated test locals that name
     // their string result (`string feedback = add(add(this.id, " "), body)`) compile here as

@@ -145,7 +145,16 @@ func Divide(a, b interface{}) interface{} {
 }
 
 func Subtract(a, b interface{}) interface{} {
-	return ccxt.Subtract(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a == nil || b == nil {
+		return nil
+	}
+	res := ccxt.ToFloat64(a) - ccxt.ToFloat64(b)
+	if ccxt.IsInteger(res) {
+		return ccxt.ParseInt(res)
+	}
+	return res
 }
 
 func GetArrayLength(value interface{}) int {
@@ -157,15 +166,15 @@ func IsGreaterThan(a, b interface{}) bool {
 }
 
 func IsLessThan(a, b interface{}) bool {
-	return ccxt.IsLessThan(a, b)
+	return !ccxt.IsGreaterThan(a, b) && !ccxt.IsEqual(a, b)
 }
 
 func IsGreaterThanOrEqual(a, b interface{}) bool {
-	return ccxt.IsGreaterThanOrEqual(a, b)
+	return ccxt.IsGreaterThan(a, b) || ccxt.IsEqual(a, b)
 }
 
 func IsLessThanOrEqual(a, b interface{}) bool {
-	return ccxt.IsLessThan(a, b) || ccxt.IsEqual(a, b)
+	return IsLessThan(a, b) || ccxt.IsEqual(a, b)
 }
 
 func IsEqual(a, b interface{}) bool {
@@ -177,10 +186,6 @@ func IsEqual(a, b interface{}) bool {
 // through its local set of wrappers
 func DerefScalar(v any) any {
 	return ccxt.DerefScalar(v)
-}
-
-func NormalizeAndConvert(a, b interface{}) (reflect.Value, reflect.Value, bool) {
-	return ccxt.NormalizeAndConvert(a, b)
 }
 
 func ToFloat64(v interface{}) float64 {

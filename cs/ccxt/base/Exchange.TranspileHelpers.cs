@@ -180,47 +180,6 @@ public partial class BaseExchange
 
     }
 
-    public static bool isGreaterThan(object a, object b)
-    {
-        if (a != null && b == null)
-        {
-            return true;
-        }
-        else if (a == null || b == null)
-        {
-            return false;
-        }
-
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64))
-        {
-            return Convert.ToInt64(a) > Convert.ToInt64(b);
-        }
-        else if (a.GetType() == typeof(int) && b.GetType() == typeof(int))
-        {
-            return (int)a > (int)b;
-        }
-        else if (a.GetType() == typeof(double) || b.GetType() == typeof(double))
-        {
-            return Convert.ToDouble(a) > Convert.ToDouble(b);
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            return ((string)a).CompareTo((string)b) > 0;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public static bool isGreaterThanOrEqual(object a, object b)
-    {
-        return isGreaterThan(a, b) || isEqual(a, b);
-    }
-
     public static object add(object a, object b)
     {
         a = normalizeIntIfNeeded(a);
@@ -542,25 +501,6 @@ public partial class BaseExchange
         // {
         //     return null;
         // }
-    }
-
-    public static object mathMax(object a, object b)
-    {
-        if (a == null || b == null)
-        {
-            return null;
-        }
-        var first = Convert.ToDouble(a);
-        var second = Convert.ToDouble(b);
-
-        if (first > second)
-        {
-            return a;
-        }
-        else
-        {
-            return b;
-        }
     }
 
     // Every return path of this helper is the Convert.ToInt64 box or null (the

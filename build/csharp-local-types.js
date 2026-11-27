@@ -2535,7 +2535,7 @@ function mathMinMaxBoxType (csharp, initializer, context) {
 function mathMinMaxOperandBox (csharp, node, context) {
     const kind = csharpArithmeticOperandKind (csharp, node, context);
     if (kind === 'int' || kind === 'Int64' || kind === 'double') { return kind; }
-    if (kind === undefined) { const type = csharpTypeOfValue (csharp, node, context); if (type === 'Int64?' || type === 'double?') { return type; } }
+    if (kind === undefined) { const type = csharpTypeOfValue (csharp, node, context) ?? printedUnwrittenParameterType (csharp, node); if (type === 'Int64?' || type === 'double?') { return type; } }
     return undefined;
 }
 function integerBoxCastType (csharp, initializer, context) {
@@ -10131,11 +10131,11 @@ export const SIGNATURE_ARG_TYPES = {
     'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 4: 'IDictionary<string, object>', 5: 'string', 7: 'Dictionary<string, object>', 8: 'string' },
     'waitForTransactionReceipt': { 2: 'Int64?' },
     'filterByLimit': { 1: 'Int64?' },
-    'filterBySinceLimit': { 2: 'Int64?' },
-    'filterByValueSinceLimit': { 4: 'Int64?' },
-    'filterBySymbolSinceLimit': { 3: 'Int64?' },
-    'filterByCurrencySinceLimit': { 3: 'Int64?' },
-    'filterByOutcomeSinceLimit': { 3: 'Int64?' },
+    'filterBySinceLimit': { 1: 'Int64?', 2: 'Int64?' },
+    'filterByValueSinceLimit': { 3: 'Int64?', 4: 'Int64?' },
+    'filterBySymbolSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'filterByCurrencySinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'filterByOutcomeSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
     'parseOHLCVs': { 4: 'Int64?' },
     'fetchPaginatedCallCursor': { 3: 'Int64?' },
     'fetchPaginatedCallDeterministic': { 3: 'Int64?' },
