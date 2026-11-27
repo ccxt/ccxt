@@ -541,6 +541,29 @@
         return node;
     }
 
+    // The CCXT mark, drawn behind a chart's marks as a faint watermark (.watermark in
+    // shared.css sets its colour and opacity). Centred in the box (x, y, width, height) and
+    // sized to a fraction of it; decorative, so hidden from assistive technology. The glyph
+    // is the logo's 70 x 70 pixel grid, starting at (10, 10).
+    var MARK_PATHS = [
+        'M10 10h30v10H20v10h20v10H10z', 'M50 10h30v10H60v10h20v10H50z',
+        'M10 50h10v10H10z', 'M30 50h10v10H30z', 'M20 60h10v10H20z', 'M10 70h10v10H10z', 'M30 70h10v10H30z',
+        'M50 50h30v10H70v20h-10V60H50z'
+    ];
+    function watermark (parent, x, y, width, height) {
+        var size = Math.min (height * 0.5, width * 0.36);
+        if (!(size >= 24)) {
+            return null;
+        }
+        var scale = size / 70;
+        var left = x + (width - size) / 2 - 10 * scale;
+        var top = y + (height - size) / 2 - 10 * scale;
+        var group = svg ('g', { 'class': 'watermark', 'aria-hidden': 'true', transform: 'translate(' + left.toFixed (1) + ' ' + top.toFixed (1) + ') scale(' + scale.toFixed (4) + ')' });
+        MARK_PATHS.forEach (function (d) { group.appendChild (svg ('path', { d: d })); });
+        parent.appendChild (group);
+        return group;
+    }
+
     function element (name, className, text) {
         var node = document.createElement (name);
         if (className) {
@@ -574,6 +597,7 @@
         dateTime: dateTime,
         ticks: ticks,
         svg: svg,
+        watermark: watermark,
         element: element
     };
 }) ();

@@ -346,6 +346,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         var volumeBase = PAD_TOP + PRICE_HEIGHT + GAP + VOLUME_HEIGHT;
         var svg = app.svg ('svg', { viewBox: '0 0 ' + width + ' ' + height, height: height, role: 'img', tabindex: '0' });
         svg.setAttribute ('aria-label', 'Candlestick chart of ' + data.symbol + ' on ' + (data.exchangeName || data.exchange) + ', ' + data.timeframe + ' candles. Use the left and right arrow keys to inspect candles, or the Table button for the values.');
+        app.watermark (svg, 0, PAD_TOP, plotWidth, PRICE_HEIGHT);
         // price grid + right-hand axis
         priceTicks.forEach (function (tick) {
             var ty = Math.round (y (tick)) + 0.5;
