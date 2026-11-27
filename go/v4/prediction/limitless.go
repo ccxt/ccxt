@@ -1114,7 +1114,7 @@ func (this *Limitless) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionT
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1514,7 +1514,7 @@ func (this *Limitless) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1593,7 +1593,7 @@ func (this *Limitless) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1710,7 +1710,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2604,7 +2604,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	}
 	var accounts []any = ccxt.AccountsToList(r.Value)
 
-	r1 := <-this.LoadOutcomeAsync(outcome)
+	r1 := <-this.LoadOutcomeAsync(&outcome)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

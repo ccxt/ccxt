@@ -280,7 +280,7 @@ func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) a
  * @returns {string} the parent market outcome
  */
 func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId string, optionalArgs ...any) any {
-	name := ccxt.GetArg(optionalArgs, 0, "")
+	var name string = ccxt.GetArgString(optionalArgs, 0, "")
 	_ = name
 	var question map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = question
@@ -322,7 +322,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 			var thresholdsRaw string = *this.SafeString(questionDesc, "priceThresholds", "")
 			var indexStr *string = this.SafeString(desc, "index")
 			var rawDescription string = *this.SafeStringLower(desc, "description", "")
-			var nameLower string = ccxt.ToLower(name)
+			var nameLower string = strings.ToLower(name)
 			if ((questionUnderlying != nil) && (questionUnderlying == nil || *questionUnderlying != "")) && (thresholdsRaw != "") && (indexStr != nil) {
 				var thresholdParts []string = strings.Split(thresholdsRaw, ",")
 				var thresholds []string = []string{}
@@ -358,7 +358,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 	if (questionName != nil) && (questionName == nil || *questionName != "") {
 		var questionSlug string = this.ShortenSlug(questionName)
 		if (true) && (questionSlug != "") {
-			var outcomeSlug string = this.ShortenSlug(name)
+			var outcomeSlug string = this.ShortenSlug(&name)
 			var genericOutcomeNames map[string]any = map[string]any{
 				"RECURRING":               true,
 				"RECURRING_FALLBACK":      true,
@@ -378,8 +378,8 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 		}
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
-	if (name != nil) && (name != "") {
-		return this.ShortenSlug(name) + "_" + outcomeId
+	if name != "" {
+		return this.ShortenSlug(&name) + "_" + outcomeId
 	}
 	return "OUTCOME_" + outcomeId
 }
@@ -731,7 +731,7 @@ func (this *Hyperliquid) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -990,7 +990,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predic
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1075,7 +1075,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1550,7 +1550,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		panic(r1.Err)
 	}
 
-	r2 := <-this.LoadOutcomeAsync(outcome)
+	r2 := <-this.LoadOutcomeAsync(&outcome)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -2267,7 +2267,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}

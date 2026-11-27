@@ -1243,12 +1243,12 @@ func (this *Polymarket) ParseEventToMarkets(event any) []any {
  * @param {string} outcomeSymbol the outcome token id or handle
  * @returns {object} the resolved outcome object
  */
-func (this *Polymarket) FetchOutcomeAsync(outcomeSymbol any) <-chan ccxt.AsyncResult[ccxt.PredictionOutcome] {
+func (this *Polymarket) FetchOutcomeAsync(outcomeSymbol string) <-chan ccxt.AsyncResult[ccxt.PredictionOutcome] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOutcome], 1)
 	go this.fetchOutcomeBody(ch, outcomeSymbol)
 	return ch
 }
-func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOutcome], outcomeSymbol any) any {
+func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOutcome], outcomeSymbol string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// a bare CLOB token id has no ':' (an outcome handle is always "MARKET:LABEL") and no
@@ -1257,7 +1257,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	// non-ids) and falls through to the search path and its local ccxt.BadSymbol below.
 	// absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
 	// `=== -1` passes through and never matches mb_strpos's false return
-	if (ccxt.GetIndexOf(outcomeSymbol, ":") < 0) && (this.OutcomeSearchQuery(outcomeSymbol) == nil) {
+	if (strings.Index(outcomeSymbol, ":") < 0) && (this.OutcomeSearchQuery(outcomeSymbol) == nil) {
 
 		r := <-this.GammaPublicGetMarkets(map[string]any{
 			"clob_token_ids": outcomeSymbol,
@@ -1419,7 +1419,7 @@ func (this *Polymarket) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1745,7 +1745,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predict
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1831,7 +1831,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 		panic(ccxt.BadRequest(this.Id + " fetchOHLCV() unsupported timeframe " + timeframe + ", supported timeframes are " + strings.Join(supportedKeys, ", ")))
 	}
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2071,7 +2071,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Pred
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2150,7 +2150,7 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan ccxt.AsyncResult[ccxt.Predic
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2218,7 +2218,7 @@ func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2932,7 +2932,7 @@ func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		panic(r.Err)
 	}
 
-	r1 := <-this.LoadOutcomeAsync(outcome)
+	r1 := <-this.LoadOutcomeAsync(&outcome)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4588,7 +4588,7 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -4623,12 +4623,12 @@ func (this *Polymarket) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
  * @param {object} [params] extra params (unused)
  * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
  */
-func (this *Polymarket) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
+func (this *Polymarket) WatchTradesAsync(outcome string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionTrade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionTrade], 1)
 	go this.watchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -4638,7 +4638,7 @@ func (this *Polymarket) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -4682,7 +4682,7 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}

@@ -3310,7 +3310,8 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		var entryLength int64 = this.ParseToInt(this.SbeReadUint(frameHex, position, 2))
 		var numInGroup int64 = this.ParseToInt(this.SbeReadUint(frameHex, position+2, 2))
 		position = position + 4
-		if (entryLength < 16) || (this.ParseToInt(position+numInGroup*entryLength) > frameEnd) {
+		var groupEnd int64 = this.ParseToInt(position + numInGroup*entryLength)
+		if (entryLength < 16) || (groupEnd > frameEnd) {
 			return nil
 		}
 		for j := 0; int64(j) < numInGroup; j++ {
@@ -3328,15 +3329,15 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		return nil
 	}
 	var isSnapshot bool = (pkgType == 0)
-	var ternaryStr230027 string = "d"
+	var ternaryStr230127 string = "d"
 	if isSnapshot {
-		ternaryStr230027 = "s"
+		ternaryStr230127 = "s"
 	}
 	var result map[string]any = map[string]any{
 		"seq_no":          this.SbeReadInt64(frameHex, 16),
 		"market":          this.SafeString(strings, 0),
 		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
-		"update_type":     ternaryStr230027,
+		"update_type":     ternaryStr230127,
 		"inserts":         []any{},
 		"updates":         []any{},
 		"deletes":         []any{},

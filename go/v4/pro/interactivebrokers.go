@@ -258,40 +258,37 @@ func (this *Interactivebrokers) ibkrKeepAliveSessionBody(ch chan ccxt.AsyncResul
 	var sent map[string]any = map[string]any{}
 	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
-		var subscription any = client.SubscriptionGet(keys[i])
-		if ccxt.IsObject(subscription) {
-			var request *string = this.SafeString(subscription, "request")
-			if (request != nil) && strings.HasPrefix(*request, "smd+") {
-				if _, ok := sent[*request]; !ok {
-					sent[*request] = true
+		var request *string = this.SafeString(client.SubscriptionGet(keys[i]), "request")
+		if (request != nil) && strings.HasPrefix(*request, "smd+") {
+			if _, ok := sent[*request]; !ok {
+				sent[*request] = true
 
-					{
-						func(this *Interactivebrokers) (ret_ any) {
-							defer func() {
-								if e := recover(); e != nil {
-									if e == "break" {
-										return
-									}
-									ret_ = func(this *Interactivebrokers) any {
-										// catch block:
-										// the connection is gone, the client reconnects on the next watch call
-										if this.Verbose {
-											this.Log("ibkrKeepAliveSession resubscribe failed " + this.ExceptionMessage(e))
-										}
-										return nil
-									}(this)
+				{
+					func(this *Interactivebrokers) (ret_ any) {
+						defer func() {
+							if e := recover(); e != nil {
+								if e == "break" {
+									return
 								}
-							}()
-							// try block:
-
-							r1 := <-client.SendAsync(request)
-							if r1.Err != nil {
-								panic(r1.Err)
+								ret_ = func(this *Interactivebrokers) any {
+									// catch block:
+									// the connection is gone, the client reconnects on the next watch call
+									if this.Verbose {
+										this.Log("ibkrKeepAliveSession resubscribe failed " + this.ExceptionMessage(e))
+									}
+									return nil
+								}(this)
 							}
-							return nil
-						}(this)
+						}()
+						// try block:
 
-					}
+						r1 := <-client.SendAsync(request)
+						if r1.Err != nil {
+							panic(r1.Err)
+						}
+						return nil
+					}(this)
+
 				}
 			}
 		}
@@ -418,11 +415,10 @@ func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.Async
 	defer ccxt.ReturnPanicError(ch)
 	var keys []string = client.SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
-		var subscription any = client.SubscriptionGet(keys[i])
-		if ccxt.IsObject(subscription) {
-			var request *string = this.SafeString(subscription, "request")
-			var conid *string = this.SafeString(subscription, "conid")
-			if (request != nil) && strings.HasPrefix(*request, "smd+") && (ccxt.IsEqual(conid, marketId)) {
+		var request *string = this.SafeString(client.SubscriptionGet(keys[i]), "request")
+		if (request != nil) && strings.HasPrefix(*request, "smd+") {
+			var conid *string = this.SafeString(client.SubscriptionGet(keys[i]), "conid")
+			if ccxt.IsEqual(conid, marketId) {
 
 				ch <- ccxt.AsyncResult[any]{Value: nil} // still in use
 				return nil
@@ -736,12 +732,12 @@ func (this *Interactivebrokers) ibkrUnWatchMarketDataBody(ch chan ccxt.AsyncResu
 	for i := 0; i < len(marketSymbols); i++ {
 		subHashes = append(subHashes, topic+"::"+marketSymbols[i])
 	}
-	var ternaryStr42821 string = "ticker"
+	var ternaryStr42421 string = "ticker"
 	if topic == "bidask" {
-		ternaryStr42821 = "bidsasks"
+		ternaryStr42421 = "bidsasks"
 	}
 	var subscription map[string]any = map[string]any{
-		"topic":   ternaryStr42821,
+		"topic":   ternaryStr42421,
 		"symbols": ccxt.StringSliceToList(marketSymbols),
 	}
 
@@ -1061,7 +1057,8 @@ func (this *Interactivebrokers) HandleOHLCV(client ccxt.ClientInterface, message
 	// the live candles built from smd before the history arrived are kept only when they are newer than the history
 	for i := 0; i < ccxt.GetArrayLength(stored); i++ {
 		var candle any = ccxt.GetValue(stored, i)
-		if (lastHistoryTimestamp == nil) || (ccxt.IsGreaterThan(ccxt.GetValue(candle, 0), lastHistoryTimestamp)) {
+		var candleTimestamp int64 = *this.SafeInteger(candle, 0, 0)
+		if (lastHistoryTimestamp == nil) || (candleTimestamp > *lastHistoryTimestamp) {
 			bars = append(bars, candle)
 		}
 	}
@@ -1189,9 +1186,10 @@ func (this *Interactivebrokers) IbkrUpdateOHLCVs(client ccxt.ClientInterface, sy
 		var candle any = nil
 		if length > 0 {
 			var lastCandle any = ccxt.GetValue(stored, length-1)
-			if ccxt.IsEqual(ccxt.GetValue(lastCandle, 0), candleTimestamp) {
+			var lastTimestamp int64 = *this.SafeInteger(lastCandle, 0, 0)
+			if lastTimestamp == candleTimestamp {
 				candle = lastCandle
-			} else if ccxt.IsGreaterThan(ccxt.GetValue(lastCandle, 0), candleTimestamp) {
+			} else if lastTimestamp > candleTimestamp {
 				continue
 			}
 		}
@@ -1644,9 +1642,9 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes104015 := r1.Value
+	retRes103815 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes104015.(type) {
+	switch resolvedBox := retRes103815.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1852,9 +1850,9 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes116815 := r1.Value
+	retRes116615 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes116815.(type) {
+	switch resolvedBox := retRes116615.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:

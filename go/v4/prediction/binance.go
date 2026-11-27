@@ -997,7 +997,7 @@ func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1169,7 +1169,7 @@ func (this *Binance) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1775,7 +1775,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 	var outcomeObj map[string]any = nil
 	if true {
 
-		r := <-this.LoadOutcomeAsync(outcome)
+		r := <-this.LoadOutcomeAsync(&outcome)
 		if r.Err != nil {
 			panic(r.Err)
 		}
@@ -2268,7 +2268,7 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}

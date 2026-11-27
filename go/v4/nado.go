@@ -4108,8 +4108,8 @@ func (this *Nado) PadHex(value string, length int64, optionalArgs ...any) string
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	if left == true {
 		var paddedLeft string = zeros + value
-		var start int64 = int64(len(paddedLeft)) - this.ParseToInt(length)
-		return paddedLeft[start+int64(len(paddedLeft))*min(max(-start, 0), 1) : len(paddedLeft)]
+		var start int64 = int64(len(paddedLeft)) - length
+		return paddedLeft[max(start+int64(len(paddedLeft))*min(max(-start, 0), 1), 0):]
 	}
 	var paddedRight string = value + zeros
 	var end int64 = this.ParseToInt(length)

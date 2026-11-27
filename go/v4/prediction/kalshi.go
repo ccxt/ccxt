@@ -497,12 +497,12 @@ func (this *Kalshi) ParseBinaryMarketToOutcomes(raw any) []any {
  * @param {string} outcomeSymbol an outcome id — a kalshi ticker, or a ticker with a '-NO' suffix — or a unified handle like KXBTCD_26JUL1417_53_000_ABOVE:YES
  * @returns {object} the resolved outcome object
  */
-func (this *Kalshi) FetchOutcomeAsync(outcomeSymbol any) <-chan ccxt.AsyncResult[ccxt.PredictionOutcome] {
+func (this *Kalshi) FetchOutcomeAsync(outcomeSymbol string) <-chan ccxt.AsyncResult[ccxt.PredictionOutcome] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOutcome], 1)
 	go this.fetchOutcomeBody(ch, outcomeSymbol)
 	return ch
 }
-func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOutcome], outcomeSymbol any) any {
+func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOutcome], outcomeSymbol string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
@@ -510,12 +510,12 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 	// the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
 	// inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
 	// never satisfies `< 0` and id-form inputs take the wrong branch
-	if ccxt.GetIndexOf(outcomeSymbol, ":") < 0 {
+	if strings.Index(outcomeSymbol, ":") < 0 {
 		// endsWith + negative slice: no .length arithmetic (php count() / python slice traps)
-		var isNo bool = ccxt.EndsWith(outcomeSymbol, "-NO")
-		var baseTicker any = outcomeSymbol
+		var isNo bool = strings.HasSuffix(outcomeSymbol, "-NO")
+		var baseTicker string = outcomeSymbol
 		if isNo {
-			baseTicker = ccxt.Slice(outcomeSymbol, 0, int64(-3))
+			baseTicker = outcomeSymbol[0 : len(outcomeSymbol)-3]
 		}
 		var response any = nil
 
@@ -573,7 +573,7 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 		// series tickers are single alphanumeric segments, so the handle's first '_' token is
 		// its series ticker — fetch that series' open events (server-side filter, one page in
 		// the common case) and re-check the cache for the exact handle
-		var handleParts []string = ccxt.Split(outcomeSymbol, ":")
+		var handleParts []string = strings.Split(outcomeSymbol, ":")
 		var marketPart string = *this.SafeString(handleParts, 0, "")
 		var parts []string = strings.Split(marketPart, "_")
 		var seriesTicker *string = this.SafeString(parts, 0)
@@ -1010,7 +1010,7 @@ func (this *Kalshi) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1148,7 +1148,7 @@ func (this *Kalshi) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1474,7 +1474,7 @@ func (this *Kalshi) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1605,7 +1605,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1796,7 +1796,7 @@ func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2780,7 +2780,7 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }"))
 	}
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -2914,7 +2914,7 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 		panic(ccxt.ArgumentsRequired(this.Id + " editOrder() requires an amount"))
 	}
 
-	r := <-this.LoadOutcomeAsync(outcome)
+	r := <-this.LoadOutcomeAsync(&outcome)
 	if r.Err != nil {
 		panic(r.Err)
 	}

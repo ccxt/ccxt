@@ -252,13 +252,13 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events []any, queries any
 	}
 	return result
 }
-func (this *PredictionExchange) NormalizeTagKey(tag any) string {
+func (this *PredictionExchange) NormalizeTagKey(tag string) string {
 	// reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
 	// "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
 	// of the same tag compare equal — venues surface tags in different forms and callers
 	// pass any of them. keeping the word boundary avoids cross-word false positives that
 	// plain concatenation would create ("us open" vs "household")
-	var lower string = ToLower(tag)
+	var lower string = strings.ToLower(tag)
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
 	var s string = ""
@@ -304,14 +304,15 @@ func (this *PredictionExchange) FilterEventsByTags(events []any, optionalArgs ..
 		var matched bool = false
 		for ti := 0; ti < len(eventTags); ti++ {
 			var tag any = eventTags[ti]
-			var tagLabel any = nil
+			// a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+			var tagLabel string = ""
 			if IsString(tag) {
-				tagLabel = tag
+				tagLabel = *this.SafeString(eventTags, ti, "")
 			} else {
-				tagLabel = this.SafeString2(tag, "slug", "title")
+				tagLabel = *this.SafeString2(tag, "slug", "title", "")
 			}
-			if !IsEqual(tagLabel, nil) {
-				var tagKey any = this.NormalizeTagKey(tagLabel)
+			var tagKey any = this.NormalizeTagKey(tagLabel)
+			if tagKey != "" {
 				for wi := 0; wi < len(wanted); wi++ {
 					if GetIndexOf(tagKey, wanted[wi]) >= 0 {
 						matched = true
@@ -541,7 +542,7 @@ func (this *PredictionExchange) SafeOutcomeSymbol(outcomeIdOrSymbol any, optiona
 	var outcomeObjValue map[string]any = this.SafeOutcome(outcomeIdOrSymbol)
 	return SafeStringPtr(outcomeObjValue["outcome"])
 }
-func (this *PredictionExchange) ShortenSlug(slug any) string {
+func (this *PredictionExchange) ShortenSlug(slug *string) string {
 	var replacements map[string]any = map[string]any{
 		"federal-reserve":         "fed",
 		"interest-rates":          "rates",
@@ -571,10 +572,10 @@ func (this *PredictionExchange) ShortenSlug(slug any) string {
 	}
 	var stopWords []string = []string{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
 	var lower string
-	if IsEqual(slug, nil) {
+	if slug == nil {
 		lower = ""
 	} else {
-		lower = ToLower(slug)
+		lower = strings.ToLower(*slug)
 	}
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
@@ -615,7 +616,7 @@ func (this *PredictionExchange) ShortenSlug(slug any) string {
 	var joined string = strings.Join(parts, "_")
 	return strings.ToUpper(joined)
 }
-func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any) string {
+func (this *PredictionExchange) SlugToMarketSymbol(eventSlug *string, marketSlug *string) string {
 	// eventSlug is nullable (Str): markets without a parent event (e.g. myriad's 1:1 markets)
 	// pass undefined — the body already collapses an absent event to just the market part.
 	// a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
@@ -632,7 +633,7 @@ func (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug any
 	}
 	return eventPart + "_" + marketPart
 }
-func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug any, outcome *string) string {
+func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug *string, marketSlug *string, outcome *string) string {
 	// build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
 	// — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
 	// the label gets a light slug treatment (uppercase alphanumerics joined by '_', no stop-word
@@ -920,12 +921,12 @@ func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]PredictionOutcome]{Value: PredictionOutcomeMapFromMap(this.Outcomes)}
 	return nil
 }
-func (this *PredictionExchange) LoadOutcomeAsync(outcomeSymbol any, optionalArgs ...any) <-chan AsyncResult[PredictionOutcome] {
+func (this *PredictionExchange) LoadOutcomeAsync(outcomeSymbol *string, optionalArgs ...any) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome], 1)
 	go this.loadOutcomeBody(ch, outcomeSymbol, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[PredictionOutcome], outcomeSymbol any, optionalArgs ...any) any {
+func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[PredictionOutcome], outcomeSymbol *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// resolve a single outcome — the per-outcome analogue of loadMarkets()+market(). a cache hit
@@ -937,7 +938,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[PredictionOu
 	// sane on venues whose full universe is one cheap request (hyperliquid)
 	var reload bool = GetArgBool(optionalArgs, 0, false)
 	_ = reload
-	if IsEqual(outcomeSymbol, nil) {
+	if outcomeSymbol == nil {
 		panic(ArgumentsRequired(this.Id + " loadOutcome() requires an outcomeSymbol argument"))
 	}
 	if !(reload == true) {
@@ -977,28 +978,28 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan AsyncResult[PredictionOu
 		}
 	}
 
-	r1 := <-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbol)
+	r1 := <-this.DerivedExchange.FetchOutcomeAsync(*outcomeSymbol)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	ch <- AsyncResult[PredictionOutcome]{Value: r1.Value}
 	return nil
 }
-func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) *string {
+func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol string) *string {
 	// derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
 	// cache miss can be resolved through the venue's scoped search instead of a bulk listing
 	// download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
 	// carry no searchable words
-	var marketPart any = outcomeSymbol
-	var colonIndex int = GetIndexOf(outcomeSymbol, ":")
+	var marketPart string = outcomeSymbol
+	var colonIndex int = strings.Index(outcomeSymbol, ":")
 	if colonIndex >= 0 {
 		marketPart = Slice(outcomeSymbol, 0, colonIndex)
 	}
-	if GetIndexOf(marketPart, "0x") == 0 {
+	if strings.Index(marketPart, "0x") == 0 {
 		return nil
 	}
 	// handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-	var normalized string = strings.ReplaceAll(ToLower(marketPart), "-", "_")
+	var normalized string = strings.ReplaceAll(strings.ToLower(marketPart), "-", "_")
 	var rawWords []string = strings.Split(normalized, "_")
 	var words []string = []string{}
 	var hasLetters bool = false
@@ -1034,12 +1035,12 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) *string {
 	retStrVal := strings.Join(words, " ")
 	return &retStrVal
 }
-func (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
+func (this *PredictionExchange) FetchOutcomeAsync(outcomeSymbol string) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome], 1)
 	go this.fetchOutcomeBody(ch, outcomeSymbol)
 	return ch
 }
-func (this *PredictionExchange) fetchOutcomeBody(ch chan AsyncResult[PredictionOutcome], outcomeSymbol any) any {
+func (this *PredictionExchange) fetchOutcomeBody(ch chan AsyncResult[PredictionOutcome], outcomeSymbol string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// fetch just one outcome on demand — never through a bulk listing download. the base has
@@ -1088,7 +1089,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan AsyncResult[PredictionO
 			return nil
 		}
 	}
-	panic(BadSymbol(Add(Add(this.Id+" could not resolve outcome ", outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")))
+	panic(BadSymbol(this.Id + " could not resolve outcome " + outcomeSymbol + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId"))
 }
 
 /**
@@ -1328,12 +1329,12 @@ func (this *PredictionExchange) watchOrderBookBody(ch chan AsyncResult[OrderBook
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *PredictionExchange) WatchTradesAsync(outcome any, optionalArgs ...any) <-chan AsyncResult[[]PredictionTrade] {
+func (this *PredictionExchange) WatchTradesAsync(outcome string, optionalArgs ...any) <-chan AsyncResult[[]PredictionTrade] {
 	ch := make(chan AsyncResult[[]PredictionTrade], 1)
 	go this.watchTradesBody(ch, outcome, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) watchTradesBody(ch chan AsyncResult[[]PredictionTrade], outcome any, optionalArgs ...any) any {
+func (this *PredictionExchange) watchTradesBody(ch chan AsyncResult[[]PredictionTrade], outcome string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2175,11 +2176,11 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	var rows []any = this.ToArray(trades)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict157754, _ := rows[i].(map[string]any)
-		if rowsDict157754 == nil {
-			rowsDict157754 = map[string]any{}
+		rowsDict157854, _ := rows[i].(map[string]any)
+		if rowsDict157854 == nil {
+			rowsDict157854 = map[string]any{}
 		}
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rowsDict157754, outcomeObj)
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rowsDict157854, outcomeObj)
 		var trade map[string]any = this.Extend(parsed, params)
 		results = append(results, trade)
 	}
@@ -2213,11 +2214,11 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict160354, _ := rows[i].(map[string]any)
-		if rowsDict160354 == nil {
-			rowsDict160354 = map[string]any{}
+		rowsDict160454, _ := rows[i].(map[string]any)
+		if rowsDict160454 == nil {
+			rowsDict160454 = map[string]any{}
 		}
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rowsDict160354, outcomeObj)
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rowsDict160454, outcomeObj)
 		var order map[string]any = this.Extend(parsed, params)
 		results = append(results, order)
 	}
@@ -2245,11 +2246,11 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict162957, _ := rows[i].(map[string]any)
-		if rowsDict162957 == nil {
-			rowsDict162957 = map[string]any{}
+		rowsDict163057, _ := rows[i].(map[string]any)
+		if rowsDict163057 == nil {
+			rowsDict163057 = map[string]any{}
 		}
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rowsDict162957)
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rowsDict163057)
 		var position map[string]any = this.Extend(parsed, params)
 		results = append(results, position)
 	}
@@ -2328,7 +2329,7 @@ func (this *PredictionExchange) RlpEncodeBytes(hex string) string {
 	if byteLength == 0 {
 		return "80"
 	}
-	if (byteLength == 1) && (IsLessThan(hex, "80")) {
+	if (byteLength == 1) && (hex < "80") {
 		return hex
 	}
 	if byteLength < 56 {

@@ -1228,14 +1228,14 @@ func (this *Interactivebrokers) ibkrGatewaySignInBody(ch chan AsyncResult[any], 
 	}
 	if !(authenticated != nil && *authenticated) {
 		// the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
-		var lostTimestamp any = this.IbkrGatewayOnSessionLost()
+		var lostTimestamp int64 = this.IbkrGatewayOnSessionLost()
 		var regainDelay int64 = this.IbkrGatewayRegainDelay()
 		if regainDelay <= 0 {
 			var gatewayUrl *string = this.SafeString(this.Options, "gatewayUrl")
 			panic(AuthenticationError(this.Id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at " + *gatewayUrl + " in a browser or set options.autoRegainSession to take it back automatically, " + this.Json(response)))
 		}
-		var regainTimestamp any = this.Sum(lostTimestamp, regainDelay)
-		if IsLessThan(this.Milliseconds(), regainTimestamp) {
+		var regainTimestamp int64 = lostTimestamp + regainDelay
+		if this.Milliseconds() < regainTimestamp {
 			var regainDatetime *string = this.Iso8601(regainTimestamp)
 			if regainDatetime != nil {
 				messageText := this.Id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at " + *regainDatetime + " (options.autoRegainSession), " + this.Json(response)
@@ -1349,16 +1349,15 @@ func (this *Interactivebrokers) IbkrGatewayRegainDelay() int64 {
  * @ignore
  * @returns {int} the timestamp when the session was found lost
  */
-func (this *Interactivebrokers) IbkrGatewayOnSessionLost() any {
+func (this *Interactivebrokers) IbkrGatewayOnSessionLost() int64 {
 	this.Options["gatewayAuthenticatedTimestamp"] = nil
-	var lostTimestamp any
-	if derefPtr := this.SafeInteger(this.Options, "gatewaySessionLostTimestamp"); derefPtr != nil {
-		lostTimestamp = *derefPtr
-	}
-	if lostTimestamp == nil {
-		lostTimestamp = this.Milliseconds()
+	var lostTimestamp int64 = this.Milliseconds()
+	var storedTimestamp *int64 = this.SafeInteger(this.Options, "gatewaySessionLostTimestamp")
+	if storedTimestamp == nil {
 		this.Options["gatewaySessionLostTimestamp"] = lostTimestamp
 		this.IbkrGatewayScheduleRegain()
+	} else {
+		lostTimestamp = *storedTimestamp
 	}
 	return lostTimestamp
 }
@@ -3513,7 +3512,7 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	} else if isFuture {
 		marketType = "future"
 	}
-	var literal256741 map[string]any = map[string]any{
+	var literal256941 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"quote":          quote,
@@ -3561,16 +3560,16 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if isContract {
-		literal256741["linear"] = true
+		literal256941["linear"] = true
 	} else {
-		literal256741["linear"] = nil
+		literal256941["linear"] = nil
 	}
 	if isContract {
-		literal256741["inverse"] = false
+		literal256941["inverse"] = false
 	} else {
-		literal256741["inverse"] = nil
+		literal256941["inverse"] = nil
 	}
-	return this.SafeMarketStructure(literal256741)
+	return this.SafeMarketStructure(literal256941)
 }
 
 /**
@@ -5621,7 +5620,7 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		sideStr2 := "sell"
 		side = &sideStr2
 	}
-	var literal394731 map[string]any = map[string]any{
+	var literal394931 map[string]any = map[string]any{
 		"id":                  this.SafeString2(order, "order_id", "orderId"),
 		"clientOrderId":       this.SafeString2(order, "order_ref", "cOID"),
 		"timestamp":           timestamp,
@@ -5647,9 +5646,9 @@ func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ..
 		"info":                order,
 	}
 	if side != nil {
-		literal394731["side"] = *side
+		literal394931["side"] = *side
 	}
-	return this.SafeOrder(literal394731, resolved)
+	return this.SafeOrder(literal394931, resolved)
 }
 
 /**
@@ -5970,7 +5969,7 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 			"currency": resolved["quote"],
 		}
 	}
-	var literal421731 map[string]any = map[string]any{
+	var literal421931 map[string]any = map[string]any{
 		"id":           this.SafeString(trade, "execution_id"),
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -5986,9 +5985,9 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 		"fee":          fee,
 	}
 	if side != nil {
-		literal421731["side"] = *side
+		literal421931["side"] = *side
 	}
-	return this.SafeTrade(literal421731, resolved)
+	return this.SafeTrade(literal421931, resolved)
 }
 
 /**
@@ -6143,11 +6142,11 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict432449, _ := positions[i].(map[string]any)
-		if positionsDict432449 == nil {
-			positionsDict432449 = map[string]any{}
+		positionsDict432649, _ := positions[i].(map[string]any)
+		if positionsDict432649 == nil {
+			positionsDict432649 = map[string]any{}
 		}
-		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict432449, market))
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict432649, market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}
@@ -6171,7 +6170,7 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		sideStr2 := "short"
 		side = &sideStr2
 	}
-	var literal434334 map[string]any = map[string]any{
+	var literal434534 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      resolved["symbol"],
@@ -6202,9 +6201,9 @@ func (this *Interactivebrokers) ParsePosition(position map[string]any, optionalA
 		"lastUpdateTimestamp":         nil,
 	}
 	if side != nil {
-		literal434334["side"] = *side
+		literal434534["side"] = *side
 	}
-	return this.SafePosition(literal434334)
+	return this.SafePosition(literal434534)
 }
 func (this *Interactivebrokers) IbkrEncrypt(value string) string {
 	// RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string

@@ -189,9 +189,14 @@ func (this *Kucoin) negotiateHelperBody(ch chan ccxt.AsyncResult[string], privat
 					}
 					ret_ = func(this *Kucoin) any {
 						// catch block:
-						var future any = this.SafeValue(this.Options["urls"], connectId)
+						var urls map[string]any
+						urls, _ = this.Options["urls"].(map[string]any)
+						if urls == nil {
+							urls = map[string]any{}
+						}
+						var future any = this.SafeValue(urls, connectId)
 						future.(*ccxt.Future).Reject(e)
-						ccxt.Remove(this.Options["urls"], connectId)
+						this.Options["urls"] = this.Omit(urls, connectId)
 						return nil
 					}(this)
 				}
@@ -888,12 +893,12 @@ func (this *Kucoin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Kucoin) SubscribePublicMultipleUtaAsync(messageHashes []string, channel string, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Kucoin) SubscribePublicMultipleUtaAsync(messageHashes []string, channel string, symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.subscribePublicMultipleUtaBody(ch, messageHashes, channel, symbols, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes []string, channel string, symbols any, optionalArgs ...any) any {
+func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[string]any], messageHashes []string, channel string, symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -925,7 +930,7 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[
 	var message map[string]any = this.Extend(request, params)
 	var url *string = this.SafeString(this.UrlsApi["ws"], urlType)
 	var client ccxt.ClientInterface = this.Client(url)
-	var messageHashWithSymbols string = channel + ":" + ccxt.Join(symbols, ",")
+	var messageHashWithSymbols string = channel + ":" + strings.Join(symbols, ",")
 	if !(client.SubscriptionHas(messageHashWithSymbols)) {
 		client.SubscriptionSet(requestId, messageHashWithSymbols)
 	}
