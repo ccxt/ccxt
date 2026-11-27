@@ -404127,7 +404127,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (postOnly) {
             defaultTimeInForce = 'alo';
         }
-        const timeInForceLower = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
+        let timeInForceLower = this.safeStringLower(params, 'timeInForce', defaultTimeInForce);
+        if (timeInForceLower === 'po') {
+            timeInForceLower = 'alo'; // the unified post-only time in force is called Alo on hyperliquid
+        }
         const timeInForce = this.capitalize(timeInForceLower);
         let triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice', triggerPrice);
@@ -404760,7 +404763,10 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             if (postOnly) {
                 defaultTimeInForce = 'alo';
             }
-            const timeInForceLower = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
+            let timeInForceLower = this.safeStringLower(orderParams, 'timeInForce', defaultTimeInForce);
+            if (timeInForceLower === 'po') {
+                timeInForceLower = 'alo'; // the unified post-only time in force is called Alo on hyperliquid
+            }
             const timeInForce = this.capitalize(timeInForceLower);
             const clientOrderId = this.safeString2(orderParams, 'clientOrderId', 'client_id');
             let triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
