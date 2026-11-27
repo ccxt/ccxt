@@ -644,7 +644,7 @@ impl Luno {
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
-        let subscriptions: Vec<Value> = object_values(&(client).subscriptions).as_array().cloned().unwrap_or_default();
+        let subscriptions: Vec<Value> = client.subscription_values();
         let subscriptionsLength: i64 = subscriptions.len() as i64;
         if (subscriptionsLength == 0) {
             return;

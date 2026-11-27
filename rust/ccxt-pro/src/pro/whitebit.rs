@@ -1481,10 +1481,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn handle_subscription_status(&self, client: &Value, message: &crate::value::Dict, mut id: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        // not every method stores its subscription
-        // as an object so we can't do indeById here
-        let subs: Value = __ch.subscriptions.clone();
-        let values: Vec<Value> = object_values(&subs).as_array().cloned().unwrap_or_default();
+
+        let values: Vec<Value> = __ch.subscription_values();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
