@@ -10402,10 +10402,10 @@ public class Okx extends OkxApi
         }
         Long until = this.safeInteger(parameters, "until");
         Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-        Object end = null;
+        Long end = null;
         if (!java.util.Objects.equals(until, null))
         {
-            end = this.sum(until, 1);
+            end = this.parseToInt(this.sum(until, 1));
         }
         if (!java.util.Objects.equals(since, null))
         {
@@ -10426,8 +10426,8 @@ public class Okx extends OkxApi
             {
                 windowDuration = ((effectiveLimit * ((long) this.parseTimeframe(unitPeriod.toLowerCase()))) * 1000L);
             }
-            Object windowEnd = this.sum(since, windowDuration);
-            end = (((java.util.Objects.equals(end, null)))) ? windowEnd : (end == null ? null : (((Number) end).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (end) : (Object) (windowEnd)));
+            Long windowEnd = this.parseToInt(this.sum(since, windowDuration));
+            end = (((java.util.Objects.equals(end, null)))) ? windowEnd : this.parseToInt(Math.min(end, windowEnd));
         }
         if (!java.util.Objects.equals(end, null))
         {

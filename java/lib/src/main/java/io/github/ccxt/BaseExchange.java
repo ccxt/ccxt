@@ -6462,7 +6462,7 @@ public Map<String, Object> describe()
                 return (methodDict == null || parentKey == null ? null : methodDict.get(parentKey));
             }
             // throw an exception for unsupported subKey
-            if (!((switch ((Object)((methodDict == null || parentKey == null ? null : methodDict.get(parentKey)))) { case List<?> j39v4 -> ((Object)(subKey)) != null && j39v4.contains(subKey); case Map<?, ?> j39v3 -> ((Object)(subKey)) instanceof String && j39v3.containsKey(subKey); case null, default -> false; })))
+            if (!(dictionary.containsKey(subKey)))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
@@ -6805,7 +6805,7 @@ public Map<String, Object> describe()
         Integer numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
             numCurrencies = keys.size();
         }
         if ((numCurrencies != null && numCurrencies > 0))
@@ -7606,7 +7606,7 @@ public Map<String, Object> describe()
     public Object addKeyInArrayItems(Object obj, Object keyName)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        List<Object> keys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < keys.size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -7709,7 +7709,7 @@ public Map<String, Object> describe()
                     reduced.put(feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
-                if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v8 -> ((Object)(rateKey)) != null && j39v8.contains(rateKey); case Map<?, ?> j39v7 -> ((Object)(rateKey)) instanceof String && j39v7.containsKey(rateKey); case null, default -> false; }))
+                if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v6 -> ((Object)(rateKey)) != null && j39v6.contains(rateKey); case Map<?, ?> j39v5 -> ((Object)(rateKey)) instanceof String && j39v5.containsKey(rateKey); case null, default -> false; }))
                 {
                     Helpers.addElementToObject((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost", Precise.stringAdd(Helpers.GetValue((reduced.get(feeCurrencyCode) == null || rateKey == null ? null : reduced.get(feeCurrencyCode).get(rateKey)), "cost"), cost));
                 } else
@@ -8523,7 +8523,7 @@ public Map<String, Object> describe()
             }
         } else
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < keys.size(); i++)
             {
                 Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -9623,11 +9623,11 @@ public Map<String, Object> describe()
             String upperId = currencyId.toUpperCase();
             code = this.commonCurrencyCode(upperId);
         }
-        HashMap<String, Object> j39v10 = new HashMap<String, Object>();
-        j39v10.put("id", currencyId);
-        j39v10.put("code", code);
-        j39v10.put("precision", null);
-        return (Map<String, Object>) (this.safeCurrencyStructure(j39v10));
+        HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+        j39v8.put("id", currencyId);
+        j39v8.put("code", code);
+        j39v8.put("precision", null);
+        return (Map<String, Object>) (this.safeCurrencyStructure(j39v8));
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -11583,7 +11583,7 @@ public Map<String, Object> describe()
         {
             dictResponse = response;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(dictResponse)) { case Map<?, ?> j39v11 -> { synchronized (j39v11) { yield new ArrayList<Object>(j39v11.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(dictResponse)) { case Map<?, ?> j39v9 -> { synchronized (j39v9) { yield new ArrayList<Object>(j39v9.keySet()); } } case null, default -> new ArrayList<Object>(); });
         if (!Boolean.TRUE.equals(isArray))
         {
             Integer keysLength = keys.size();
@@ -11646,7 +11646,7 @@ public Map<String, Object> describe()
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v12 -> { synchronized (j39v12) { yield new ArrayList<Object>(j39v12.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v10 -> { synchronized (j39v10) { yield new ArrayList<Object>(j39v10.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer numNetworks = networkKeys.size();
         String currencyCode = this.safeString(currency, "code");
         for (var i = 0; (numNetworks != null && i < numNetworks); i++)
@@ -11848,7 +11848,7 @@ public Map<String, Object> describe()
                         Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", (paginationTimestamp - 1L));
                     }
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v16 -> j39v16.size(); case String j39v17 -> j39v17.length(); case Object j39v18 -> j39v18.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v18) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; });
                     if (this.verbose)
                     {
                         String backwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -11881,7 +11881,7 @@ public Map<String, Object> describe()
                 {
                     // do it forwards, starting from the since
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; });
                     if (this.verbose)
                     {
                         String forwardMessage = ((((("Dynamic pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -12224,7 +12224,7 @@ public Map<String, Object> describe()
                 paramsMaxEntriesPerRequest.put(((String)pageKey), (((long) i) + 1L));
                 Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                 errors = 0;
-                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v19 -> j39v19.size(); case String j39v20 -> j39v20.length(); case Object j39v21 -> j39v21.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v21) : 0; });
+                Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v17 -> j39v17.size(); case String j39v18 -> j39v18.length(); case Object j39v19 -> j39v19.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v19) : 0; });
                 if (this.verbose)
                 {
                     String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
@@ -12351,16 +12351,16 @@ public Map<String, Object> describe()
         {
             symbol = this.safeString(market, "symbol");
         }
-        HashMap<String, Object> j39v22 = new HashMap<String, Object>();
-        j39v22.put("symbol", symbol);
-        j39v22.put("baseVolume", this.safeNumber(interest, "baseVolume", null));
-        j39v22.put("quoteVolume", this.safeNumber(interest, "quoteVolume", null));
-        j39v22.put("openInterestAmount", this.safeNumber(interest, "openInterestAmount", null));
-        j39v22.put("openInterestValue", this.safeNumber(interest, "openInterestValue", null));
-        j39v22.put("timestamp", this.safeInteger(interest, "timestamp"));
-        j39v22.put("datetime", this.safeString(interest, "datetime"));
-        j39v22.put("info", this.safeValue(interest, "info"));
-        return (Map<String, Object>) (this.extend(interest, j39v22));
+        HashMap<String, Object> j39v20 = new HashMap<String, Object>();
+        j39v20.put("symbol", symbol);
+        j39v20.put("baseVolume", this.safeNumber(interest, "baseVolume", null));
+        j39v20.put("quoteVolume", this.safeNumber(interest, "quoteVolume", null));
+        j39v20.put("openInterestAmount", this.safeNumber(interest, "openInterestAmount", null));
+        j39v20.put("openInterestValue", this.safeNumber(interest, "openInterestValue", null));
+        j39v20.put("timestamp", this.safeInteger(interest, "timestamp"));
+        j39v20.put("datetime", this.safeString(interest, "datetime"));
+        j39v20.put("info", this.safeValue(interest, "info"));
+        return (Map<String, Object>) (this.extend(interest, j39v20));
     }
 
     public Map<String, Object> parseLiquidation(Object liquidation, Map<String, Object> market)

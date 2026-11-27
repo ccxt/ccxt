@@ -900,7 +900,7 @@ public class Hyperliquid extends HyperliquidApi
      */
     public Object calculatePricePrecision(Double price, Object amountPrecision, Object maxDecimals)
     {
-        Long pricePrecision = 0L;
+        Long pricePrecision = this.parseToInt(0);
         String priceStr = this.numberToString(price);
         if (java.util.Objects.equals(priceStr, null))
         {
@@ -914,7 +914,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            pricePrecision = 5L;
+            pricePrecision = this.parseToInt(5);
         } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
@@ -940,11 +940,10 @@ public class Hyperliquid extends HyperliquidApi
             {
                 digitsLeft = (5L - ((long) (integerPart.length())));
             }
-            pricePrecision = digitsLeft;
+            pricePrecision = this.parseToInt(digitsLeft);
         }
         // cap by maxDecimals - szDecimals
-        pricePrecision = (decimalsLeft == null || pricePrecision == null ? null : Math.min(decimalsLeft, pricePrecision));
-        return this.parseToInt(pricePrecision);
+        return this.parseToInt((decimalsLeft == null ? null : Math.min(decimalsLeft, pricePrecision)));
     }
 
     /**

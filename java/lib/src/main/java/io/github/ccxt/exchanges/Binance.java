@@ -11766,7 +11766,7 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
-        Object endTime = this.safeInteger2(paramsPaginate, "until", "endTime");
+        Long endTime = this.safeInteger2(paramsPaginate, "until", "endTime");
         if (!java.util.Objects.equals(since, null))
         {
             Long startTime = since;
@@ -11780,9 +11780,8 @@ public class Binance extends BinanceApi
             {
                 if ((java.util.Objects.equals(endTime, null)) && Boolean.TRUE.equals((this.safeBool(market, "linear", false))))
                 {
-                    endTime = this.sum(startTime, oneWeek);
-                    Object endTimeValue = (((java.util.Objects.equals(endTime, null)))) ? 0 : endTime;
-                    endTime = (endTimeValue == null || currentTimestamp == null ? null : (((Number) endTimeValue).doubleValue() < ((Number) currentTimestamp).doubleValue() ? (Object) (endTimeValue) : (Object) (currentTimestamp)));
+                    Long endTimeValue = this.parseToInt(this.sum(startTime, oneWeek));
+                    endTime = this.parseToInt(Math.min(endTimeValue, currentTimestamp));
                 }
             }
         }
