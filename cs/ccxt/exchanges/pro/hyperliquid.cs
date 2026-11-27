@@ -382,7 +382,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -456,16 +456,16 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string[]} symbols a list with a single unified symbol
      * @returns {string} the symbol
      */
-    public virtual string? singleBidAskSymbol(object methodName, object symbols = null)
+    public virtual string? singleBidAskSymbol(string methodName, IList<object>? symbols = null)
     {
         int symbolsLength = 0;
         if ((symbols != null))
         {
-            symbolsLength = getArrayLength(symbols);
+            symbolsLength = symbols?.Count ?? 0;
         }
         if ((symbolsLength != 1))
         {
-            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol")) ;
         }
         return this.safeString(symbols, 0, "");
     }
