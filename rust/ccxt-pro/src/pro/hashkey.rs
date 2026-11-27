@@ -1017,7 +1017,8 @@ impl Hashkey {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let type_var: String = "spot".to_string();
-        let typeMarketType: Option<String> = (self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[&params, &Value::from(type_var)])).0.as_str().map(str::to_owned);
+        let typeMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[&params, &Value::from(type_var)]);
+        let typeMarketType: Option<String> = typeMarketTypeVariable.0.as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", "balance:", typeMarketType.as_deref().unwrap_or("null"));
         let url: Option<String> = self.get_private_url(listenKey.map(Value::from).unwrap_or(Value::Null));
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));

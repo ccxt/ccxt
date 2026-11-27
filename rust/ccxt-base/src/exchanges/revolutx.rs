@@ -345,7 +345,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         let active: bool = status.as_deref() == Some("active");
         let assetType: Option<String> = self.safe_string_k_opt(&currency, "asset_type", &[]);
         let type_var: String = (if (assetType.as_deref() == Some("crypto")) { "crypto".to_string() } else { "fiat".to_string() });
-        let precision: Value = (if (scale.is_some()) { crate::runtime::Math::pow(&Value::Int(10), &Value::from((if let Some(__v) = scale { Some(-__v) } else { None }))) } else { Value::Null });
+        let precision: Option<f64> = (if (scale.is_some()) { (if let Some(__y) = scale { Some(f64::powf(10.0, (-__y) as f64)) } else { None }) } else { None });
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency);
@@ -356,7 +356,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
-        m.insert("precision".to_string(), self.parse_number(precision, &[]));
+        m.insert("precision".to_string(), self.parse_number(Value::from(precision), &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
