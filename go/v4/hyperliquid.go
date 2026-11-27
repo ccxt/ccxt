@@ -3201,6 +3201,9 @@ func (this *Hyperliquid) CreateOrderRequest(symbol string, typeVar *string, side
 		defaultTimeInForce = "alo"
 	}
 	var timeInForceLower *string = this.SafeStringLower(params, "timeInForce", defaultTimeInForce)
+	if timeInForceLower != nil && *timeInForceLower == "po" {
+		timeInForceLower = SafeStringPtr("alo") // the unified post-only time in force is called Alo on hyperliquid
+	}
 	var timeInForce string = this.Capitalize(timeInForceLower)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice", triggerPrice)
@@ -3975,6 +3978,9 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) map[
 			defaultTimeInForce = "alo"
 		}
 		var timeInForceLower *string = this.SafeStringLower(orderParams, "timeInForce", defaultTimeInForce)
+		if timeInForceLower != nil && *timeInForceLower == "po" {
+			timeInForceLower = SafeStringPtr("alo") // the unified post-only time in force is called Alo on hyperliquid
+		}
 		var timeInForce string = this.Capitalize(timeInForceLower)
 		var clientOrderId *string = this.SafeString2(orderParams, "clientOrderId", "client_id")
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
