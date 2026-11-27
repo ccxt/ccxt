@@ -2123,11 +2123,11 @@ public partial class PredictionExchange : BaseExchange
         return ((string?)((object)(await this.ethRpc(rpcUrl, "eth_sendRawTransaction", new List<object>() {signed}))));
     }
 
-    public async virtual Task<object> waitForTransactionReceipt(string? rpcUrl, object txHash, object timeout = null)
+    public async virtual Task<object> waitForTransactionReceipt(string? rpcUrl, object txHash, Int64? timeout = null)
     {
         timeout ??= 60000;
         Int64 start = this.milliseconds();
-        while (isLessThan(((this.milliseconds() - start)), timeout))
+        while ((((this.milliseconds() - start)) < timeout))
         {
             object receipt = await this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new List<object>() {txHash});
             if (((receipt != null)) && ((receipt != null)))
