@@ -3328,22 +3328,33 @@ class BaseExchange extends \ccxt\BaseExchange {
                     break; // this is needed because of GO
                 }
             }
-            $content = $response;
-            if ($content === null) {
+            if ($response === null) {
                 throw new NullResponse($this->id . ' fetchWebEndpoint() returned empty content');
             }
+            if (gettype($response) !== 'string') {
+                if (($startRegex !== null) || ($endRegex !== null)) {
+                    throw new BadResponse($this->id . ' fetchWebEndpoint() returned non-string content');
+                }
+                return $response;
+            }
+            $content = $response;
             if ($startRegex !== null) {
                 $splitted_by_start = explode($startRegex, $content);
+                $startLen = count($splitted_by_start);
+                if ($startLen < 2) {
+                    throw new NullResponse($this->id . ' fetchWebEndpoint() returned empty content');
+                }
                 $content = $splitted_by_start[1]; // we need second part after start
-            }
-            if ($content === null) {
-                throw new NullResponse($this->id . ' fetchWebEndpoint() returned empty content');
             }
             if ($endRegex !== null) {
                 $splitted_by_end = explode($endRegex, $content);
+                $endLen = count($splitted_by_end);
+                if ($endLen < 1) {
+                    throw new NullResponse($this->id . ' fetchWebEndpoint() returned empty content');
+                }
                 $content = $splitted_by_end[0]; // we need first part after start
             }
-            if (($returnAsJson === true) && (gettype($content) === 'string')) {
+            if ($returnAsJson === true) {
                 $jsoned = $this->parse_json(trim($content)); // content should be trimmed before json parsing
                 if (($jsoned !== null) && ($jsoned !== null)) {
                     return $jsoned; // if parsing was not successfull, exception should be thrown

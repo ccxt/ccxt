@@ -2030,9 +2030,7 @@ class hyperliquid extends Exchange {
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
             if ($response !== null) {
-                $response = str_replace('"', '', $response);
-                $response = str_replace('"', '', $response);
-                $enableUnifiedMargin = $response === 'unifiedAccount';
+                $enableUnifiedMargin = (str_replace('"', '', $response) === 'unifiedAccount');
             }
             // don't cache this result if this is a different addresss
             $this->options['enableUnifiedMargin'] = $enableUnifiedMargin; // cache this for future calls
