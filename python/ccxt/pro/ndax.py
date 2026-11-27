@@ -280,7 +280,7 @@ class ndax(ccxt.async_support.ndax):
                 timestamp = self.safe_integer(ohlcv, 0)
                 if timestamp is None:
                     continue
-                candleTimestamp = self.parse_to_int((timestamp / duration) * duration)
+                candleTimestamp = self.parse_to_int(timestamp / duration) * duration
                 parsed = [
                     candleTimestamp,
                     self.safe_float(ohlcv, 3),

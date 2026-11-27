@@ -5189,7 +5189,10 @@ class BaseExchange(object):
         result[volume] = []
         for i in range(0, len(ohlcvs)):
             ohlcv = ohlcvs[i]
-            ts = ohlcv[0] if ms else self.parse_to_int(ohlcvs[i][0] / 1000)
+            rawTs = self.safe_integer(ohlcvs[i], 0)
+            ts = rawTs
+            if not ms and (rawTs is not None):
+                ts = self.parse_to_int(rawTs / 1000)
             resultTimestamp = result[timestamp]
             resultTimestamp.append(ts)
             resultOpen = result[open]
