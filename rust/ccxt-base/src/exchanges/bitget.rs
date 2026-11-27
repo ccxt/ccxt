@@ -10403,17 +10403,18 @@ if _try_result.is_err() {
         let mut historicalEndpointNeeded: bool = (useHistoryEndpoint == true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        let mut calculatedStartTime: Value = Value::Null;
-        let mut calculatedEndTime: Value = Value::Null;
+        // the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        let hasEndTime: bool = (since.is_some()) || (until.is_some());
+        let mut calculatedEndTime: Option<i64> = Some(now);
         if (since.is_some()) {
-            calculatedStartTime = Value::from(since);
             request.insert("startTime".into(), Value::from(since));
             if (until.is_none()) {
-                calculatedEndTime = Value::from((if let Some(__m0) = since { Some((__m0 + recentDuration)) } else { None }));
+                let sinceEndTime: Option<i64> = (if let Some(__m0) = since { Some((__m0 + recentDuration)) } else { None });
+                calculatedEndTime = sinceEndTime;
                 if since > Some(((now - recentDuration))) {
-                    calculatedEndTime = Value::from(now);
+                    calculatedEndTime = Some(now);
                 }
-                request.insert("endTime".into(), calculatedEndTime.clone());
+                request.insert("endTime".into(), Value::from(calculatedEndTime));
             }
             if (recentEndpointAvailableDays.is_some()) && (matches!((since, ((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) {
                 historicalEndpointNeeded = true;
@@ -10421,11 +10422,10 @@ if _try_result.is_err() {
         }
         if (until.is_some()) {
             let untilEndTime: Option<i64> = (if (until > Some(now)) { Some(now) } else { until });
-            calculatedEndTime = Value::from(untilEndTime);
+            calculatedEndTime = untilEndTime;
             request.insert("endTime".into(), Value::from(untilEndTime));
             if (since.is_none()) {
                 let untilStartTime: Option<i64> = (if let Some(__l) = untilEndTime { Some(__l - recentDuration) } else { None });
-                calculatedStartTime = Value::from(untilStartTime);
                 // we do not need to set "startTime" here
                 if (recentEndpointAvailableDays.is_some()) && (matches!((untilStartTime, ((if let Some(__r) = ((if let Some(__l) = ((if let Some(__l) = recentEndpointAvailableDays { Some(__l - 1) } else { None })) { Some(__l * msInDay) } else { None })) { Some(now - __r) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) <= (__r as f64))) {
                     historicalEndpointNeeded = true;
@@ -10437,15 +10437,16 @@ if _try_result.is_err() {
             let historicalLimit: i64 = (if (recentLimit > maxLimitForHistoryEndpoint) { maxLimitForHistoryEndpoint } else { recentLimit });
             limitResolved = historicalLimit;
             let historicalDuration: i64 = (historicalLimit * duration);
-            calculatedStartTime = (match (&(calculatedEndTime), &(Value::from(historicalDuration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            request.insert("startTime".into(), calculatedStartTime.clone());
-            // for contract, maximum 90 days allowed between start-end times
-            if !(market).spot {
-                let maxDistanceForContracts: i64 = (90 * msInDay);
-                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (calculatedEndTime != Value::Null) && (historicalDuration > maxDistanceForContracts) {
-                    calculatedEndTime = self.sum(&[calculatedStartTime, Value::from(maxDistanceForContracts)]);
-                    request.insert("endTime".into(), calculatedEndTime);
+            if hasEndTime {
+                let historicalStartTime: Option<i64> = (if let Some(__l) = calculatedEndTime { Some(__l - historicalDuration) } else { None });
+                request.insert("startTime".into(), Value::from(historicalStartTime));
+                // for contract, maximum 90 days allowed between start-end times
+                if !(market).spot {
+                    let maxDistanceForContracts: i64 = (90 * msInDay);
+                    // endTime - startTime is historicalDuration here
+                    if historicalDuration > maxDistanceForContracts {
+                        request.insert("endTime".into(), Value::from((if let Some(__m0) = historicalStartTime { Some((__m0 + maxDistanceForContracts)) } else { None })));
+                    }
                 }
             }
         }

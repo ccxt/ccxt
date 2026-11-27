@@ -4012,7 +4012,7 @@ impl Nado {
         if ((encoded.as_deref().unwrap_or_default().chars().count() as i64)) > 24 {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder() subaccount must fit in 12 bytes")));
         }
-        return Some(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), 24.0, &[&Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", "0x", address).into()), self.pad_hex(encoded.as_deref().unwrap_or_default(), 24, &[&Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null)));
 }
 
     pub async fn query_contracts(&mut self, optional_args: &[&Value]) -> crate::value::Dict {
@@ -4038,17 +4038,16 @@ impl Nado {
 }
 
     pub fn order_verifying_contract(&self, productId: Option<i64>) -> Option<String> {
-        return Some(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(Value::from(productId), &[]).as_str(), 40.0, &[]).map(Value::from).unwrap_or(Value::Null)));
+        return Some(format!("{}{}", Value::Str("0x".into()), self.pad_hex(self.int_to_base16(Value::from(productId), &[]).as_str(), 40, &[]).map(Value::from).unwrap_or(Value::Null)));
 }
 
-    pub fn pad_hex(&self, value: &str, length: f64, optional_args: &[&Value]) -> Option<String> {
+    pub fn pad_hex(&self, value: &str, length: i64, optional_args: &[&Value]) -> Option<String> {
         let left: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
         let zeros: String = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000".to_string();
         if left {
             let mut paddedLeft: String = format!("{}{}", zeros, Value::from(value));
-            let start: Option<i64> = (if let Some(__r) = (self.parse_to_int(Value::from(length))) { Some(((paddedLeft.chars().count() as i64)) - __r) } else { None });
-            return Value::from(({ let (__l, __b, __e) = (paddedLeft.chars().count() as i64, start.unwrap_or(0), ((paddedLeft.chars().count() as i64))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
-                paddedLeft.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })).as_str().map(str::to_owned);
+            let start: i64 = (((paddedLeft.chars().count() as i64)) - Some(length).unwrap_or_default());
+            return Value::from(({ let (__l, __b) = (paddedLeft.chars().count() as i64, start); paddedLeft.chars().skip((if __b < 0 { __l + __b } else { __b }).clamp(0, __l) as usize).collect::<String>() })).as_str().map(str::to_owned);
         }
         let mut paddedRight: String = format!("{}{}", Value::from(value), zeros);
         let end: i64 = self.parse_to_int(Value::from(length)).unwrap_or_default();
@@ -4216,7 +4215,7 @@ impl Nado {
         let r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let s: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let v: Value = Value::from(self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]).to_lowercase());
-        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(r.as_str(), 64.0, &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(s.as_str(), 64.0, &[]).map(Value::from).unwrap_or(Value::Null)).into()), v));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0x".into()), self.pad_hex(r.as_str(), 64, &[]).map(Value::from).unwrap_or(Value::Null)).into()), self.pad_hex(s.as_str(), 64, &[]).map(Value::from).unwrap_or(Value::Null)).into()), v));
 }
 
     pub fn remove_market_suffix(&self, marketId: Option<&str>) -> Option<String> {

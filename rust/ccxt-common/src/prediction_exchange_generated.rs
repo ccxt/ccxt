@@ -381,14 +381,15 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 let mut __for_first_10: bool = true;
                 while { if !__for_first_10 { ti += 1; } __for_first_10 = false; ti < (eventTags.len() as i64) } {
                 let tag: Value = eventTags.get(ti as usize).cloned().unwrap_or(Value::Null);
-                let mut tagLabel: Value = Value::Null;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                let mut tagLabel: String = "".to_string();
                 if matches!(&tag, Value::Str(_)) {
-                    tagLabel = tag;
+                    tagLabel = self.safe_string(&eventTags, Value::Int(ti), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 }  else {
-                    tagLabel = self.safe_string2(&tag, Value::Str("slug".into()), Value::Str("title".into()), &[]);
+                    tagLabel = self.safe_string2(&tag, Value::Str("slug".into()), Value::Str("title".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 }
-                if (tagLabel != Value::Null) {
-                    let tagKey: Option<String> = self.normalize_tag_key(tagLabel).as_str().map(str::to_owned);
+                let tagKey: Option<String> = self.normalize_tag_key(Value::from(tagLabel)).as_str().map(str::to_owned);
+                if (tagKey.as_deref() != Some("")) {
                     {
                                                 let mut wi: i64 = 0;
                         let mut __for_first_9: bool = true;

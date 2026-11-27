@@ -1746,10 +1746,7 @@ impl Predictfun {
  * @param {string} [text] the raw title or outcome label
  * @returns {string} the same text with '$' removed and thousands separators closed up
  */
-    pub fn strip_price_formatting(&self, text: Option<&str>) -> Option<String> {
-        if (text.is_none()) {
-            return None;
-        }
+    pub fn strip_price_formatting(&self, text: &str) -> Option<String> {
         let digits: String = "0123456789".to_string();
         let chars: Vec<Value> = self.string_to_chars_array(Value::from(text)).as_array().cloned().unwrap_or_default();
         let mut stripped: String = "".to_string();
@@ -1807,7 +1804,10 @@ impl Predictfun {
         if (marketCount.as_f64() == Some(1.0)) && (topicSlug.is_some()) {
             return topicSlug.map(str::to_owned);
         }
-        return self.strip_price_formatting(title);
+        if (title.is_none()) {
+            return Some("".to_string());
+        }
+        return self.strip_price_formatting(title.unwrap_or_default());
 }
 
 /*
@@ -1947,8 +1947,8 @@ impl Predictfun {
             let rawOutcome: crate::value::Dict = rawOutcomes.get(oi as usize).cloned().unwrap_or_default();
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            let rawLabel: Option<String> = self.safe_string_upper_k_opt(&rawOutcome, "name", &[]);
-            let label: Option<String> = self.strip_price_formatting(rawLabel.as_deref());
+            let rawLabel: String = self.safe_string_upper_k(&rawOutcome, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let label: Option<String> = self.strip_price_formatting(rawLabel.as_str());
             let tokenId: Option<String> = self.safe_string_k_opt(&rawOutcome, "onChainId", &[]);
             let outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol.as_deref().unwrap_or("null"), ":").into()), label.as_deref().unwrap_or("null"));
             let mut winner: Option<bool> = None;
@@ -4645,7 +4645,8 @@ impl Predictfun {
         if (topicSlug.is_some()) {
             eventHandle = Some(self.shorten_slug(topicSlug.map(Value::from).unwrap_or(Value::Null)));
         }
-        let label: Option<String> = self.strip_price_formatting(self.safe_string_upper_k(&details, "outcomeName", &[]).as_str());
+        let rawOutcomeName: Option<String> = self.safe_string_upper_k_opt(&details, "outcomeName", &[]);
+        let label: Option<String> = (if (rawOutcomeName.is_some()) { self.strip_price_formatting(rawOutcomeName.as_deref().unwrap_or_default()) } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), Value::Null);

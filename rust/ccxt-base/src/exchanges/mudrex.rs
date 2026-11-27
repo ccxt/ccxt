@@ -847,7 +847,7 @@ impl Mudrex {
 
 
     pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) || !matches!(&response, Value::Dict(_)) {
+        if (response == Value::Null) {
             return None;
         }
         let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);

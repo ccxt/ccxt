@@ -1204,7 +1204,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_balance_code" => crate::Value::from(self.ibkr_balance_code(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "ibkr_check_oauth_credentials" => self.ibkr_check_oauth_credentials(),
                 "ibkr_disambiguate_contract_symbols" => self.ibkr_disambiguate_contract_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "ibkr_fetch_snapshot" => crate::Value::Arr(self.ibkr_fetch_snapshot(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[3.min(args.len())..]).await),
+                "ibkr_fetch_snapshot" => crate::Value::Arr(self.ibkr_fetch_snapshot(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[3.min(args.len())..]).await),
                 "ibkr_gateway_keep_alive" => self.ibkr_gateway_keep_alive().await,
                 "ibkr_gateway_on_session_lost" => self.ibkr_gateway_on_session_lost().await,
                 "ibkr_gateway_regain_delay" => self.ibkr_gateway_regain_delay(),
@@ -2971,11 +2971,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  */
     pub async fn ibkr_gateway_on_session_lost(&mut self) -> Value {
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), Value::Null); }
-        let mut lostTimestamp: Option<i64> = self.safe_integer_k(&self.options, "gatewaySessionLostTimestamp", &[]).as_i64();
-        if (lostTimestamp.is_none()) {
-            lostTimestamp = Some(self.milliseconds());
+        let mut lostTimestamp: Option<i64> = Some(self.milliseconds());
+        let storedTimestamp: Option<i64> = self.safe_integer_k(&self.options, "gatewaySessionLostTimestamp", &[]).as_i64();
+        if (storedTimestamp.is_none()) {
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewaySessionLostTimestamp".into(), Value::from(lostTimestamp)); }
             self.ibkr_gateway_schedule_regain().await;
+        }  else {
+            lostTimestamp = storedTimestamp;
         }
         return Value::from(lostTimestamp);
 
@@ -4157,9 +4159,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let fieldsqueryVariable = self.handle_option_and_params(params, Value::Str("fetchTickers".into()), Value::Str("fields".into()), &[]);
         let fields: Value = fieldsqueryVariable.0;
         let query: crate::value::Dict = fieldsqueryVariable.1;
-        let fieldsString: Value = join(&fields, &Value::Str(",".into()));
+        let fieldsString: Value = Value::Str(fields.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
         let readyFields: Vec<Value> = vec![Value::Str("31".into()), Value::Str("84".into()), Value::Str("86".into())];
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), fieldsString, &readyFields, &[Value::Dict(query)]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), fieldsString.as_str().unwrap_or_default(), &readyFields, &[Value::Dict(query)]).await);
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4177,7 +4179,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} the raw snapshot items
  */
-    pub async fn ibkr_fetch_snapshot(&mut self, symbols: &[crate::Value], mut fields: Value, readyFields: &[crate::Value], optional_args: &[Value]) -> crate::value::List {
+    pub async fn ibkr_fetch_snapshot(&mut self, symbols: &[crate::Value], fields: &str, readyFields: &[crate::Value], optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4197,7 +4199,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("conids".to_string(), Value::Str(conids.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",").into()));
-                m.insert("fields".to_string(), fields);
+                m.insert("fields".to_string(), Value::from(fields));
             m
         });
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -4280,7 +4282,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let fields: String = self.safe_string_k(&params, "fields", &[Value::Str("84,85,86,88".into())]).as_str().unwrap_or("84,85,86,88").to_string();
         let query: crate::value::Dict = self.omit_t(params, Value::Str("fields".into()), &[]);
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::from(fields), &[Value::Str("84".into()), Value::Str("86".into())], &[Value::Dict(query)]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), fields.as_str(), &[Value::Str("84".into()), Value::Str("86".into())], &[Value::Dict(query)]).await);
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4311,7 +4313,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("31".into()), &[Value::Str("31".into())], &[Value::Dict(params)]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), "31", &[Value::Str("31".into())], &[Value::Dict(params)]).await);
         return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4343,7 +4345,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("7635".into()), &[Value::Str("7635".into())], &[Value::Dict(params)]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), "7635", &[Value::Str("7635".into())], &[Value::Dict(params)]).await);
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4385,7 +4387,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        let response: crate::value::List = self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("31,7697,7638".into()), &[Value::Str("7697".into()), Value::Str("7638".into())], &[Value::Dict(params)]).await;
+        let response: crate::value::List = self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), "31,7697,7638", &[Value::Str("7697".into()), Value::Str("7638".into())], &[Value::Dict(params)]).await;
         return self.parse_open_interests(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))

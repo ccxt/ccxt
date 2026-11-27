@@ -14418,7 +14418,8 @@ impl Binance {
             { let __destr_tmp = self.handle_option_bool_and_params2(&paramsPaginate, Value::Str("fetchMyTrades".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]); isPortfolioMargin = __destr_tmp.0; paramsPaginate = __destr_tmp.1; }
             if stock {
                 // request['endTime'] holds endTime whenever endTime is defined
-                let endTimeResolved: Option<i64> = self.safe_integer_k(&request, "endTime", &[Value::Int(self.milliseconds())]).as_i64();
+                let endTimeRequest: Option<i64> = self.safe_integer_k(&request, "endTime", &[]).as_i64();
+                let endTimeResolved: Option<i64> = (if (endTimeRequest.is_some()) { endTimeRequest } else { Some(self.milliseconds()) });
                 if (endTime.is_none()) {
                     request.insert("endTime".into(), Value::from(endTimeResolved));
                 }

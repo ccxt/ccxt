@@ -407,9 +407,10 @@ impl Kucoin {
             return Value::from(result);
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
-            let mut future: Value = self.safe_value(self.options.get("urls").cloned().unwrap_or(Value::Null), &connectId, &[]);
+            let urls: crate::value::Dict = self.safe_dict_k_t(&self.options, "urls");
+            let mut future: Value = self.safe_value(&urls, &connectId, &[]);
             future.reject(e, None);
-            if let Some(__v) = std::sync::Arc::make_mut(&mut self.options).get_mut("urls") { remove(__v, &connectId); }
+            { let __be_tmp = self.omit(&urls, connectId, &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("urls".into(), __be_tmp); } }
          } }
         return Value::Null;
 
@@ -859,8 +860,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub async fn subscribe_public_multiple_uta(&mut self, messageHashes: &[crate::Value], channel: &str, symbols: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
-        let symbols: Value = symbols.into();
+    pub async fn subscribe_public_multiple_uta(&mut self, messageHashes: &[crate::Value], channel: &str, mut symbols: Value, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -891,7 +891,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         let url: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &urlType, &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        let messageHashWithSymbols: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), join(&symbols, &Value::Str(",".into())));
+        let messageHashWithSymbols: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         if !(client.has_subscription(messageHashWithSymbols.as_str())) {
             client.add_subscription(requestId.as_str(), Value::from(messageHashWithSymbols));
         }
@@ -922,7 +922,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             messageHashes.push(Value::from(subMessageHash));
         }
         }
-        let tickers: Value = self.subscribe_public_multiple_uta(&messageHashes, "ticker", &symbolsNormalized, &[&params]).await;
+        let tickers: Value = self.subscribe_public_multiple_uta(&messageHashes, "ticker", Value::Arr(symbolsNormalized.clone()), &[&params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return tickers;
         }

@@ -4606,7 +4606,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
         let networkId: String = self.safe_string_k(&info, "networkId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let marketId: String = self.safe_string_k(&info, "marketId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let sym: Option<String> = self.safe_outcome_symbol(outcome, &[crate::Value::from(outcomeObj.as_ref())]).as_str().map(str::to_owned);
+        let sym: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "trades:", networkId).into()), ":").into()), marketId);
         let messageHash: String = "myTrades".to_string();
         let trades: Option<crate::pro::cache::Cache> = self.subscribe_myriad_channel(messageHash.as_str(), channel.as_str(), &[&Value::Dict(params)]).await.into();
@@ -4972,12 +4972,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let outcomeObj: Option<crate::types::Market> = self.load_outcome(outcomeResolved.as_deref(), &[]).await;
             let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
             networkId = self.safe_string_k_opt(&info, "networkId", &[&networkId]);
-            outcomeResolved = self.safe_outcome_symbol(outcomeResolved.map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(outcomeObj.as_ref())]).as_str().map(str::to_owned);
+            outcomeResolved = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         }
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orders:", networkId.as_deref().unwrap_or("null")).into()), ":").into()), trader.as_deref().unwrap_or("null"));
         let messageHash: String = "orders".to_string();
         let orders: Option<crate::pro::cache::Cache> = self.subscribe_myriad_channel(messageHash.as_str(), channel.as_str(), &[&Value::Dict(params)]).await.into();
-        return Value::Arr(self.filter_by_value_since_limit(&orders, Value::Str("outcome".into()), outcomeResolved.map(Value::from).unwrap_or(Value::Null), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return self.filter_by_outcome_since_limit(Value::from(&orders), &[outcomeResolved.map(Value::from).unwrap_or(Value::Null), Value::from(since), Value::from(limit), Value::Bool(true)]);
         Value::Null
         }).await?))
     }

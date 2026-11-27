@@ -3131,7 +3131,7 @@ if _try_result.is_err() {
         }
         let mut levels: crate::value::List = std::sync::Arc::new(Vec::new());
         let sides: crate::value::List = std::sync::Arc::new(vec![Value::Str("BUY".into()), Value::Str("SELL".into())]);
-        let mut frameEnd: Option<i64> = self.parse_to_int(&frameLength);
+        let frameEnd: Option<i64> = self.parse_to_int(&frameLength);
         let mut position: Option<i64> = self.parse_to_int(self.sum(&[blockLength, Value::Int(8)]));
         {
                         let mut i: i64 = 0;
@@ -3143,7 +3143,8 @@ if _try_result.is_err() {
             let entryLength: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, Value::from(position), Value::Int(2)));
             let mut numInGroup: Option<i64> = self.parse_to_int(self.sbe_read_uint(frameHex, Value::from((if let Some(__l) = position { Some(__l + 2) } else { None })), Value::Int(2)));
             position = (if let Some(__l) = position { Some(__l + 4) } else { None });
-            if ((entryLength.is_some() && entryLength < Some(16))) || (matches!(frameEnd, Some(__p) if Value::from(self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (position, ((if let (Some(__l), Some(__r)) = (numInGroup, entryLength) { Some(__l * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })))).as_f64().unwrap_or(f64::NAN) > (__p as f64))) {
+            let groupEnd: Option<i64> = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1)) = (position, ((if let (Some(__l), Some(__r)) = (numInGroup, entryLength) { Some(__l * __r) } else { None }))) { Some((__m0 + __m1)) } else { None })));
+            if ((entryLength.is_some() && entryLength < Some(16))) || ((groupEnd.is_some() && frameEnd.is_some() && groupEnd > frameEnd)) {
                 return Value::Null;
             }
             {

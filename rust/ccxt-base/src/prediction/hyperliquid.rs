@@ -912,7 +912,7 @@ impl Hyperliquid {
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (name != Value::Null) && (name.as_str() != Some("")) {
+        if (name.as_str() != Some("")) {
             return Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(self.shorten_slug(name)), Value::Str("_".into())).into()), Value::from(outcomeId)));
         }
         return Some(format!("{}{}", "OUTCOME_", Value::from(outcomeId)));

@@ -821,7 +821,8 @@ impl Sxbet {
         let teamTwoName: String = self.safe_string_k(&raw, "teamTwoName", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let outcomeOneName: Option<String> = self.safe_string_k_opt(&raw, "outcomeOneName", &[]);
         let outcomeTwoName: Option<String> = self.safe_string_k_opt(&raw, "outcomeTwoName", &[]);
-        let eventSlug: String = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName, " ").into()), teamTwoName).into()));
+        let matchTitle: String = format!("{}{}", Value::Str(format!("{}{}", teamOneName, " ").into()), teamTwoName);
+        let eventSlug: String = self.shorten_slug(Value::from(matchTitle));
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -976,7 +977,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < tagsLength } {
-            append_to_array(&mut queries, tags.get(i as usize).cloned().unwrap_or(Value::Null));
+            append_to_array(&mut queries, self.safe_string(&tags, Value::Int(i), &[Value::Str("".into())]));
         }
         }
         let rest: crate::value::Dict = self.omit_t(&params, &["eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"], &[]);
@@ -1222,7 +1223,8 @@ impl Sxbet {
         let mut eventSlug: Option<String> = None;
         if (teamOneName.is_some()) && (teamTwoName.is_some()) {
             title = Some(format!("{}{}", Value::Str(format!("{}{}", teamOneName.as_deref().unwrap_or("null"), " vs ").into()), teamTwoName.as_deref().unwrap_or("null")));
-            eventSlug = Some(self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName.as_deref().unwrap_or("null"), " ").into()), teamTwoName.as_deref().unwrap_or("null")).into())));
+            let matchTitle: String = format!("{}{}", Value::Str(format!("{}{}", teamOneName.as_deref().unwrap_or("null"), " ").into()), teamTwoName.as_deref().unwrap_or("null"));
+            eventSlug = Some(self.shorten_slug(Value::from(matchTitle)));
         }  else {
             eventSlug = Some(self.shorten_slug(Value::from(fixtureId)));
         }
@@ -3901,20 +3903,18 @@ impl Sxbet {
         if (response == Value::Null) {
             return None;
         }
-        let message: Value = self.safe_value_k(response, "message", &[]);
-        if (message == Value::Null) {
+        // validation failures arrive in string-array form, business errors in single-code-string form
+        let messageList: crate::value::List = self.safe_list_k_t(&response, "message");
+        let mut messageString: Option<String> = self.safe_string_k_opt(response, "message", &[]);
+        if (self.safe_string(&messageList, Value::Int(0), &[]) != Value::Null) {
+            messageString = Some(messageList.iter().map(crate::runtime::stringify_param).collect::<Vec<String>>().join(", "));
+        }
+        if (messageString.is_none()) {
             return None;
         }
-        // validation failures arrive in string-array form, business errors in single-code-string form
-        let mut messageString: Value = Value::Null;
-        if (matches!(&message, Value::Arr(_))) {
-            messageString = join(&message, &Value::Str(", ".into()));
-        }  else {
-            messageString = message;
-        }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageString, feedback.as_str());
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), messageString, feedback.as_str());
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(messageString.as_deref()), feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &messageString, feedback.as_str());
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (code == 400) {

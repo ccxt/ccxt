@@ -387,19 +387,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (keys.len() as i64) } {
-            let subscription: Value = __ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null));
-            if matches!(&subscription, Value::Dict(_)) {
-                let mut request: Option<String> = self.safe_string_k_opt(&subscription, "request", &[]);
-                if (request.is_some()) && (request.as_deref().unwrap_or_default().starts_with("smd+")) && !(matches!(request.as_deref(), Some(__k) if sent.contains_key(__k))) {
-                    sent.insert(request.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
-                    let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                        client.send(&[request.map(Value::from).unwrap_or(Value::Null)]);
-                     #[allow(unreachable_code)] { Value::Null }})).await;
+            let mut request: Option<String> = self.safe_string_k_opt(__ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null)), "request", &[]);
+            if (request.is_some()) && (request.as_deref().unwrap_or_default().starts_with("smd+")) && !(matches!(request.as_deref(), Some(__k) if sent.contains_key(__k))) {
+                sent.insert(request.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+                let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+                    client.send(&[request.map(Value::from).unwrap_or(Value::Null)]);
+                 #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
-                        // the connection is gone, the client reconnects on the next watch call
-                        if self.verbose.as_bool() == Some(true) {
-                            self.log(Value::Str(format!("{}{}", Value::Str("ibkrKeepAliveSession resubscribe failed ".into()), self.exception_message(e, &[])).into()));
-                        }
+                    // the connection is gone, the client reconnects on the next watch call
+                    if self.verbose.as_bool() == Some(true) {
+                        self.log(Value::Str(format!("{}{}", Value::Str("ibkrKeepAliveSession resubscribe failed ".into()), self.exception_message(e, &[])).into()));
                     }
                 }
             }
@@ -499,11 +496,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
-            let subscription: Value = __ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null));
-            if matches!(&subscription, Value::Dict(_)) {
-                let request: Option<String> = self.safe_string_k_opt(&subscription, "request", &[]);
-                let conid: Option<String> = self.safe_string_k_opt(&subscription, "conid", &[]);
-                if (request.is_some()) && (request.as_deref().unwrap_or_default().starts_with("smd+")) && (conid == marketId.map(str::to_owned)) {
+            let request: Option<String> = self.safe_string_k_opt(__ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null)), "request", &[]);
+            if (request.is_some()) && (request.as_deref().unwrap_or_default().starts_with("smd+")) {
+                let conid: Option<String> = self.safe_string_k_opt(__ch.get_subscription(&keys.get(i as usize).cloned().unwrap_or(Value::Null)), "conid", &[]);
+                if (conid == marketId.map(str::to_owned)) {
                     return Value::Null;
                 }
             }
@@ -1017,7 +1013,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let data: crate::value::List = message.key_list("data");
         let mut bars: Vec<Value> = Vec::new();
-        let mut lastHistoryTimestamp: Value = Value::Null;
+        let mut lastHistoryTimestamp: Option<i64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
@@ -1032,10 +1028,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 add_element_to_object(&mut parsed, &Value::Int(0), Value::from(timestamp));
             }
             bars.push(parsed);
-            if (lastHistoryTimestamp == Value::Null) {
-                lastHistoryTimestamp = Value::from(timestamp);
-            }  else if (timestamp as f64) > lastHistoryTimestamp.as_f64().unwrap_or(f64::NAN) {
-                lastHistoryTimestamp = Value::from(timestamp);
+            if (lastHistoryTimestamp.is_none()) {
+                lastHistoryTimestamp = Some(timestamp);
+            }  else if (lastHistoryTimestamp.is_some() && Some(timestamp) > lastHistoryTimestamp) {
+                lastHistoryTimestamp = Some(timestamp);
             }
         }
         }
@@ -1044,8 +1040,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; (i as f64) < Value::Int(CacheSlot::size(&stored)).as_f64().unwrap_or(f64::NAN) } {
             let candle: Value = get_value(&Value::from(&stored), &Value::Int(i));
-            if (lastHistoryTimestamp == Value::Null) || (get_value(&candle, &Value::Int(0)).as_f64().unwrap_or(f64::NAN) > lastHistoryTimestamp.as_f64().unwrap_or(f64::NAN)) {
-                bars.push(candle.clone());
+            let candleTimestamp: i64 = self.safe_integer(&candle, Value::Int(0), &[Value::Int(0)]).as_i64().unwrap_or(0);
+            if (lastHistoryTimestamp.is_none()) || ((lastHistoryTimestamp.is_some() && Some(candleTimestamp) > lastHistoryTimestamp)) {
+                bars.push(candle);
             }
         }
         }
@@ -1161,19 +1158,20 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let timeframe: Option<&str> = timeframes.get(i as usize).and_then(Value::as_str);
             let mut stored: Value = (if let (Some(__m), Some(__k)) = (ohlcvsBySymbol.as_map(), timeframe.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let duration: i64 = ((self.parse_timeframe(Value::from(timeframe.as_deref()))) * 1000);
-            let candleTimestamp: Value = Value::from((if let Some(__l) = (self.parse_to_int((match ((timestamp).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) { Some(__l * duration) } else { None }));
+            let candleTimestamp: Option<i64> = (if let Some(__l) = (self.parse_to_int((match ((timestamp).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) { Some(__l * duration) } else { None });
             let length: i64 = get_array_length(&stored).as_i64().unwrap_or_default();
             let mut candle: Value = Value::Null;
             if length > 0 {
                 let lastCandle: Value = get_value(&stored, &Value::Int((length - 1)));
-                if is_equal(&get_value(&lastCandle, &Value::Int(0)), &candleTimestamp) {
+                let lastTimestamp: i64 = self.safe_integer(&lastCandle, Value::Int(0), &[Value::Int(0)]).as_i64().unwrap_or(0);
+                if (Some(lastTimestamp) == candleTimestamp) {
                     candle = lastCandle;
-                }  else if get_value(&lastCandle, &Value::Int(0)).as_f64().unwrap_or(f64::NAN) > candleTimestamp.as_f64().unwrap_or(f64::NAN) {
+                }  else if (candleTimestamp.is_some() && Some(lastTimestamp) > candleTimestamp) {
                     continue;
                 }
             }
             if (candle == Value::Null) {
-                stored.append(Value::from(vec![candleTimestamp, Value::from(price), Value::from(price), Value::from(price), Value::from(price), size.clone()]));
+                stored.append(Value::from(vec![Value::from(candleTimestamp), Value::from(price), Value::from(price), Value::from(price), Value::from(price), size.clone()]));
             }  else {
                 let mut high: Option<f64> = price;
                 let prevHigh: Option<f64> = self.safe_number(&candle, Value::Int(2), &[]).as_f64();
@@ -1186,7 +1184,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     low = prevLow;
                 }
                 let volume: Value = self.sum(&[get_value(&candle, &Value::Int(5)), size.clone()]);
-                stored.append(Value::from(vec![candleTimestamp, get_value(&candle, &Value::Int(1)), Value::from(high), Value::from(low), Value::from(price), volume]));
+                stored.append(Value::from(vec![Value::from(candleTimestamp), get_value(&candle, &Value::Int(1)), Value::from(high), Value::from(low), Value::from(price), volume]));
             }
             client.resolve(stored, &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", Value::from(symbol)).into()), "::").into()), timeframe.as_deref().unwrap_or("null")).into())));
         }
