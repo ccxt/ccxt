@@ -5613,7 +5613,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = goGroupedTable 
     [ [0,2,3], 'transfer' ],
     [ [0], 'selectNetworkKeyFromNetworks' ],
     [ [1], 'featuresMapper' ],
-    [ [0], 'fetch2 fetchRestOrderBookSafe isLeveragedCurrency padHexToEven rlpEncodeBytes' ],
+    [ [0], 'fetch2 fetchRestOrderBookSafe isLeveragedCurrency padHexToEven rlpEncodeBytes normalizeTagKey outcomeSearchQuery' ],
 ]);
 const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     'balance': {
@@ -10138,6 +10138,8 @@ class NewTranspiler {
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
+                // PredictionExchange.shortenSlug (slug: Str): callers pass *string or addressable string
+                "unifiedNullableStringParams": { "shortenSlug": [ 0 ] },
                 // the two base files declare their own stdlib imports (declareBaseFileStdlibImports); the test
                 // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
                 "baseFileStdlibImportSeamPaths": '(?:base/Exchange(?:\\.nooverloads\\.\\d+)?|base/PredictionExchange)\\.ts$',

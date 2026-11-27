@@ -861,11 +861,13 @@ export default class interactivebrokers extends Exchange {
      */
     ibkrGatewayOnSessionLost (): int {
         this.options['gatewayAuthenticatedTimestamp'] = undefined;
-        let lostTimestamp = this.safeInteger (this.options, 'gatewaySessionLostTimestamp');
-        if (lostTimestamp === undefined) {
-            lostTimestamp = this.milliseconds ();
+        let lostTimestamp = this.milliseconds ();
+        const storedTimestamp = this.safeInteger (this.options, 'gatewaySessionLostTimestamp');
+        if (storedTimestamp === undefined) {
             this.options['gatewaySessionLostTimestamp'] = lostTimestamp;
             this.ibkrGatewayScheduleRegain ();
+        } else {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }
@@ -2635,7 +2637,8 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols);
-        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as List;
+        const [ fieldsOption, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields');
+        const fields: string[] = fieldsOption;
         const fieldsString = fields.join (',');
         const readyFields: string[] = [ '31', '84', '86' ];
         const response = await this.ibkrFetchSnapshot (symbolsNormalized, fieldsString, readyFields, query);

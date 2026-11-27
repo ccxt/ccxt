@@ -1241,21 +1241,6 @@ func IsNumber(v any) bool {
 	}
 }
 
-func IsObject(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	kind := reflect.TypeOf(v).Kind()
-	switch kind {
-	case reflect.Chan, reflect.Func, reflect.Interface, // reflect.Array,  reflect.Slice
-		reflect.Map, reflect.Ptr, reflect.Struct, reflect.UnsafePointer:
-		return true
-	default:
-		return false
-	}
-}
-
 func ToLower(v any) string {
 	v = derefScalar(v)
 	if str, ok := v.(string); ok {

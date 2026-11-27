@@ -1250,48 +1250,6 @@ public partial class BaseExchange
         }
     }
 
-    public string slice(object str2, object idx1, object idx2) => Slice(str2, idx1, idx2);
-
-    public static string Slice(object str2, object idx1, object idx2)
-    {
-        if (str2 == null)
-        {
-            return null;
-        }
-        var str = (string)str2;
-        var start = idx1 != null ? Convert.ToInt32(idx1) : -1;
-        if (idx2 == null)
-        {
-            if (start < 0)
-            {
-                var innerStart = str.Length + start;
-                innerStart = innerStart < 0 ? 0 : innerStart;
-                return str[(innerStart)..];
-            }
-            else
-            {
-                return str[start..];
-            }
-        }
-        else
-        {
-            var end = Convert.ToInt32(idx2);
-            if (start < 0)
-            {
-                start = str.Length + start;
-            }
-            if (end < 0)
-            {
-                end = str.Length + end;
-            }
-            if (end > str.Length)
-            {
-                end = str.Length;
-            }
-            return str[start..end];
-        }
-    }
-
     //clashing with the current method, need to rename it to concat instead of arrayConcat
     public static object concat(object a, object b)
     {

@@ -43,28 +43,6 @@ fn both_ints(a: &Value, b: &Value) -> bool {
     matches!(a, Value::Int(_)) && matches!(b, Value::Int(_))
 }
 
-pub fn add(a: &Value, b: &Value) -> Value {
-    // String concatenation if either side is a string (JS-style)
-    if let (Value::Str(sa), Value::Str(sb)) = (a, b) {
-        return Value::Str(format!("{sa}{sb}").into());
-    }
-    if let Value::Str(_) = a { if let Some(_) = as_f64(b) {} return string_concat(a, b); }
-    if let Value::Str(_) = b { return string_concat(a, b); }
-    if both_ints(a, b) {
-        return Value::Int(as_i64(a).unwrap() + as_i64(b).unwrap());
-    }
-    match (as_f64(a), as_f64(b)) {
-        (Some(x), Some(y)) => Value::Float(x + y),
-        _ => Value::Null,
-    }
-}
-
-fn string_concat(a: &Value, b: &Value) -> Value {
-    let sa = stringify_simple(a);
-    let sb = stringify_simple(b);
-    Value::Str(format!("{sa}{sb}").into())
-}
-
 pub fn stringify_param(v: &Value) -> String { stringify_simple(v) }
 
 fn stringify_simple(v: &Value) -> String {
@@ -696,15 +674,6 @@ pub mod Math {
 // if the rust transpiler picks up FullPropertyAccessReplacements). Post-
 // processing in build/rustTranspiler.ts converts `Math.X(...)` to
 // `crate::runtime::Math::X(...)`.
-
-/// `join(array, separator)` — joins array elements into a string.
-pub fn join(arr: &Value, sep: &Value) -> Value {
-    let s = stringify_simple(sep);
-    if let Value::Arr(a) = arr {
-        let parts: Vec<String> = a.iter().map(stringify_simple).collect();
-        Value::Str(parts.join(&s).into())
-    } else { Value::Str(String::new().into()) }
-}
 
 /// Generic `.toString()` for Value.
 pub fn to_string_val(v: &Value) -> Value {

@@ -3132,12 +3132,12 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (this.intToBase16 (productId), 40);
     }
 
-    padHex (value: string, length: number, left: boolean = true): string {
+    padHex (value: string, length: int, left: boolean = true): string {
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
-            const start = paddedLeft.length - this.parseToInt (length);
-            return paddedLeft.slice (start, paddedLeft.length);
+            const start = paddedLeft.length - length;
+            return paddedLeft.slice (start);
         }
         const paddedRight = value + zeros;
         const end = this.parseToInt (length);

@@ -2450,10 +2450,10 @@ export default class myriad extends Exchange {
                 price = priceValue;
                 change = changeValue;
                 if ((priceValue !== undefined) && (changeValue !== undefined)) {
-                    const previousCloseValue = priceValue - changeValue;
-                    previousClose = previousCloseValue;
+                    previousClose = priceValue - changeValue;
                     if (priceValue !== changeValue) {
-                        percentage = changeValue / previousCloseValue * 100;
+                        const ratio = changeValue / previousClose;
+                        percentage = ratio * 100;
                     }
                 }
                 break;

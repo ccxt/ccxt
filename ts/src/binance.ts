@@ -9276,7 +9276,8 @@ export default class binance extends Exchange {
             [ isPortfolioMargin, paramsPaginate ] = this.handleOptionBoolAndParams2 (paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (stock) {
                 // request['endTime'] holds endTime whenever endTime is defined
-                const endTimeResolved = this.safeInteger (request, 'endTime', this.milliseconds ());
+                const endTimeRequest = this.safeInteger (request, 'endTime');
+                const endTimeResolved = (endTimeRequest !== undefined) ? endTimeRequest : this.milliseconds ();
                 if (endTime === undefined) {
                     request['endTime'] = endTimeResolved;
                 }

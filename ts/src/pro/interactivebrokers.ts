@@ -189,17 +189,15 @@ export default class interactivebrokers extends interactivebrokersRest {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const subscription = client.subscriptions[keys[i]];
-            if (typeof subscription === 'object') {
-                const request = this.safeString (subscription, 'request');
-                if ((request !== undefined) && request.startsWith ('smd+') && !(request in sent)) {
-                    sent[request] = true;
-                    try {
-                        await client.send (request);
-                    } catch (e) {
-                        // the connection is gone, the client reconnects on the next watch call
-                        if (this.verbose) {
-                            this.log ('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage (e));
-                        }
+            const request = this.safeString (subscription, 'request');
+            if ((request !== undefined) && request.startsWith ('smd+') && !(request in sent)) {
+                sent[request] = true;
+                try {
+                    await client.send (request);
+                } catch (e) {
+                    // the connection is gone, the client reconnects on the next watch call
+                    if (this.verbose) {
+                        this.log ('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage (e));
                     }
                 }
             }
@@ -271,12 +269,10 @@ export default class interactivebrokers extends interactivebrokersRest {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
             const subscription = client.subscriptions[keys[i]];
-            if (typeof subscription === 'object') {
-                const request = this.safeString (subscription, 'request');
-                const conid = this.safeString (subscription, 'conid');
-                if ((request !== undefined) && request.startsWith ('smd+') && (conid === marketId)) {
-                    return undefined; // still in use
-                }
+            const request = this.safeString (subscription, 'request');
+            const conid = this.safeString (subscription, 'conid');
+            if ((request !== undefined) && request.startsWith ('smd+') && (conid === marketId)) {
+                return undefined; // still in use
             }
         }
         // the connection is open, the callers get the client from ibkrConnect ()
@@ -652,7 +648,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         // the live candles built from smd before the history arrived are kept only when they are newer than the history
         for (let i = 0; i < stored.length; i++) {
             const candle = stored[i];
-            if ((lastHistoryTimestamp === undefined) || (candle[0] > lastHistoryTimestamp)) {
+            const candleTimestamp = this.safeInteger (candle, 0, 0);
+            if ((lastHistoryTimestamp === undefined) || (candleTimestamp > lastHistoryTimestamp)) {
                 bars.push (candle);
             }
         }
@@ -757,9 +754,10 @@ export default class interactivebrokers extends interactivebrokersRest {
             let candle = undefined;
             if (length > 0) {
                 const lastCandle = stored[length - 1];
-                if (lastCandle[0] === candleTimestamp) {
+                const lastTimestamp = this.safeInteger (lastCandle, 0, 0);
+                if (lastTimestamp === candleTimestamp) {
                     candle = lastCandle;
-                } else if (lastCandle[0] > candleTimestamp) {
+                } else if (lastTimestamp > candleTimestamp) {
                     continue;
                 }
             }

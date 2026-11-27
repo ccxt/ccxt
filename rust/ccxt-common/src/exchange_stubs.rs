@@ -2613,9 +2613,13 @@ impl Exchange {
     pub fn sum(&self, optional_args: &[Value]) -> Value {
         let mut acc: Option<Value> = None;
         for x in optional_args {
-            acc = Some(match acc {
-                None => x.clone(),
-                Some(a) => crate::runtime::add(&a, x),
+            acc = Some(match (acc, x) {
+                (None, v) => v.clone(),
+                (Some(Value::Int(a)), Value::Int(b)) => Value::Int(a + b),
+                (Some(a), b) => match (a.as_f64(), b.as_f64()) {
+                    (Some(x), Some(y)) => Value::Float(x + y),
+                    _ => Value::Null,
+                },
             });
         }
         acc.unwrap_or(Value::Null)

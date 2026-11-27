@@ -155,7 +155,6 @@ func unaryShims() []unaryShim {
 		{"IsString", func(v any) any { return IsString(v) }},
 		{"IsInt", func(v any) any { return IsInt(v) }},
 		{"IsNumber", func(v any) any { return IsNumber(v) }},
-		{"IsObject", func(v any) any { return IsObject(v) }},
 		{"IsArray", func(v any) any { return IsArray(v) }},
 		{"IsNil", func(v any) any { return IsNil(v) }},
 		{"ToLower", func(v any) any { return ToLower(v) }},

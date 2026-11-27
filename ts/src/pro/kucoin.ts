@@ -166,9 +166,10 @@ export default class kucoin extends kucoinRest {
             client.keepAlive = pingInterval as number;
             return result;
         } catch (e) {
-            const future = this.safeValue (this.options['urls'], connectId);
+            const urls = this.safeDict (this.options, 'urls', {});
+            const future = this.safeValue (urls, connectId);
             future.reject (e);
-            delete this.options['urls'][connectId];
+            this.options['urls'] = this.omit (urls, connectId);
         }
         return undefined;
     }
@@ -497,7 +498,7 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
-    async subscribePublicMultipleUta (messageHashes: string[], channel: string, symbols: any[], params: Dict = {}, subscription: NullableDict = undefined) {
+    async subscribePublicMultipleUta (messageHashes: string[], channel: string, symbols: string[], params: Dict = {}, subscription: NullableDict = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
         const isContract = this.safeBool (market, 'contract', false);

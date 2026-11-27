@@ -219,7 +219,7 @@ export default class mudrex extends Exchange {
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): Bool {
-        if (response === undefined || typeof response !== 'object') {
+        if (response === undefined) {
             return undefined;
         }
         const success = this.safeBool (response, 'success', true);

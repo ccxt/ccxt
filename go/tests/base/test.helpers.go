@@ -221,10 +221,6 @@ func IsNumber(v interface{}) bool {
 	return ccxt.IsNumber(v)
 }
 
-func IsObject(v interface{}) bool {
-	return ccxt.IsObject(v)
-}
-
 func ToLower(v interface{}) string {
 	return ccxt.ToLower(v)
 }

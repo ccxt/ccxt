@@ -376,7 +376,7 @@ export default class hyperliquid extends Exchange {
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if ((name !== undefined) && (name !== '')) {
+        if (name !== '') {
             return this.shortenSlug (name) + '_' + outcomeId;
         }
         return 'OUTCOME_' + outcomeId;
