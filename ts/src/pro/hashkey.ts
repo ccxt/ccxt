@@ -749,7 +749,7 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets ();
         }
         const type = 'spot';
-        const [ typeMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        const typeMarketType = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type)[0];
         const messageHash = 'balance:' + typeMarketType;
         const url = this.getPrivateUrl (listenKey);
         const client = this.client (url);

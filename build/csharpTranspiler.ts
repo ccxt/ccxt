@@ -7983,7 +7983,9 @@ export function csharpTupleSlotRead (objectNull: boolean, content: string): stri
         pos = i + ', 0)'.length;
         head.lastIndex = pos;
     }
-    return (pos === 0) ? content : out + content.slice (pos);
+    if (pos === 0) return content;
+    const rewritten = out + content.slice (pos);
+    return rewritten.replace (/^(\s*)object (\w+) = (this\.handleMarketTypeAndParams\([^\n;]+\)\[0\]);$/gm, '$1string? $2 = (string?)$3;');
 }
 export function tupleSlotReadSnippetChecks (): string[] {
     const problems: string[] = [];
