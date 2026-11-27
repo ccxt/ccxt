@@ -4315,7 +4315,7 @@ func (this *Lbank) ConvertSecretToPem(secret string) string {
 	for i := 0; int64(i) <= fullLines; i++ {
 		var start int64 = int64(i) * 64
 		var end int64 = start + 64
-		pem += Slice(this.Secret, start, end) + "\n" // eslint-disable-line
+		pem += this.Secret[min(start, int64(len(this.Secret))):min(max(end, start), int64(len(this.Secret)))] + "\n" // eslint-disable-line
 	}
 	return pem + "-----END PRIVATE KEY-----"
 }

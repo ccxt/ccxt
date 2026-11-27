@@ -1595,8 +1595,8 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 func (this *Dydx) HashMessage(message any) string {
 	return this.HashString(message, keccak, "hex")
 }
-func (this *Dydx) SignHash(hash any, privateKey string) map[string]any {
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+func (this *Dydx) SignHash(hash string, privateKey string) map[string]any {
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r string = *this.SafeString(signature, "r", "")
 	var s string = *this.SafeString(signature, "s", "")
 	return map[string]any{

@@ -428,7 +428,7 @@ func (this *Delta) Describe() map[string]any {
 		},
 	})
 }
-func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
+func (this *Delta) CreateExpiredOptionMarket(symbol any) map[string]any {
 	// support expired option contracts
 	var quote string = "USDT"
 	var optionParts []string = Split(symbol, "-")

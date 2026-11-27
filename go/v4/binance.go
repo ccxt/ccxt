@@ -4300,7 +4300,7 @@ func (this *Binance) SetSandboxMode(enable bool) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options["sandboxMode"] = enable
 }
-func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
+func (this *Binance) CreateExpiredOptionMarket(symbol any) map[string]any {
 	// support expired option contracts
 	var settle string = "USDT"
 	var optionParts []string = Split(symbol, "-")

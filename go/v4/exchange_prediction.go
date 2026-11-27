@@ -993,7 +993,7 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol string) *string
 	var marketPart string = outcomeSymbol
 	var colonIndex int = strings.Index(outcomeSymbol, ":")
 	if colonIndex >= 0 {
-		marketPart = Slice(outcomeSymbol, 0, colonIndex)
+		marketPart = outcomeSymbol[0:min(colonIndex, len(outcomeSymbol))]
 	}
 	if strings.Index(marketPart, "0x") == 0 {
 		return nil

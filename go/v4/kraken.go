@@ -2466,8 +2466,8 @@ func (this *Kraken) GetDelistedMarketById(id *string) any {
 		quoteIdStart = 4
 		quoteIdEnd = 7
 	}
-	var baseId string = Slice(id, baseIdStart, baseIdEnd)
-	var quoteId string = Slice(id, quoteIdStart, quoteIdEnd)
+	var baseId string = (*id)[min(baseIdStart, len(*id)):min(max(baseIdEnd, baseIdStart), len(*id))]
+	var quoteId string = (*id)[min(quoteIdStart, len(*id)):min(max(quoteIdEnd, quoteIdStart), len(*id))]
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {

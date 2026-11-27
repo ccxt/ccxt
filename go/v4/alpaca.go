@@ -3026,7 +3026,7 @@ func (this *Alpaca) ParseBalance(response map[string]any) map[string]any {
 			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
 			var baseLength int64 = int64(len(*positionSymbol)) - 3
 			if (baseLength > 0) && strings.HasSuffix(*positionSymbol, "USD") {
-				baseId = (*positionSymbol)[0:min(baseLength+int64(len((*positionSymbol)))*min(max(-baseLength, 0), 1), int64(len((*positionSymbol))))]
+				baseId = (*positionSymbol)[0:min(baseLength+int64(len((*positionSymbol)))*min(max(-baseLength, 0), 1), int64(len(*positionSymbol)))]
 			}
 		}
 		if baseId == nil {

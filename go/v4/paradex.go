@@ -1162,7 +1162,7 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	}
 	return this.SafeMarketStructure(literal79041)
 }
-func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
+func (this *Paradex) CreateExpiredOptionMarket(symbol any) map[string]any {
 	//
 	// an option leaves the market list once it expires, while fills, orders and positions still name it
 	//

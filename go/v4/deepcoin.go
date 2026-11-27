@@ -1756,7 +1756,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	}
 	var addressess []any = DepositAddressesToList(r1.Value)
 	var length int = len(addressess)
-	var index any = 0
+	var index int = 0
 	if (network != nil) && (length > 1) {
 		// the last entry on the requested network wins
 		for i := 0; i < length; i++ {

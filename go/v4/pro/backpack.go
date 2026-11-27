@@ -449,14 +449,14 @@ func (this *Backpack) HandleUnsubscriptions(url string, messageHashes any, messa
 					var keys []string = ccxt.ObjectKeys(cache)
 					for j := 0; j < len(keys); j++ {
 						var symbol string = keys[j]
-						ccxt.Remove(cache, symbol)
+						cache.Remove(symbol)
 					}
 				}
 			} else {
 				var symbol string = strings.Replace(*messageHash, "unsubscribe:orders:", "", 1)
 				var cache ccxt.WsArrayCache = this.Orders
 				if (this.Orders != nil) && (ccxt.InOp(cache, symbol)) {
-					ccxt.Remove(cache, symbol)
+					cache.Remove(symbol)
 				}
 			}
 		} else if strings.Index(*messageHash, "positions") >= 0 {

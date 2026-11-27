@@ -6727,7 +6727,7 @@ func (this *BaseExchange) Market(symbol any) map[string]any {
 	}
 	panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
 }
-func (this *BaseExchange) CreateExpiredOptionMarket(symbol any) any {
+func (this *BaseExchange) CreateExpiredOptionMarket(symbol any) map[string]any {
 	panic(NotSupported(this.Id + " createExpiredOptionMarket () is not supported yet"))
 }
 func (this *BaseExchange) IsLeveragedCurrency(currencyCode string, optionalArgs ...any) bool {

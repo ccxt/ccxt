@@ -3867,14 +3867,14 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, keccak, "hex")
 }
-func (this *Polymarket) SignHash(hash string, privateKey any) string {
-	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], Slice(privateKey, int64(-64), nil), secp256k1, nil)
+func (this *Polymarket) SignHash(hash string, privateKey string) string {
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r string = *this.SafeString(signature, "r", "")
 	var sVal string = *this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + (strings.Repeat("0", max(64-len(r), 0)) + r)[max(len(r)-64, 0):] + (strings.Repeat("0", max(64-len(sVal), 0)) + sVal)[max(len(sVal)-64, 0):] + v
 }
-func (this *Polymarket) SignMessage(message any, privateKey any) string {
+func (this *Polymarket) SignMessage(message any, privateKey string) string {
 	return this.SignHash(this.HashMessage(message), privateKey)
 }
 
@@ -4072,7 +4072,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[map[string]any], sig
 		"ts":   ts,
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var proxyPrivateKey *string = this.SafeString(credentials, "privateKey")
+	var proxyPrivateKey string = *this.SafeString(credentials, "privateKey", "")
 	var signature string = this.SignMessage(encoded, proxyPrivateKey)
 	var envelope map[string]any = map[string]any{
 		"op":   bodyOp,

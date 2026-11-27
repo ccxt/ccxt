@@ -795,7 +795,7 @@ func (this *Deribit) Describe() map[string]any {
 		},
 	})
 }
-func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
+func (this *Deribit) CreateExpiredOptionMarket(symbol any) map[string]any {
 	// support expired option contracts
 	var quote string = "USD"
 	var settle string = ""

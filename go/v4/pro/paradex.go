@@ -3187,15 +3187,15 @@ func (this *Paradex) SbeReadAddress(frameHex string, offset int64) string {
 	var rawStart int64 = first * 2
 	var rawEnd int64 = rawStart + 64
 	var raw string = frameHex[rawStart+int64(len(frameHex))*min(max(-rawStart, 0), 1) : min(rawEnd+int64(len(frameHex))*min(max(-rawEnd, 0), 1), int64(len(frameHex)))]
-	var start any = 63
+	var start int = 63
 	for i := 0; i < 63; i++ {
 		var next int = i + 1
-		if raw[i:min(next+len(raw)*min(max(-next, 0), 1), len(raw))] != "0" {
+		if raw[i:min(next, len(raw))] != "0" {
 			start = i
 			break
 		}
 	}
-	return "0x" + ccxt.Slice(raw, start, 64)
+	return "0x" + raw[min(start, len(raw)):min(max(64, start), len(raw))]
 }
 func (this *Paradex) SbeReadVarStrings(frameHex string, offset any, count int64, frameLength int64) []any {
 	// the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list

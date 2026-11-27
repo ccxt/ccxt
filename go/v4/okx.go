@@ -2415,7 +2415,7 @@ func (this *Okx) ConvertToInstrumentType(typeVar *string) *string {
 	var exchangeTypes, _ = this.Options["exchangeType"].(map[string]any)
 	return this.SafeString(exchangeTypes, typeVar, typeVar)
 }
-func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
+func (this *Okx) CreateExpiredOptionMarket(symbol any) map[string]any {
 	// support expired option contracts
 	var quote string = "USD"
 	var optionParts []string = Split(symbol, "-")

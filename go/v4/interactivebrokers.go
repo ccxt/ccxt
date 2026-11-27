@@ -4053,7 +4053,7 @@ func (this *Interactivebrokers) IbkrParseValue(value *string) any {
 		multiplier = &multiplierStr3
 	}
 	if multiplier != nil {
-		return Precise.StringMul(Slice(result, 0, len(result)-1), multiplier)
+		return Precise.StringMul(result[0:max(len(result)-1, 0)], multiplier)
 	}
 	if result == "" {
 		return nil

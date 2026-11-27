@@ -2061,7 +2061,7 @@ func (this *Gate) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any
 	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "server_time")}
 	return nil
 }
-func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
+func (this *Gate) CreateExpiredOptionMarket(symbol any) map[string]any {
 	// support expired option contracts
 	var quote string = "USDT"
 	var settle string = quote

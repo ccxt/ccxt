@@ -2493,7 +2493,7 @@ func (this *Bybit) upgradeUnifiedTradeAccountBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]any]{Value: r.Value}
 	return nil
 }
-func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
+func (this *Bybit) CreateExpiredOptionMarket(symbol any) map[string]any {
 	// support expired option contracts
 	var quote string = "USDC"
 	var optionParts []string = Split(symbol, "-")

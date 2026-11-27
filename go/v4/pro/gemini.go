@@ -1222,7 +1222,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	} else {
 		endIndex = urlLength
 	}
-	var request string = (*url)[startIndex:min(endIndex, len((*url)))]
+	var request string = (*url)[startIndex:min(endIndex+len((*url))*min(max(-endIndex, 0), 1), len(*url))]
 	var payload map[string]any = map[string]any{
 		"request": request,
 		"nonce":   this.IncrementingNonce(),
