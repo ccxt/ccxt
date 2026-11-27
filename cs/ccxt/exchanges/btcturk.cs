@@ -905,7 +905,7 @@ public partial class btcturk : Exchange
             results.Add(this.parseOHLCV(this.safeDict(rows, i, new Dictionary<string, object>() {}), market));
         }
         List<object> sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
+        return this.filterBySinceLimit(sorted,ccxt.BaseExchange.ToInt64Arg(since), limit, 0, tail);
     }
 
     /**

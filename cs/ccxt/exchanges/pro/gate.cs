@@ -469,7 +469,7 @@ public partial class gate : ccxt.gate
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
         IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(rawOrders, market));
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limit)));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)));
     }
 
     /**

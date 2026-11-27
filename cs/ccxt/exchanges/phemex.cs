@@ -2419,7 +2419,7 @@ public partial class phemex : Exchange
                 timestamp = lastUpdateTimeNs;
             } else
             {
-                timestamp = Math.Max(timestamp.Value, lastUpdateTimeNs.Value);
+                timestamp = ((timestamp != null) ? (Int64?)Math.Max(timestamp.Value, lastUpdateTimeNs.Value) : null);
             }
             account["total"] = total;
             account["used"] = used;

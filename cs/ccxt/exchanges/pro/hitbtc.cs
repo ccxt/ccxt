@@ -853,7 +853,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         result = this.sortBy2(result, "timestamp", "id");
         string? symbol = this.safeString(market, "symbol");
-        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit)))));
+        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit)))));
     }
 
     public override ccxt.Trade parseWsTrade(object trade, IDictionary<string, object> market = null)

@@ -1661,7 +1661,7 @@ public partial class nado : Exchange
             transaction["transaction_type"] = transactionType;
             transactions.Add(this.parseTransaction(transaction, currency));
         }
-        return this.filterByCurrencySinceLimit(transactions,code, since,ccxt.BaseExchange.ToInt64Arg(limit));
+        return this.filterByCurrencySinceLimit(transactions,code,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     /**

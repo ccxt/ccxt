@@ -1849,7 +1849,7 @@ public partial class bullish : Exchange
         if (((since != null)) || ((untilParam != null)))
         {
             Int64 timeDelta = ((((7L * 24L) * 60) * 60) * 1000); // 7 days
-            object sinceResolved = since;
+            Int64? sinceResolved = since;
             if (((since == null)) && ((untilParam != null)))
             {
                 sinceResolved = (untilParam - timeDelta);
