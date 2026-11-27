@@ -969,7 +969,7 @@ class testMainClass {
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
                     const handleParts = outcomeSymbol.split(':');
-                    const marketPart = handleParts[0];
+                    const marketPart = exchange.safeString(handleParts, 0, '');
                     const lowerPart = marketPart.toLowerCase();
                     const dedashed = lowerPart.replaceAll('-', ' ');
                     eventQuery = dedashed.replaceAll('_', ' ');

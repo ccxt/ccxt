@@ -4913,7 +4913,8 @@ class BaseExchange {
         let result = [];
         const feeValues = Object.values(reduced);
         for (let i = 0; i < feeValues.length; i++) {
-            const reducedFeeValues = Object.values(feeValues[i]);
+            const feeValue = this.safeDict(feeValues, i, {});
+            const reducedFeeValues = Object.values(feeValue);
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -8856,9 +8857,8 @@ class BaseExchange {
                 const clients = Object.values(this.clients);
                 for (let i = 0; i < clients.length; i++) {
                     const client = clients[i];
-                    const futures = client.futures;
-                    if ('fetchPositionsSnapshot' in futures) {
-                        delete futures['fetchPositionsSnapshot'];
+                    if ('fetchPositionsSnapshot' in client.futures) {
+                        delete client.futures['fetchPositionsSnapshot'];
                     }
                 }
             }

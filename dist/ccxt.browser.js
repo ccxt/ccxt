@@ -182845,7 +182845,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         let result = [];
         const feeValues = Object.values(reduced);
         for(let i = 0; i < feeValues.length; i++){
-            const reducedFeeValues = Object.values(feeValues[i]);
+            const feeValue = this.safeDict(feeValues, i, {});
+            const reducedFeeValues = Object.values(feeValue);
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -186838,9 +186839,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 const clients = Object.values(this.clients);
                 for(let i = 0; i < clients.length; i++){
                     const client = clients[i];
-                    const futures = client.futures;
-                    if ('fetchPositionsSnapshot' in futures) {
-                        delete futures['fetchPositionsSnapshot'];
+                    if ('fetchPositionsSnapshot' in client.futures) {
+                        delete client.futures['fetchPositionsSnapshot'];
                     }
                 }
             } else if ((topic === 'ticker' || topic === 'markPrice') && this.tickers !== undefined) {
@@ -403616,10 +403616,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
             if (limit !== undefined) {
                 // optimization if limit is provided
                 const timeframeInMilliseconds = this.parseTimeframe(timeframe) * 1000;
-                startTime = this.sum(until, timeframeInMilliseconds * limit * -1);
-                if (startTime < 0) {
-                    startTime = 0;
-                }
+                const calculatedStartTime = until - timeframeInMilliseconds * limit;
+                startTime = calculatedStartTime < 0 ? 0 : calculatedStartTime;
                 useTail = false;
             } else {
                 startTime = 0;

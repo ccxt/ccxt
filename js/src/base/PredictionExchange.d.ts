@@ -401,5 +401,5 @@ export default class PredictionExchange extends BaseExchange {
     signEvmTransaction(tx: Dict, privateKey: string): string;
     ethRpc(rpcUrl: Str, method: string, rpcParams: any[]): Promise<any>;
     sendEvmTransaction(rpcUrl: Str, chainId: number, fromAddress: Str, to: Str, value: Str, data: Str, gasLimit: Str): Promise<string>;
-    waitForTransactionReceipt(rpcUrl: Str, txHash: Str, timeout?: number): Promise<any>;
+    waitForTransactionReceipt(rpcUrl: Str, txHash: Str, timeout?: Int): Promise<any>;
 }
