@@ -505548,7 +505548,7 @@ class polymarket extends _abstract_polymarket_js__rspack_import_0/* ["default"] 
             'ts': ts
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-        const proxyPrivateKey = this.safeString(credentials, 'privateKey');
+        const proxyPrivateKey = this.safeString(credentials, 'privateKey', '');
         const signature = this.signMessage(encoded, proxyPrivateKey);
         const envelope = {
             'op': bodyOp,

@@ -2689,7 +2689,7 @@ export default class polymarket extends Exchange {
             'ts': ts,
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-        const proxyPrivateKey = this.safeString(credentials, 'privateKey');
+        const proxyPrivateKey = this.safeString(credentials, 'privateKey', '');
         const signature = this.signMessage(encoded, proxyPrivateKey);
         const envelope = {
             'op': bodyOp,

@@ -2688,7 +2688,7 @@ class polymarket extends polymarket$1["default"] {
             'ts': ts,
         };
         const encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-        const proxyPrivateKey = this.safeString(credentials, 'privateKey');
+        const proxyPrivateKey = this.safeString(credentials, 'privateKey', '');
         const signature = this.signMessage(encoded, proxyPrivateKey);
         const envelope = {
             'op': bodyOp,
