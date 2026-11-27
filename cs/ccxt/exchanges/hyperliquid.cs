@@ -2739,6 +2739,10 @@ public partial class hyperliquid : Exchange
             defaultTimeInForce = "alo";
         }
         string? timeInForceLower = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        if (timeInForceLower == "po")
+        {
+            timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+        }
         string timeInForce = this.capitalize(timeInForceLower);
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -3432,6 +3436,10 @@ public partial class hyperliquid : Exchange
                 defaultTimeInForce = "alo";
             }
             string? timeInForceLower = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
+            if (timeInForceLower == "po")
+            {
+                timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+            }
             string timeInForce = this.capitalize(timeInForceLower);
             string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
