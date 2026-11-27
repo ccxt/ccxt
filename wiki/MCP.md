@@ -4,19 +4,20 @@ CCXT ships an official **MCP (Model Context Protocol) server** so AI agents — 
 
 | | Hosted server | Local server |
 |---|---|---|
-| How | Add the URL `https://docs.ccxt.com/mcp` to your assistant | `npx -y ccxt-mcp` on your own computer (Node.js ≥ 20) |
+| How | Install the `ccxt` plugin, or add the URL `https://docs.ccxt.com/mcp` to your assistant | Install the `ccxt-local` plugin, or run `npx -y ccxt-mcp` on your own computer (Node.js ≥ 20) |
 | Data | Public market data from a curated set of major exchanges, with interactive charts | Public data on 100+ exchanges and prediction markets, plus balances, orders, positions and opt‑in trading |
 | Keys | None accepted | Stay on your machine, never visible to the model |
 | Works in | Claude (web, desktop, mobile), ChatGPT, Claude Code, Codex, Cursor, VS Code and any host that can add a remote MCP server | Hosts that run local (stdio) MCP servers: Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, … |
 
 - npm package: [`ccxt-mcp`](https://www.npmjs.com/package/ccxt-mcp)
 - Source: [github.com/ccxt/ccxt/tree/master/mcp](https://github.com/ccxt/ccxt/tree/master/mcp) (hosted server: [`mcp/hosted`](https://github.com/ccxt/ccxt/tree/master/mcp/hosted))
+- Plugins for Claude, ChatGPT and Codex: [github.com/ccxt/ccxt-plugins](https://github.com/ccxt/ccxt-plugins). A plugin adds the server plus a skill that tells the assistant how to use it.
 
 In Claude Code, for example, pick one:
 
 ```bash
-claude mcp add --transport http ccxt https://docs.ccxt.com/mcp   # hosted: public data, nothing to install
-claude mcp add ccxt -- npx -y ccxt-mcp                           # local: accounts and trading
+claude plugin install ccxt --marketplace ccxt/ccxt-plugins         # hosted: public data, nothing to install
+claude plugin install ccxt-local --marketplace ccxt/ccxt-plugins   # local: accounts and trading
 ```
 
 ## Security model (read this first)
@@ -44,11 +45,17 @@ The hosted server is a public, read‑only MCP endpoint run by CCXT:
 https://docs.ccxt.com/mcp
 ```
 
-Add that URL to your assistant and ask for prices, order books, candles, trades or a chart. There is nothing to install, no sign‑in and no API key. It speaks MCP over Streamable HTTP and is stateless.
+Install the CCXT plugin, or add that URL to your assistant, and ask for prices, order books, candles, trades or a chart. There is nothing to install, no sign‑in and no API key. It speaks MCP over Streamable HTTP and is stateless.
 
 **Status: phase 1.** Public market data only. Signing in to use your own exchange accounts through the hosted server is planned for a later phase. Until then, account data and trading need the [local server](#local-server).
 
 #### Claude (web and desktop)
+
+There are two ways to add it. Both connect to the same server.
+
+**Plugin (paid plans).** The CCXT plugin adds the connector plus a skill that tells Claude how to use it. Go to **Customize > Plugins**, select **Add**, then **Add marketplace**, and enter `ccxt/ccxt-plugins`. Add **CCXT**, then connect it on the plugin's **Connectors** tab. On Team and Enterprise, an Owner can add the marketplace for everyone under **Organization settings > Plugins & skills > Add > Sync from GitHub**.
+
+**Connector (every plan, including Free).**
 
 - **One click:** open [this link](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=CCXT&connectorUrl=https%3A%2F%2Fdocs.ccxt.com%2Fmcp). claude.ai opens the **Add custom connector** dialog with the name and URL filled in. Review them, then add the connector. The link only fills in the form; nothing is added until you confirm.
 - **By hand:** go to [Customize > Connectors](https://claude.ai/customize/connectors), select **Add**, then **Add custom connector**. Enter the name `CCXT` and the URL `https://docs.ccxt.com/mcp`, click **Continue**, choose **No sign-in** under **Authentication** (or keep the option marked **Detected**), then click **Add**.
@@ -66,28 +73,29 @@ A connector added on the web or desktop is available in your conversations on mo
 
 #### Claude Code (hosted)
 
+Install the plugin, which adds the server plus a skill that teaches Claude how to use it:
+
+```bash
+claude plugin install ccxt --marketplace ccxt/ccxt-plugins
+```
+
+Inside a session, `/plugin marketplace add ccxt/ccxt-plugins` then `/plugin install ccxt@ccxt` does the same. Or add only the server:
+
 ```bash
 claude mcp add --transport http ccxt https://docs.ccxt.com/mcp
 ```
 
 If you already use the local server under the name `ccxt`, give this one another name, such as `ccxt-hosted`.
 
-Or install the plugin, which adds the server plus a skill that teaches Claude how to use it:
-
-```
-/plugin marketplace add ccxt/ccxt
-/plugin install ccxt@ccxt
-```
-
 Claude Code asks before each MCP tool call until you allow the server. A plugin cannot pre-approve its own tools, so add the rule yourself, in `~/.claude/settings.json` (all projects) or a project's `.claude/settings.json`, or with `/permissions`:
 
 ```json
-{ "permissions": { "allow": [ "mcp__ccxt__*", "mcp__plugin_ccxt_ccxt__*" ] } }
+{ "permissions": { "allow": [ "mcp__plugin_ccxt_ccxt__*", "mcp__ccxt__*" ] } }
 ```
 
-The first rule covers `claude mcp add ... ccxt` (use your server name if you chose another), the second the `ccxt@ccxt` plugin. Every hosted tool is read-only, so this allows no writes.
+The first rule covers the `ccxt` plugin, the second `claude mcp add ... ccxt` (use your server name if you chose another). Every hosted tool is read-only, so this allows no writes.
 
-The same marketplace also has the local server's plugin, `ccxt-mcp@ccxt`. Claude Code is a terminal: it shows the text summaries, not the interactive views.
+The same marketplace also has the local server's plugin, `ccxt-local` ([below](#claude-code)). Claude Code is a terminal: it shows the text summaries, not the interactive views.
 
 #### ChatGPT (web)
 
@@ -103,7 +111,19 @@ The same marketplace also has the local server's plugin, `ccxt-mcp@ccxt`. Claude
 
 #### ChatGPT desktop app, Codex CLI and the Codex IDE extension
 
-These three share one configuration ([OpenAI docs](https://learn.chatgpt.com/docs/extend/mcp)):
+These three share one configuration. The plugin adds the server plus the usage skill:
+
+```bash
+codex plugin marketplace add ccxt/ccxt-plugins
+```
+
+```bash
+codex plugin add ccxt@ccxt
+```
+
+Then restart the ChatGPT desktop app. On a ChatGPT workspace, an admin can import the marketplace for everyone under **Admin > Plugins > Add > Import marketplace** with `https://github.com/ccxt/ccxt-plugins`. *The plugin route has not been checked with a real ChatGPT desktop or Codex install yet.*
+
+Or add only the server ([OpenAI docs](https://learn.chatgpt.com/docs/extend/mcp)):
 
 - **ChatGPT desktop app:** open **Settings**, then **MCP servers**. Select **Add server**, enter the name `ccxt`, choose **Streamable HTTP** and enter `https://docs.ccxt.com/mcp`. Save, then select **Restart**.
 - **Codex IDE extension:** the gear menu, then **MCP servers**, then the same steps. Finish with **Restart extension**.
@@ -115,8 +135,6 @@ These three share one configuration ([OpenAI docs](https://learn.chatgpt.com/doc
   ```
 
   Run `codex mcp list` to check it.
-
-This repository also has a plugin marketplace for ChatGPT desktop and Codex: `codex plugin marketplace add ccxt/ccxt` adds it, and the `ccxt` plugin then appears in the Plugins Directory. *Not yet tested with a real ChatGPT desktop or Codex install.* The ccxt repository is large; `--sparse .agents/plugins --sparse mcp/hosted/plugin` should limit the checkout to the files needed (also untested).
 
 #### Cursor (hosted)
 
@@ -182,9 +200,19 @@ Requires Node.js ≥ 20. The server runs with `npx -y ccxt-mcp` — no global in
 
 #### Claude Code
 
+Install the `ccxt-local` plugin, which runs the server and adds its usage skill:
+
+```bash
+claude plugin install ccxt-local --marketplace ccxt/ccxt-plugins
+```
+
+Or add only the server:
+
 ```bash
 claude mcp add ccxt -- npx -y ccxt-mcp
 ```
+
+The permission rule for the plugin's tools is `mcp__plugin_ccxt-local_ccxt__*`. Allow by name only the tools you want to run without asking: the local server can trade on accounts where you enabled it.
 
 Or per‑project via a committed `.mcp.json` (safe to commit — it contains no secrets):
 

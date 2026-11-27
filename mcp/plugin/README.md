@@ -4,12 +4,13 @@ Installs the official [CCXT MCP server](https://github.com/ccxt/ccxt/tree/master
 
 ## Install
 
-```
-/plugin marketplace add ccxt/ccxt
-/plugin install ccxt-mcp@ccxt
+```bash
+claude plugin install ccxt-local --marketplace ccxt/ccxt-plugins
 ```
 
-This registers a stdio MCP server named `ccxt` (run via `npx -y ccxt-mcp`; requires Node.js ≥ 20) and loads the `ccxt-mcp` skill. Tools appear namespaced as `mcp__ccxt__<tool>`.
+The published copy is named `ccxt-local` and lives in [ccxt/ccxt-plugins](https://github.com/ccxt/ccxt-plugins), a small repository, so installing it does not clone all of ccxt. This folder's own name, `ccxt-mcp@ccxt` from the `ccxt/ccxt` marketplace, keeps working for existing installs.
+
+This registers a stdio MCP server named `ccxt` (run via `npx -y ccxt-mcp`; requires Node.js ≥ 20) and loads the `ccxt-mcp` skill.
 
 ## What you get
 
