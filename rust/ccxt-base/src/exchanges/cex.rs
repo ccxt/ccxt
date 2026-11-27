@@ -318,7 +318,7 @@ impl crate::exchange::DerivedExchange for Cex {
     fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         self.check_address(&[&Value::from(address.as_deref())]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -342,7 +342,7 @@ impl crate::exchange::DerivedExchange for Cex {
             direction = Some("in".to_string());
         }
         let currencyId: Option<String> = self.safe_string_k_opt(item, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved));
         let timestampString: Option<String> = self.safe_string_k_opt(item, "timestamp", &[]);
         let timestamp: Option<i64> = self.parse8601(timestampString.map(Value::from).unwrap_or(Value::Null));

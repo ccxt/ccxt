@@ -7697,7 +7697,7 @@ impl Mexc {
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (response.len() as i64) } {
             let entry: crate::value::Dict = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
-            let currency: crate::types::Currency = self.safe_currency(currencyId.as_deref(), None);
+            let currency: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[]);
             let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
             if (codes == Value::Null) || (self.in_array(&code, &codes)) {
                 withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_transaction_fee(&entry, &[&crate::Value::from(Some(&currency))])));

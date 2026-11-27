@@ -589,7 +589,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let type_var: Option<String> = self.safe_string_k_opt(item, "event_type", &[]);
         let change: Option<String> = self.safe_string_k_opt(item, "amount", &[]);
         let balance: Option<String> = self.safe_string_k_opt(item, "balance", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(Some("USDC"), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(Some("USDC"), &[crate::Value::from(currency)]);
         let mut direction: Option<String> = None;
         let mut amount: Option<String> = change.clone();
         if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -4681,7 +4681,7 @@ if _try_result.is_err() {
         let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsAddress]);
         let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_29]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let transactions: crate::value::List = self.parse_transactions(&data, Some(&self.safe_currency(code.as_str(), None)), &[]);
+        let transactions: crate::value::List = self.parse_transactions(&data, Some(&self.safe_currency(code.as_str(), &[])), &[]);
         let deposits: crate::value::List = self.filter_by(Value::Arr(transactions), Value::Str("type".into()), Value::Str("deposit".into()), &[]);
         return Value::Arr(self.filter_by_since_limit(&deposits, since, limit, &[Value::Str("timestamp".into())]));
         Value::Null
@@ -4727,7 +4727,7 @@ if _try_result.is_err() {
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsAddress]);
         let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_30]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let transactions: crate::value::List = self.parse_transactions(&data, Some(&self.safe_currency(code.as_str(), None)), &[]);
+        let transactions: crate::value::List = self.parse_transactions(&data, Some(&self.safe_currency(code.as_str(), &[])), &[]);
         let withdrawals: crate::value::List = self.filter_by(Value::Arr(transactions), Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
         return Value::Arr(self.filter_by_since_limit(&withdrawals, since, limit, &[Value::Str("timestamp".into())]));
         Value::Null

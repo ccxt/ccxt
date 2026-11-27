@@ -652,7 +652,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
         let type_var: Option<String> = self.parse_ledger_entry_type(self.safe_string2(item, Value::Str("type".into()), Value::Str("finance_type".into()), &[]).as_str());
         let currencyId: Option<String> = self.safe_string2_opt(item, Value::Str("currency_mark".into()), Value::Str("currency".into()), &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let amount: Option<f64> = self.safe_number2(item, Value::Str("num".into()), Value::Str("change".into()), &[]).as_f64();
         let after: Option<f64> = self.safe_number_k(item, "balance", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_timestamp_k(item, "time", &[]).as_i64();

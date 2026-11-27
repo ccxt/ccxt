@@ -327,7 +327,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         //         }
         //     }
         //
-        let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(None, &[crate::Value::from(currency)]);
         let mut fee: Option<crate::value::Dict> = None;
         let feeCost: Option<f64> = self.safe_number_k(transaction, "fee", &[]).as_f64();
         if (feeCost.is_some()) {

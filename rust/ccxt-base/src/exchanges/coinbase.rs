@@ -888,7 +888,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
         }
         let currencyId: Option<String> = self.safe_string_k_opt(&amountInfo, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         //
         // the address and txid do not belong to the unified ledger structure
         //

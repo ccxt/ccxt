@@ -1147,7 +1147,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(item, "date", &[]));
         let currencyId: Option<String> = self.safe_string_k_opt(item, "asset", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let before: Option<String> = self.safe_string_k_opt(item, "old_balance", &[]);
         let mut after: Option<String> = self.safe_string_k_opt(item, "new_balance", &[]);
         let feeCost: Option<String> = self.safe_string_k_opt(item, "fee", &[]);

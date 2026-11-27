@@ -557,7 +557,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let item: Value = item.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&item, "token", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let amount: Option<f64> = self.safe_number_k(&item, "amount", &[]).as_f64();
         let side: Option<String> = self.safe_string_k_opt(&item, "token_side", &[]);
         let direction: String = (if (side.as_deref() == Some("DEPOSIT")) { "in".to_string() } else { "out".to_string() });

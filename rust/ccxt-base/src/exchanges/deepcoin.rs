@@ -655,7 +655,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
             direction = "out".to_string();
         }
         let currencyId: Option<String> = self.safe_string_k_opt(item, "ccy", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let type_var: Option<String> = self.safe_string_k_opt(item, "type", &[]);
         return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -329,7 +329,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
             direction = "out".to_string();
         }
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(item, "executedAt", &[]));
         let mut fee: Option<crate::value::Dict> = None;
         let feeCost: Option<String> = self.safe_string_k_opt(item, "feesAmount", &[]);

@@ -988,7 +988,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let address: Option<String> = self.safe_string_k_opt(transaction, "address", &[]);
         let txid: Option<String> = self.safe_string_k_opt(transaction, "txHash", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(transaction, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_string_k_opt(&currencyResolved, "code", &[]);
         let networkId: Option<String> = self.safe_string_k_opt(transaction, "chainName", &[]);
         let timestamp: Option<i64> = self.safe_integer_n(transaction, Value::from(vec![Value::Str("createdAt".into()), Value::Str("submitedAt".into()), Value::Str("submittedAt".into())]), &[]).as_i64();
@@ -6108,7 +6108,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if isStableSettled {
             return value;
         }
-        let currency: crate::types::Currency = self.safe_currency(currencyCode.as_str(), None);
+        let currency: crate::types::Currency = self.safe_currency(currencyCode.as_str(), &[]);
         let scale: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&currency, "info"), "valueScale", &[]);
         let tickPrecision: Option<String> = self.parse_precision(&[scale.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
         return crate::precise::Precise::stringMul(&value, &tickPrecision.map(Value::from).unwrap_or(Value::Null));
@@ -7093,9 +7093,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let fromCurrencyId: Option<String> = self.safe_string_k_opt(&data, "fromCurrency", &[]);
-        let fromResult: crate::types::Currency = self.safe_currency(fromCurrencyId.as_deref(), Some(&fromCurrency));
+        let fromResult: crate::types::Currency = self.safe_currency(fromCurrencyId.as_deref(), &[crate::Value::from(Some(&fromCurrency))]);
         let toCurrencyId: Option<String> = self.safe_string_k_opt(&data, "toCurrency", &[]);
-        let to: crate::types::Currency = self.safe_currency(toCurrencyId.as_deref(), Some(&toCurrency));
+        let to: crate::types::Currency = self.safe_currency(toCurrencyId.as_deref(), &[crate::Value::from(Some(&toCurrency))]);
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, Some(&fromResult), Some(&to));
         Value::Null
         }).await?))

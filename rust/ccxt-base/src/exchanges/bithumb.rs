@@ -643,7 +643,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
         //
         let type_var: Option<String> = self.safe_string_k_opt(transaction, "type", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(transaction, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let datetime: Option<String> = self.safe_string_k_opt(transaction, "created_at", &[]);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         if (datetime.is_some()) && (datetime.as_deref().unwrap_or_default().contains("+09:00")) {

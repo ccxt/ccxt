@@ -5564,7 +5564,7 @@ impl Derive {
         //         }
         //     }
         //
-        let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
+        let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]);
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let deposits: crate::value::List = self.safe_list_k_t(&result, "deposits");
         return Value::Arr(self.parse_transactions(&deposits, Some(&currency), &[&Value::from(since), &Value::from(limit), &Value::Dict(paramsDeriveSubaccountId)]));
@@ -5636,7 +5636,7 @@ impl Derive {
         //         }
         //     }
         //
-        let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
+        let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]);
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let withdrawals: crate::value::List = self.safe_list_k_t(&result, "withdrawals");
         return Value::Arr(self.parse_transactions(&withdrawals, Some(&currency), &[&Value::from(since), &Value::from(limit), &Value::Dict(paramsDeriveSubaccountId)]));

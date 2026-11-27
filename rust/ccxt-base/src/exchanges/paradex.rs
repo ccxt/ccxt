@@ -4917,7 +4917,7 @@ impl Paradex {
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.safe_currency(code.as_str(), None));
+            currency = Some(self.safe_currency(code.as_str(), &[]));
         }
         if (limit.is_some()) {
             request.insert("page_size".into(), Value::from(limit));

@@ -1052,7 +1052,7 @@ impl crate::exchange::DerivedExchange for Okx {
             tag = self.safe_string_k_opt(&addrEx, "comment", &[]);
         }
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "ccy", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_string_k_opt(&currencyResolved, "code", &[]);
         let chain: Option<String> = self.safe_string_k_opt(depositAddress, "chain", &[]);
         let networks: crate::value::Dict = self.safe_dict_k_t(&currencyResolved, "networks");
@@ -1156,7 +1156,7 @@ impl crate::exchange::DerivedExchange for Okx {
         //
         let currencyId: Option<String> = self.safe_string_k_opt(item, "ccy", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer_k(item, "ts", &[]).as_i64();
         let feeCostString: Option<String> = self.safe_string_k_opt(item, "fee", &[]);
         let mut fee: Option<crate::value::Dict> = None;

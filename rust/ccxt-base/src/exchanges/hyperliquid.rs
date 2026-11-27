@@ -5988,7 +5988,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             //
             // the sub-account branches below already hand back the unified structure; the
             // spot <> swap branch returned the raw acknowledgement, breaking the shape
-            let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
+            let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]);
             return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&transferResponse), Some(&currency)).map_or(Value::Null, Value::Dict);
         }
         // transfer between main account and subaccount
@@ -6093,7 +6093,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&request]).await;
-            return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), Some(&self.safe_currency(code.as_str(), None))).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), Some(&self.safe_currency(code.as_str(), &[]))).map_or(Value::Null, Value::Dict);
         }  else {
             // Transfer spot tokens (including spot USDC) with subAccountSpotTransfer - the api
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"

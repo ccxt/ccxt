@@ -440,7 +440,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let timestamp: Option<i64> = self.safe_integer_k(item, "event_timestamp_ms", &[]).as_i64();
         let currencyId: Option<String> = self.safe_string_k_opt(item, "instrument_name", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let mut amount: Option<String> = self.safe_string_k_opt(item, "transaction_qty", &[]);
         let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -3812,7 +3812,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let currency: crate::types::Currency = self.safe_currency(code.as_str(), None); // for instance, USDC is not inferred from markets but it's still available
+        let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]); // for instance, USDC is not inferred from markets but it's still available
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3874,7 +3874,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
+        let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -4011,7 +4011,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.safe_currency(code.as_str(), None));
+            currency = Some(self.safe_currency(code.as_str(), &[]));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since.is_some()) {
@@ -4088,7 +4088,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.safe_currency(code.as_str(), None));
+            currency = Some(self.safe_currency(code.as_str(), &[]));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since.is_some()) {
@@ -4285,7 +4285,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
-            currency = Some(self.safe_currency(code.as_str(), None));
+            currency = Some(self.safe_currency(code.as_str(), &[]));
         }
         if (since.is_some()) {
             request.insert("start_time".into(), Value::from(since));

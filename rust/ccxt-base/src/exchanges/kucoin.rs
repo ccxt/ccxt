@@ -450,7 +450,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
         let id: Option<String> = self.safe_string_k_opt(item, "id", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(item, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let amount: Option<String> = self.safe_string_k_opt(item, "amount", &[]);
         let balanceAfter: Value = self.safe_number_omit_zero(item, Value::Str("balance".into()), &[]);
         let bizType: Option<String> = self.safe_string_n_opt(item, Value::from(vec![Value::Str("bizType".into()), Value::Str("businessType".into()), Value::Str("type".into())]), &[]);
@@ -1345,7 +1345,7 @@ if _try_result.is_err() {
         });
         let networkId: Option<String> = self.safe_string_k_opt(&fee, "chain", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(fee, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), self.safe_string_k(&currencyResolved, "code", &[]).as_str());
         if (networkCode.is_some()) {
             let mut networks: indexmap::IndexMap<String, Value> = ({

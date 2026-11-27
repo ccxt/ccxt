@@ -1041,7 +1041,7 @@ impl crate::exchange::DerivedExchange for Xt {
             direction = "in".to_string();
         }
         let currencyId: Option<String> = self.safe_string_k_opt(item, "coin", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer_k(item, "createdTime", &[]).as_i64();
         return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();

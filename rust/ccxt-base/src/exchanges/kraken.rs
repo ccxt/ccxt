@@ -651,7 +651,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         //
         let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
         let tag: Option<String> = self.safe_string_k_opt(depositAddress, "tag", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(None, &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_string_k_opt(&currencyResolved, "code", &[]);
         self.check_address(&[&Value::from(address.as_deref())]);
         return Some(std::sync::Arc::new({
@@ -688,7 +688,7 @@ impl crate::exchange::DerivedExchange for Kraken {
         let type_var: Option<String> = self.parse_ledger_entry_type(self.safe_string_k(item, "type", &[]).as_str());
         let currencyId: Option<String> = self.safe_string_k_opt(item, "asset", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let mut amount: Option<String> = self.safe_string_k_opt(item, "amount", &[]);
         if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
             direction = Some("out".to_string());

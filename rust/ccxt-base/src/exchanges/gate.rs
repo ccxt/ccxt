@@ -1075,7 +1075,7 @@ impl crate::exchange::DerivedExchange for Gate {
             direction = Some("in".to_string());
         }
         let currencyId: Option<String> = self.safe_string_k_opt(item, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let type_var: Option<String> = self.safe_string_k_opt(item, "type", &[]);
         let mut rawTimestamp: String = self.safe_string_k(item, "time", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rawTimestampLength: i64 = (rawTimestamp.chars().count() as i64);
@@ -6200,7 +6200,7 @@ if _try_result.is_err() {
         let response: crate::value::Dict = self.private_wallet_get_deposit_address(&[&__ws_arg_5]).await.unwrap_or_default();
         let chains: crate::value::List = self.safe_list_k_t(&response, "multichain_addresses");
         let currencyId: Option<String> = self.safe_string_k_opt(&response, "currency", &[]);
-        currency = self.safe_currency(currencyId.as_deref(), Some(&currency));
+        currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(Some(&currency))]);
         let parsed: Value = self.parse_deposit_addresses(&chains, &[Value::Null, Value::Bool(false)]);
         return Value::Dict(self.index_by(parsed, Value::Str("network".into())));
         Value::Null

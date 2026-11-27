@@ -374,7 +374,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
         let tag: Option<String> = self.safe_string_k_opt(depositAddress, "addressTag", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved));
         let networkId: Option<String> = self.safe_string_k_opt(depositAddress, "chain", &[]);
         let networks: crate::value::Dict = self.safe_dict_k_t(&currencyResolved, "networks");

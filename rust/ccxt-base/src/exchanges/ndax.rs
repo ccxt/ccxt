@@ -614,7 +614,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         //     }
         //
         let currencyId: Option<String> = self.safe_string_k_opt(item, "ProductId", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let credit: Option<String> = self.safe_string_k_opt(item, "CR", &[]);
         let debit: Option<String> = self.safe_string_k_opt(item, "DR", &[]);
         let mut amount: Option<String> = None;

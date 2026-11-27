@@ -299,7 +299,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         }
         self.check_address(&[&Value::from(address.as_deref())]);
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let networkId: Option<String> = self.safe_string_k_opt(depositAddress, "network", &[]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -447,7 +447,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             tagTo = tag.clone();
         }
         let currencyId: Option<String> = self.safe_string_k_opt(transaction, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let completed: bool = self.safe_bool_k_opt(transaction, "status", &[Value::Bool(false)]).unwrap_or(false);
         let dismissed: bool = self.safe_bool_k_opt(transaction, "dismissed", &[Value::Bool(false)]).unwrap_or(false);
         let rejected: bool = self.safe_bool_k_opt(transaction, "rejected", &[Value::Bool(false)]).unwrap_or(false);

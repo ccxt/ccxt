@@ -2800,7 +2800,7 @@ impl Hibachi {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
+        let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), self.get_account_id());

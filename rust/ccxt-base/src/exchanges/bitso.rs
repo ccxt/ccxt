@@ -353,7 +353,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         let amount: Option<String> = self.safe_string_k_opt(&firstBalance, "amount", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(&firstBalance, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let details: crate::value::Dict = self.safe_dict_k_t(item, "details");
         let mut referenceId: Option<String> = self.safe_string2_opt(&details, Value::Str("fid".into()), Value::Str("wid".into()), &[]);
         if (referenceId.is_none()) {
@@ -481,7 +481,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         //     }
         //
         let currencyId: Option<String> = self.safe_string2_opt(transaction, Value::Str("currency".into()), Value::Str("asset".into()), &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let details: crate::value::Dict = self.safe_dict_k_t(transaction, "details");
         let datetime: Option<String> = self.safe_string_k_opt(transaction, "created_at", &[]);
         let withdrawalAddress: Option<String> = self.safe_string_k_opt(&details, "withdrawal_address", &[]);
@@ -1190,7 +1190,7 @@ impl Bitso {
         //     }
         //
         let payload: crate::value::List = self.safe_list_k_t(&response, "payload");
-        let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
+        let currency: crate::types::Currency = self.safe_currency(code.as_str(), &[]);
         return self.parse_ledger(&payload, Some(&currency), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))

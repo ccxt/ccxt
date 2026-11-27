@@ -881,7 +881,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let type_var: Option<String> = self.parse_ledger_entry_type(self.safe_string_k(item, "flowTypeValue", &[]).as_str());
         let currencyId: Option<String> = self.safe_string_k_opt(item, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let amountString: Option<String> = self.safe_string_k_opt(item, "change", &[]);
         let amount: Option<f64> = self.parse_number(Value::from(amountString.as_deref()), &[]).as_f64();
         let mut direction: String = "in".to_string();

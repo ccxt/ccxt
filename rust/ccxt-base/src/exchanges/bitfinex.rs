@@ -442,7 +442,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         let id: Option<String> = self.safe_string_opt(&itemList, Value::Int(0), &[]);
         let currencyId: Option<String> = self.safe_string_opt(&itemList, Value::Int(1), &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer(&itemList, Value::Int(3), &[]).as_i64();
         let amount: Option<f64> = self.safe_number(&itemList, Value::Int(5), &[]).as_f64();
         let after: Option<f64> = self.safe_number(&itemList, Value::Int(6), &[]).as_f64();

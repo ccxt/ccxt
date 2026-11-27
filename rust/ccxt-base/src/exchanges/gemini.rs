@@ -448,13 +448,16 @@ impl crate::exchange::DerivedExchange for Gemini {
             settleId = self.safe_string_k_opt(&response, "contract_price_currency", &[]);
         }  else {
             // if no detailed API was called, then parse either string or array
-            if isString {
+            if matches!(&response, Value::Str(_)) {
                 marketId = response.clone();
             }  else {
                 marketId = self.safe_string_lower(&response, Value::Int(0), &[]);
                 tickSize = self.parse_number(self.parse_precision(&[self.safe_string(&response, Value::Int(1), &[])]), &[]).as_f64(); // priceTickDecimalPlaces
                 amountPrecision = self.parse_number(self.parse_precision(&[self.safe_string(&response, Value::Int(2), &[])]), &[]).as_f64(); // quantityTickDecimalPlaces
                 minSize = self.safe_number(&response, Value::Int(3), &[]).as_f64(); // quantityMinimum
+            }
+            if (marketId == Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseMarket() missing marketId")));
             }
             let marketIdUpper: Option<String> = marketId.as_str().map(str::to_uppercase);
             let isPerp: bool = marketIdUpper.as_deref().unwrap_or_default().contains("PERP");

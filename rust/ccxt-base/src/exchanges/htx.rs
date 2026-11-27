@@ -884,7 +884,7 @@ impl crate::exchange::DerivedExchange for Htx {
         let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
         let tag: Option<String> = self.safe_string_k_opt(depositAddress, "addressTag", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved));
         let note: Option<String> = self.safe_string_k_opt(depositAddress, "note", &[]);
         let networkId: Option<String> = self.safe_string_k_opt(depositAddress, "chain", &[]);
@@ -937,7 +937,7 @@ impl crate::exchange::DerivedExchange for Htx {
         //
         let currencyId: Option<String> = self.safe_string_k_opt(item, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let id: Option<String> = self.safe_string_k_opt(item, "transactId", &[]);
         let transferType: Option<String> = self.safe_string_k_opt(item, "transferType", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(item, "transactTime", &[]).as_i64();

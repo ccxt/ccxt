@@ -1254,7 +1254,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         //
         let tag: Option<String> = self.safe_string_k_opt(depositAddress, "tag", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "coin", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let code: Option<String> = self.safe_string_k_opt(&currencyResolved, "code", &[]);
         let rawAddress: Option<String> = self.safe_string2_opt(depositAddress, Value::Str("addressWithPrefix".into()), Value::Str("address".into()), &[]);
         let networkId: Option<String> = self.safe_string_k_opt(depositAddress, "network", &[]);

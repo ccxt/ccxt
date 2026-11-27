@@ -356,7 +356,7 @@ impl crate::exchange::DerivedExchange for Luno {
         let timestamp: Option<i64> = self.safe_integer_k(entry, "timestamp", &[]).as_i64();
         let currencyId: Option<String> = self.safe_string_k_opt(entry, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let available_delta: Option<String> = self.safe_string_k_opt(entry, "available_delta", &[]);
         let balance_delta: Option<String> = self.safe_string_k_opt(entry, "balance_delta", &[]);
         let after: Option<String> = self.safe_string_k_opt(entry, "balance", &[]);

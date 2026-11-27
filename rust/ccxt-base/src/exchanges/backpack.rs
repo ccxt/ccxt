@@ -814,7 +814,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         //
         let address: Option<String> = self.safe_string_k_opt(depositAddress, "address", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(depositAddress, "currency", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(depositAddress));

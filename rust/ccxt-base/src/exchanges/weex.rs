@@ -863,7 +863,7 @@ impl crate::exchange::DerivedExchange for Weex {
         //
         let currencyId: Option<String> = self.safe_string2_opt(item, Value::Str("coinName".into()), Value::Str("asset".into()), &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer2(item, Value::Str("cTime".into()), Value::Str("time".into()), &[]).as_i64();
         let amountRaw: Option<String> = self.safe_string2_opt(item, Value::Str("deltaAmount".into()), Value::Str("income".into()), &[]);
         let after: Option<String> = self.safe_string2_opt(item, Value::Str("afterAmount".into()), Value::Str("balance".into()), &[]);

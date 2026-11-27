@@ -579,7 +579,7 @@ impl crate::exchange::DerivedExchange for Aster {
         }
         let currencyId: Option<String> = self.safe_string_k_opt(item, "asset", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer_k(item, "time", &[]).as_i64();
         let type_var: Option<String> = self.safe_string_k_opt(item, "incomeType", &[]);
         return Some(self.safe_ledger_entry(Value::Map({

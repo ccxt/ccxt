@@ -1276,7 +1276,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         //
         let currencyId: Option<String> = self.safe_string2_opt(item, Value::Str("coin".into()), Value::Str("currency".into()), &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let amountString: Option<String> = self.safe_string2_opt(item, Value::Str("amount".into()), Value::Str("change".into()), &[]);
         let afterString: Option<String> = self.safe_string2_opt(item, Value::Str("wallet_balance".into()), Value::Str("cashBalance".into()), &[]);
         let mut direction: String = "in".to_string();
@@ -11534,7 +11534,7 @@ impl Bybit {
             m
         });
         if (code != Value::Null) {
-            currency = Some(self.safe_currency(code.as_str(), None));
+            currency = Some(self.safe_currency(code.as_str(), &[]));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         if (since.is_some()) {

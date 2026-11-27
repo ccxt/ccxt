@@ -693,7 +693,7 @@ impl crate::exchange::DerivedExchange for Woo {
         //
         let networkizedCode: Option<String> = self.safe_string_k_opt(&item, "token", &[]);
         let code: Option<String> = self.safe_currency_code(networkizedCode.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(code.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(code.as_deref(), &[crate::Value::from(currency)]);
         let amount: Option<f64> = self.safe_number_k(&item, "amount", &[]).as_f64();
         let side: Option<String> = self.safe_string_k_opt(&item, "tokenSide", &[]);
         let mut direction: String = "out".to_string();
@@ -4831,7 +4831,7 @@ impl Woo {
             if partsLength > 2 {
                 currencyId = Some(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]), Value::Str("_".into())).into()), self.safe_string(&parts, Value::Int(2), &[Value::Str("".into())])));
             }
-            return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId.as_deref(), None));
+            return crate::types::IntoRaw::into_raw(self.safe_currency(currencyId.as_deref(), &[]));
         }
 
     Value::Null

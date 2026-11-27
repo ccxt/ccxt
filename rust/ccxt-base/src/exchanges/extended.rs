@@ -539,7 +539,7 @@ impl crate::exchange::DerivedExchange for Extended {
         let timestamp: Option<i64> = self.safe_integer_k(item, "time", &[]).as_i64();
         let assetId: Option<String> = self.safe_string_k_opt(item, "asset", &[]);
         let code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[&crate::Value::from(currency)]);
-        let ledgerCurrency: crate::types::Currency = self.safe_currency(code.as_deref(), currency);
+        let ledgerCurrency: crate::types::Currency = self.safe_currency(code.as_deref(), &[crate::Value::from(currency)]);
         let amountString: Option<String> = self.safe_string_k_opt(item, "amount", &[]);
         let mut direction: Option<String> = None;
         if (amountString.is_some()) {

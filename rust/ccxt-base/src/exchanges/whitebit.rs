@@ -846,7 +846,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //         "centralized": false,
         //     }
         //
-        let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(None, &[crate::Value::from(currency)]);
         let address: Option<String> = self.safe_string_k_opt(transaction, "address", &[]);
         let timestamp: Option<i64> = self.safe_timestamp_k(transaction, "createdAt", &[]).as_i64();
         let currencyId: Option<String> = self.safe_string_k_opt(transaction, "ticker", &[]);

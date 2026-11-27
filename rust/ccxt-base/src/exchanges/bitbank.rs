@@ -309,7 +309,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
         //     }
         //
         let txid: Option<String> = self.safe_string_k_opt(transaction, "txid", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(None, &[crate::Value::from(currency)]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(txid.as_deref()));

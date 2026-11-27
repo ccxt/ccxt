@@ -284,7 +284,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         //         "updated_timestamp": "1453912088"
         //     }
         //
-        let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(None, &[crate::Value::from(currency)]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(transaction, "id", &[]));

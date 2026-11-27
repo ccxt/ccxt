@@ -383,7 +383,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         //
         let currencyId: Option<String> = self.safe_string_k_opt(item, "symbol", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let type_var: Option<String> = self.safe_string_upper_k_opt(item, "type", &[]);
         let mut direction: Option<String> = None;
         if (type_var.is_some()) {

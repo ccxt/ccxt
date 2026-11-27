@@ -1361,7 +1361,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         //
         let currencyId: Option<String> = self.safe_string_k_opt(item, "coin", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer2(item, Value::Str("cTime".into()), Value::Str("ts".into()), &[]).as_i64();
         let balanceString: Option<String> = self.safe_string_k_opt(item, "balance", &[]);
         let after: Option<f64> = self.parse_number(Value::from(balanceString.as_deref()), &[]).as_f64();

@@ -502,7 +502,7 @@ impl crate::exchange::DerivedExchange for Toobit {
 }
     fn parse_ledger_entry(&self, item: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let currencyId: Option<String> = self.safe_string_k_opt(item, "coinId", &[]);
-        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
+        let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), &[crate::Value::from(currency)]);
         let timestamp: Option<i64> = self.safe_integer_k(item, "created", &[]).as_i64();
         let after: Option<f64> = self.safe_number_k(item, "total", &[]).as_f64();
         let amountRaw: String = self.safe_string_k(item, "change", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
