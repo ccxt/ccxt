@@ -713,9 +713,8 @@ class btcturk(Exchange, ImplicitAPI):
         request['to'] = untilSeconds
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-        limitResolved = None
+        limitResolved = limit
         if limit is not None:
-            limitResolved = limit
             if limit > 11000:
                 limitResolved = 11000  # max 11000 candles diapason can be covered
         elif since is None:
