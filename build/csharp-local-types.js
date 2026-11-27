@@ -190,16 +190,7 @@ export const CORE_NUMERIC_ARGS = {
     'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'withdraw': { 1: 'double' },
     'buildOHLCVC': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchPaginatedCallCursor': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchPaginatedCallDeterministic': { 3: 'Int64?' },
-    'fetchPaginatedCallDynamic': { 3: 'Int64?' },
-    'filterByLimit': { 1: 'Int64?' },
-    'filterBySinceLimit': { 2: 'Int64?' },
-    'filterByValueSinceLimit': { 4: 'Int64?' },
-    'filterBySymbolSinceLimit': { 3: 'Int64?' },
-    'filterByCurrencySinceLimit': { 3: 'Int64?' },
-    'filterByOutcomeSinceLimit': { 3: 'Int64?' },
-    'parseOHLCVs': { 4: 'Int64?' },
+    'fetchPaginatedCallCursor': { 2: 'Int64?' },
 };
 // retype-cs-divide-arith: numeric parameters used in divide(p, N)/divide(N, p) take the C# twin of their TS annotation so the call prints native. Name-keyed, so base and overrides...
 export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = { 'safeDeterministicCall': { 2: 'Int64?', 3: 'Int64?' }, 'fetchPaginatedCallDeterministic': { 2: 'Int64?' }, 'createTwapOrder': { 3: 'double' }, 'fetchPaginatedCallDynamic': { 2: 'Int64?' }, };
@@ -10139,6 +10130,16 @@ export const SIGNATURE_ARG_TYPES = {
     // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int6...
     'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 4: 'IDictionary<string, object>', 5: 'string', 7: 'Dictionary<string, object>', 8: 'string' },
     'waitForTransactionReceipt': { 2: 'Int64?' },
+    'filterByLimit': { 1: 'Int64?' },
+    'filterBySinceLimit': { 2: 'Int64?' },
+    'filterByValueSinceLimit': { 4: 'Int64?' },
+    'filterBySymbolSinceLimit': { 3: 'Int64?' },
+    'filterByCurrencySinceLimit': { 3: 'Int64?' },
+    'filterByOutcomeSinceLimit': { 3: 'Int64?' },
+    'parseOHLCVs': { 4: 'Int64?' },
+    'fetchPaginatedCallCursor': { 3: 'Int64?' },
+    'fetchPaginatedCallDeterministic': { 3: 'Int64?' },
+    'fetchPaginatedCallDynamic': { 3: 'Int64?' },
     // PredictionExchange only (no overrides): `events: any[]` prints IList<object> and is never written
     'applyEventFetchParams': { 0: 'IList<object>' },
     // every caller passes a declared dictionary member, an entry view (exceptionsExact / exceptionsWsExact) or a dictionary local
