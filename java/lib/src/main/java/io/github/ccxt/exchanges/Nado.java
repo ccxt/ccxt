@@ -3631,8 +3631,8 @@ public class Nado extends NadoApi
         if (java.util.Objects.requireNonNullElse(left, true))
         {
             String paddedLeft = (zeros + value);
-            Long start = (((long) paddedLeft.length()) - this.parseToInt(length));
-            return (paddedLeft == null ? null : paddedLeft.substring((int) Math.min(Math.min(Math.max(start < 0 ? paddedLeft.length() + start : start, 0), paddedLeft.length()), paddedLeft.length()), (int) paddedLeft.length()));
+            Long start = (((long) paddedLeft.length()) - length);
+            return (paddedLeft == null ? null : paddedLeft.substring((int) Math.min(Math.max(start < 0 ? paddedLeft.length() + start : start, 0), paddedLeft.length())));
         }
         String paddedRight = (value + zeros);
         Long end = this.parseToInt(length);

@@ -11829,7 +11829,8 @@ public class Binance extends BinanceApi
             if (Boolean.TRUE.equals(stock))
             {
                 // request['endTime'] holds endTime whenever endTime is defined
-                Long endTimeResolved = this.safeInteger(request, "endTime", this.milliseconds());
+                Long endTimeRequest = this.safeInteger(request, "endTime");
+                Long endTimeResolved = (((!java.util.Objects.equals(endTimeRequest, null)))) ? endTimeRequest : this.milliseconds();
                 if (java.util.Objects.equals(endTime, null))
                 {
                     request.put("endTime", endTimeResolved);

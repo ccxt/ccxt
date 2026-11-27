@@ -238,23 +238,19 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            Object subscription = (client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))));
-            if ((subscription instanceof Map))
+            String request = this.safeString((client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))), "request");
+            if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+") && !(sent.containsKey(request)))
             {
-                String request = this.safeString(subscription, "request");
-                if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+") && !(sent.containsKey(request)))
+                sent.put(request, true);
+                try
                 {
-                    sent.put(request, true);
-                    try
+                    (client.send(request)).join();
+                } catch(Exception e)
+                {
+                    // the connection is gone, the client reconnects on the next watch call
+                    if (this.verbose)
                     {
-                        (client.send(request)).join();
-                    } catch(Exception e)
-                    {
-                        // the connection is gone, the client reconnects on the next watch call
-                        if (this.verbose)
-                        {
-                            this.log(("ibkrKeepAliveSession resubscribe failed " + this.exceptionMessage(e, true)));
-                        }
+                        this.log(("ibkrKeepAliveSession resubscribe failed " + this.exceptionMessage(e, true)));
                     }
                 }
             }
@@ -357,12 +353,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            Object subscription = (client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))));
-            if ((subscription instanceof Map))
+            String request = this.safeString((client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))), "request");
+            if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+"))
             {
-                String request = this.safeString(subscription, "request");
-                String conid = this.safeString(subscription, "conid");
-                if ((!java.util.Objects.equals(request, null)) && request.startsWith("smd+") && (java.util.Objects.equals(conid, marketId)))
+                String conid = this.safeString((client.subscriptions == null || (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)) == null ? null : client.subscriptions.get((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)))), "conid");
+                if (java.util.Objects.equals(conid, marketId))
                 {
                     return null;  // still in use
                 }
@@ -851,7 +846,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < (stored == null ? 0 : stored.size()); i++)
         {
             Object candle = (stored == null || i < 0 || i >= stored.size() ? null : stored.get(i));
-            if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(Helpers.GetValue(candle, 0), lastHistoryTimestamp)))
+            Long candleTimestamp = this.safeInteger(candle, 0, 0);
+            if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || ((candleTimestamp != null && (lastHistoryTimestamp == null || candleTimestamp > lastHistoryTimestamp))))
             {
                 bars.add(candle);
             }
@@ -980,10 +976,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             if ((length != null && length > 0))
             {
                 Object lastCandle = (stored == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= stored.size() ? null : stored.get(((int) (((long) length) - 1L))));
-                if (Helpers.isEqual(Helpers.GetValue(lastCandle, 0), candleTimestamp))
+                Long lastTimestamp = this.safeInteger(lastCandle, 0, 0);
+                if (java.util.Objects.equals(lastTimestamp, candleTimestamp))
                 {
                     candle = lastCandle;
-                } else if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(Helpers.GetValue(lastCandle, 0), candleTimestamp))
+                } else if ((lastTimestamp != null && (candleTimestamp == null || lastTimestamp > candleTimestamp)))
                 {
                     continue;
                 }

@@ -435,7 +435,7 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(name, ""), null)) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(name, ""), "")))
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(name, ""), ""))
         {
             return ((this.shortenSlug(java.util.Objects.requireNonNullElse(name, "")) + "_") + outcomeId);
         }

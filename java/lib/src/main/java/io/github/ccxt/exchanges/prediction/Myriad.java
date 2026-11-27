@@ -4155,7 +4155,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", "");
         String marketId = this.safeString(info, "marketId", "");
-        String sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        String sym = this.safeString(outcomeObj, "outcome");
         String channel = ((("trades:" + networkId) + ":") + marketId);
         String messageHash = "myTrades";
         List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
@@ -4486,12 +4486,12 @@ public class Myriad extends MyriadApi
             Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             networkId = this.safeString(info, "networkId", networkId);
-            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString(outcomeObj, "outcome");
         }
         String channel = ((("orders:" + networkId) + ":") + trader);
         String messageHash = "orders";
         List<Object> orders = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
-        return this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limit, true);
 
     }
 

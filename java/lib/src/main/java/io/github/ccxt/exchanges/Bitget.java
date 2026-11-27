@@ -7005,15 +7005,16 @@ public class Bitget extends BitgetApi
         Boolean historicalEndpointNeeded = (java.util.Objects.equals(useHistoryEndpoint, true));
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        Long calculatedStartTime = null;
-        Long calculatedEndTime = null;
+        // the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        Boolean hasEndTime = (!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null));
+        Long calculatedEndTime = now;
         if (!java.util.Objects.equals(since, null))
         {
-            calculatedStartTime = since;
             request.put("startTime", since);
             if (java.util.Objects.equals(until, null))
             {
-                calculatedEndTime = this.sum(since, recentDuration);
+                Long sinceEndTime = (Long) this.sum(since, recentDuration);
+                calculatedEndTime = sinceEndTime;
                 if ((since != null && since > (now - recentDuration)))
                 {
                     calculatedEndTime = now;
@@ -7033,7 +7034,6 @@ public class Bitget extends BitgetApi
             if (java.util.Objects.equals(since, null))
             {
                 Long untilStartTime = (untilEndTime - recentDuration);
-                calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
                 if ((!java.util.Objects.equals(recentEndpointAvailableDays, null)) && ((untilStartTime == null || untilStartTime <= (now - (((recentEndpointAvailableDays - 1L)) * ((long) msInDay))))))
                 {
@@ -7047,17 +7047,19 @@ public class Bitget extends BitgetApi
             Long historicalLimit = ((((recentLimit != null && (maxLimitForHistoryEndpoint == null || recentLimit > maxLimitForHistoryEndpoint))))) ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             Long historicalDuration = (historicalLimit * duration);
-            calculatedStartTime = (calculatedEndTime == null ? null : calculatedEndTime - historicalDuration);
-            request.put("startTime", calculatedStartTime);
-            // for contract, maximum 90 days allowed between start-end times
-            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
+            if (Boolean.TRUE.equals(hasEndTime))
             {
-                Long maxDistanceForContracts = (90L * ((long) msInDay));
-                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if ((!java.util.Objects.equals(calculatedEndTime, null)) && ((historicalDuration != null && (maxDistanceForContracts == null || historicalDuration > maxDistanceForContracts))))
+                Long historicalStartTime = (calculatedEndTime == null ? null : calculatedEndTime - historicalDuration);
+                request.put("startTime", historicalStartTime);
+                // for contract, maximum 90 days allowed between start-end times
+                if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
-                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
-                    request.put("endTime", calculatedEndTime);
+                    Long maxDistanceForContracts = (90L * ((long) msInDay));
+                    // endTime - startTime is historicalDuration here
+                    if ((historicalDuration != null && (maxDistanceForContracts == null || historicalDuration > maxDistanceForContracts)))
+                    {
+                        request.put("endTime", this.sum(historicalStartTime, maxDistanceForContracts));
+                    }
                 }
             }
         }

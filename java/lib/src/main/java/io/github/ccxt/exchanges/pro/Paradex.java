@@ -2811,7 +2811,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Long entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             Long numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2L), 2));
             position = (position + 4L);
-            if ((((entryLength == null || entryLength < 16))) || (((frameEnd == null || this.parseToInt(this.sum(position, (numInGroup * entryLength))) > frameEnd))))
+            Long groupEnd = this.parseToInt(this.sum(position, (numInGroup * entryLength)));
+            if ((((entryLength == null || entryLength < 16))) || ((groupEnd != null && (frameEnd == null || groupEnd > frameEnd))))
             {
                 return null;
             }

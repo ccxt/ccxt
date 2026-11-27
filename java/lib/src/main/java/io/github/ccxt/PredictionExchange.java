@@ -380,17 +380,18 @@ public Map<String, Object> describe()
             for (var ti = 0; ti < eventTags.size(); ti++)
             {
                 Object tag = (eventTags == null || ti < 0 || ti >= eventTags.size() ? null : eventTags.get(ti));
-                Object tagLabel = null;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                String tagLabel = "";
                 if ((tag instanceof String))
                 {
-                    tagLabel = tag;
+                    tagLabel = this.safeString(eventTags, ti, "");
                 } else
                 {
-                    tagLabel = this.safeString2(tag, "slug", "title");
+                    tagLabel = this.safeString2(tag, "slug", "title", "");
                 }
-                if (!java.util.Objects.equals(tagLabel, null))
+                String tagKey = this.normalizeTagKey(tagLabel);
+                if (!java.util.Objects.equals(tagKey, ""))
                 {
-                    String tagKey = this.normalizeTagKey(tagLabel);
                     for (var wi = 0; wi < wanted.size(); wi++)
                     {
                         if ((tagKey == null || wanted == null || wi < 0 || wi >= wanted.size() || wanted.get(wi) == null ? -1 : tagKey.indexOf(wanted.get(wi))) >= 0)

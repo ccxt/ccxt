@@ -194,9 +194,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             return result;
         } catch(Exception e)
         {
-            Object future = this.safeValue(this.options.get("urls"), connectId);
+            Map<String, Object> urls = this.safeDict(this.options, "urls", new HashMap<String, Object>() {{}});
+            Object future = this.safeValue(urls, connectId);
             ((io.github.ccxt.ws.Future)future).reject(e);
-            ((Map<String,Object>)this.options.get("urls")).remove((String)connectId);
+            this.options.put("urls", this.omit(urls, connectId));
         }
         return null;
 

@@ -404,7 +404,8 @@ public class Sxbet extends SxbetApi
         String teamTwoName = this.safeString(raw, "teamTwoName", "");
         String outcomeOneName = this.safeString(raw, "outcomeOneName");
         String outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        String eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
+        String matchTitle = ((teamOneName + " ") + teamTwoName);
+        String eventSlug = this.shortenSlug(matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -541,7 +542,7 @@ public class Sxbet extends SxbetApi
         Integer tagsLength = tags.size();
         for (var i = 0; (tagsLength != null && i < tagsLength); i++)
         {
-            queries.add((tags == null || i < 0 || i >= tags.size() ? null : tags.get(i)));
+            queries.add(this.safeString(tags, i, ""));
         }
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit")));
         List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
@@ -754,7 +755,8 @@ public class Sxbet extends SxbetApi
         if ((!java.util.Objects.equals(teamOneName, null)) && (!java.util.Objects.equals(teamTwoName, null)))
         {
             title = ((teamOneName + " vs ") + teamTwoName);
-            eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
+            String matchTitle = ((teamOneName + " ") + teamTwoName);
+            eventSlug = this.shortenSlug(matchTitle);
         } else
         {
             eventSlug = this.shortenSlug(fixtureId);
@@ -3395,23 +3397,20 @@ public class Sxbet extends SxbetApi
         {
             return null;
         }
-        Object message = this.safeValue(response, "message");
-        if (java.util.Objects.equals(message, null))
+        // validation failures arrive in string-array form, business errors in single-code-string form
+        Object messageList = this.safeList(response, "message", new ArrayList<Object>(Arrays.asList()));
+        String messageString = this.safeString(response, "message");
+        if (!java.util.Objects.equals(this.safeString(messageList, 0), null))
+        {
+            messageString = String.join(", ", (List<String>)messageList);
+        }
+        if (java.util.Objects.equals(messageString, null))
         {
             return null;
         }
-        // validation failures arrive in string-array form, business errors in single-code-string form
-        Object messageString = null;
-        if ((message instanceof List))
-        {
-            messageString = String.join(", ", (List<String>)message);
-        } else
-        {
-            messageString = message;
-        }
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (messageString), feedback);
-        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), messageString, feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), messageString, feedback);
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if ((code != null && code == 400))

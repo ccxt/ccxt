@@ -2480,7 +2480,7 @@ public class Opinion extends OpinionApi
         Long marketId = this.safeInteger(info, "marketId");
         String messageHash = "orders";
         List<Object> orders = (List<Object>) (this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId)).join();
-        String sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        String sym = this.safeString(outcomeObj, "outcome");
         return this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true);
 
     }
@@ -2620,7 +2620,7 @@ public class Opinion extends OpinionApi
         Long marketId = this.safeInteger(info, "marketId");
         String messageHash = "myTrades";
         List<Object> trades = (List<Object>) (this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId)).join();
-        String sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        String sym = this.safeString(outcomeObj, "outcome");
         return this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true);
 
     }

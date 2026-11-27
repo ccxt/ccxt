@@ -1091,10 +1091,6 @@ public class Predictfun extends PredictfunApi
      */
     public String stripPriceFormatting(String text)
     {
-        if (java.util.Objects.equals(text, null))
-        {
-            return null;
-        }
         String digits = "0123456789";
         List<String> chars = this.stringToCharsArray(text);
         String stripped = "";
@@ -1155,6 +1151,10 @@ public class Predictfun extends PredictfunApi
         if (((marketCount != null && marketCount == 1)) && (!java.util.Objects.equals(topicSlug, null)))
         {
             return topicSlug;
+        }
+        if (java.util.Objects.equals(title, null))
+        {
+            return "";
         }
         return this.stripPriceFormatting(title);
     }
@@ -1295,7 +1295,7 @@ public class Predictfun extends PredictfunApi
             Object rawOutcome = (rawOutcomes == null || oi < 0 || oi >= rawOutcomes.size() ? null : rawOutcomes.get(oi));
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            String rawLabel = this.safeStringUpper(rawOutcome, "name");
+            String rawLabel = this.safeStringUpper(rawOutcome, "name", "");
             String label = this.stripPriceFormatting(rawLabel);
             String tokenId = this.safeString(rawOutcome, "onChainId");
             String outcomeHandle = ((marketSymbol + ":") + label);
@@ -4170,7 +4170,8 @@ public class Predictfun extends PredictfunApi
         {
             eventHandle = this.shortenSlug(topicSlug);
         }
-        String label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
+        String rawOutcomeName = this.safeStringUpper(details, "outcomeName");
+        String label = (((!java.util.Objects.equals(rawOutcomeName, null)))) ? this.stripPriceFormatting(rawOutcomeName) : null;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("outcome", null);

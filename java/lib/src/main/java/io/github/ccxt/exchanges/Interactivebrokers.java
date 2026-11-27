@@ -1287,12 +1287,15 @@ public class Interactivebrokers extends InteractivebrokersApi
     public Object ibkrGatewayOnSessionLost()
     {
         this.options.remove("gatewayAuthenticatedTimestamp");
-        Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if (java.util.Objects.equals(lostTimestamp, null))
+        Long lostTimestamp = this.milliseconds();
+        Long storedTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
+        if (java.util.Objects.equals(storedTimestamp, null))
         {
-            lostTimestamp = this.milliseconds();
             this.options.put("gatewaySessionLostTimestamp", lostTimestamp);
             this.ibkrGatewayScheduleRegain();
+        } else
+        {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }
@@ -3313,7 +3316,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var fieldsqueryVariable = this.handleOptionAndParams(parameters, "fetchTickers", "fields", null);
         var fields = ((List<Object>) fieldsqueryVariable).get(0);
         var query = ((List<Object>) fieldsqueryVariable).get(1);
-        String fieldsString = String.join(",", (List<String>)fields);
+        String fieldsString = String.join(",", (List<String>)(List<String>)(fields));
         List<String> readyFields = new ArrayList<String>(Arrays.asList("31", "84", "86"));
         Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
         //
