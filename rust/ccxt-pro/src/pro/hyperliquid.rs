@@ -73,11 +73,13 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_pong" => crate::Value::Dict(self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_ws_tickers" => self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => Value::Dict(self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_balance" => self.un_watch_balance(&args[..].iter().collect::<Vec<_>>()).await,
+                "un_watch_bids_asks" => crate::types::IntoRaw::into_raw(self.un_watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -88,6 +90,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "wait_for_pending_unsubscribe" => self.wait_for_pending_unsubscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
+                "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_my_liquidations" => crate::types::IntoRaw::into_raw(self.watch_my_liquidations(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_my_liquidations_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_my_liquidations_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -120,6 +123,8 @@ impl Hyperliquid {
             "expire_pending_unsubscribe" => crate::exchange_stubs::enqueue_spawn("expire_pending_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_active_asset_ctx" => { self.handle_active_asset_ctx(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_bid_ask_unsubscription" => { self.handle_bid_ask_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_liquidations" => { self.handle_my_liquidations(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -144,12 +149,14 @@ impl Hyperliquid {
             "handle_ws_post" => { self.handle_ws_post(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ws_tickers" => { self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_balance" => { self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "ping" => { Value::Dict(self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
             "request_id" => { self.request_id(); },
             "set_positions_cache" => { self.set_positions_cache(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "un_watch_balance" => crate::exchange_stubs::enqueue_spawn("un_watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_bids_asks" => crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()),
             "un_watch_my_trades" => crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
             "un_watch_ohlcv" => crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()),
             "un_watch_order_book" => crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -160,6 +167,7 @@ impl Hyperliquid {
             "un_watch_trades" => crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
             "wait_for_pending_unsubscribe" => crate::exchange_stubs::enqueue_spawn("wait_for_pending_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_balance" => crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_bids_asks" => crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_my_liquidations" => crate::exchange_stubs::enqueue_spawn("watch_my_liquidations", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_my_liquidations_for_symbols" => crate::exchange_stubs::enqueue_spawn("watch_my_liquidations_for_symbols", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_my_trades" => crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -198,6 +206,7 @@ impl Hyperliquid {
         m.insert("createOrdersWs".to_string(), Value::Bool(true));
         m.insert("editOrderWs".to_string(), Value::Bool(true));
         m.insert("watchBalance".to_string(), Value::Bool(true));
+        m.insert("watchBidsAsks".to_string(), Value::Bool(true));
         m.insert("watchMyLiquidations".to_string(), Value::Bool(true));
         m.insert("watchMyLiquidationsForSymbols".to_string(), Value::Bool(true));
         m.insert("watchMyTrades".to_string(), Value::Bool(true));
@@ -210,6 +219,7 @@ impl Hyperliquid {
         m.insert("watchTradesForSymbols".to_string(), Value::Bool(false));
         m.insert("watchPosition".to_string(), Value::Bool(false));
         m.insert("unWatchBalance".to_string(), Value::Bool(true));
+        m.insert("unWatchBidsAsks".to_string(), Value::Bool(true));
         m.insert("watchPositions".to_string(), Value::Bool(true));
         m.insert("unWatchPositions".to_string(), Value::Bool(true));
         m.insert("unWatchOrderBook".to_string(), Value::Bool(true));
@@ -641,6 +651,170 @@ impl Hyperliquid {
         orderbook.reset(Value::Dict(snapshot));
         let messageHash: String = format!("{}{}", "orderbook:", symbol);
         client.resolve(Value::from(&orderbook), messageHash.as_str());
+}
+
+/*
+ * @method
+ * @name hyperliquid#watchBidsAsks
+ * @description watches the best bid & ask of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+    pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        if (self.markets.is_none()) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut market: crate::types::Market = (match self.market((self.single_bid_ask_symbol("watchBidsAsks", &[symbols]).map(Value::from).unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let messageHash: String = format!("{}{}", "bidask:", symbol);
+        let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), Value::Str("subscribe".into()));
+                m.insert("subscription".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("type".to_string(), Value::Str("bbo".into()));
+        m.insert("coin".to_string(), (if (market).swap { crate::value::KeyRead::key_read(&&market, "baseName") } else { Value::from((market).id.as_deref()) }));
+    m
+}));
+            m
+        });
+        let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&params]);
+        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), messageHash.as_str()).await;
+        let ticker: Value = self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        if self.newUpdates.as_bool() == Some(true) {
+            let mut result: indexmap::IndexMap<String, Value> = ({
+                let m = indexmap::IndexMap::new();
+                m
+            });
+            result.insert(symbol.clone(), ticker);
+            return Value::Map(result);
+        }
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), Value::from(vec![Value::from(symbol)])));
+        Value::Null
+        }).await?))
+    }
+
+/*
+ * @method
+ * @name hyperliquid#unWatchBidsAsks
+ * @description unWatches the best bid & ask of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the exchange response
+ */
+    pub async fn un_watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        if (self.markets.is_none()) {
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        }
+        let mut market: crate::types::Market = (match self.market((self.single_bid_ask_symbol("unWatchBidsAsks", &[symbols]).map(Value::from).unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let subMessageHash: String = format!("{}{}", "bidask:", symbol);
+        let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
+        let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
+        let nonce: i64 = self.incrementing_nonce();
+        let id: Option<String> = self.number_to_string(Value::from(nonce));
+        let request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                m.insert("method".to_string(), Value::Str("unsubscribe".into()));
+                m.insert("subscription".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("type".to_string(), Value::Str("bbo".into()));
+        m.insert("coin".to_string(), (if (market).swap { crate::value::KeyRead::key_read(&&market, "baseName") } else { Value::from((market).id.as_deref()) }));
+    m
+}));
+            m
+        });
+        let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&params]);
+        return self.watch(url.as_deref(), &messageHash[..], &message, &messageHash[..], Value::Null).await;
+        Value::Null
+        }).await?))
+    }
+
+/*
+ * @method
+ * @ignore
+ * @name hyperliquid#singleBidAskSymbol
+ * @description the bbo stream is subscribed per market, returns the only symbol of the list or throws
+ * @param {string} methodName the name of the calling method
+ * @param {string[]} symbols a list with a single unified symbol
+ * @returns {string} the symbol
+ */
+    pub fn single_bid_ask_symbol(&self, methodName: &str, optional_args: &[Value]) -> Option<String> {
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let mut symbolsLength: i64 = 0;
+        if (symbols != Value::Null) {
+            symbolsLength = symbols.len() as i64;
+        }
+        if (symbolsLength != 1) {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(methodName)).into()), "() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol")));
+        }
+        return self.safe_string_opt(symbols, Value::Int(0), &[&Value::Str("".into())]);
+}
+
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        //
+        //     {
+        //         "channel": "bbo",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "time": 1795692679488,
+        //             "bbo": [
+        //                 { "px": "60612.0", "sz": "12.46853", "n": 39 },
+        //                 { "px": "60613.0", "sz": "1.43894", "n": 8 }
+        //             ]
+        //         }
+        //     }
+        //
+        let entry: crate::value::Dict = message.key_dict("data");
+        let ticker: crate::value::Dict = self.parse_ws_bid_ask(&entry, None);
+        let symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
+        let messageHash: String = format!("{}{}", "bidask:", symbol);
+        client.resolve(Value::Dict(ticker), messageHash.as_str());
+}
+
+    pub fn parse_ws_bid_ask(&self, ticker: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        let coin: Option<String> = self.safe_string_k_opt(&ticker, "coin", &[]);
+        let marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
+        let timestamp: Option<i64> = self.safe_integer_k(&ticker, "time", &[]).as_i64();
+        // either side is null when the book has no orders on it
+        let levels: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&ticker, "bbo"));
+        let bid: crate::value::Dict = levels.get(0).cloned().unwrap_or_default();
+        let ask: crate::value::Dict = levels.get(1).cloned().unwrap_or_default();
+        return self.safe_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("bid".to_string(), self.safe_string_k(&bid, "px", &[]));
+        m.insert("bidVolume".to_string(), self.safe_string_k(&bid, "sz", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(&ask, "px", &[]));
+        m.insert("askVolume".to_string(), self.safe_string_k(&ask, "sz", &[]));
+        m.insert("info".to_string(), Value::from(ticker));
+    m
+}), Some(&marketResolved));
+
+    Default::default()
 }
 
 /*
@@ -2491,6 +2665,26 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
+    pub fn handle_bid_ask_unsubscription(&mut self, client: &Value, mut subscription: Value) {
+        let __subscription_empty = indexmap::IndexMap::new();
+        let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
+        //
+        //        "subscription":{
+        //           "type":"bbo",
+        //           "coin":"BTC"
+        //        }
+        //
+        let coin: Option<String> = (match subscription.get("coin") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
+        let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
+        let subMessageHash: String = format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null"));
+        let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
+        self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
+        if (matches!((&self.bidsasks, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+        }
+}
+
     pub fn handle_ticker_unsubscription(&mut self, client: &Value, mut subscription: Value) {
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
@@ -2636,6 +2830,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("l2Book")) {
             self.handle_order_book_unsubscription(client, subscription);
+        }  else if (type_var.as_deref() == Some("bbo")) {
+            self.handle_bid_ask_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("trades")) {
             self.handle_trades_unsubscription(client, subscription);
         }  else if (type_var.as_deref() == Some("candle")) {
@@ -2680,6 +2876,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("pong".to_string(), Value::Str("handle_pong".into()));
                 m.insert("trades".to_string(), Value::Str("handle_trades".into()));
                 m.insert("l2Book".to_string(), Value::Str("handle_order_book".into()));
+                m.insert("bbo".to_string(), Value::Str("handle_bid_ask".into()));
                 m.insert("candle".to_string(), Value::Str("handle_ohlcv".into()));
                 m.insert("orderUpdates".to_string(), Value::Str("handle_order".into()));
                 m.insert("userFills".to_string(), Value::Str("handle_my_trades".into()));
