@@ -1318,6 +1318,7 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'pro:kraken': { 'orderRequestWs': [ 1, 2 ], 'watchPrivate': [ 0, 1 ] },
     'pro:krakenfutures': { 'parseWsTicker': [ 1 ] },
     'pro:kucoin': { 'parseWsOrderStatus': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchTrades': [ 0 ], 'watchMultiHelper': [ 1 ] },
+    'pro:hashkey': { 'setBalanceCache': [ 1 ] },
     'pro:lbank': { 'parseWsOrderStatus': [ 0 ] },
     'pro:lighter': { 'subscribePrivate': [ 0 ], 'unWatchMarkPrice': [ 0 ], 'unWatchMyTrades': [ 0 ], 'unWatchOrders': [ 0 ], 'unWatchTrades': [ 0 ] },
     'pro:mexc': { 'parseWsOrderStatus': [ 0 ], 'parseWsOrderType': [ 0 ], 'unWatchFundingRate': [ 0 ], 'unWatchTrades': [ 0 ] },
@@ -5132,6 +5133,7 @@ function csharpStripParens (text: string): string { let t = text.trim (); while 
 function arithmeticTwinType (name: string, left: string, right: string): string | undefined {
     const nullable = left.endsWith ('?') || right.endsWith ('?');
     const anyDouble = left.startsWith ('double') || right.startsWith ('double');
+    if (name === 'add') { if (anyDouble) return undefined; return nullable ? 'Int64?' : ((left === 'int' && right === 'int') ? 'int' : 'Int64'); }
     if (name === 'subtract') { if (nullable) return undefined; return anyDouble ? 'double' : ((left === 'int' && right === 'int') ? 'int' : 'Int64'); }
     if (name === 'multiply') { if (anyDouble) return undefined; return nullable ? 'Int64?' : 'Int64'; }
     return nullable ? 'double?' : 'double';
@@ -5139,7 +5141,7 @@ function arithmeticTwinType (name: string, left: string, right: string): string 
 function arithmeticTwinRewrite (text: string, typeOfName: (name: string) => string | undefined, results: Map<string, string>): string {
     let out = '';
     let last = 0;
-    const callRe = /(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/g;
+    const callRe = /(?<![A-Za-z0-9_.])(add|subtract|multiply|divide)\(/g;
     const calls = [];
     let m;
     while ((m = callRe.exec (text)) !== null) {
@@ -5171,7 +5173,8 @@ function arithmeticTwinRewrite (text: string, typeOfName: (name: string) => stri
             } else {
                 // int x int promotes to int where the Int64 twin multiplies Int64: widen an int literal only
                 if ((twin === 'Int64') && (typed[0].type === 'int') && (typed[1].type === 'int')) { R = typed[1].literal ? R + 'L' : undefined; }
-                native = (R === undefined) ? undefined : '(' + L + ((call.name === 'subtract') ? ' - ' : ' * ') + R + ')';
+                const op = (call.name === 'add') ? ' + ' : ((call.name === 'subtract') ? ' - ' : ' * ');
+                native = (R === undefined) ? undefined : '(' + L + op + R + ')';
             }
         }
         const result = native ?? rebuilt;

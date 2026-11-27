@@ -1099,24 +1099,6 @@ func Int64Arg(v any) int64 {
 	panic(ArgumentsRequired(fmt.Sprintf("expected an integer argument, got %T: %v", v, v)))
 }
 
-// Float64Arg converts a dynamically passed required number argument; nil or any other type
-// panics (ArgumentsRequired) instead of coercing
-func Float64Arg(v any) float64 {
-	switch value := derefScalar(v).(type) {
-	case float64:
-		return value
-	case float32:
-		return float64(value)
-	case int:
-		return float64(value)
-	case int32:
-		return float64(value)
-	case int64:
-		return float64(value)
-	}
-	panic(ArgumentsRequired(fmt.Sprintf("expected a number argument, got %T: %v", v, v)))
-}
-
 func ToString(v any) string {
 	v = derefScalar(v)
 	switch v := v.(type) {
@@ -2062,30 +2044,6 @@ func mathMin(a, b any) any {
 
 }
 
-// mathMax returns the maximum of two values of the same type.
-// It supports int, float64, and string types.
-func mathMax(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if a == nil || b == nil {
-		return nil
-	}
-
-	af := ToFloat64(a)
-	bf := ToFloat64(b)
-
-	if af == math.NaN() || bf == math.NaN() {
-		return nil
-	}
-
-	if af > bf {
-		return af
-	}
-
-	return bf
-}
-
 func ParseFloat(input any) any {
 	input = derefScalar(input)
 	switch v := input.(type) {
@@ -2437,7 +2395,7 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 				if k < len(args) {
 					arg = args[k]
 				}
-				in = append(in, reflect.ValueOf(Float64Arg(arg)).Convert(paramType))
+				panic(ArgumentsRequired(fmt.Sprintf("expected a number argument, got %T: %v", arg, arg)))
 			} else if k < len(args) && args[k] != nil && derefScalar(args[k]) != nil {
 				argValue := reflect.ValueOf(args[k])
 				if paramType.Kind() == reflect.Slice && argValue.Kind() == reflect.Slice && argValue.Type() != paramType && argValue.Type().Elem().Kind() == reflect.Interface {

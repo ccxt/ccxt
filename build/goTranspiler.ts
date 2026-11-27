@@ -3510,7 +3510,7 @@ function goGofmtBinarySpacing (content: string): string {
 type Kind = 'i64' | 'f64' | 'int' | 'ilit' | 'flit';
 
 const GO_ARITH_HELPERS = [ 'Subtract', 'Multiply', 'Divide', 'Mod', 'OpNeg', 'IsLessThan', 'IsGreaterThan',
-    'IsGreaterThanOrEqual', 'IsLessThanOrEqual', 'MathMin', 'MathMax', 'MathFloor', 'MathCeil', 'MathRound', 'MathPow' ];
+    'IsGreaterThanOrEqual', 'IsLessThanOrEqual', 'MathMin', 'MathMax', 'mathMax', 'MathFloor', 'MathCeil', 'MathRound', 'MathPow' ];
 const GO_ARITH_CALL_RX = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + GO_ARITH_HELPERS.join ('|') + ')\\(', 'g');
 // BaseExchange methods whose Go signature returns int64 (go/v4/exchange*.go)
 const GO_ARITH_INT64_METHODS = [ 'Milliseconds', 'Seconds', 'ParseToInt', 'ParseTimeframe' ];
@@ -3737,9 +3737,11 @@ function goArithNative (helper: string, args: string[], kinds: Kind[], powDiviso
     const bothInt64 = isInt64Side (ka) && isInt64Side (kb) && ((ka === 'i64') || (kb === 'i64'));
     const bothInt = ((ka === 'int') || (ka === 'ilit')) && ((kb === 'int') || (kb === 'ilit')) && ((ka === 'int') || (kb === 'int'));
     const bothFloat = isFloatSide (ka) && isFloatSide (kb) && ((ka === 'f64') || (kb === 'f64'));
-    if ((helper === 'MathMin') || (helper === 'MathMax')) {
+    if ((helper === 'MathMin') || (helper === 'MathMax') || (helper === 'mathMax')) {
         // the helper answers float64(a|b); integral operands carry no NaN
-        if (bothInt64) { return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' }; }
+        const fn = (helper === 'MathMin') ? 'math.Min' : 'math.Max';
+        if (bothInt64 || bothInt) { return { 'text': fn + '(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' }; }
+        if ((helper === 'mathMax') && bothFloat) { return { 'text': 'math.Max(' + a + ', ' + b + ')', 'kind': 'f64' }; }
         return undefined;
     }
     if ((helper === 'Subtract') || (helper === 'Multiply')) {
@@ -3848,6 +3850,20 @@ function goTypedArithPointerIsNonNil (scope: GoArithScope, name: string): boolea
     const cur = lines[lines.length - 1];
     const guard = '\\(?' + name + ' != nil\\)? && \\(*';
     if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) { return true; }
+    // `var p *float64\n if x == nil { p = y } else { p = x }` right above: non-nil whenever y is non-nil
+    if (lines.length >= 7) {
+        const ind = cur.slice (0, cur.length - cur.trimStart ().length);
+        const l0 = lines[lines.length - 7], l1 = lines[lines.length - 6], l2 = lines[lines.length - 5],
+            l3 = lines[lines.length - 4], l4 = lines[lines.length - 3], l5 = lines[lines.length - 2];
+        const mIf = new RegExp ('^' + ind + 'if ([A-Za-z_]\\w*) == nil \\{$').exec (l1);
+        const mThen = new RegExp ('^' + ind + '\\t' + name + ' = ([A-Za-z_]\\w*)$').exec (l2);
+        if (mIf && mThen && (l0 === ind + 'var ' + name + ' *float64') && (l3 === ind + '} else {')
+            && (l4 === ind + '\t' + name + ' = ' + mIf[1]) && (l5 === ind + '}')) {
+            const yName = mThen[1];
+            const yType = goArithDeclaredType (scope.masked, scope.signature, yName);
+            if ((yType === '*float64') && (goEarlyExitPointerNonNil (scope, yName, yType) || goTypedArithPointerIsNonNil (scope, yName))) { return true; }
+        }
+    }
     let indent = cur.length - cur.replace (/^\t+/, '').length;
     for (let k = lines.length - 2; k >= 0; k--) {
         const line = lines[k];
@@ -3910,6 +3926,15 @@ function goExtraOperandKind (scope: GoArithScope, t: string, m: string): Kind | 
     }
     const conv = /^(int64|int)\(/.exec (m);
     if (conv && (goArithClose (m, conv[0].length - 1) === m.length - 1)) { return (conv[1] === 'int64') ? 'i64' : 'int'; }
+    const builtinMM = /^(min|max)\(/.exec (m);
+    if (builtinMM && (goArithClose (m, builtinMM[0].length - 1) === m.length - 1)) {
+        const spans = goArithArgs (m, builtinMM[0].length - 1, m.length - 1);
+        if (spans.length === 2) {
+            const ks = spans.map (([ s0, e0 ]) => goArithKind (scope, t.slice (s0, e0).trim (), m.slice (s0, e0).trim ()));
+            if (ks.every ((k) => (k === 'i64') || (k === 'ilit')) && ks.some ((k) => k === 'i64')) { return 'i64'; }
+            if (ks.every ((k) => (k === 'int') || (k === 'ilit')) && ks.some ((k) => k === 'int')) { return 'int'; }
+        }
+    }
     return undefined;
 }
 

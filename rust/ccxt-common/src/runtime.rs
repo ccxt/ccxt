@@ -615,9 +615,6 @@ pub mod Math {
         if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().max(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.max(y)), _ => Value::Null }
     }
-    pub fn pow(a: &Value, b: &Value) -> Value {
-        match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.powf(y)), _ => Value::Null }
-    }
 }
 
 // Allow `Math.min(...)` style access through a Math singleton with method

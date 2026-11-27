@@ -132,21 +132,19 @@ public partial class BaseTest
         if (a == null || b == null) return null;
         return Convert.ToDouble(a) > Convert.ToDouble(b) ? a : b;
     }
-    public static object add(object a, object b) => Exchange.add(a, b);
-    // the two string overloads of the base `add` family, so generated test locals that name
-    // their string result (`string feedback = add(add(this.id, " "), body)`) compile here as
-    // they do in the library. They forward through the object overload on purpose: the tests
-    // tier resolved every `add(...)` against add(object, object) before those locals existed,
-    // and the base string overloads use string-concat semantics where the object one keeps a
-    // null left operand as null — the casts keep every existing call's runtime value identical
-    public static string add(string a, string b) => (string)Exchange.add((object)a, (object)b);
-    public static string add(string a, object b) => (string)Exchange.add((object)a, b);
-    // typed numeric twins mirroring Exchange.TranspileHelpers.cs (S57's overload names): a
-    // generated test local whose `a + b` operands are all Int64/int/uint/double must resolve
-    // exactly like the library, and both forward to the same unchecked sum the object
-    // overload's Int64 / double branches compute
-    public static Int64 add(Int64 a, Int64 b) => Exchange.add(a, b);
-    public static double add(double a, double b) => Exchange.add(a, b);
+    public static object add(object a, object b)
+    {
+        a = Exchange.normalizeIntIfNeeded(a);
+        b = Exchange.normalizeIntIfNeeded(b);
+        if (a is Int64) { return (Int64)a + (Int64)b; }
+        if (a is double) { return (double)a + Convert.ToDouble(b); }
+        if (a is string) { return (string)a + (string)b; }
+        return null;
+    }
+    public static string add(string a, string b) => (string)add((object)a, (object)b);
+    public static string add(string a, object b) => (string)add((object)a, b);
+    public static Int64 add(Int64 a, Int64 b) => a + b;
+    public static double add(double a, double b) => a + b;
     public static object multiply(object a, object b)
     {
         a = Exchange.normalizeIntIfNeeded(a);

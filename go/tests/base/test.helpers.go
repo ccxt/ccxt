@@ -354,7 +354,19 @@ func StringArg(v interface{}) string {
 }
 
 func Float64Arg(v interface{}) float64 {
-	return ccxt.Float64Arg(v)
+	switch value := ccxt.DerefScalar(v).(type) {
+	case float64:
+		return value
+	case float32:
+		return float64(value)
+	case int:
+		return float64(value)
+	case int32:
+		return float64(value)
+	case int64:
+		return float64(value)
+	}
+	panic(ccxt.ArgumentsRequired(fmt.Sprintf("expected a number argument, got %T: %v", v, v)))
 }
 
 func ToString(v interface{}) string {
