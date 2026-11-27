@@ -29,7 +29,8 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if GetArg([]any{v}, 0, "def") != "def" {
 			t.Errorf("%s: GetArg did not answer the default", name)
 		}
-		if IsDictionary(v) || IsArray(v) {
+		ex := &BaseExchange{}
+		if ex.IsDictionary(v) || IsArray(v) {
 			t.Errorf("%s: IsDictionary/IsArray = true", name)
 		}
 		if SafeValue(map[string]any{"k": v}, "k", "def") != "def" {
@@ -38,7 +39,6 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if !IsNil(v) || GetArrayLength(v) != 0 || ObjectKeys(v) != nil {
 			t.Errorf("%s: IsNil/GetArrayLength/ObjectKeys differ from absent", name)
 		}
-		ex := &BaseExchange{}
 		if ex.Omit(v, "k") != nil || ex.Clone(v) != nil || ex.ArrayConcat(v, []any{1}) != nil {
 			t.Errorf("%s: Omit/Clone/ArrayConcat differ from absent", name)
 		}

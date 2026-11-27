@@ -61,7 +61,6 @@ export const CORE_NUMERIC_ARGS = {
     'createStopMarketOrderWs': { 2: 'double' },
     'findNearestCeiling': { 1: 'Int64' },
     'isRoundNumber': { 0: 'double?' },
-    'waitForTransactionReceipt': { 2: 'Int64?' },
     'createStopOrderWs': { 3: 'double', 4: 'double?' },
     'createTakeProfitOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
@@ -10117,6 +10116,7 @@ export const SIGNATURE_ARG_TYPES = {
     'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
     // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int6...
     'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 4: 'IDictionary<string, object>', 5: 'string', 7: 'Dictionary<string, object>', 8: 'string' },
+    'waitForTransactionReceipt': { 2: 'Int64?' },
     // PredictionExchange only (no overrides): `events: any[]` prints IList<object> and is never written
     'applyEventFetchParams': { 0: 'IList<object>' },
     // every caller passes a declared dictionary member, an entry view (exceptionsExact / exceptionsWsExact) or a dictionary local
