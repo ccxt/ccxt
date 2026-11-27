@@ -288,7 +288,7 @@ class ndax extends ndax$1["default"] {
                 if (timestamp === undefined) {
                     continue;
                 }
-                const candleTimestamp = this.parseToInt((timestamp / duration) * duration);
+                const candleTimestamp = this.parseToInt(timestamp / duration) * duration;
                 const parsed = [
                     candleTimestamp,
                     this.safeFloat(ohlcv, 3),

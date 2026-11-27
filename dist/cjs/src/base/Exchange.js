@@ -5090,7 +5090,11 @@ class BaseExchange {
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             const ohlcv = ohlcvs[i];
-            const ts = ms ? ohlcv[0] : this.parseToInt(ohlcvs[i][0] / 1000);
+            const rawTs = this.safeInteger(ohlcvs[i], 0);
+            let ts = rawTs;
+            if (!ms && (rawTs !== undefined)) {
+                ts = this.parseToInt(rawTs / 1000);
+            }
             const resultTimestamp = result[timestamp];
             resultTimestamp.push(ts);
             const resultOpen = result[open];
