@@ -4452,6 +4452,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             defaultTimeInForce = "alo".to_string();
         }
         let mut timeInForceLower: Option<String> = self.safe_string_lower_k_opt(params.clone(), "timeInForce", &[Value::from(defaultTimeInForce)]);
+        if (timeInForceLower.as_deref() == Some("po")) {
+            timeInForceLower = Some("alo".to_string()); // the unified post-only time in force is called Alo on hyperliquid
+        }
         let mut timeInForce: String = self.capitalize(timeInForceLower.map(Value::from).unwrap_or(Value::Null));
         let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -5241,6 +5244,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 defaultTimeInForce = "alo".to_string();
             }
             let mut timeInForceLower: Option<String> = self.safe_string_lower_k_opt(&orderParams, "timeInForce", &[Value::from(defaultTimeInForce)]);
+            if (timeInForceLower.as_deref() == Some("po")) {
+                timeInForceLower = Some("alo".to_string()); // the unified post-only time in force is called Alo on hyperliquid
+            }
             let mut timeInForce: String = self.capitalize(timeInForceLower.map(Value::from).unwrap_or(Value::Null));
             let mut clientOrderId: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
             let mut triggerPrice: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
