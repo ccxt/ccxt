@@ -10,7 +10,10 @@ from ccxt.base.types import Balances, Bool, Currency, Int, Market, Num, Order, O
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 from ccxt.base.precise import Precise
 
 
@@ -760,7 +763,7 @@ class mercado(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
-            'quantity': format(amount, '.10f'),
+            'quantity': self.decimal_to_precision(amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address': address,
         }
         if code == 'BRL':

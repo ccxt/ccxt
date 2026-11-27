@@ -1682,8 +1682,8 @@ class htx(ccxt.async_support.htx):
                 for j in range(0, len(messageHashes)):
                     client.resolve([], messageHashes[j])
             return
-        newPositions = []
-        positionsByMarginMode = {}
+        crossPositions = []
+        isolatedPositions = []
         timestamp = self.safe_integer(message, 'ts')
         for i in range(0, len(rawPositions)):
             position = self.parse_position(self.safe_dict(rawPositions, i, {}))
@@ -1696,24 +1696,29 @@ class htx(ccxt.async_support.htx):
             if cache is None:
                 cache = ArrayCacheBySymbolBySide()
                 self.positionsByType[marginMode] = cache
-            newPositions.append(position)
-            positionsByMarginMode[marginMode] = self.safe_list(positionsByMarginMode, marginMode, [])
-            positionsByMarginMode[marginMode].append(position)
+            if marginMode == 'cross':
+                crossPositions.append(position)
+            else:
+                isolatedPositions.append(position)
             cache.append(position)
-        marginModes = list(positionsByMarginMode.keys())
-        for i in range(0, len(marginModes)):
-            marginMode = marginModes[i]
-            marginModePositions = self.safe_list(positionsByMarginMode, marginMode, [])
-            messageHashes = self.find_message_hashes(client, marginMode + ':positions::')
-            for j in range(0, len(messageHashes)):
-                messageHash = messageHashes[j]
-                parts = messageHash.split('::')
-                symbolsString = parts[1]
-                symbols = symbolsString.split(',')
-                positions = self.filter_by_array(marginModePositions, 'symbol', symbols, False)
-                if not self.is_empty(positions):
-                    client.resolve(positions, messageHash)
-            client.resolve(marginModePositions, marginMode + ':positions')
+        crossLength = len(crossPositions)
+        if crossLength > 0:
+            self.resolve_positions_by_margin_mode(client, 'cross', crossPositions)
+        isolatedLength = len(isolatedPositions)
+        if isolatedLength > 0:
+            self.resolve_positions_by_margin_mode(client, 'isolated', isolatedPositions)
+
+    def resolve_positions_by_margin_mode(self, client: Client, marginMode: str, marginModePositions: list[Position]) -> None:
+        messageHashes = self.find_message_hashes(client, marginMode + ':positions::')
+        for j in range(0, len(messageHashes)):
+            messageHash = messageHashes[j]
+            parts = messageHash.split('::')
+            symbolsString = parts[1]
+            symbols = symbolsString.split(',')
+            positions = self.filter_by_array(marginModePositions, 'symbol', symbols, False)
+            if not self.is_empty(positions):
+                client.resolve(positions, messageHash)
+        client.resolve(marginModePositions, marginMode + ':positions')
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
