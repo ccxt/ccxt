@@ -10852,6 +10852,8 @@ ${constStatements.join('\n')}
             // WS fixes
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
+            [/if InOp\(client\.Futures, ("[^"\\]*")\)/g, 'if _, ok := (client.(Client)).Futures[$1]; ok'],
+            [/Remove\(client\.Futures, ("[^"\\]*")\)/g, 'delete((client.(Client)).Futures, $1)'],
             // Symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
             // to an untyped []any{} literal which cannot be assigned to the typed field.
             [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
