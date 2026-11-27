@@ -3412,7 +3412,12 @@ public partial class BaseExchange
         for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
         {
             IList<object> ohlcv = (IList<object>)(ohlcvs[i]);
-            object ts = ms == true ? (ohlcv != null && 0 < ohlcv.Count ? ohlcv[0] : null) : this.parseToInt(divide(getValue(ohlcvs[i], 0), 1000));
+            Int64? rawTs = this.safeInteger(ohlcvs[i], 0);
+            Int64? ts = rawTs;
+            if (ms != true && ((rawTs != null)))
+            {
+                ts = this.parseToInt(((double?)rawTs / 1000));
+            }
             IList<object> resultTimestamp = ((IList<object>)(result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null));
             resultTimestamp.Add(ts);
             IList<object> resultOpen = ((IList<object>)(result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null));

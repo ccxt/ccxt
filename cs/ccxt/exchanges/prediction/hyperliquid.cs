@@ -854,7 +854,7 @@ public partial class hyperliquid : PredictionExchange
         object mid = this.safeNumber(raw, "mid");
         if ((mid == null) && (bid != null) && (ask != null))
         {
-            mid = divide(this.sum(bid, ask), 2);
+            mid = ((bid.Value + ask.Value) / 2);
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         string? parentSymbol = this.safeString(mkt, "market");

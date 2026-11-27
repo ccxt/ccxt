@@ -2636,7 +2636,7 @@ public partial class grvt : Exchange
             Int64 sizeDecLength = (sizeDec.Length + 0L); // php tr
             Int64? sizeDigits = this.parseToInt(size.Replace(".", (string)""));
             double sizeDenominator = Math.Pow(Convert.ToDouble(10), Convert.ToDouble(sizeDecLength));
-            object sizeInteger = divide(((double?)sizeDigits * sizeMultiplier), sizeDenominator);
+            object sizeInteger = (((double?)sizeDigits * sizeMultiplier) / sizeDenominator);
             Dictionary<string, object> legOrder = new Dictionary<string, object>() {
                 { "assetID", this.safeString((market.ContainsKey("info") ? market["info"] : null), "instrument_hash") },
                 { "contractSize", this.parseToInt(sizeInteger) },

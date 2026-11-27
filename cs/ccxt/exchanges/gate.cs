@@ -6874,7 +6874,7 @@ public partial class gate : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
-    public virtual List<object> prepareOrdersByStatusRequest(string? status, object symbol = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public virtual List<object> prepareOrdersByStatusRequest(string? status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> market = null;
@@ -6912,7 +6912,7 @@ public partial class gate : Exchange
         {
             if ((since != null))
             {
-                request["from"] = this.parseToInt(divide(since, 1000));
+                request["from"] = this.parseToInt(((double?)since / 1000));
             }
             Int64? until = this.safeInteger(query, "until");
             if ((until != null))

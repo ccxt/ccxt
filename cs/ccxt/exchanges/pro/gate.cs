@@ -459,7 +459,7 @@ public partial class gate : ccxt.gate
                 throw new NotSupported ((this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
             }
         }
-        var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolResolved, since, limit, parameters);
+        var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object newRequest = this.omit(request, new List<object>() {"settle"});
