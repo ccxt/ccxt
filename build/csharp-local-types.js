@@ -2534,6 +2534,7 @@ function mathMinMaxBoxType (csharp, initializer, context) {
 // the BOX one operand of mathMin / mathMax contributes (see mathMinMaxBoxType): the operand kinds csharpArithmeticOperandKind proves, with a `long` literal named by its box (Int64...
 function mathMinMaxOperandBox (csharp, node, context) {
     const kind = csharpArithmeticOperandKind (csharp, node, context);
+    if (kind === 'long') { return 'Int64'; }
     if (kind === 'int' || kind === 'Int64' || kind === 'double') { return kind; }
     if (kind === undefined) { const type = csharpTypeOfValue (csharp, node, context) ?? printedUnwrittenParameterType (csharp, node); if (type === 'Int64?' || type === 'double?') { return type; } }
     return undefined;
@@ -10020,7 +10021,7 @@ function nativeArithmeticOperandKind (csharp, node) {
         if (isProvablyStringOperand (csharp, node)) {
             return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`
         }
-        return nativeArithmeticKindOfType (csharpTypeOfValue (csharp, node));
+        return nativeArithmeticKindOfType (csharpTypeOfValue (csharp, node) ?? (integerOverloadCallType (node) !== undefined ? integerBoxCastType (csharp, node, { scope: (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (node) : enclosingFunction (node), stack: new Set (), depth: 0 }) : undefined));
     case ts.SyntaxKind.BinaryExpression: return nativeArithmeticResultKind (csharp, node);
     }
     return undefined;
