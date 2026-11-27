@@ -1992,7 +1992,7 @@ class BaseExchange(object):
         is_integer_amount = amount == int(amount)
         if unit in ('w', 'M', 'y') and amount >= 1 and is_integer_amount:
             amount = int(amount)
-            date = datetime.datetime.fromtimestamp(timestamp / 1000, datetime.timezone.utc)
+            date = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc) + datetime.timedelta(milliseconds=timestamp)
             if unit == 'w':
                 monday = date - datetime.timedelta(days=date.weekday(), hours=date.hour, minutes=date.minute, seconds=date.second, microseconds=date.microsecond)
                 epoch_monday = datetime.datetime(1970, 1, 5, tzinfo=datetime.timezone.utc)
