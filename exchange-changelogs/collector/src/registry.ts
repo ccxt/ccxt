@@ -11,7 +11,7 @@ const KINDS: VenueKind[] = [ 'exchange', 'prediction' ];
 const TYPES = [ 'rss', 'md', 'html', 'json', 'hash', 'spec', 'gh-commits' ];
 const SPEC_FORMATS = [ 'openapi', 'postman', 'asyncapi', 'redoc' ];
 const VENUE_KEYS = new Set ([ 'id', 'kind', 'name', 'subclasses', 'domains', 'sources', 'unmonitored' ]);
-const SOURCE_KEYS = new Set ([ 'id', 'type', 'url', 'link', 'months', 'discover', 'role', 'scope', 'headers', 'sharedWith', 'expectBlocked', 'slice', 'split', 'date', 'titleFilter', 'excludeFilter', 'section', 'mapper', 'strip', 'minEntries', 'minChange', 'specFormat', 'repo', 'ref', 'path' ]);
+const SOURCE_KEYS = new Set ([ 'id', 'type', 'url', 'link', 'months', 'discover', 'role', 'scope', 'headers', 'sharedWith', 'expectBlocked', 'slice', 'split', 'date', 'titleFilter', 'titleFrom', 'excludeFilter', 'section', 'mapper', 'strip', 'minEntries', 'minChange', 'specFormat', 'repo', 'ref', 'path' ]);
 const MAPPERS_DIR = resolve (dirname (fileURLToPath (import.meta.url)), 'mappers');
 const HOSTNAME = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
 
@@ -263,6 +263,9 @@ function validateSource (s: unknown, venue: Obj, where: string, errors: string[]
     const domains = isStrArray (venue['domains']) ? venue['domains'] : [];
     if (linkUrl && !domains.some ((d) => linkUrl.hostname === d || linkUrl.hostname.endsWith ('.' + d))) {
         errors.push (`${where}: host of link ?? url (${linkUrl.hostname}) must be in the venue "domains"`);
+    }
+    if (s['titleFrom'] !== undefined && s['titleFrom'] !== 'title' && s['titleFrom'] !== 'body') {
+        errors.push (`${where}.titleFrom must be "title" or "body"`);
     }
     if (s['role'] !== undefined && s['role'] !== 'primary' && s['role'] !== 'secondary') {
         errors.push (`${where}.role must be "primary" or "secondary"`);

@@ -76,6 +76,17 @@ test ('displayTitle: product-name titles get a summary, table rows lose their pi
     assert.equal (makeExcerpt (':warning: The response changes.'), 'The response changes.');
 });
 
+test ('displayTitle: titleFrom body shows the body summary instead of a repeated product label', () => {
+    // rss bodies arrive as plain text (HTML already converted): this is the Interactive Brokers item of 2026-10-30
+    const body = '- The `/iserver/account/{accountId}/alert` endpoint has been reinstated and once again permits clients to create alerts via API.';
+    // default: "IBKR WebAPI" is not a known generic label, so it stays as the title
+    assert.equal (displayTitle ('IBKR WebAPI', body, { date: '2026-10-30' }), 'IBKR WebAPI');
+    // titleFrom body: the summary replaces the label, with no "IBKR WebAPI:" prefix
+    assert.equal (displayTitle ('IBKR WebAPI', body, { date: '2026-10-30', fromBody: true }), 'The /iserver/account/{accountId}/alert endpoint has been reinstated and once again permits clients to create alerts via API.');
+    // an empty body keeps the label rather than an empty title
+    assert.equal (displayTitle ('IBKR TWS API', '', { date: '2026-10-30', fromBody: true }), 'IBKR TWS API');
+});
+
 test ('"Breaking Changes: No" and "Deprecations: No" do not tag', () => {
     assert.deepEqual (ruleTags ('v1.0.11', '**Release Date:** Sep 23, 2026\n\n**Breaking Changes:** No\n\n**Deprecations:** No\n\nAdded client order id.').filter ((t) => t === 'breaking' || t === 'deprecation'), []);
     assert.ok (ruleTags ('v1.0.12', '**Breaking Changes:** Yes — responses changed.').includes ('breaking'));

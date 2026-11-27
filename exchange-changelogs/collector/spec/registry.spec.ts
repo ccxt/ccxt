@@ -29,7 +29,7 @@ test ('common mistakes are reported clearly', () => {
         sources: [
             { id: 'v5', type: 'md', url: 'http://x.com/a', slice: { selector: '.c' }, split: { heading: '([' }, date: { from: 'header' }, mapper: 'x' },
             { id: 'bybit-api', type: 'json', url: 'https://bybit.com/api', mapper: 'doesnotexist' },
-            { id: 'bybit-x', type: 'markdown', url: 'https://bybit.com/x' },
+            { id: 'bybit-x', type: 'markdown', url: 'https://bybit.com/x', titleFrom: 'heading' },
             { id: 'bybit-page', type: 'html', url: 'https://bybit.com/p', split: { heading: 'h2', item: 'tr' }, strip: [ '::bad((' ] },
         ],
     };
@@ -37,7 +37,7 @@ test ('common mistakes are reported clearly', () => {
     for (const expected of [
         'unknown field "extra"', 'kind must be "exchange"', 'domains must be', 'id must look like "bybit-<slug>"', 'type must be one of',
         'url must be https', 'slice.selector is for html/hash sources', 'split.heading is not a valid regex', 'date.from must be', 'mapper is only used by json',
-        'src/mappers/doesnotexist.ts does not exist', 'use heading or item, not both', 'strip[0] is not a valid CSS selector',
+        'src/mappers/doesnotexist.ts does not exist', 'use heading or item, not both', 'strip[0] is not a valid CSS selector', 'titleFrom must be "title" or "body"',
     ]) {
         assert.ok (errors.includes (expected), `missing error: ${expected}\n${errors}`);
     }

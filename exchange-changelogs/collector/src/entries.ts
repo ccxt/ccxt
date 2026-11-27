@@ -132,6 +132,7 @@ export interface TitleContext {
     date?: string | null;   // the date the entry is filed under (baseDate): a leading copy of it is dropped
     keepVersion?: boolean;  // SDK/release sources keep a leading version (keepsVersion)
     order?: DateOrder;      // the source's date order (SourceConfig.date.order), for "8/11/2022: ..."
+    fromBody?: boolean;     // SourceConfig.titleFrom 'body': every title is a bare product label, show the body summary
 }
 
 // SDK and package release sources (id or scope names one SDK, PyPI/npm feeds, GitHub releases):
@@ -240,11 +241,11 @@ export function displayTitle (title: string, body: string, ctx?: TitleContext): 
     }
     const { rest, version } = stripped;
     const summary = bodySummary (body);
-    if (!rest || dateOrVersionOnly (rest) || labelOnly (rest)) {
+    if (!rest || dateOrVersionOnly (rest) || labelOnly (rest) || ctx.fromBody) {
         if (!summary || summary === rest) {
             return rest ? readableLabel ([ version, rest ].filter (Boolean).join (': ')) : title;
         }
-        const label = dateOrVersionOnly (rest) ? '' : rest.replace (/[\s:\u2013\u2014-]+$/, '');
+        const label = (dateOrVersionOnly (rest) || ctx.fromBody) ? '' : rest.replace (/[\s:\u2013\u2014-]+$/, '');
         const head = [ version, label ].filter (Boolean).join (': ');
         return readableLabel (cleanTitle (head ? `${head}: ${cutSummary (summary, SUMMARY_TITLE_CHARS)}` : cutSummary (summary, SUMMARY_TITLE_CHARS)));
     }
@@ -559,7 +560,7 @@ export function buildEntries (raws: ParsedEntry[], ctx: BuildContext): Changelog
             sourceType: source.type,
             sourceLink: link,
             ...(source.scope ? { scope: source.scope } : {}),
-            title: displayTitle (title, body, { date, keepVersion: keepsVersion (source), order: source.date?.order }),
+            title: displayTitle (title, body, { date, keepVersion: keepsVersion (source), order: source.date?.order, fromBody: source.titleFrom === 'body' }),
             excerpt: makeExcerpt (body) || title,
             body,
             url: checked ?? link,

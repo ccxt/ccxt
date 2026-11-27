@@ -1,0 +1,16 @@
+{
+  "id": "interactivebrokers",
+  "kind": "exchange",
+  "name": "Interactive Brokers",
+  "domains": ["interactivebrokers.com", "ibkr.com"],
+  "sources": [
+    {
+      "id": "interactivebrokers-webapi-changelog",
+      "type": "rss",
+      "url": "https://www.interactivebrokers.com/docs/web-api/changelog.rss",
+      "link": "https://www.interactivebrokers.com/docs/web-api/changelog",
+      "scope": "Web API (REST, websocket, OAuth and Client Portal Gateway)",
+      "titleFrom": "body"
+    }
+  ]
+}

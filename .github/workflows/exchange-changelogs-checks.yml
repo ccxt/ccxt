@@ -1,0 +1,61 @@
+name: Exchange changelogs checks
+
+# Offline checks for the exchange-changelogs collector (specs, typecheck, registry coverage), on any
+# change to the collector, its registry or the workflows that run it. The scheduled collection in
+# exchange-changelogs.yml only runs coverage and the collector itself, so without this a registry or
+# adapter edit could break the daily job unnoticed.
+on:
+  pull_request:
+    paths:
+      - 'exchange-changelogs/**'
+      - 'exchanges.json'
+      - '.github/workflows/exchange-changelogs.yml'
+      - '.github/workflows/exchange-changelogs-checks.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'exchange-changelogs/**'
+      - 'exchanges.json'
+      - '.github/workflows/exchange-changelogs.yml'
+      - '.github/workflows/exchange-changelogs-checks.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exchange-changelogs-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  collector:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: exchange-changelogs/collector/package-lock.json
+
+      - name: Install collector
+        working-directory: exchange-changelogs/collector
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: exchange-changelogs/collector
+        run: npm run typecheck
+
+      # offline: every spec reads fixtures from collector/spec/fixtures, nothing is fetched
+      - name: Specs
+        working-directory: exchange-changelogs/collector
+        run: npm run spec
+
+      # every ccxt id in exchanges.json needs a registry file, a subclasses entry or "unmonitored"
+      - name: Registry coverage
+        working-directory: exchange-changelogs/collector
+        run: npm run coverage -- --exchanges ../../exchanges.json

@@ -1,0 +1,31 @@
+{
+  "id": "bit2me",
+  "kind": "exchange",
+  "name": "Bit2Me",
+  "domains": ["bit2me.com"],
+  "sources": [
+    {
+      "id": "bit2me-pro-deprecations",
+      "type": "hash",
+      "url": "https://api.bit2me.com/docs/pro/changelog",
+      "scope": "Pro (Spot Trading) API: deprecated endpoints and their replacements (no dated changelog is published)",
+      "slice": { "selector": "article" }
+    },
+    {
+      "id": "bit2me-wallet-deprecations",
+      "type": "hash",
+      "url": "https://api.bit2me.com/docs/wallet/changelog",
+      "scope": "Wallet API: deprecated endpoints and their replacements (no dated changelog is published)",
+      "slice": { "selector": "article" }
+    },
+    {
+      "id": "bit2me-docs-index",
+      "type": "hash",
+      "url": "https://api.bit2me.com/llms.txt",
+      "link": "https://api.bit2me.com/docs",
+      "role": "secondary",
+      "scope": "docs page index (new, removed or renamed pages and endpoints)",
+      "minChange": 10
+    }
+  ]
+}

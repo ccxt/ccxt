@@ -58,6 +58,8 @@ export interface SourceConfig {
         pattern?: string;       // regex with one capture group holding the date text
         order?: 'ymd' | 'mdy' | 'dmy';                     // disambiguates numeric dates like 03/04/2026
     };
+    titleFrom?: 'title' | 'body'; // 'body': the source's titles only name a product ("IBKR WebAPI"): display a summary of the
+                                // body instead (default 'title': summary only for date/version/label-only titles)
     titleFilter?: string;       // regex: keep only entries whose title (or rss category) matches
     excludeFilter?: string;     // regex: drop entries whose title matches
     section?: string;           // regex (case-insensitive) on the text of headings inside an entry body: the body is
