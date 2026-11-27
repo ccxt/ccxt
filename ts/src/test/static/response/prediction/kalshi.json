@@ -773,6 +773,284 @@
 						"realizedPnl": null
 					}
 				]
+			},
+			{
+				"description": "fetchTrades for a no outcome reports the no price and the side from the no leg",
+				"method": "fetchTrades",
+				"input": [
+					"ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+					null,
+					3
+				],
+				"httpResponse": {
+					"cursor": "EhIKEFq9i3ERl0wsdoYvGaMHJ8kaCwikt7DRBhCwt946",
+					"trades": [
+						{
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T17:11:11.927591Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"taker_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+							"yes_price_dollars": "0.1000"
+						},
+						{
+							"count_fp": "0.94",
+							"created_time": "2026-06-12T15:45:05.842468Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"taker_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+							"yes_price_dollars": "0.1000"
+						},
+						{
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T14:45:56.123182Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9200",
+							"taker_book_side": "ask",
+							"taker_outcome_side": "no",
+							"taker_side": "no",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+							"yes_price_dollars": "0.0800"
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+						"info": {
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T14:45:56.123182Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9200",
+							"taker_book_side": "ask",
+							"taker_outcome_side": "no",
+							"taker_side": "no",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+							"yes_price_dollars": "0.0800"
+						},
+						"timestamp": 1781275556123,
+						"datetime": "2026-06-12T14:45:56.123Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+						"outcomeId": "KXELONMARS-99-NO",
+						"label": "NO",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.92,
+						"amount": 9.4,
+						"cost": 8.648000000000001,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+						"info": {
+							"count_fp": "0.94",
+							"created_time": "2026-06-12T15:45:05.842468Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"taker_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+							"yes_price_dollars": "0.1000"
+						},
+						"timestamp": 1781279105842,
+						"datetime": "2026-06-12T15:45:05.842Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+						"outcomeId": "KXELONMARS-99-NO",
+						"label": "NO",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.9,
+						"amount": 0.94,
+						"cost": 0.846,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+						"info": {
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T17:11:11.927591Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"taker_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+							"yes_price_dollars": "0.1000"
+						},
+						"timestamp": 1781284271927,
+						"datetime": "2026-06-12T17:11:11.927Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+						"outcomeId": "KXELONMARS-99-NO",
+						"label": "NO",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.9,
+						"amount": 9.4,
+						"cost": 8.46,
+						"fee": null,
+						"realizedPnl": null
+					}
+				]
+			},
+			{
+				"description": "fetchTrades reads the side from taker_outcome_side when the deprecated taker_side is absent",
+				"method": "fetchTrades",
+				"input": [
+					"ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+					null,
+					3
+				],
+				"httpResponse": {
+					"cursor": "EhIKEFq9i3ERl0wsdoYvGaMHJ8kaCwikt7DRBhCwt946",
+					"trades": [
+						{
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T17:11:11.927591Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+							"yes_price_dollars": "0.1000"
+						},
+						{
+							"count_fp": "0.94",
+							"created_time": "2026-06-12T15:45:05.842468Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+							"yes_price_dollars": "0.1000"
+						},
+						{
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T14:45:56.123182Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9200",
+							"taker_book_side": "ask",
+							"taker_outcome_side": "no",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+							"yes_price_dollars": "0.0800"
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+						"info": {
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T14:45:56.123182Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9200",
+							"taker_book_side": "ask",
+							"taker_outcome_side": "no",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "5abd8b71-1197-4c2c-7686-2f19a30727c9",
+							"yes_price_dollars": "0.0800"
+						},
+						"timestamp": 1781275556123,
+						"datetime": "2026-06-12T14:45:56.123Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.08,
+						"amount": 9.4,
+						"cost": 0.752,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+						"info": {
+							"count_fp": "0.94",
+							"created_time": "2026-06-12T15:45:05.842468Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "201c12b1-e3fb-7783-370e-5cb5072ef066",
+							"yes_price_dollars": "0.1000"
+						},
+						"timestamp": 1781279105842,
+						"datetime": "2026-06-12T15:45:05.842Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.1,
+						"amount": 0.94,
+						"cost": 0.094,
+						"fee": null,
+						"realizedPnl": null
+					},
+					{
+						"id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+						"info": {
+							"count_fp": "9.40",
+							"created_time": "2026-06-12T17:11:11.927591Z",
+							"is_block_trade": false,
+							"no_price_dollars": "0.9000",
+							"taker_book_side": "bid",
+							"taker_outcome_side": "yes",
+							"ticker": "KXELONMARS-99",
+							"trade_id": "6e924506-2c0f-5717-f9b7-eae14a12202a",
+							"yes_price_dollars": "0.1000"
+						},
+						"timestamp": 1781284271927,
+						"datetime": "2026-06-12T17:11:11.927Z",
+						"outcome": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+						"outcomeId": "KXELONMARS-99",
+						"label": "YES",
+						"market": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+						"order": null,
+						"type": null,
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.1,
+						"amount": 9.4,
+						"cost": 0.9400000000000001,
+						"fee": null,
+						"realizedPnl": null
+					}
+				]
 			}
 		],
 		"fetchOHLCV": [
