@@ -933,7 +933,10 @@ public partial class BaseExchange
 
         private async Task Receiving(ClientWebSocket webSocket)
         {
-            var buffer = new byte[10485760]; // 10MB, check best size later
+            // one frame chunk at a time: a message of any size is put together in `memory` below, so the
+            // buffer only needs to be big enough to keep the number of reads low (a 10MB one per connection
+            // cost 10MB of memory for every socket an instance keeps open)
+            var buffer = new byte[64 * 1024];
             try
             {
                 while (webSocket.State == WebSocketState.Open)
@@ -962,7 +965,6 @@ public partial class BaseExchange
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
 
-                        var msgBinary = buffer.Take(result.Count).ToArray();
                         // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
                         var msgBinaryMemory = memory.ToArray();
                         // Handle binary message
@@ -975,13 +977,13 @@ public partial class BaseExchange
                         if (!this.decompressBinary)
                         {
                             this.markAlive(); // this arm bypasses TryHandleMessage, raw-binary frames are liveness too
-                            this.handleMessage(this, msgBinary);
+                            this.handleMessage(this, msgBinaryMemory);
                             continue;
                         }
 
-                        if (this.LooksLikeRawDeflate(msgBinary))
+                        if (this.LooksLikeRawDeflate(msgBinaryMemory))
                         {
-                            string decompressedString = System.Text.Encoding.UTF8.GetString(msgBinary);
+                            string decompressedString = System.Text.Encoding.UTF8.GetString(msgBinaryMemory);
                             if (this.verbose)
                             {
                                 Console.WriteLine($"On raw binary message decompressed {decompressedString}");
@@ -1010,7 +1012,7 @@ public partial class BaseExchange
                         }
 
                         // assume GZip (magic bytes: 0x1F 0x8B)
-                        // use msgBinaryMemory (full reassembled message) not msgBinary (last chunk only)
+                        // use msgBinaryMemory: the full reassembled message, not only its last chunk
                         bool isGZip = msgBinaryMemory.Length > 1 && msgBinaryMemory[0] == 0x1F && msgBinaryMemory[1] == 0x8B;
 
                         if (isGZip)
