@@ -6166,7 +6166,8 @@ class BaseExchange(object):
                 continue
             isNewCandle = candle == -1
             if not isNewCandle:
-                candleTimestamp = ohlcvs[candle][i_timestamp]
+                candleRow = self.safe_list(ohlcvs, candle)
+                candleTimestamp = self.safe_integer(candleRow, i_timestamp)
                 if candleTimestamp is None:
                     raise ExchangeError(self.id + ' buildOHLCVC() missing candle timestamp')
                 isNewCandle = openingTime >= self.sum(candleTimestamp, ms)
