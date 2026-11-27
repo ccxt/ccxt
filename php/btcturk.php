@@ -732,9 +732,8 @@ class btcturk extends Exchange {
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $limitResolved = null;
+        $limitResolved = $limit;
         if ($limit !== null) {
-            $limitResolved = $limit;
             if ($limit > 11000) {
                 $limitResolved = 11000; // max 11000 candles diapason can be covered
             }
