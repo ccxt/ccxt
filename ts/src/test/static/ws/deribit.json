@@ -160,6 +160,124 @@
                 ]
             }
         ],
+        "unWatchTicker": [
+            {
+                "description": "inverse swap ticker unsubscribe acknowledged by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795159362921312",
+                        "usOut": "1795159362921415",
+                        "usDiff": 103,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTickers": [
+            {
+                "description": "inverse swap and spot tickers unsubscribe in one request, deribit acknowledges both channels in one message",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "ticker.BTC_USDT.100ms",
+                            "ticker.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795159367668223",
+                        "usOut": "1795159367668363",
+                        "usDiff": 140,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "ticker.BTC-PERPETUAL.100ms",
+                                "ticker.BTC_USDT.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchBidsAsks": [
+            {
+                "description": "inverse swap and spot quote channels unsubscribe in one request",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "quote.BTC_USDT",
+                            "quote.BTC-PERPETUAL"
+                        ],
+                        "usIn": "1795159379995074",
+                        "usOut": "1795159379995196",
+                        "usDiff": 122,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "quote.BTC-PERPETUAL",
+                                "quote.BTC_USDT"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
         "watchTrades": [
             {
                 "description": "inverse swap trades",
@@ -277,6 +395,83 @@
                         }
                     ]
                 ]
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "inverse swap trades unsubscribe acknowledged by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "trades.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795002930945276",
+                        "usOut": "1795002930945452",
+                        "usDiff": 176,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "trades.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "inverse swap and spot trades unsubscribe in one request, deribit acknowledges both channels in one message",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "trades.BTC_USDT.100ms",
+                            "trades.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795005609599046",
+                        "usOut": "1795005609599379",
+                        "usDiff": 333,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "trades.BTC-PERPETUAL.100ms",
+                                "trades.BTC_USDT.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
             }
         ],
         "watchOrderBook": [
@@ -483,6 +678,304 @@
                         "symbol": "BTC/USD:BTC"
                     }
                 ]
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "inverse swap orderbook unsubscribe acknowledged by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "book.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795159385102375",
+                        "usOut": "1795159385102481",
+                        "usDiff": 106,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "book.BTC-PERPETUAL.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBookForSymbols": [
+            {
+                "description": "inverse swap and spot orderbooks unsubscribe in one request, deribit acknowledges both channels in one message",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD:BTC",
+                        "BTC/USDT"
+                    ]
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "book.BTC_USDT.100ms",
+                            "book.BTC-PERPETUAL.100ms"
+                        ],
+                        "usIn": "1795159389963674",
+                        "usOut": "1795159389963832",
+                        "usDiff": 158,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "book.BTC-PERPETUAL.100ms",
+                                "book.BTC_USDT.100ms"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "inverse swap 1m candles unsubscribe acknowledged by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1m"
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC-PERPETUAL.1"
+                        ],
+                        "usIn": "1795159399818638",
+                        "usOut": "1795159399818780",
+                        "usDiff": 142,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC-PERPETUAL.1"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCVForSymbols": [
+            {
+                "description": "inverse swap 1m and spot 5m candles unsubscribe in one request",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "disabledPHP": "the php __call camelCase to snake_case fallback splits only on [a-z0-9][A-Z], so unWatchOHLCVForSymbols is looked up as un_watch_ohlcvfor_symbols instead of the transpiled un_watch_ohlcv_for_symbols - pre-existing harness limitation, no other ws fixture covers *OHLCVForSymbols",
+                "input": [
+                    [
+                        [
+                            "BTC/USD:BTC",
+                            "1m"
+                        ],
+                        [
+                            "BTC/USDT",
+                            "5m"
+                        ]
+                    ]
+                ],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": [
+                            "chart.trades.BTC_USDT.5",
+                            "chart.trades.BTC-PERPETUAL.1"
+                        ],
+                        "usIn": "1795159408461815",
+                        "usOut": "1795159408462968",
+                        "usDiff": 1153,
+                        "testnet": false
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "public/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "chart.trades.BTC-PERPETUAL.1",
+                                "chart.trades.BTC_USDT.5"
+                            ]
+                        },
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchMyTrades": [
+            {
+                "description": "user trades unsubscribe without a preceding watch, authentication reply with redacted tokens then the acknowledgement by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "enabled_features": [],
+                            "access_token": "REDACTED",
+                            "expires_in": 31536000,
+                            "refresh_token": "REDACTED",
+                            "scope": "REDACTED",
+                            "token_type": "bearer"
+                        },
+                        "usIn": "1795608447399766",
+                        "usOut": "1795608447400395",
+                        "usDiff": 629,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": [
+                            "user.trades.any.any.raw"
+                        ],
+                        "usIn": "1795608447613894",
+                        "usOut": "1795608447614313",
+                        "usDiff": 419,
+                        "testnet": false
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature",
+                    "nonce"
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "public/auth",
+                        "params": {
+                            "grant_type": "client_signature",
+                            "client_id": "key",
+                            "timestamp": 1795608447029,
+                            "signature": "REDACTED",
+                            "nonce": "1795608447029",
+                            "data": ""
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "private/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "user.trades.any.any.raw"
+                            ]
+                        },
+                        "id": 2
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrders": [
+            {
+                "description": "user orders unsubscribe without a preceding watch, authentication reply with redacted tokens then the acknowledgement by request id",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [],
+                "url": "wss://www.deribit.com/ws/api/v2",
+                "messages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "result": {
+                            "enabled_features": [],
+                            "access_token": "REDACTED",
+                            "expires_in": 31536000,
+                            "refresh_token": "REDACTED",
+                            "scope": "REDACTED",
+                            "token_type": "bearer"
+                        },
+                        "usIn": "1795608427370567",
+                        "usOut": "1795608427371776",
+                        "usDiff": 1209,
+                        "testnet": false
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 2,
+                        "result": [
+                            "user.orders.any.any.raw"
+                        ],
+                        "usIn": "1795608427509677",
+                        "usOut": "1795608427510212",
+                        "usDiff": 535,
+                        "testnet": false
+                    }
+                ],
+                "sentSkipKeys": [
+                    "timestamp",
+                    "signature",
+                    "nonce"
+                ],
+                "sentMessages": [
+                    {
+                        "jsonrpc": "2.0",
+                        "id": 1,
+                        "method": "public/auth",
+                        "params": {
+                            "grant_type": "client_signature",
+                            "client_id": "key",
+                            "timestamp": 1795608427012,
+                            "signature": "REDACTED",
+                            "nonce": "1795608427012",
+                            "data": ""
+                        }
+                    },
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "private/unsubscribe",
+                        "params": {
+                            "channels": [
+                                "user.orders.any.any.raw"
+                            ]
+                        },
+                        "id": 2
+                    }
+                ],
+                "parsedResponse": true
             }
         ]
     }
