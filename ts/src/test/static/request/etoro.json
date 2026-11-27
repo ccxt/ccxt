@@ -1,0 +1,637 @@
+{
+    "exchange": "etoro",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments",
+                "input": [],
+                "headers": {
+                    "x-api-key": "key",
+                    "x-user-key": "secretsecret"
+                }
+            },
+            {
+                "description": "fetch crypto markets filtered by instrumentTypeIds",
+                "method": "fetchMarkets",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments?instrumentTypeIds=10",
+                "input": [
+                    {
+                        "instrumentTypeIds": "10"
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch spot BTC/USD ticker",
+                "method": "fetchTicker",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000",
+                "input": [
+                    "BTC/USD"
+                ]
+            },
+            {
+                "description": "fetch swap EUR/USD:USD ticker",
+                "method": "fetchTicker",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=1",
+                "input": [
+                    "EUR/USD:USD"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch all tickers",
+                "method": "fetchTickers",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates",
+                "input": []
+            },
+            {
+                "description": "fetch tickers for specific symbols",
+                "method": "fetchTickers",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000%2C1",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "EUR/USD:USD"
+                    ]
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch bids and asks for symbols",
+                "method": "fetchBidsAsks",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000%2C1",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "EUR/USD:USD"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch live candles via market-data endpoint",
+                "method": "fetchOHLCV",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/100000/history/candles/asc/OneHour/5",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5
+                ]
+            },
+            {
+                "description": "fetch historical candles with since and limit via data endpoint",
+                "method": "fetchOHLCV",
+                "url": "https://public-api.etoro.com/api/v1/data/instruments/100000/candles?interval=1h&side=bid&limit=5&from=2025-11-24T16%3A00%3A00.000Z&to=2025-11-24T21%3A00%3A00.000Z",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1764000000000,
+                    5
+                ]
+            },
+            {
+                "description": "fetch historical candles with since, until, and ask side",
+                "method": "fetchOHLCV",
+                "url": "https://public-api.etoro.com/api/v1/data/instruments/100000/candles?interval=1h&side=ask&limit=5&from=2025-11-24T16%3A00%3A00.000Z&to=2025-11-24T21%3A00%3A00.000Z",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    1764000000000,
+                    5,
+                    {
+                        "until": 1764018000000,
+                        "side": "ask"
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch real balance via default aggregatePortfolio",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/aggregate-portfolio",
+                "input": [],
+                "headers": {
+                    "x-api-key": "key",
+                    "x-user-key": "secretsecret"
+                }
+            },
+            {
+                "description": "fetch demo balance via aggregatePortfolio",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/demo/aggregate-portfolio",
+                "input": [
+                    {
+                        "demo": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch real balance via pnl endpoint",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/real/pnl",
+                "input": [
+                    {
+                        "method": "pnl"
+                    }
+                ]
+            },
+            {
+                "description": "fetch demo balance via pnl endpoint",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/demo/pnl",
+                "input": [
+                    {
+                        "method": "pnl",
+                        "demo": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch real balance via portfolio endpoint",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/portfolio",
+                "input": [
+                    {
+                        "method": "portfolio"
+                    }
+                ]
+            },
+            {
+                "description": "fetch balances via v1 balances endpoint",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/balances?expand=equityDetails",
+                "input": [
+                    {
+                        "method": "balances"
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch user profile and sub-accounts",
+                "method": "fetchAccounts",
+                "url": "https://public-api.etoro.com/api/v1/me",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch all open positions via instrumentBreakdown",
+                "method": "fetchPositions",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/instrument-breakdown?positionLevel=Normal&orderLevel=None",
+                "input": []
+            },
+            {
+                "description": "fetch demo positions filtered by symbols",
+                "method": "fetchPositions",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/demo/instrument-breakdown?positionLevel=Normal&orderLevel=None&instrumentIds=100000%2C1",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "EUR/USD:USD"
+                    ],
+                    {
+                        "demo": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch open positions via pnl endpoint",
+                "method": "fetchPositions",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/real/pnl",
+                "input": [
+                    null,
+                    {
+                        "method": "pnl"
+                    }
+                ]
+            },
+            {
+                "description": "fetch open positions via portfolio endpoint",
+                "method": "fetchPositions",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/portfolio",
+                "input": [
+                    null,
+                    {
+                        "method": "portfolio"
+                    }
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch single demo position for symbol",
+                "method": "fetchPosition",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/demo/instrument-breakdown?positionLevel=Normal&orderLevel=None&instrumentIds=100000",
+                "input": [
+                    "BTC/USD",
+                    {
+                        "demo": true
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch real closed positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/history?minDate=2025-11-24&pageSize=2",
+                "input": [
+                    null,
+                    1763942400000,
+                    2
+                ]
+            },
+            {
+                "description": "fetch demo closed positions history",
+                "method": "fetchPositionsHistory",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/demo/history?minDate=2025-11-24&pageSize=2",
+                "input": [
+                    [
+                        "SAP.DE/EUR"
+                    ],
+                    1763942400000,
+                    2,
+                    {
+                        "demo": true
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch all real open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/instrument-breakdown?positionLevel=None&orderLevel=Normal",
+                "input": []
+            },
+            {
+                "description": "fetch demo open orders for symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/demo/instrument-breakdown?positionLevel=None&orderLevel=Normal&instrumentIds=100000",
+                "input": [
+                    "BTC/USD",
+                    null,
+                    null,
+                    {
+                        "demo": true
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch real order by numeric orderId",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/orders:lookup?orderId=396858488",
+                "input": [
+                    "396858488",
+                    "SAP.DE/EUR"
+                ]
+            },
+            {
+                "description": "fetch real order by UUID referenceId",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/orders:lookup?referenceId=8baa16bf-c1d1-4ca7-872f-3585c6de6cf8",
+                "input": [
+                    "8baa16bf-c1d1-4ca7-872f-3585c6de6cf8",
+                    "SAP.DE/EUR"
+                ]
+            },
+            {
+                "description": "fetch demo order by numeric orderId",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/demo/orders:lookup?orderId=396858488",
+                "input": [
+                    "396858488",
+                    "SAP.DE/EUR",
+                    {
+                        "demo": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch real close order by orderId",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/real/close-orders/396829179",
+                "input": [
+                    "396829179",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch demo close order by orderId",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/demo/close-orders/396829179",
+                "input": [
+                    "396829179",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true,
+                        "demo": true
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot market buy order with USD cost",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "BTC/USD",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 15
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"mkt\",\"amount\":15,\"orderCurrency\":\"usd\",\"settlementType\":\"real\"}",
+                "headers": {
+                    "x-api-key": "key",
+                    "x-user-key": "secretsecret"
+                }
+            },
+            {
+                "description": "swap market buy order with units, leverage, stopLoss and takeProfit",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "EUR/USD:USD",
+                    "market",
+                    "buy",
+                    100,
+                    null,
+                    {
+                        "leverage": 5,
+                        "stopLossPrice": 1.05,
+                        "takeProfitPrice": 1.15
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1,\"orderType\":\"mkt\",\"units\":100,\"leverage\":5,\"stopLossRate\":1.05,\"takeProfitRate\":1.15}"
+            },
+            {
+                "description": "spot limit MIT buy order with cost",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0,
+                    50000,
+                    {
+                        "cost": 15
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"mit\",\"triggerRate\":50000,\"amount\":15,\"orderCurrency\":\"usd\"}"
+            },
+            {
+                "description": "spot limit IOC buy order",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "BTC/USD",
+                    "limit",
+                    "buy",
+                    0.001,
+                    61000,
+                    {
+                        "timeInForce": "IOC"
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"limitIOC\",\"limitRate\":61000,\"units\":0.001,\"settlementType\":\"real\"}"
+            },
+            {
+                "description": "swap market sellShort order with trailing stopLoss",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "EUR/USD:USD",
+                    "market",
+                    "sell",
+                    50,
+                    null,
+                    {
+                        "leverage": 2,
+                        "stopLossPrice": 1.12,
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"sellShort\",\"instrumentId\":1,\"orderType\":\"mkt\",\"units\":50,\"leverage\":2,\"stopLossRate\":1.12,\"stopLossType\":\"trailing\"}"
+            },
+            {
+                "description": "demo v3 market buy order with cost",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v3/trading/execution/demo/orders",
+                "input": [
+                    "SAP.DE/EUR",
+                    "market",
+                    "buy",
+                    0,
+                    null,
+                    {
+                        "cost": 15,
+                        "version": "v3",
+                        "demo": true
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1202,\"orderType\":\"mkt\",\"amount\":15,\"orderCurrency\":\"usd\",\"settlementType\":\"real\"}"
+            },
+            {
+                "description": "reduceOnly createOrder delegates to closePosition",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/demo/market-close-orders/positions/3650747955",
+                "input": [
+                    "SAP.DE/EUR",
+                    "market",
+                    "sell",
+                    0.05,
+                    null,
+                    {
+                        "reduceOnly": true,
+                        "positionId": "3650747955",
+                        "demo": true
+                    }
+                ],
+                "output": "{\"InstrumentID\":1202,\"UnitsToDeduct\":0.05}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel real v2 open order",
+                "method": "cancelOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders/396858486",
+                "input": [
+                    "396858486",
+                    "BTC/USD"
+                ]
+            },
+            {
+                "description": "cancel demo v3 open order",
+                "method": "cancelOrder",
+                "url": "https://public-api.etoro.com/api/v3/trading/execution/demo/orders/396858486",
+                "input": [
+                    "396858486",
+                    "BTC/USD",
+                    {
+                        "version": "v3",
+                        "demo": true
+                    }
+                ]
+            },
+            {
+                "description": "cancel real pending close order",
+                "method": "cancelOrder",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/market-close-orders/396829179",
+                "input": [
+                    "396829179",
+                    "SAP.DE/EUR",
+                    {
+                        "isCloseOrder": true
+                    }
+                ]
+            }
+        ],
+        "closePosition": [
+            {
+                "description": "close real position fully by positionId",
+                "method": "closePosition",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/market-close-orders/positions/3650747955",
+                "input": [
+                    "SAP.DE/EUR",
+                    null,
+                    {
+                        "positionId": "3650747955"
+                    }
+                ],
+                "output": "{\"InstrumentId\":1202}"
+            },
+            {
+                "description": "close demo position partially with units",
+                "method": "closePosition",
+                "url": "https://public-api.etoro.com/api/v1/trading/execution/demo/market-close-orders/positions/3650747955",
+                "input": [
+                    "SAP.DE/EUR",
+                    null,
+                    {
+                        "positionId": "3650747955",
+                        "units": 0.03,
+                        "demo": true
+                    }
+                ],
+                "output": "{\"InstrumentID\":1202,\"UnitsToDeduct\":0.03}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch real closed trades history",
+                "method": "fetchMyTrades",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/history?minDate=2025-11-24&pageSize=2",
+                "input": [
+                    "SAP.DE/EUR",
+                    1763942400000,
+                    2
+                ]
+            },
+            {
+                "description": "fetch demo closed trades history",
+                "method": "fetchMyTrades",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/demo/history?minDate=2025-11-24&pageSize=2",
+                "input": [
+                    "SAP.DE/EUR",
+                    1763942400000,
+                    2,
+                    {
+                        "demo": true
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "internal transfer with explicit accountId params",
+                "method": "transfer",
+                "url": "https://public-api.etoro.com/api/v1/money/transfers",
+                "input": [
+                    "USD",
+                    100,
+                    "trading",
+                    "cash",
+                    {
+                        "sourceAccountId": "1001",
+                        "destinationAccountId": "2002",
+                        "requestReferenceId": "ref-transfer-001"
+                    }
+                ],
+                "output": "{\"requestReferenceId\":\"ref-transfer-001\",\"sourceAccount\":{\"accountType\":\"trading\",\"accountId\":\"1001\"},\"destinationAccount\":{\"accountType\":\"cash\",\"accountId\":\"2002\"},\"amount\":100,\"currency\":\"USD\"}"
+            },
+            {
+                "description": "internal transfer with accountType:accountId shorthand",
+                "method": "transfer",
+                "url": "https://public-api.etoro.com/api/v1/money/transfers",
+                "input": [
+                    "USD",
+                    50,
+                    "cash:2002",
+                    "trading:1001",
+                    {
+                        "requestReferenceId": "ref-transfer-002"
+                    }
+                ],
+                "output": "{\"requestReferenceId\":\"ref-transfer-002\",\"sourceAccount\":{\"accountType\":\"cash\",\"accountId\":\"2002\"},\"destinationAccount\":{\"accountType\":\"trading\",\"accountId\":\"1001\"},\"amount\":50,\"currency\":\"USD\"}"
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer by numeric transferId",
+                "method": "fetchTransfer",
+                "url": "https://public-api.etoro.com/api/v1/money/transfers/12345678",
+                "input": [
+                    "12345678",
+                    "USD"
+                ]
+            },
+            {
+                "description": "fetch transfer by UUID requestReferenceId",
+                "method": "fetchTransfer",
+                "url": "https://public-api.etoro.com/api/v1/money/transfers:lookup?requestReferenceId=1c94300c-90aa-4303-9d00-dec376d74efb",
+                "input": [
+                    "1c94300c-90aa-4303-9d00-dec376d74efb",
+                    "USD"
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch cash account ledger entries with explicit accountId",
+                "method": "fetchLedger",
+                "url": "https://public-api.etoro.com/api/v1/money/accounts/cash/cash-acc-001/transactions?pageSize=2",
+                "input": [
+                    "USD",
+                    null,
+                    2,
+                    {
+                        "accountId": "cash-acc-001"
+                    }
+                ]
+            }
+        ]
+    }
+}
