@@ -16,6 +16,7 @@ import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
 import testOptionTypes from './test.optionTypes.js';
 import testValidateServerSsl from './test.validateServerSsl.js';
+import testDelay from './test.delay.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 
@@ -32,6 +33,7 @@ async function testLanguageSpecific () {
     await testBingxTestOrder ();
     await testFetchTradesDiagnostics ();
     await testValidateServerSsl ();
+    await testDelay ();
     // testConfig ();
 }
 
