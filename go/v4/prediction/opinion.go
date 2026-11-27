@@ -1307,7 +1307,7 @@ func (this *Opinion) SignOpinionOrder(order map[string]any, exchangeAddress stri
 	var sig map[string]any = this.SignMessage(encoded, this.PrivateKey)
 	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(this.SafeInteger(sig, "v"))
 }
-func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount any, price any, decimals *int64) map[string]any {
+func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount *float64, price any, decimals *int64) map[string]any {
 	var decimalsStr string = "1"
 	if decimals != nil {
 		var decimalsCount int64 = this.ParseToInt(decimals)
@@ -1375,12 +1375,12 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount a
  * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Opinion) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Opinion) CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	price := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1430,7 +1430,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 		panic(r2.Err)
 	}
 	var quoteToken map[string]any = r2.Value
-	var amounts map[string]any = this.OpinionOrderRawAmounts(isMarket, sideStr, amount, price, this.SafeInteger(quoteToken, "decimal", 18))
+	var amounts map[string]any = this.OpinionOrderRawAmounts(isMarket, sideStr, &amount, price, this.SafeInteger(quoteToken, "decimal", 18))
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
 	var sideInt int

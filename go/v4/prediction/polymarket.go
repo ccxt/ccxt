@@ -2914,12 +2914,12 @@ func (this *Polymarket) ParseOrderStatus(status *string) *string {
  * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Polymarket) CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -2936,7 +2936,7 @@ func (this *Polymarket) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var built map[string]any = this.BuildClobOrderBody(&outcome, &typeVar, &side, amount, price, params)
+	var built map[string]any = this.BuildClobOrderBody(&outcome, &typeVar, &side, &amount, price, params)
 
 	r2 := <-this.ClobPrivatePostOrder(this.SafeDict(built, "body"))
 	if r2.Err != nil {
@@ -3051,7 +3051,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
  * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
  * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
  */
-func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, side *string, amount *float64, optionalArgs ...any) map[string]any {
 	// pure builder, no network I/O — intentionally synchronous. a no-op async method
 	// transpiles in php to a promise-typed wrapper around a body that returns a plain
 	// dict, which throws a TypeError
@@ -3268,7 +3268,7 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResul
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: r.Value}
 	return nil
 }
-func (this *Polymarket) PolymarketOrderRawAmounts(side string, size any, price any, tickSize *string, optionalArgs ...any) map[string]any {
+func (this *Polymarket) PolymarketOrderRawAmounts(side string, size *float64, price any, tickSize *string, optionalArgs ...any) map[string]any {
 	var cost *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = cost
 	var configs map[string]any = map[string]any{

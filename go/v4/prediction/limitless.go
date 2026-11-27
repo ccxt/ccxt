@@ -2585,12 +2585,12 @@ func (this *Limitless) fetchAccountsBody(ch chan ccxt.AsyncResult[[]ccxt.Account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Limitless) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Limitless) CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)

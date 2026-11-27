@@ -5450,23 +5450,21 @@ func (this *BaseExchange) ParseOrderBookBidAskL3(bidask any, optionalArgs ...any
 	}
 	return bidAsk
 }
-func (this *BaseExchange) SafeCurrency(currencyId any, optionalArgs ...any) map[string]any {
-	currency := GetArg(optionalArgs, 0, nil)
+func (this *BaseExchange) SafeCurrency(optionalArgs ...any) map[string]any {
+	var currencyId *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = currencyId
+	currency := GetArg(optionalArgs, 1, nil)
 	_ = currency
-	if (IsEqual(currencyId, nil)) && (currency != nil) {
+	if (currencyId == nil) && (currency != nil) {
 		return CurrencyTyped(currency)
 	}
-	if (!IsEqual(currencyId, nil)) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) && (!IsEqual(GetValue(this.Currencies_by_id, currencyId), nil)) {
-		return CurrencyTyped(GetValue(this.Currencies_by_id, currencyId))
+	if (currencyId != nil) && (this.Currencies_by_id != nil) && (InOp(this.Currencies_by_id, currencyId)) && (!IsEqual(this.Currencies_by_id[*currencyId], nil)) {
+		return CurrencyTyped(this.Currencies_by_id[*currencyId])
 	}
-	var code any = currencyId
-	if !IsEqual(currencyId, nil) {
-		var upperId string = ToUpper(currencyId)
-		if derefPtr := this.CommonCurrencyCode(&upperId); derefPtr != nil {
-			code = *derefPtr
-		} else {
-			code = nil
-		}
+	var code *string = currencyId
+	if currencyId != nil {
+		var upperId string = strings.ToUpper(*currencyId)
+		code = this.CommonCurrencyCode(&upperId)
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,

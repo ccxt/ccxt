@@ -1235,12 +1235,12 @@ func (this *PredictionExchange) fetchTradesBody(ch chan AsyncResult[[]Prediction
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
+func (this *PredictionExchange) CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
 	ch := make(chan AsyncResult[PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createOrderBody(ch chan AsyncResult[PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *PredictionExchange) createOrderBody(ch chan AsyncResult[PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)

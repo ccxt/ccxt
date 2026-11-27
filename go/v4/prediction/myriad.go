@@ -917,12 +917,12 @@ func (this *Myriad) ParsePredictionPosition(position map[string]any, optionalArg
  * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
  * @returns {object} a quote object with price, shares, fees and the on-chain calldata
  */
-func (this *Myriad) FetchTradeQuoteAsync(outcome string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Myriad) FetchTradeQuoteAsync(outcome string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.fetchTradeQuoteBody(ch, outcome, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchTradeQuoteBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, side string, amount any, optionalArgs ...any) any {
+func (this *Myriad) fetchTradeQuoteBody(ch chan ccxt.AsyncResult[map[string]any], outcome string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1148,12 +1148,12 @@ func (this *Myriad) ensureErc20AllowanceBody(ch chan ccxt.AsyncResult[bool], rpc
  * @param {string} [params.expiration] unix-seconds expiration for a GTD order
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var price *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -1513,12 +1513,12 @@ func (this *Myriad) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
  * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateAmmOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CreateAmmOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createAmmOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy

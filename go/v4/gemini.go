@@ -1139,7 +1139,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 	//         "contract_price_currency": "GUSD"
 	//     }
 	//
-	var marketId any = nil
+	var marketId *string = nil
 	var baseId any = nil
 	var quoteId *string = nil
 	var settleId *string = nil
@@ -1171,16 +1171,18 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		quoteId = this.SafeString(response, "quote_currency")
 		settleId = this.SafeString(response, "contract_price_currency")
 	} else {
-		// if no detailed API was called, then parse either string or array
-		if isString {
-			marketId = response
+		if responseStr, ok := response.(string); ok {
+			marketId = &responseStr
 		} else {
 			marketId = this.SafeStringLower(response, 0)
 			tickSize = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 1)))        // priceTickDecimalPlaces
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 2))) // quantityTickDecimalPlaces
 			minSize = this.SafeNumber(response, 3)                                                // quantityMinimum
 		}
-		var marketIdUpper string = ToUpper(marketId)
+		if marketId == nil {
+			panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
+		}
+		var marketIdUpper string = strings.ToUpper(*marketId)
 		var isPerp bool = (strings.Index(marketIdUpper, "PERP") >= 0)
 		var marketIdWithoutPerp string = strings.Replace(marketIdUpper, "PERP", "", 1)
 		var conflictingMarkets, _ = this.Options["conflictingMarkets"].(map[string]any)
@@ -1231,7 +1233,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		typeVar = "swap"
 	}
 	var isSpot bool = !swap
-	var literal90641 map[string]any = map[string]any{
+	var literal90941 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -1281,12 +1283,12 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		"info":    response,
 	}
 	if quoteId != nil {
-		literal90641["quoteId"] = *quoteId
+		literal90941["quoteId"] = *quoteId
 	}
 	if settleId != nil {
-		literal90641["settleId"] = *settleId
+		literal90941["settleId"] = *settleId
 	}
-	return this.SafeMarketStructure(literal90641)
+	return this.SafeMarketStructure(literal90941)
 }
 
 /**

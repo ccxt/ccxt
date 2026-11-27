@@ -2763,12 +2763,12 @@ func (this *Kalshi) ParseOrderStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Kalshi) CreateOrderAsync(outcome string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createOrderBody(ch, outcome, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, typeVar string, side string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// kalshi has no market orders — every order is a limit order and the price is required
@@ -2858,7 +2858,7 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	if filledCount != nil {
 		order["filled"] = filledCount
 	} else if remainingCount != nil {
-		order["filled"] = ccxt.Subtract(amount, remainingCount)
+		order["filled"] = (amount - *remainingCount)
 	}
 	if remainingCount != nil {
 		order["remaining"] = remainingCount
@@ -2924,7 +2924,7 @@ func (this *Kalshi) editOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 		panic(r1.Err)
 	}
 
-	r2 := <-this.CreateOrderAsync(outcome, typeVar, side, amount, price, params)
+	r2 := <-this.CreateOrderAsync(outcome, typeVar, side, ccxt.Float64Arg(amount), price, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
