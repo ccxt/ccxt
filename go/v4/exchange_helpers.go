@@ -434,44 +434,6 @@ func getValue(collection any, key any) any {
 	}
 }
 
-func Multiply(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if (a == nil) || (b == nil) {
-		return nil
-	}
-
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	// Ensure both values are numeric
-	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
-		return nil
-	}
-
-	// Convert a to the type of b to simplify multiplication
-	aValConverted := aVal.Convert(bVal.Type())
-
-	// Perform multiplication based on the kind of b
-	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return aValConverted.Int() * bVal.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return aValConverted.Uint() * bVal.Uint()
-	case reflect.Float32, reflect.Float64:
-		aFloat := ToFloat64(a)
-		bFloat := ToFloat64(b)
-		res := aFloat * bFloat
-		if IsInteger(res) {
-			return ParseInt(res)
-		}
-		return res
-	default:
-		return nil
-	}
-}
-
 func Divide(a, b any) any {
 	a = derefScalar(a)
 	b = derefScalar(b)
@@ -2873,12 +2835,4 @@ func HandleDeltas(bookside any, deltas any) any {
 	}
 
 	return bookside
-}
-
-// MapOrEmpty is the dict a typed constructor reads: nil or a non-map value gives an empty map
-func MapOrEmpty(v any) map[string]any {
-	if m := SafeMapTyped(map[string]any{"v": v}, "v"); m != nil {
-		return m
-	}
-	return map[string]any{}
 }

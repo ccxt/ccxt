@@ -5134,7 +5134,6 @@ function arithmeticTwinType (name: string, left: string, right: string): string 
     const anyDouble = left.startsWith ('double') || right.startsWith ('double');
     if (name === 'subtract') { if (nullable) return undefined; return anyDouble ? 'double' : ((left === 'int' && right === 'int') ? 'int' : 'Int64'); }
     if (name === 'multiply') { if (anyDouble) return undefined; return nullable ? 'Int64?' : 'Int64'; }
-    if ((left === 'double?') || (right === 'double?') || (nullable && anyDouble)) return undefined;
     return nullable ? 'double?' : 'double';
 }
 function arithmeticTwinRewrite (text: string, typeOfName: (name: string) => string | undefined, results: Map<string, string>): string {
@@ -5167,7 +5166,8 @@ function arithmeticTwinRewrite (text: string, typeOfName: (name: string) => stri
             const L = atom (typed[0].text);
             let R = atom (typed[1].text);
             if (call.name === 'divide') {
-                native = '((' + twin + ')' + L + ' / ' + R + ')';
+                const cast = (typed[0].type === twin) ? '' : '(' + twin + ')';
+                native = '(' + cast + L + ' / ' + R + ')';
             } else {
                 // int x int promotes to int where the Int64 twin multiplies Int64: widen an int literal only
                 if ((twin === 'Int64') && (typed[0].type === 'int') && (typed[1].type === 'int')) { R = typed[1].literal ? R + 'L' : undefined; }
@@ -5206,6 +5206,11 @@ function arithmeticOperandType (arg: string, typeOfName: (name: string) => strin
         const nullable = l.type.endsWith ('?') || r.type.endsWith ('?');
         const base = (l.type.startsWith ('double') || r.type.startsWith ('double')) ? 'double' : ((l.type.startsWith ('Int64') || r.type.startsWith ('Int64')) ? 'Int64' : 'int');
         return { type: base + (nullable ? '?' : ''), text, literal: false };
+    }
+    const cast = /^\((double\??|Int64\??|int\??)\)(.+)$/.exec (bare);
+    if (cast !== null) {
+        const inner = arithmeticOperandType (cast[2], typeOfName, results);
+        if (inner !== undefined) return { type: cast[1], text: bare, literal: false };
     }
     if (/^-?\d{1,9}$/.test (bare)) { return { type: 'int', text: bare.startsWith ('-') ? '(' + bare + ')' : bare, literal: true }; }
     if (/^\d{1,15}L$/.test (bare)) { return { type: 'Int64', text: bare, literal: true }; }
@@ -5280,7 +5285,7 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
     const baseOut = csharpParamsBagGetValue (csharpArithmeticNullableCompare (csharpNonNullDivModNegate (csharpDigitLiteralEquality (csharpObjectNumericLocalRetype (csharpDeclaredGetValue (csharpStringAddEqualityTruth (csharpPureKeyInOp (csharpCounterAndGuardedMath (csharpDeclaredIntMinMaxTruth (csharpNonNullIntCompare (csharpWsAndIndexGetValue (nativeDeclaredHelperCallsBase (csharpWsClientFuturesLocal (content), objectNull)))))))))))));
     const inlineHelperSwitchOut = csharpInlineHelperSwitch (objectNull, baseOut);
     const typedSubMulOut = csharpTypedSubtractMultiply (objectNull, inlineHelperSwitchOut);
-    const typedSubMulAgainOut = csharpTypedSubtractMultiply (objectNull, typedSubMulOut);
+    const typedSubMulAgainOut = csharpNativeArithmetic (csharpTypedSubtractMultiply (objectNull, typedSubMulOut));
     return csharpTypedStringSlice (csharpStringEncodeIdentity (csharpTypedRowCaches (csharpTupleSlotRead (objectNull, csharpNativeParseCalls (objectNull, typedSubMulAgainOut))))); // parse, then tuple-slot reads
 }
 // `this.encode(x)` is `(string)x` (Exchange.Encode.cs): on an operand declared `string`/`string?` (every declaration of the name in the member, or a string credential field) it is...
@@ -5692,7 +5697,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
         [ 'double multiply stays (Int64 re-box)', '        double a = 1.5;\n        double b = 2.0;\n        object x = multiply(a, b);', 'multiply(a, b)' ],
         [ 'Int64 / Int64 -> double division', '        Int64 a = 5;\n        Int64 b = 2;\n        object x = divide(a, b);', 'object x = ((double)a / b);' ],
         [ 'Int64? / int -> lifted double division', '        Int64? a = limit;\n        object x = divide(a, 1000);', 'object x = ((double?)a / 1000);' ],
-        [ 'double? / Int64 stays (object overload)', '        double? a = null;\n        Int64 b = 2;\n        object x = divide(a, b);', 'divide(a, b)' ],
+        [ 'double? / Int64 -> lifted double division', '        double? a = null;\n        Int64 b = 2;\n        object x = divide(a, b);', 'object x = (a / b);' ],
         [ 'lambda-bound name stays', '        Int64 a = 5;\n        Func<object, object> g = (a) => multiply(a, 2);', 'multiply(a, 2)' ],
         [ 'string literal argument untouched', '        Int64 a = 5;\n        object x = add(multiply(a, 2), \"s, t\");', 'add((a * 2), \"s, t\")' ],
         [ 'bare operator operand is wrapped', '        Int64 a = 5;\n        int b = 2;\n        object x = divide(a - b, 1000);', 'object x = ((double)(a - b) / 1000);' ],
@@ -6000,6 +6005,20 @@ function guardedArithmetic (text: string, typeOfName, guardedName: (name: string
                 const twin = arithmeticTwinType (m[1], kinds[0], kinds[1]);
                 if ((twin !== undefined) && (m[1] === 'divide')) { native = '((' + twin + ')' + L + ' / ' + R + ')'; }
             }
+        } else if ((m[1] === 'divide') && (typed[1] !== undefined)) {
+            // divide(this.sum(a, b), r) on two non-null-guarded double / double? identifiers -> (((double)a + (double)b) / r)
+            const sumMatch = /^this\.sum\(([A-Za-z_]\w*),\s*([A-Za-z_]\w*)\)$/.exec (csharpStripParens (inner[0].trim ()));
+            if (sumMatch !== null) {
+                const ta = typeOfName (sumMatch[1]);
+                const tb = typeOfName (sumMatch[2]);
+                const okSide = (name: string, t: string | undefined) => (t === 'double') || ((t === 'double?') && guardedName (name, offset + m.index));
+                if (okSide (sumMatch[1], ta) && okSide (sumMatch[2], tb)) {
+                    const aSpell = (ta === 'double?') ? sumMatch[1] + '.Value' : sumMatch[1];
+                    const bSpell = (tb === 'double?') ? sumMatch[2] + '.Value' : sumMatch[2];
+                    const R = (topLevelBinaryOperands (typed[1].text) === undefined) ? typed[1].text : '(' + typed[1].text + ')';
+                    native = '((' + aSpell + ' + ' + bSpell + ') / ' + R + ')';
+                }
+            }
         }
         out += text.slice (last, m.index) + (native ?? (m[1] + '(' + inner[0] + ',' + inner[1] + ')'));
         last = close + 1;
@@ -6084,7 +6103,20 @@ export function csharpCounterAndGuardedMath (content: string): string {
             let k = 0;
             const rewritten = guardedArithmetic (opaque, typeOfName, (name: string, col: number) => isNonNullGuarded (masked, start, i, col, name), 0) .replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
             if (k !== strings.length) continue;
-            set (i, rewritten + ((comment < 0) ? '' : lines[i].slice (comment)));
+            let finalLine = rewritten + ((comment < 0) ? '' : lines[i].slice (comment));
+            // single-write `object x = (a - b);` rewritten from guarded double subtraction -> `double? x = (a - b);`
+            if (rewritten !== code) {
+                const diffDecl = /^([ ]*)object ([A-Za-z_]\w*) = \(([A-Za-z_]\w*) - ([A-Za-z_]\w*)\);$/.exec (rewritten.trimEnd ());
+                if (diffDecl !== null) {
+                    const name = diffDecl[2];
+                    const ta = typeOfName (diffDecl[3]);
+                    const tb = typeOfName (diffDecl[4]);
+                    if (((ta === 'double') || (ta === 'double?')) && ((tb === 'double') || (tb === 'double?')) && (declarations ().filter ((d) => d.name === name).length === 1) && !written (name, [ i ])) {
+                        finalLine = finalLine.replace ('object ' + name + ' = ', 'double? ' + name + ' = ');
+                    }
+                }
+            }
+            set (i, finalLine);
         }
     }
     // the retyped counters / negations feed the declared-operand twins once more

@@ -10,6 +10,7 @@
         "Authenticate": "*string",
         "AuthenticateRest": "*string",
         "AuthenticateUta": "*string",
+        "Backpack.CreateRfqOrder": "map[string]any",
         "BaseExchange.AddMargin": "MarginModification",
         "BaseExchange.ReduceMargin": "MarginModification",
         "Binance.AddMargin": "MarginModification",

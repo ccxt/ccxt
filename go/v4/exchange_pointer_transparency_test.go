@@ -182,7 +182,6 @@ func binaryShims() []binaryShim {
 		{"EndsWith", func(a, b any) any { return EndsWith(a, b) }},
 		{"Split", func(a, b any) any { return Split(a, b) }},
 		{"Join", func(a, b any) any { return Join(a, b) }},
-		{"Multiply", func(a, b any) any { return Multiply(a, b) }},
 		{"Divide", func(a, b any) any { return Divide(a, b) }},
 		{"mathMin", func(a, b any) any { return mathMin(a, b) }},
 		{"mathMax", func(a, b any) any { return mathMax(a, b) }},

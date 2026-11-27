@@ -3558,6 +3558,7 @@ function goArithDeclaredType (maskedFunc: string, signature: string, name: strin
     const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
     if (count !== 1) { return undefined; }
     if (sigParam) { return sigParam[1].trim (); }
+    if ((shortDecls.length === 1) && new RegExp ('\\bfor\\s+' + name + '\\s*:=\\s*-?\\d+\\s*;').test (maskedFunc)) { return 'int'; }
     return (vars.length === 1) ? vars[0][1].trim () : undefined;
 }
 
@@ -4578,16 +4579,31 @@ function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string 
         if (!d) { continue; }
         const name = d[2];
         const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
-        // cheap reject first: a plain declaration whose own value is no never-nil int64 never retypes
+        // cheap reject first: a plain declaration whose own value is neither a never-nil int64 nor a `*float64` difference never retypes
         if (mlines[k].slice (d[0].length) !== 'func() any {') {
             const mv = mlines[k].slice (d[0].length).trimEnd ();
             scope.pos = lineStart (k) + d[0].length;
-            if (goNeverNilIntWrite (scope, lines[k].slice (d[0].length, d[0].length + mv.length), mv, new Set<string> ()) === undefined) { continue; }
+            const isFdiff = /^\(\*([A-Za-z_]\w*)\s*-\s*\*([A-Za-z_]\w*)\)$/.test (mv);
+            if (!isFdiff && (goNeverNilIntWrite (scope, lines[k].slice (d[0].length, d[0].length + mv.length), mv, new Set<string> ()) === undefined)) { continue; }
         }
         if ((goArithDeclaredTypeMemo (masked, scope.signature, name) !== 'any') || (goDeclCount (masked, name) !== 1)) { continue; }
         if (new RegExp ('[\\w.](?:\\s*,\\s*' + name + ')+\\s*:?=(?!=)|(?<![\\w.])' + name + '\\s*,[\\w\\s,]*:?=(?!=)|&' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (masked)) { continue; }
         const ind = d[1];
         const valueCol = d[0].length;
+        // single-write `var x any = (*a - *b)` over two `*float64` pointers, never nil-tested -> `float64`
+        const fdiff = /^\(\*([A-Za-z_]\w*)\s*-\s*\*([A-Za-z_]\w*)\)$/.exec (mlines[k].slice (valueCol).trimEnd ());
+        if (fdiff && (goArithDeclaredTypeMemo (masked, scope.signature, fdiff[1]) === '*float64') && (goArithDeclaredTypeMemo (masked, scope.signature, fdiff[2]) === '*float64')) {
+            let single = true;
+            for (let j = k + 1; single && (j < mlines.length); j++) {
+                if (new RegExp ('(?<![\\w.*])' + name + '\\s*=(?!=)').test (mlines[j])) { single = false; }
+                if (new RegExp ('(?<![\\w.])(?:IsEqual\\([^\\n]*\\b' + name + '\\b[^\\n]*\\bnil\\b|' + name + '\\s*[!=]=\\s*nil|nil\\s*[!=]=\\s*' + name + ')').test (mlines[j])) { single = false; }
+            }
+            if (single) {
+                lines[k] = lines[k].replace ('var ' + name + ' any = ', 'var ' + name + ' float64 = ');
+                changed = true;
+                continue;
+            }
+        }
         // [line, value column, guarded pointers]
         const writes: [ number, number, Set<string> ][] = [];
         const writeSpans: [ number, number ][] = [];
@@ -4824,6 +4840,16 @@ function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
         if (goSingleWrite (scope, name) && new RegExp ('\\bvar\\s+' + name + '\\s+(?:int|int64)\\s*=\\s*[1-9]\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n') && (goArithDeclaredType (scope.masked, scope.signature, name) !== undefined)) {
             return true;
         }
+        if (goSingleWrite (scope, name) && (goArithDeclaredType (scope.masked, scope.signature, name) === 'float64')) {
+            if (goIfGuarded (scope, name + ' != 0')) { return true; }
+            const diff = new RegExp ('\\bvar\\s+' + name + '\\s+float64\\s*=\\s*\\(\\*([A-Za-z_]\\w*)\\s*-\\s*\\*([A-Za-z_]\\w*)\\)\\s*(?:\\n|$)').exec (scope.masked + '\n');
+            if (diff && (diff.index < scope.pos)) {
+                const a = diff[1];
+                const bb = diff[2];
+                const ptrGuard = a + ' != ' + bb + ' && (' + a + ' == nil || ' + bb + ' == nil || *' + a + ' != *' + bb + ')';
+                if (goEnclosingIfHeads (scope).some ((h) => !h.negated && ((h.cond === ptrGuard) || (h.cond === '*' + a + ' != *' + bb)))) { return true; }
+            }
+        }
     }
     return /^this\.\w+$/.test (t) && !new RegExp ('(?<![\\w.])' + t.replace ('.', '\\.') + '\\s*=(?!=)').test (scope.masked) && goIfGuarded (scope, t + ' > 0');
 }
@@ -4831,7 +4857,7 @@ function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
 function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>, fileOwn: Set<string>): { text: string, math: boolean } {
     let masked = goMaskGoCode (text);
     const scope = goArithScope (masked, ownMethods);
-    const rx = /(?<![\w.])(?:ccxt\.)?(Divide|MathFloor|MathCeil)\(/g;
+    const rx = /(?<![\w.])(?:ccxt\.)?(Divide|MathFloor|MathCeil|Multiply)\(/g;
     const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
     calls.sort ((x, y) => y.start - x.start);
     const mine = new Set<string> ();
@@ -4850,7 +4876,13 @@ function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fiel
                 const f = (o: { kind: Kind, text: string }) => ((o.kind === 'i64') || (o.kind === 'int')) ? 'float64(' + goArithStripParens (o.text).replace (/ ([-+]) /g, '$1') + ')' : o.text;
                 native = '(' + f (a) + ' / ' + f (b) + ')';
             }
-        } else if ((call.helper !== 'Divide') && (spans.length === 1)) {
+        } else if ((call.helper === 'Multiply') && (spans.length === 2)) {
+            const aText = text.slice (spans[0][0], spans[0][1]).trim ();
+            const bText = text.slice (spans[1][0], spans[1][1]).trim ();
+            if (mine.has (goArithStripParens (aText)) && (/^\d+(?:\.\d+)?$/.test (bText))) {
+                native = '(' + aText + ' * ' + bText + ')';
+            }
+        } else if (((call.helper === 'MathFloor') || (call.helper === 'MathCeil')) && (spans.length === 1)) {
             // only around a quotient this pass produced
             const arg = goArithStripParens (text.slice (spans[0][0], spans[0][1]));
             if (mine.has (arg)) { native = 'math.' + call.helper.slice (4) + '(' + arg + ')'; }

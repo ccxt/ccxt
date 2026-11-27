@@ -600,8 +600,10 @@ type Order struct {
 	Info                any
 }
 
-func NewOrder(data any) Order {
-	m := MapOrEmpty(data)
+func NewOrder(m map[string]any) Order {
+	if m == nil {
+		m = map[string]any{}
+	}
 	var trades []Trade
 	if v, ok := m["trades"]; ok {
 		tradesData := v.([]any)

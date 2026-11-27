@@ -10155,6 +10155,7 @@ export const SIGNATURE_ARG_TYPES = {
     'filterBySymbolSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
     'filterByCurrencySinceLimit': { 2: 'Int64?', 3: 'Int64?' },
     'filterByOutcomeSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'prepareOrdersByStatusRequest': { 2: 'Int64?', 3: 'Int64?' },
     'parseOHLCVs': { 4: 'Int64?' },
     'fetchPaginatedCallCursor': { 3: 'Int64?' },
     'fetchPaginatedCallDeterministic': { 3: 'Int64?' },

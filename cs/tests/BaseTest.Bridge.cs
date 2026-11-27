@@ -147,13 +147,17 @@ public partial class BaseTest
     // overload's Int64 / double branches compute
     public static Int64 add(Int64 a, Int64 b) => Exchange.add(a, b);
     public static double add(double a, double b) => Exchange.add(a, b);
-    public static object multiply(object a, object b) => Exchange.multiply(a, b);
-    // typed arithmetic twins mirroring Exchange.TranspileHelpers.cs: a generated test file
-    // whose operands are numerically typed must resolve exactly like the library (the same
-    // expression in cs/ccxt binds the typed overload there), so the mirror has to exist or
-    // a typed residue declaration would bind (object, object) and return the other box
-    public static Int64 multiply(Int64 a, Int64 b) => Exchange.multiply(a, b);
-    public static Int64? multiply(Int64? a, Int64? b) => Exchange.multiply(a, b);
+    public static object multiply(object a, object b)
+    {
+        a = Exchange.normalizeIntIfNeeded(a);
+        b = Exchange.normalizeIntIfNeeded(b);
+        if (a == null || b == null) { return null; }
+        if (a is Int64 && b is Int64) { return (Int64)a * (Int64)b; }
+        var res = System.Convert.ToDouble(a) * System.Convert.ToDouble(b);
+        return Exchange.IsInteger(res) ? (object)System.Convert.ToInt64(res) : res;
+    }
+    public static Int64 multiply(Int64 a, Int64 b) => a * b;
+    public static Int64? multiply(Int64? a, Int64? b) => a * b;
     public static object subtract(object a, object b)
     {
         a = Exchange.normalizeIntIfNeeded(a);
@@ -166,10 +170,18 @@ public partial class BaseTest
     public static int subtract(int a, int b) => a - b;
     public static Int64 subtract(Int64 a, Int64 b) => a - b;
     public static double subtract(double a, double b) => a - b;
-    public static object divide(object a, object b) => Exchange.divide(a, b);
-    public static double divide(Int64 a, Int64 b) => Exchange.divide(a, b);
-    public static double divide(double a, double b) => Exchange.divide(a, b);
-    public static double? divide(Int64? a, Int64? b) => Exchange.divide(a, b);
+    public static object divide(object a, object b)
+    {
+        a = Exchange.normalizeIntIfNeeded(a);
+        b = Exchange.normalizeIntIfNeeded(b);
+        if (a == null || b == null) { return null; }
+        if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64)) { return (double)(Int64)a / (Int64)b; }
+        if (a.GetType() == typeof(double) && b.GetType() == typeof(double)) { return (double)a / (double)b; }
+        return System.Convert.ToDouble(a) / System.Convert.ToDouble(b);
+    }
+    public static double divide(Int64 a, Int64 b) => (double)a / b;
+    public static double divide(double a, double b) => a / b;
+    public static double? divide(Int64? a, Int64? b) => (double?)a / b;
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
     // typed twin mirroring Exchange.TranspileHelpers.cs (S58): `isTrue` is the identity on a bool

@@ -71,12 +71,16 @@ func TupleSlice[T any](value T, params map[string]any) []any {
 // HandleUntilOption is handleUntilOption with its [Dict, Dict] tuple spelled as two Go
 // results: request (with the until key when given) and params without until/till.
 func (this *BaseExchange) HandleUntilOption(key string, request map[string]any, params map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {
-	multiplier := GetArg(optionalArgs, 0, 1)
+	multiplier := GetArgFloat64Ptr(optionalArgs, 0, nil)
 	until := this.SafeInteger2(params, "until", "till")
 	if until == nil {
 		return request, params
 	}
-	request[key] = this.ParseToInt(Multiply(until, multiplier))
+	if multiplier == nil {
+		request[key] = *until
+	} else {
+		request[key] = this.ParseToInt(float64(*until) * *multiplier)
+	}
 	return request, this.OmitDict(params, []any{"until", "till"})
 }
 

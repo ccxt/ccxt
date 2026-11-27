@@ -137,7 +137,31 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 }
 
 func Multiply(a, b interface{}) interface{} {
-	return ccxt.Multiply(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a == nil || b == nil {
+		return nil
+	}
+	aVal := reflect.ValueOf(a)
+	bVal := reflect.ValueOf(b)
+	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+		return nil
+	}
+	aValConverted := aVal.Convert(bVal.Type())
+	switch bVal.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return aValConverted.Int() * bVal.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return aValConverted.Uint() * bVal.Uint()
+	case reflect.Float32, reflect.Float64:
+		res := ccxt.ToFloat64(a) * ccxt.ToFloat64(b)
+		if ccxt.IsInteger(res) {
+			return ccxt.ParseInt(res)
+		}
+		return res
+	default:
+		return nil
+	}
 }
 
 func Divide(a, b interface{}) interface{} {
