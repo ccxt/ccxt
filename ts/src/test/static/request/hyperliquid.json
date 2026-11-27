@@ -994,6 +994,22 @@
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "170", "s": "0.1", "r": false, "t": { "limit": { "tif": "Alo" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711269437173, "signature": { "r": "0x7ad22203bcece7b94016458e6080be8bee0724807186bcb7a64f1a9f9a83c1b9", "s": "0x1ae3889c08d3a9ce6bf50260b9e4b2947e55a10fe8c6640e6254a0ab829febb9", "v": 28 } }
             },
             {
+                "description": "post only order with the unified timeInForce PO",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    170,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "170", "s": "0.1", "r": false, "t": { "limit": { "tif": "Alo" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711269437173, "signature": { "r": "0x7ad22203bcece7b94016458e6080be8bee0724807186bcb7a64f1a9f9a83c1b9", "s": "0x1ae3889c08d3a9ce6bf50260b9e4b2947e55a10fe8c6640e6254a0ab829febb9", "v": 28 } }
+            },
+            {
                 "description": "spot market order",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
@@ -1547,6 +1563,23 @@
                     100
                 ],
                 "output": { "action": { "type": "batchModify", "modifies": [ { "oid": 6530857127, "order": { "a": 5, "b": true, "p": "100", "s": "0.7", "r": false, "t": { "limit": { "tif": "Gtc" } } } } ] }, "nonce": 1709643553938, "signature": { "r": "0x5455e138164fb02c23fae78d26bcfff278ebbd7d0ad4bfdd450685221135bcbb", "s": "0x2eb7ab67b84d7614c195fe42f50ebfa83822237abd1b68c44ab547a2f8acdd1a", "v": 27 } }
+            },
+            {
+                "description": "edit order with the unified timeInForce PO",
+                "method": "editOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "6530857127",
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.7,
+                    100,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": { "action": { "type": "batchModify", "modifies": [ { "oid": 6530857127, "order": { "a": 5, "b": true, "p": "100", "s": "0.7", "r": false, "t": { "limit": { "tif": "Alo" } } } } ] }, "nonce": 1709643553938, "signature": { "r": "0x5455e138164fb02c23fae78d26bcfff278ebbd7d0ad4bfdd450685221135bcbb", "s": "0x2eb7ab67b84d7614c195fe42f50ebfa83822237abd1b68c44ab547a2f8acdd1a", "v": 27 } }
             },
             {
                 "description": "edit order on a vault",
