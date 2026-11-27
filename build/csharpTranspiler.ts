@@ -5219,6 +5219,7 @@ function arithmeticOperandType (arg: string, typeOfName: (name: string) => strin
     if (/^\d{1,15}L$/.test (bare)) { return { type: 'Int64', text: bare, literal: true }; }
     if (/^\d+\.\d+$/.test (bare)) { return { type: 'double', text: bare, literal: true }; }
     if (/^this\.(milliseconds|seconds)\(\)$/.test (bare)) { return { type: 'Int64', text: bare, literal: false }; }
+    if (/^this\.parseToInt\(/.test (bare) && (csharpClosingParen (bare, 15) === bare.length - 1)) { return { type: 'Int64?', text: bare, literal: false }; }
     if (/^getArrayLength\([A-Za-z_]\w*\)$/.test (bare) || /^this\.parseTimeframe\([A-Za-z_]\w*\)$/.test (bare)) { return { type: 'int', text: bare, literal: false }; }
     const member = /^([A-Za-z_]\w*)\.(Length|Count)$/.exec (bare);
     if (member !== null) {
@@ -5235,11 +5236,11 @@ function arithmeticOperandType (arg: string, typeOfName: (name: string) => strin
     return undefined;
 }
 export function csharpNativeArithmetic (content: string): string {
-    if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) { return content; }
+    if (!/(?<![A-Za-z0-9_.])(add|subtract|multiply|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) { return content; }
     return csharpLinePass (content, false, (region, line, masked, i) => {
         // bound on the region's first line, before any line of it is rewritten
         region.bound = region.bound ?? arithmeticBoundNames (region.lines, region.start, region.end);
-        if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (masked) || line.includes ('\u0001') || /['@$]/.test (line)) { return undefined; }
+        if (!/(?<![A-Za-z0-9_.])(add|subtract|multiply|divide)\(/.test (masked) || line.includes ('\u0001') || /['@$]/.test (line)) { return undefined; }
         const typeOfName = (name: string) => region.bound.has (name) ? undefined : csharpHelperReceiverType (region, name, i, region.params)?.type;
         // string literals become opaque placeholders, a trailing line comment is kept aside
         const comment = masked.indexOf ('//');

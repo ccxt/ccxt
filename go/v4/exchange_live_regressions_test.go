@@ -14,7 +14,7 @@ func TestIsRoundNumberOfTimestampQuotient(t *testing.T) {
 	ex := &BaseExchange{}
 	diffs := []any{int64(60000), float64(60000), int64(120000), int64(1794676500000) - int64(1794676440000), float64(1794676500000) - float64(1794676440000)}
 	for _, diff := range diffs {
-		if !ex.IsRoundNumber(Divide(diff, int64(60000)).(float64)) {
+		if !ex.IsRoundNumber(ToFloat64(Divide(diff, int64(60000)))) {
 			t.Errorf("IsRoundNumber(Divide(%T %v, int64 60000)) = false", diff, diff)
 		}
 	}
@@ -23,7 +23,7 @@ func TestIsRoundNumberOfTimestampQuotient(t *testing.T) {
 			t.Errorf("IsRoundNumber(%T %v) = false", v, v)
 		}
 	}
-	if ex.IsRoundNumber(Divide(int64(90000), int64(60000)).(float64)) {
+	if ex.IsRoundNumber(ToFloat64(Divide(int64(90000), int64(60000)))) {
 		t.Errorf("IsRoundNumber(1.5) = true")
 	}
 	for _, v := range []float64{1.5, -2.25, math.NaN()} {
