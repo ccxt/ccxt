@@ -1,5 +1,5 @@
 import Exchange from './abstract/hyperliquid.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
+import type { Account, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, FundingHistory } from './base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
@@ -142,7 +142,9 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+     * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
      * @returns {object[]} an array of objects representing market data
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
@@ -536,12 +538,14 @@ export default class hyperliquid extends Exchange {
      * @description fetch all trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
@@ -601,6 +605,31 @@ export default class hyperliquid extends Exchange {
      * @returns {object} response from the exchange
      */
     setMarginMode(marginMode: string, symbol?: Str, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+     * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    fetchLeverageTiers(symbols?: Strings, params?: Dict): Promise<LeverageTiers>;
+    parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverage
+     * @description fetch the set leverage and margin mode for a swap market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name hyperliquid#setLeverage
@@ -776,6 +805,253 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     reserveRequestWeight(weight: Num, params?: Dict): Promise<Dict>;
+    buildApproveAgentSig(message: Dict): Dict;
+    /**
+     * @method
+     * @name hyperliquid#approveAgent
+     * @description approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+     * @param {string} agentAddress the address of the API wallet to approve
+     * @param {string} [agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    approveAgent(agentAddress: string, agentName?: Str, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#noop
+     * @description sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+     * @param {int} [nonce] the nonce to mark as used, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    noop(nonce?: Int, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#claimRewards
+     * @description claims the rewards earned by the account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    claimRewards(params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postL1Action
+     * @description signs an L1 action that has no market or order data and posts it to the exchange endpoint
+     * @param {object} action the action to sign and send
+     * @param {int} [nonce] the nonce to sign with, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    postL1Action(action: Dict, nonce?: Int, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#usdSend
+     * @description sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+     * @param {float} amount the amount of USDC to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    usdSend(amount: number, address: string, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#spotSend
+     * @description sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+     * @param {string} code unified currency code of the asset to send
+     * @param {float} amount the amount to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    spotSend(code: string, amount: number, address: string, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#stakingDeposit
+     * @description moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+     * @param {float} amount the amount of HYPE to move into staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    stakingDeposit(amount: number, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#stakingWithdraw
+     * @description moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+     * @param {float} amount the amount of HYPE to move out of staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    stakingWithdraw(amount: number, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#tokenDelegate
+     * @description delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+     * @param {string} validator the address of the validator
+     * @param {float} amount the amount of HYPE to delegate or undelegate
+     * @param {boolean} [isUndelegate] true to undelegate, false (default) to delegate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    tokenDelegate(validator: string, amount: number, isUndelegate?: boolean, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hyperliquidChainName
+     * @description the chain name that user-signed actions are signed for
+     * @returns {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+     */
+    hyperliquidChainName(): string;
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hypeToWei
+     * @description converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+     * @param {float} amount the amount of HYPE
+     * @returns {int} the amount in wei
+     */
+    hypeToWei(amount: number): int;
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postUserSignedAction
+     * @description signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+     * @param {string} actionType the type of the action
+     * @param {string} primaryType the EIP-712 primary type of the message
+     * @param {object[]} messageTypes the EIP-712 fields of the message
+     * @param {object} message the message to sign, its fields are sent as the action
+     * @param {int} nonce the nonce of the request
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    postUserSignedAction(actionType: string, primaryType: string, messageTypes: List, message: Dict, nonce: int, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#fetchApprovedBuilders
+     * @description fetch the addresses of the builders the user approved a builder fee for
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {string[]} a list of builder addresses
+     */
+    fetchApprovedBuilders(params?: Dict): Promise<List>;
+    /**
+     * @method
+     * @name hyperliquid#fetchVaultDetails
+     * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+     * @param {string} vaultAddress the address of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+     * @returns {object} the vault details as returned by the exchange
+     */
+    fetchVaultDetails(vaultAddress: string, params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingDelegations
+     * @description fetch the amounts of HYPE the user delegated to each validator
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of delegations as returned by the exchange
+     */
+    fetchStakingDelegations(params?: Dict): Promise<List>;
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingSummary
+     * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} the staking summary as returned by the exchange
+     */
+    fetchStakingSummary(params?: Dict): Promise<Dict>;
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingHistory
+     * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking events as returned by the exchange
+     */
+    fetchStakingHistory(params?: Dict): Promise<List>;
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingRewards
+     * @description fetch the staking rewards earned by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking rewards as returned by the exchange
+     */
+    fetchStakingRewards(params?: Dict): Promise<List>;
+    /**
+     * @method
+     * @name hyperliquid#fetchAccounts
+     * @description fetch the sub-accounts of a master account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    fetchAccounts(params?: Dict): Promise<Account[]>;
+    parseAccount(account: Dict): Account;
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    fetchCrossBorrowRates(params?: Dict): Promise<CrossBorrowRates>;
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRate
+     * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    fetchCrossBorrowRate(code: string, params?: Dict): Promise<CrossBorrowRate>;
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#tokenIndexToCurrencyCode
+     * @description resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+     * @param {string} tokenIndex the index of the token
+     * @returns {string} the unified currency code
+     */
+    tokenIndexToCurrencyCode(tokenIndex: Str): Str;
+    parseBorrowRate(info: any, currency?: Currency): Dict;
+    /**
+     * @method
+     * @name hyperliquid#fetchBorrowInterest
+     * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+     * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     /**
      * @method
      * @name hyperliquid#createSubAccount

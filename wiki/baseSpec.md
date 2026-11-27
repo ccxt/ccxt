@@ -40,6 +40,26 @@ add margin
 
 ---
 
+<a name="approveAgent" id="approveagent"></a>
+
+## approveAgent
+approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| agentAddress | <code>string</code> | Yes | the address of the API wallet to approve |
+| agentName | <code>string</code> | No | the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#approveagent)
+
+---
+
 <a name="approveBuilderCode" id="approvebuildercode"></a>
 
 ## approveBuilderCode
@@ -744,6 +764,24 @@ helper method for cancelling uta orders
 
 **Supported exchanges:**
 [kucoin](/exchanges/kucoin.md#cancelutaorder)
+
+---
+
+<a name="claimRewards" id="claimrewards"></a>
+
+## claimRewards
+claims the rewards earned by the account
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#claimrewards)
 
 ---
 
@@ -1899,6 +1937,7 @@ fetch all the accounts associated with a profile
 [extended](/exchanges/extended.md#fetchaccounts)
 [hashkey](/exchanges/hashkey.md#fetchaccounts)
 [htx](/exchanges/htx.md#fetchaccounts)
+[hyperliquid](/exchanges/hyperliquid.md#fetchaccounts)
 [interactivebrokers](/exchanges/interactivebrokers.md#fetchaccounts)
 [kucoin](/exchanges/kucoin.md#fetchaccounts)
 [lighter](/exchanges/lighter.md#fetchaccounts)
@@ -1948,6 +1987,25 @@ fetches the api keys of the account
 
 **Supported exchanges:**
 [pacifica](/exchanges/pacifica.md#fetchapikeys)
+
+---
+
+<a name="fetchApprovedBuilders" id="fetchapprovedbuilders"></a>
+
+## fetchApprovedBuilders
+fetch the addresses of the builders the user approved a builder fee for
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;string&gt;</code> - a list of builder addresses
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#fetchapprovedbuilders)
 
 ---
 
@@ -2147,6 +2205,7 @@ fetch the interest owed by the user for borrowing currency for margin trading
 [derive](/exchanges/derive.md#fetchborrowinterest)
 [gate](/exchanges/gate.md#fetchborrowinterest)
 [htx](/exchanges/htx.md#fetchborrowinterest)
+[hyperliquid](/exchanges/hyperliquid.md#fetchborrowinterest)
 [kucoin](/exchanges/kucoin.md#fetchborrowinterest)
 [okx](/exchanges/okx.md#fetchborrowinterest)
 [whitebit](/exchanges/whitebit.md#fetchborrowinterest)
@@ -2688,6 +2747,7 @@ fetch the rate of interest to borrow a currency for margin trading
 [bitget](/exchanges/bitget.md#fetchcrossborrowrate)
 [bybit](/exchanges/bybit.md#fetchcrossborrowrate)
 [digifinex](/exchanges/digifinex.md#fetchcrossborrowrate)
+[hyperliquid](/exchanges/hyperliquid.md#fetchcrossborrowrate)
 [kucoin](/exchanges/kucoin.md#fetchcrossborrowrate)
 [okx](/exchanges/okx.md#fetchcrossborrowrate)
 
@@ -2708,6 +2768,7 @@ fetch the borrow interest rates of all currencies
 
 **Supported exchanges:**
 [digifinex](/exchanges/digifinex.md#fetchcrossborrowrates)
+[hyperliquid](/exchanges/hyperliquid.md#fetchcrossborrowrates)
 [okx](/exchanges/okx.md#fetchcrossborrowrates)
 
 ---
@@ -3746,6 +3807,7 @@ fetch the set leverage for a market
 [gate](/exchanges/gate.md#fetchleverage)
 [hashkey](/exchanges/hashkey.md#fetchleverage)
 [hitbtc](/exchanges/hitbtc.md#fetchleverage)
+[hyperliquid](/exchanges/hyperliquid.md#fetchleverage)
 [krakenfutures](/exchanges/krakenfutures.md#fetchleverage)
 [kucoin](/exchanges/kucoin.md#fetchleverage)
 [mexc](/exchanges/mexc.md#fetchleverage)
@@ -3788,6 +3850,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 [gate](/exchanges/gate.md#fetchleveragetiers)
 [hashkey](/exchanges/hashkey.md#fetchleveragetiers)
 [htx](/exchanges/htx.md#fetchleveragetiers)
+[hyperliquid](/exchanges/hyperliquid.md#fetchleveragetiers)
 [krakenfutures](/exchanges/krakenfutures.md#fetchleveragetiers)
 [kucoin](/exchanges/kucoin.md#fetchleveragetiers)
 [mexc](/exchanges/mexc.md#fetchleveragetiers)
@@ -5923,6 +5986,82 @@ fetch a list of spot orders
 
 ---
 
+<a name="fetchStakingDelegations" id="fetchstakingdelegations"></a>
+
+## fetchStakingDelegations
+fetch the amounts of HYPE the user delegated to each validator
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list of delegations as returned by the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#fetchstakingdelegations)
+
+---
+
+<a name="fetchStakingHistory" id="fetchstakinghistory"></a>
+
+## fetchStakingHistory
+fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list of staking events as returned by the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#fetchstakinghistory)
+
+---
+
+<a name="fetchStakingRewards" id="fetchstakingrewards"></a>
+
+## fetchStakingRewards
+fetch the staking rewards earned by the user
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - a list of staking rewards as returned by the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#fetchstakingrewards)
+
+---
+
+<a name="fetchStakingSummary" id="fetchstakingsummary"></a>
+
+## fetchStakingSummary
+fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the staking summary as returned by the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#fetchstakingsummary)
+
+---
+
 <a name="fetchStatus" id="fetchstatus"></a>
 
 ## fetchStatus
@@ -6800,6 +6939,26 @@ helper method for fetching orders by status with uta endpoint
 
 ---
 
+<a name="fetchVaultDetails" id="fetchvaultdetails"></a>
+
+## fetchVaultDetails
+fetch the details of a vault, its leader, description, portfolio history, apr and followers
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the vault details as returned by the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| vaultAddress | <code>string</code> | Yes | the address of the vault |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | a user address, when provided the response includes the state of that user as a follower of the vault |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#fetchvaultdetails)
+
+---
+
 <a name="fetchVolatilityHistory" id="fetchvolatilityhistory"></a>
 
 ## fetchVolatilityHistory
@@ -7040,6 +7199,26 @@ returns unifiedAccount so the user can check if the unified account is enabled
 
 **Supported exchanges:**
 [gate](/exchanges/gate.md#loadunifiedstatus)
+
+---
+
+<a name="noop" id="noop"></a>
+
+## noop
+sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| nonce | <code>int</code> | No | the nonce to mark as used, a new one is generated when omitted |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.vaultAddress | <code>string</code> | No | the vault or sub-account address to send the action for |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#noop)
 
 ---
 
@@ -7529,6 +7708,86 @@ sign in, must be called prior to using other authenticated methods
 
 ---
 
+<a name="spotSend" id="spotsend"></a>
+
+## spotSend
+sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the asset to send |
+| amount | <code>float</code> | Yes | the amount to send |
+| address | <code>string</code> | Yes | the address to send to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#spotsend)
+
+---
+
+<a name="stakingDeposit" id="stakingdeposit"></a>
+
+## stakingDeposit
+moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| amount | <code>float</code> | Yes | the amount of HYPE to move into staking |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#stakingdeposit)
+
+---
+
+<a name="stakingWithdraw" id="stakingwithdraw"></a>
+
+## stakingWithdraw
+moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| amount | <code>float</code> | Yes | the amount of HYPE to move out of staking |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#stakingwithdraw)
+
+---
+
+<a name="tokenDelegate" id="tokendelegate"></a>
+
+## tokenDelegate
+delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| validator | <code>string</code> | Yes | the address of the validator |
+| amount | <code>float</code> | Yes | the amount of HYPE to delegate or undelegate |
+| isUndelegate | <code>boolean</code> | No | true to undelegate, false (default) to delegate |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#tokendelegate)
+
+---
+
 <a name="transfer" id="transfer"></a>
 
 ## transfer
@@ -7707,6 +7966,7 @@ unWatches best bid & ask for symbols
 [binance](/exchanges/binance.md#unwatchbidsasks)
 [bybit](/exchanges/bybit.md#unwatchbidsasks)
 [coinbaseinternational](/exchanges/coinbaseinternational.md#unwatchbidsasks)
+[hyperliquid](/exchanges/hyperliquid.md#unwatchbidsasks)
 [mexc](/exchanges/mexc.md#unwatchbidsasks)
 [nado](/exchanges/nado.md#unwatchbidsasks)
 [weex](/exchanges/weex.md#unwatchbidsasks)
@@ -8195,6 +8455,26 @@ upgrades the account to unified trade account *warning* this is irreversible
 
 ---
 
+<a name="usdSend" id="usdsend"></a>
+
+## usdSend
+sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| amount | <code>float</code> | Yes | the amount of USDC to send |
+| address | <code>string</code> | Yes | the address to send to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+**Supported exchanges:**
+[hyperliquid](/exchanges/hyperliquid.md#usdsend)
+
+---
+
 <a name="verifyGiftCode" id="verifygiftcode"></a>
 
 ## verifyGiftCode
@@ -8297,6 +8577,7 @@ watches best bid & ask for symbols
 [derive](/exchanges/derive.md#watchbidsasks)
 [gate](/exchanges/gate.md#watchbidsasks)
 [gemini](/exchanges/gemini.md#watchbidsasks)
+[hyperliquid](/exchanges/hyperliquid.md#watchbidsasks)
 [kucoin](/exchanges/kucoin.md#watchbidsasks)
 [mexc](/exchanges/mexc.md#watchbidsasks)
 [modetrade](/exchanges/modetrade.md#watchbidsasks)
