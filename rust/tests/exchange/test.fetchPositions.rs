@@ -17,8 +17,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), positions.clone(), symbol.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1651: bool = true;
-        while { if !__for_first_1651 { i += 1; } __for_first_1651 = false; i < (positions.len() as i64) } {
+        let mut __for_first_1661: bool = true;
+        while { if !__for_first_1661 { i += 1; } __for_first_1661 = false; i < (positions.len() as i64) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Null, now.clone());
     }
     }
@@ -30,8 +30,8 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     assert!(ccxt::runtime::is_true(&((positionsForSymbolLength <= 4))));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1652: bool = true;
-        while { if !__for_first_1652 { i += 1; } __for_first_1652 = false; i < (positionsForSymbol.len() as i64) } {
+        let mut __for_first_1662: bool = true;
+        while { if !__for_first_1662 { i += 1; } __for_first_1662 = false; i < (positionsForSymbol.len() as i64) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbol.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }

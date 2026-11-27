@@ -18,8 +18,8 @@ pub async fn testFetchLiquidations(mut exchange: Value, mut skippedProperties: V
     assert!(ccxt::runtime::is_true(&((matches!(&items, Value::Arr(_))))));
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1636: bool = true;
-        while { if !__for_first_1636 { i += 1; } __for_first_1636 = false; i < (items.len() as i64) } {
+        let mut __for_first_1646: bool = true;
+        while { if !__for_first_1646 { i += 1; } __for_first_1646 = false; i < (items.len() as i64) } {
         testLiquidation(exchange.clone(), skippedProperties.clone(), method.clone(), items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone());
     }
     }

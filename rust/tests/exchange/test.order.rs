@@ -79,8 +79,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if (entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1614: bool = true;
-                while { if !__for_first_1614 { i += 1; } __for_first_1614 = false; (i as f64) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1624: bool = true;
+                while { if !__for_first_1624 { i += 1; } __for_first_1624 = false; (i as f64) < get_array_length(&get_value(&entry, &Value::Str("trades".into()))).as_f64().unwrap_or(f64::NAN) } {
                 testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null), &Value::Int(i)), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }
