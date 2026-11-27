@@ -32,8 +32,37 @@ npm run build -w hosted              # -> hosted/dist/server.mjs (+ dist/check-e
 cd hosted
 EXCHANGES=kraken,coinbase,okx PORT=8080 node dist/server.mjs
 curl -s localhost:8080/readyz        # 200 once the markets are loaded
-claude mcp add --transport http ccxt-local http://127.0.0.1:8080/mcp
 ```
+
+Or with Docker, from `mcp/hosted`: `BUILD_ID=dev HOST_PORT=8080 docker compose up --build hosted`.
+
+### Try it from Codex, ChatGPT desktop or Claude Code (no tunnel)
+
+Both clients reach `http://127.0.0.1:8080/mcp` directly. Name the server something other than `ccxt` (here `ccxt-hosted-dev`), so it can't clash with a `ccxt` server you already have: Codex keeps one flat list of MCP servers, plugins included.
+
+- **Codex CLI and the ChatGPT desktop app** share `~/.codex/config.toml`:
+
+  ```toml
+  [mcp_servers.ccxt-hosted-dev]
+  url = "http://127.0.0.1:8080/mcp"
+  ```
+
+  Or, without editing the config, for one run (on a Mac without `codex` on the PATH, the ChatGPT app bundles it at `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`):
+
+  ```bash
+  codex -c 'mcp_servers.ccxt-hosted-dev.url="http://127.0.0.1:8080/mcp"' mcp list
+  codex exec --skip-git-repo-check -c 'mcp_servers.ccxt-hosted-dev.url="http://127.0.0.1:8080/mcp"' 'Use ccxt-hosted-dev: the BTC/USDT ticker on binance, then show_chart 1h'
+  ```
+
+- **Claude Code:** `claude mcp add --transport http ccxt-hosted-dev http://127.0.0.1:8080/mcp`, or for one run (the prompt goes after `--`, else `--allowedTools` takes it as a value):
+
+  ```bash
+  claude -p --strict-mcp-config --mcp-config '{"mcpServers":{"ccxt-hosted-dev":{"type":"http","url":"http://127.0.0.1:8080/mcp"}}}' --allowedTools 'mcp__ccxt-hosted-dev__*' -- 'Use ccxt-hosted-dev: the BTC/USDT ticker on binance, then show_chart 1h'
+  ```
+
+- **After a code change:** stop the server, rebuild with a new `BUILD_ID` (or `docker compose up --build` again) and restart. `initialize` reports it as `serverInfo.version`, so you can see the client reached the new build.
+
+Terminal clients don't draw the views: `show_*` answers there with `meta.ui` `"attached"` (Codex) or `"unsupported"` (Claude Code) and a text summary. To see the views, use Claude or ChatGPT on the web; they connect from their own servers, so they need a public HTTPS URL, not `127.0.0.1`.
 
 - **Without building:** `npm run dev` runs `src/main.ts` under tsx.
 - **Behind a proxy:** set `NODE_USE_ENV_PROXY=1` so Node's fetch honours `HTTPS_PROXY`.

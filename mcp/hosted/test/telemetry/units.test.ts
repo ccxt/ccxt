@@ -172,6 +172,8 @@ test ('dimensions: client family from the declared name, else the User-Agent', (
         [ undefined, 'openai-mcp/1.0.0', 'chatgpt' ],
         [ 'openai-mcp (Codex)', 'openai-mcp/1.0.0 (Codex)', 'codex' ],
         [ undefined, 'openai-mcp/1.0.0 (Codex)', 'codex' ],
+        [ 'codex-mcp-client', 'node', 'codex' ],
+        [ undefined, 'codex_cli_rs/0.171.0', 'codex' ],
         [ 'claude-code', 'Claude-User', 'claude_code' ],
         [ 'claude-ai', 'Claude-User', 'claude' ],
         [ 'Anthropic/ClaudeAI', 'Claude-User', 'claude' ],

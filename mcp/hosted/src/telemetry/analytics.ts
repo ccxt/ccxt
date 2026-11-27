@@ -179,7 +179,9 @@ export function clientFamily (clientName: unknown, userAgent: unknown): string {
     if (isInternalTest (userAgent) || name.startsWith ('ccxt-')) {
         return 'internal';
     }
-    if (name.includes ('codex') || agent.includes ('(codex)')) {
+    // ChatGPT's Codex sends "openai-mcp/1.0.0 (Codex)"; the Codex CLI declares
+    // "codex-mcp-client" in initialize only, so its later calls are matched on the User-Agent
+    if (name.includes ('codex') || agent.includes ('codex')) {
         return 'codex';
     }
     if (name.startsWith ('openai-mcp') || agent.startsWith ('openai-mcp')) {
