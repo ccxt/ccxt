@@ -1,0 +1,4142 @@
+{
+    "exchange": "reya",
+    "walletAddress": "0x0000000000000000000000000000000000000001",
+    "options": {
+        "accountId": 42,
+        "spotAccountId": 10000000042
+    },
+    "skipKeys": [
+        "info"
+    ],
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "bounded REST depth",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    5
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "type": "SNAPSHOT",
+                    "bids": [
+                        {
+                            "px": "80000",
+                            "qty": "0.02"
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "px": "80001",
+                            "qty": "0.01"
+                        }
+                    ],
+                    "updatedAt": 1700000000000
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/RUSD:RUSD",
+                    "bids": [
+                        [
+                            80000,
+                            0.02
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            80001,
+                            0.01
+                        ]
+                    ],
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets account isolation and public API semantics; spot definitions follow the perpetuals",
+                "method": "fetchMarkets",
+                "input": [],
+                "parsedResponse": [
+                    {
+                        "id": "BTCRUSDPERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "base": "BTC",
+                        "quote": "RUSD",
+                        "settle": "RUSD",
+                        "baseId": "BTC",
+                        "quoteId": "RUSD",
+                        "settleId": "RUSD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.001
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": 1,
+                                "max": 50
+                            }
+                        },
+                        "marginModes": {
+                            "cross": true,
+                            "isolated": false
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "marketId": 2,
+                            "status": "TRADING",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.001",
+                            "minOrderQty": "0.0001",
+                            "initialMarginParameter": "0.02",
+                            "maxLeverage": 50,
+                            "liquidationMarginParameter": "0.015"
+                        }
+                    },
+                    {
+                        "id": "ETHRUSDPERP",
+                        "lowercaseId": null,
+                        "symbol": "ETH/RUSD:RUSD",
+                        "base": "ETH",
+                        "quote": "RUSD",
+                        "settle": "RUSD",
+                        "baseId": "ETH",
+                        "quoteId": "RUSD",
+                        "settleId": "RUSD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.001
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": 1,
+                                "max": 50
+                            }
+                        },
+                        "marginModes": {
+                            "cross": true,
+                            "isolated": false
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "ETHRUSDPERP",
+                            "marketId": 1,
+                            "status": "TRADING",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.001",
+                            "minOrderQty": "0.0001",
+                            "initialMarginParameter": "0.02",
+                            "maxLeverage": 50,
+                            "liquidationMarginParameter": "0.015"
+                        }
+                    },
+                    {
+                        "id": "WETHRUSD",
+                        "lowercaseId": null,
+                        "symbol": "ETH/RUSD",
+                        "base": "ETH",
+                        "quote": "RUSD",
+                        "settle": null,
+                        "baseId": "ETH",
+                        "quoteId": "RUSD",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "WETHRUSD",
+                            "marketId": 10000000005,
+                            "baseAsset": "ETH",
+                            "quoteAsset": "RUSD",
+                            "minOrderQty": "0.001",
+                            "qtyStepSize": "0.001",
+                            "tickSize": "0.01"
+                        }
+                    },
+                    {
+                        "id": "WBTCRUSD",
+                        "lowercaseId": null,
+                        "symbol": "BTC/RUSD",
+                        "base": "BTC",
+                        "quote": "RUSD",
+                        "settle": null,
+                        "baseId": "BTC",
+                        "quoteId": "RUSD",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": 0.0001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "WBTCRUSD",
+                            "marketId": 10000000011,
+                            "baseAsset": "BTC",
+                            "quoteAsset": "RUSD",
+                            "minOrderQty": "0.0001",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.01"
+                        }
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "perpMarketDefinitions": [
+                        {
+                            "symbol": "BTCRUSDPERP",
+                            "marketId": 2,
+                            "status": "TRADING",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.001",
+                            "minOrderQty": "0.0001",
+                            "initialMarginParameter": "0.02",
+                            "maxLeverage": 50,
+                            "liquidationMarginParameter": "0.015"
+                        },
+                        {
+                            "symbol": "ETHRUSDPERP",
+                            "marketId": 1,
+                            "status": "TRADING",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.001",
+                            "minOrderQty": "0.0001",
+                            "initialMarginParameter": "0.02",
+                            "maxLeverage": 50,
+                            "liquidationMarginParameter": "0.015"
+                        }
+                    ],
+                    "spotMarketDefinitions": [
+                        {
+                            "symbol": "WETHRUSD",
+                            "marketId": 10000000005,
+                            "baseAsset": "ETH",
+                            "quoteAsset": "RUSD",
+                            "minOrderQty": "0.001",
+                            "qtyStepSize": "0.001",
+                            "tickSize": "0.01"
+                        },
+                        {
+                            "symbol": "WBTCRUSD",
+                            "marketId": 10000000011,
+                            "baseAsset": "BTC",
+                            "quoteAsset": "RUSD",
+                            "minOrderQty": "0.0001",
+                            "qtyStepSize": "0.0001",
+                            "tickSize": "0.01"
+                        }
+                    ]
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker account isolation and public API semantics",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "updatedAt": 1700000000000,
+                    "markPrice": "100",
+                    "oraclePrice": "99",
+                    "fundingRate": "0.0001",
+                    "volume24h": "50000",
+                    "pxChange24h": "2"
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/RUSD:RUSD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 98,
+                    "close": 100,
+                    "last": 100,
+                    "previousClose": null,
+                    "change": 2,
+                    "percentage": 2.0408163265306123,
+                    "average": 99,
+                    "baseVolume": null,
+                    "quoteVolume": 50000,
+                    "markPrice": 100,
+                    "indexPrice": 99,
+                    "info": {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "markPrice": "100",
+                        "oraclePrice": "99",
+                        "fundingRate": "0.0001",
+                        "volume24h": "50000",
+                        "pxChange24h": "2"
+                    }
+                }
+            },
+            {
+                "description": "spot summary: oracle as index, the book mid as close",
+                "input": [
+                    "ETH/RUSD"
+                ],
+                "httpResponse": {
+                    "symbol": "WETHRUSD",
+                    "updatedAt": 1700000000000,
+                    "volume24h": "760.5",
+                    "pxChange24h": "6.5",
+                    "oraclePrice": "1803.0",
+                    "throttledMidPrice": "1803.3"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/RUSD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "high": null,
+                    "low": null,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 1796.8,
+                    "close": 1803.3,
+                    "last": 1803.3,
+                    "previousClose": null,
+                    "change": 6.5,
+                    "percentage": 0.3617542297417631,
+                    "average": 1800.05,
+                    "baseVolume": null,
+                    "quoteVolume": 760.5,
+                    "markPrice": null,
+                    "indexPrice": 1803,
+                    "info": {
+                        "symbol": "WETHRUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "1803.0",
+                        "throttledMidPrice": "1803.3"
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers account isolation and public API semantics; without symbols every market, perpetual and spot",
+                "method": "fetchTickers",
+                "input": [],
+                "parsedResponse": {
+                    "BTC/RUSD:RUSD": {
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 98,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": null,
+                        "change": 2,
+                        "percentage": 2.0408163265306123,
+                        "average": 99,
+                        "baseVolume": null,
+                        "quoteVolume": 50000,
+                        "markPrice": 100,
+                        "indexPrice": 99,
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "markPrice": "100",
+                            "oraclePrice": "99",
+                            "fundingRate": "0.0001",
+                            "volume24h": "50000",
+                            "pxChange24h": "2"
+                        }
+                    },
+                    "ETH/RUSD": {
+                        "symbol": "ETH/RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 1796.8,
+                        "close": 1803.3,
+                        "last": 1803.3,
+                        "previousClose": null,
+                        "change": 6.5,
+                        "percentage": 0.3617542297417631,
+                        "average": 1800.05,
+                        "baseVolume": null,
+                        "quoteVolume": 760.5,
+                        "markPrice": null,
+                        "indexPrice": 1803,
+                        "info": {
+                            "symbol": "WETHRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "1803.0",
+                            "throttledMidPrice": "1803.3"
+                        }
+                    },
+                    "BTC/RUSD": {
+                        "symbol": "BTC/RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 63861.2,
+                        "close": 63867.7,
+                        "last": 63867.7,
+                        "previousClose": null,
+                        "change": 6.5,
+                        "percentage": 0.010178324240697,
+                        "average": 63864.45,
+                        "baseVolume": null,
+                        "quoteVolume": 760.5,
+                        "markPrice": null,
+                        "indexPrice": 63867.7,
+                        "info": {
+                            "symbol": "WBTCRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "63867.7"
+                        }
+                    }
+                },
+                "httpResponseByUrl": {
+                    "perpMarkets/summary": [
+                        {
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "markPrice": "100",
+                            "oraclePrice": "99",
+                            "fundingRate": "0.0001",
+                            "volume24h": "50000",
+                            "pxChange24h": "2"
+                        }
+                    ],
+                    "spotMarkets/summary": [
+                        {
+                            "symbol": "WETHRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "1803.0",
+                            "throttledMidPrice": "1803.3"
+                        },
+                        {
+                            "symbol": "WBTCRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "63867.7"
+                        },
+                        {
+                            "symbol": "REYARUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "0.01875"
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "spot summaries; a one-sided book falls back to the oracle price",
+                "input": [
+                    [
+                        "ETH/RUSD",
+                        "BTC/RUSD"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "WETHRUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "1803.0",
+                        "throttledMidPrice": "1803.3"
+                    },
+                    {
+                        "symbol": "WBTCRUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "63867.7"
+                    },
+                    {
+                        "symbol": "REYARUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "0.01875"
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/RUSD": {
+                        "symbol": "ETH/RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 1796.8,
+                        "close": 1803.3,
+                        "last": 1803.3,
+                        "previousClose": null,
+                        "change": 6.5,
+                        "percentage": 0.3617542297417631,
+                        "average": 1800.05,
+                        "baseVolume": null,
+                        "quoteVolume": 760.5,
+                        "markPrice": null,
+                        "indexPrice": 1803,
+                        "info": {
+                            "symbol": "WETHRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "1803.0",
+                            "throttledMidPrice": "1803.3"
+                        }
+                    },
+                    "BTC/RUSD": {
+                        "symbol": "BTC/RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 63861.2,
+                        "close": 63867.7,
+                        "last": 63867.7,
+                        "previousClose": null,
+                        "change": 6.5,
+                        "percentage": 0.010178324240697,
+                        "average": 63864.45,
+                        "baseVolume": null,
+                        "quoteVolume": 760.5,
+                        "markPrice": null,
+                        "indexPrice": 63867.7,
+                        "info": {
+                            "symbol": "WBTCRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "63867.7"
+                        }
+                    }
+                }
+            },
+            {
+                "description": "every spot summary for params.type spot; a summary without a market definition is left out",
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "WETHRUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "1803.0",
+                        "throttledMidPrice": "1803.3"
+                    },
+                    {
+                        "symbol": "WBTCRUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "63867.7"
+                    },
+                    {
+                        "symbol": "REYARUSD",
+                        "updatedAt": 1700000000000,
+                        "volume24h": "760.5",
+                        "pxChange24h": "6.5",
+                        "oraclePrice": "0.01875"
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/RUSD": {
+                        "symbol": "ETH/RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 1796.8,
+                        "close": 1803.3,
+                        "last": 1803.3,
+                        "previousClose": null,
+                        "change": 6.5,
+                        "percentage": 0.3617542297417631,
+                        "average": 1800.05,
+                        "baseVolume": null,
+                        "quoteVolume": 760.5,
+                        "markPrice": null,
+                        "indexPrice": 1803,
+                        "info": {
+                            "symbol": "WETHRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "1803.0",
+                            "throttledMidPrice": "1803.3"
+                        }
+                    },
+                    "BTC/RUSD": {
+                        "symbol": "BTC/RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 63861.2,
+                        "close": 63867.7,
+                        "last": 63867.7,
+                        "previousClose": null,
+                        "change": 6.5,
+                        "percentage": 0.010178324240697,
+                        "average": 63864.45,
+                        "baseVolume": null,
+                        "quoteVolume": 760.5,
+                        "markPrice": null,
+                        "indexPrice": 63867.7,
+                        "info": {
+                            "symbol": "WBTCRUSD",
+                            "updatedAt": 1700000000000,
+                            "volume24h": "760.5",
+                            "pxChange24h": "6.5",
+                            "oraclePrice": "63867.7"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate account isolation and public API semantics",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "updatedAt": 1700000000000,
+                    "markPrice": "100",
+                    "oraclePrice": "99",
+                    "fundingRate": "0.0001",
+                    "volume24h": "50000",
+                    "pxChange24h": "2"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "markPrice": "100",
+                        "oraclePrice": "99",
+                        "fundingRate": "0.0001",
+                        "volume24h": "50000",
+                        "pxChange24h": "2"
+                    },
+                    "symbol": "BTC/RUSD:RUSD",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "markPrice": 100,
+                    "indexPrice": 99,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "fundingRate": 0.000001,
+                    "interval": "1h",
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts account isolation and public API semantics",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "type": "MAINPERP"
+                    },
+                    {
+                        "accountId": 43,
+                        "type": "AGENTPERP"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "42",
+                        "type": "MAINPERP",
+                        "code": "RUSD",
+                        "info": {
+                            "accountId": 42,
+                            "type": "MAINPERP"
+                        }
+                    },
+                    {
+                        "id": "43",
+                        "type": "AGENTPERP",
+                        "code": "RUSD",
+                        "info": {
+                            "accountId": 43,
+                            "type": "AGENTPERP"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "rUSD margin of the configured account",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "collateralValue": "1000",
+                        "unrealizedPnl": "0",
+                        "marginBalance": "1000",
+                        "equity": "1000",
+                        "initialMarginRequirement": "400",
+                        "liquidationMarginRequirement": "10",
+                        "freeCollateral": "600",
+                        "initialMarginRatio": "0.1",
+                        "liquidationMarginRatio": "0.01",
+                        "updatedAt": 1700000000000,
+                        "pricesUpdatedAt": 1699999999000
+                    },
+                    {
+                        "accountId": 43,
+                        "collateralValue": "50000",
+                        "unrealizedPnl": "0",
+                        "marginBalance": "50000",
+                        "equity": "50000",
+                        "initialMarginRequirement": "0",
+                        "liquidationMarginRequirement": "10",
+                        "freeCollateral": "50000",
+                        "initialMarginRatio": "0.1",
+                        "liquidationMarginRatio": "0.01",
+                        "updatedAt": 1700000000000,
+                        "pricesUpdatedAt": 1699999999000
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountId": 42,
+                            "collateralValue": "1000",
+                            "unrealizedPnl": "0",
+                            "marginBalance": "1000",
+                            "equity": "1000",
+                            "initialMarginRequirement": "400",
+                            "liquidationMarginRequirement": "10",
+                            "freeCollateral": "600",
+                            "initialMarginRatio": "0.1",
+                            "liquidationMarginRatio": "0.01",
+                            "updatedAt": 1700000000000,
+                            "pricesUpdatedAt": 1699999999000
+                        },
+                        {
+                            "accountId": 43,
+                            "collateralValue": "50000",
+                            "unrealizedPnl": "0",
+                            "marginBalance": "50000",
+                            "equity": "50000",
+                            "initialMarginRequirement": "0",
+                            "liquidationMarginRequirement": "10",
+                            "freeCollateral": "50000",
+                            "initialMarginRatio": "0.1",
+                            "liquidationMarginRatio": "0.01",
+                            "updatedAt": 1700000000000,
+                            "pricesUpdatedAt": 1699999999000
+                        }
+                    ],
+                    "RUSD": {
+                        "free": 600,
+                        "used": 400,
+                        "total": 1000
+                    },
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "free": {
+                        "RUSD": 600
+                    },
+                    "used": {
+                        "RUSD": 400
+                    },
+                    "total": {
+                        "RUSD": 1000
+                    }
+                }
+            },
+            {
+                "description": "an initial margin deficit leaves nothing free",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "collateralValue": "100",
+                        "unrealizedPnl": "0",
+                        "marginBalance": "100",
+                        "equity": "100",
+                        "initialMarginRequirement": "120",
+                        "liquidationMarginRequirement": "10",
+                        "freeCollateral": "-20",
+                        "initialMarginRatio": "0.1",
+                        "liquidationMarginRatio": "0.01",
+                        "updatedAt": 1700000000000,
+                        "pricesUpdatedAt": 1699999999000
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountId": 42,
+                            "collateralValue": "100",
+                            "unrealizedPnl": "0",
+                            "marginBalance": "100",
+                            "equity": "100",
+                            "initialMarginRequirement": "120",
+                            "liquidationMarginRequirement": "10",
+                            "freeCollateral": "-20",
+                            "initialMarginRatio": "0.1",
+                            "liquidationMarginRatio": "0.01",
+                            "updatedAt": 1700000000000,
+                            "pricesUpdatedAt": 1699999999000
+                        }
+                    ],
+                    "RUSD": {
+                        "free": 0,
+                        "used": 100,
+                        "total": 100
+                    },
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "free": {
+                        "RUSD": 0
+                    },
+                    "used": {
+                        "RUSD": 100
+                    },
+                    "total": {
+                        "RUSD": 100
+                    }
+                }
+            },
+            {
+                "description": "realized balance of each collateral asset",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "method": "accountBalances"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "asset": "RUSD",
+                        "realBalance": "1000"
+                    },
+                    {
+                        "accountId": 42,
+                        "asset": "WETH",
+                        "realBalance": "0.5"
+                    },
+                    {
+                        "accountId": 43,
+                        "asset": "RUSD",
+                        "realBalance": "50000"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "realBalance": "1000"
+                        },
+                        {
+                            "accountId": 42,
+                            "asset": "WETH",
+                            "realBalance": "0.5"
+                        },
+                        {
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "realBalance": "50000"
+                        }
+                    ],
+                    "RUSD": {
+                        "free": null,
+                        "used": null,
+                        "total": 1000
+                    },
+                    "WETH": {
+                        "free": null,
+                        "used": null,
+                        "total": 0.5
+                    },
+                    "free": {
+                        "RUSD": null,
+                        "WETH": null
+                    },
+                    "used": {
+                        "RUSD": null,
+                        "WETH": null
+                    },
+                    "total": {
+                        "RUSD": 1000,
+                        "WETH": 0.5
+                    }
+                }
+            },
+            {
+                "description": "spot balances of the SPOT account, each all free",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "accountId": 10000000042,
+                        "asset": "RUSD",
+                        "realBalance": "8085.65",
+                        "balanceDEPRECATED": "8085.65"
+                    },
+                    {
+                        "accountId": 10000000042,
+                        "asset": "ETH",
+                        "realBalance": "0.179",
+                        "balanceDEPRECATED": "0.179"
+                    },
+                    {
+                        "accountId": 42,
+                        "asset": "RUSD",
+                        "realBalance": "1000",
+                        "balanceDEPRECATED": "1000"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "accountId": 10000000042,
+                            "asset": "RUSD",
+                            "realBalance": "8085.65",
+                            "balanceDEPRECATED": "8085.65"
+                        },
+                        {
+                            "accountId": 10000000042,
+                            "asset": "ETH",
+                            "realBalance": "0.179",
+                            "balanceDEPRECATED": "0.179"
+                        },
+                        {
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "realBalance": "1000",
+                            "balanceDEPRECATED": "1000"
+                        }
+                    ],
+                    "RUSD": {
+                        "free": 8085.65,
+                        "used": 0,
+                        "total": 8085.65
+                    },
+                    "ETH": {
+                        "free": 0.179,
+                        "used": 0,
+                        "total": 0.179
+                    },
+                    "free": {
+                        "RUSD": 8085.65,
+                        "ETH": 0.179
+                    },
+                    "used": {
+                        "RUSD": 0,
+                        "ETH": 0
+                    },
+                    "total": {
+                        "RUSD": 8085.65,
+                        "ETH": 0.179
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "valued positions of the configured account",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "symbol": "BTCRUSDPERP",
+                        "side": "A",
+                        "qty": "2",
+                        "avgEntryPrice": "100",
+                        "lastTradeSequenceNumber": 77,
+                        "markPrice": "110",
+                        "notional": "220",
+                        "unrealizedPnl": "-20",
+                        "fundingSinceChange": "-0.5",
+                        "fundingSinceOpen": "-1.25",
+                        "liquidationMarginRequirement": "5.5",
+                        "liquidationPrice": "150",
+                        "hasCorrelatedCollateral": false,
+                        "updatedAt": 1700000000000,
+                        "pricesUpdatedAt": 1699999999000
+                    },
+                    {
+                        "accountId": 42,
+                        "symbol": "ETHRUSDPERP",
+                        "side": "B",
+                        "qty": "3",
+                        "avgEntryPrice": "100",
+                        "lastTradeSequenceNumber": 77,
+                        "markPrice": "110",
+                        "notional": "330",
+                        "unrealizedPnl": "30",
+                        "fundingSinceChange": "-0.5",
+                        "fundingSinceOpen": "-1.25",
+                        "liquidationMarginRequirement": "8.25",
+                        "liquidationPrice": null,
+                        "hasCorrelatedCollateral": false,
+                        "updatedAt": 1700000000000,
+                        "pricesUpdatedAt": 1699999999000
+                    },
+                    {
+                        "accountId": 43,
+                        "symbol": "BTCRUSDPERP",
+                        "side": "B",
+                        "qty": "100",
+                        "avgEntryPrice": "100",
+                        "lastTradeSequenceNumber": 77,
+                        "markPrice": "110",
+                        "notional": "11000",
+                        "unrealizedPnl": "1000",
+                        "fundingSinceChange": "-0.5",
+                        "fundingSinceOpen": "-1.25",
+                        "liquidationMarginRequirement": "275",
+                        "liquidationPrice": "50",
+                        "hasCorrelatedCollateral": false,
+                        "updatedAt": 1700000000000,
+                        "pricesUpdatedAt": 1699999999000
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "symbol": "BTCRUSDPERP",
+                            "side": "A",
+                            "qty": "2",
+                            "avgEntryPrice": "100",
+                            "lastTradeSequenceNumber": 77,
+                            "markPrice": "110",
+                            "notional": "220",
+                            "unrealizedPnl": "-20",
+                            "fundingSinceChange": "-0.5",
+                            "fundingSinceOpen": "-1.25",
+                            "liquidationMarginRequirement": "5.5",
+                            "liquidationPrice": "150",
+                            "hasCorrelatedCollateral": false,
+                            "updatedAt": 1700000000000,
+                            "pricesUpdatedAt": 1699999999000
+                        },
+                        "id": null,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastUpdateTimestamp": null,
+                        "hedged": false,
+                        "side": "short",
+                        "contracts": 2,
+                        "contractSize": 1,
+                        "entryPrice": 100,
+                        "markPrice": 110,
+                        "notional": 220,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 5.5,
+                        "maintenanceMarginPercentage": 0.025,
+                        "unrealizedPnl": -20,
+                        "liquidationPrice": 150,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": null,
+                        "positionMargin": null
+                    },
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "symbol": "ETHRUSDPERP",
+                            "side": "B",
+                            "qty": "3",
+                            "avgEntryPrice": "100",
+                            "lastTradeSequenceNumber": 77,
+                            "markPrice": "110",
+                            "notional": "330",
+                            "unrealizedPnl": "30",
+                            "fundingSinceChange": "-0.5",
+                            "fundingSinceOpen": "-1.25",
+                            "liquidationMarginRequirement": "8.25",
+                            "liquidationPrice": null,
+                            "hasCorrelatedCollateral": false,
+                            "updatedAt": 1700000000000,
+                            "pricesUpdatedAt": 1699999999000
+                        },
+                        "id": null,
+                        "symbol": "ETH/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastUpdateTimestamp": null,
+                        "hedged": false,
+                        "side": "long",
+                        "contracts": 3,
+                        "contractSize": 1,
+                        "entryPrice": 100,
+                        "markPrice": 110,
+                        "notional": 330,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 8.25,
+                        "maintenanceMarginPercentage": 0.025,
+                        "unrealizedPnl": 30,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": null,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "position records without valuation",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/RUSD:RUSD"
+                    ],
+                    {
+                        "method": "positions"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "exchangeId": 2,
+                        "accountId": 42,
+                        "symbol": "BTCRUSDPERP",
+                        "side": "A",
+                        "qty": "2",
+                        "avgEntryPrice": "105",
+                        "avgEntryFundingValue": "0",
+                        "lastTradeSequenceNumber": 77
+                    },
+                    {
+                        "exchangeId": 2,
+                        "accountId": 43,
+                        "symbol": "BTCRUSDPERP",
+                        "side": "B",
+                        "qty": "100",
+                        "avgEntryPrice": "90",
+                        "avgEntryFundingValue": "0",
+                        "lastTradeSequenceNumber": 76
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "exchangeId": 2,
+                            "accountId": 42,
+                            "symbol": "BTCRUSDPERP",
+                            "side": "A",
+                            "qty": "2",
+                            "avgEntryPrice": "105",
+                            "avgEntryFundingValue": "0",
+                            "lastTradeSequenceNumber": 77
+                        },
+                        "id": null,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "hedged": false,
+                        "side": "short",
+                        "contracts": 2,
+                        "contractSize": 1,
+                        "entryPrice": 105,
+                        "markPrice": null,
+                        "notional": null,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": "cross",
+                        "percentage": null,
+                        "positionMargin": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders account isolation and public API semantics",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "accountId": 42,
+                        "orderId": "123456789012345678",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "cumQty": "0",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000,
+                        "status": "OPEN",
+                        "sequenceNumber": 1,
+                        "postOnly": true,
+                        "reduceOnly": false
+                    },
+                    {
+                        "accountId": 42,
+                        "orderId": "123456789012345678",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "cumQty": "0.5",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000,
+                        "status": "OPEN",
+                        "sequenceNumber": 2,
+                        "postOnly": true,
+                        "reduceOnly": false
+                    },
+                    {
+                        "accountId": 43,
+                        "orderId": "99",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "cumQty": "0.5",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000,
+                        "status": "OPEN",
+                        "sequenceNumber": 2,
+                        "postOnly": true,
+                        "reduceOnly": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000,
+                            "status": "OPEN",
+                            "sequenceNumber": 2,
+                            "postOnly": true,
+                            "reduceOnly": false
+                        },
+                        "id": "123456789012345678",
+                        "clientOrderId": "42",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000000000,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 100,
+                        "triggerPrice": null,
+                        "amount": 2,
+                        "filled": 0.5,
+                        "remaining": 1.5,
+                        "average": 100,
+                        "cost": 50,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "spot open orders of the SPOT account",
+                "input": [
+                    "ETH/RUSD"
+                ],
+                "httpResponse": [
+                    {
+                        "exchangeId": 2,
+                        "symbol": "WETHRUSD",
+                        "accountId": 10000000042,
+                        "orderId": "501",
+                        "clientOrderId": "9",
+                        "qty": "0.5",
+                        "cumQty": "0",
+                        "side": "B",
+                        "limitPx": "1800",
+                        "orderType": "LIMIT",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "status": "OPEN",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000
+                    },
+                    {
+                        "exchangeId": 2,
+                        "symbol": "WETHRUSD",
+                        "accountId": 42,
+                        "orderId": "502",
+                        "clientOrderId": "9",
+                        "qty": "0.5",
+                        "cumQty": "0",
+                        "side": "B",
+                        "limitPx": "1800",
+                        "orderType": "LIMIT",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "status": "OPEN",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000000000
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "accountId": 10000000042,
+                            "orderId": "501",
+                            "clientOrderId": "9",
+                            "qty": "0.5",
+                            "cumQty": "0",
+                            "side": "B",
+                            "limitPx": "1800",
+                            "orderType": "LIMIT",
+                            "timeInForce": "GTC",
+                            "postOnly": true,
+                            "reduceOnly": false,
+                            "status": "OPEN",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000
+                        },
+                        "id": "501",
+                        "clientOrderId": "9",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000000000,
+                        "symbol": "ETH/RUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 1800,
+                        "triggerPrice": null,
+                        "amount": 0.5,
+                        "filled": 0,
+                        "remaining": 0.5,
+                        "average": null,
+                        "cost": 0,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders account isolation and public API semantics",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000,
+                            "status": "CANCELLED",
+                            "sequenceNumber": 2,
+                            "postOnly": true,
+                            "reduceOnly": false
+                        }
+                    ],
+                    "meta": {}
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000000000,
+                            "status": "CANCELLED",
+                            "sequenceNumber": 2,
+                            "postOnly": true,
+                            "reduceOnly": false
+                        },
+                        "id": "123456789012345678",
+                        "clientOrderId": "42",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1700000000000,
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 100,
+                        "triggerPrice": null,
+                        "amount": 2,
+                        "filled": 0.5,
+                        "remaining": 1.5,
+                        "average": 100,
+                        "cost": 50,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades account isolation and public API semantics",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        }
+                    ],
+                    "meta": {}
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        },
+                        "id": "9",
+                        "order": "123456789012345678",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "maker",
+                        "price": 100,
+                        "amount": 0.5,
+                        "cost": 50,
+                        "fee": {
+                            "currency": "RUSD",
+                            "cost": -0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "RUSD",
+                                "cost": -0.01
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "spot fills of the SPOT account as maker and as taker; other accounts are dropped",
+                "input": [
+                    "ETH/RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000777,
+                            "makerAccountId": 10000000042,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "A",
+                            "price": "1800",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9001,
+                            "fillId": "601"
+                        },
+                        {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000042,
+                            "makerAccountId": 10000000777,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "B",
+                            "price": "1800",
+                            "takerFee": "0.09",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9002,
+                            "fillId": "601"
+                        },
+                        {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000778,
+                            "makerAccountId": 10000000777,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "A",
+                            "price": "1800",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9003,
+                            "fillId": "601"
+                        }
+                    ],
+                    "meta": {
+                        "limit": 100,
+                        "count": 3
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000777,
+                            "makerAccountId": 10000000042,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "A",
+                            "price": "1800",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9001,
+                            "fillId": "601"
+                        },
+                        "id": "9001",
+                        "order": "501",
+                        "timestamp": 1700000001000,
+                        "datetime": "2023-11-14T22:13:21.000Z",
+                        "symbol": "ETH/RUSD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "maker",
+                        "price": 1800,
+                        "amount": 0.1,
+                        "cost": 180,
+                        "fee": {
+                            "currency": "RUSD",
+                            "cost": 0
+                        },
+                        "fees": [
+                            {
+                                "currency": "RUSD",
+                                "cost": 0
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000042,
+                            "makerAccountId": 10000000777,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "B",
+                            "price": "1800",
+                            "takerFee": "0.09",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9002,
+                            "fillId": "601"
+                        },
+                        "id": "9002",
+                        "order": "601",
+                        "timestamp": 1700000001000,
+                        "datetime": "2023-11-14T22:13:21.000Z",
+                        "symbol": "ETH/RUSD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 1800,
+                        "amount": 0.1,
+                        "cost": 180,
+                        "fee": {
+                            "currency": "RUSD",
+                            "cost": 0.09
+                        },
+                        "fees": [
+                            {
+                                "currency": "RUSD",
+                                "cost": 0.09
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades account isolation and public API semantics",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        }
+                    ],
+                    "meta": {}
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "takerAccountId": 99,
+                            "makerAccountId": 42,
+                            "takerOrderId": "9",
+                            "makerOrderId": "123456789012345678",
+                            "qty": "0.5",
+                            "price": "100",
+                            "side": "B",
+                            "timestamp": 1700000000000,
+                            "sequenceNumber": 9,
+                            "makerFee": "-0.01",
+                            "takerFee": "0.03",
+                            "type": "ORDER_MATCH"
+                        },
+                        "id": "9",
+                        "order": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "symbol": "BTC/RUSD:RUSD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 100,
+                        "amount": 0.5,
+                        "cost": 50,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "public spot executions",
+                "input": [
+                    "ETH/RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000777,
+                            "makerAccountId": 10000000042,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "A",
+                            "price": "1800",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9001,
+                            "fillId": "601"
+                        },
+                        {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000777,
+                            "makerAccountId": 10000000042,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "B",
+                            "price": "1801",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000002000,
+                            "sequenceNumber": 9002,
+                            "fillId": "601"
+                        }
+                    ],
+                    "meta": {
+                        "limit": 100,
+                        "count": 2
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000777,
+                            "makerAccountId": 10000000042,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "A",
+                            "price": "1800",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000001000,
+                            "sequenceNumber": 9001,
+                            "fillId": "601"
+                        },
+                        "id": "9001",
+                        "order": null,
+                        "timestamp": 1700000001000,
+                        "datetime": "2023-11-14T22:13:21.000Z",
+                        "symbol": "ETH/RUSD",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 1800,
+                        "amount": 0.1,
+                        "cost": 180,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "exchangeId": 2,
+                            "symbol": "WETHRUSD",
+                            "takerAccountId": 10000000777,
+                            "makerAccountId": 10000000042,
+                            "takerOrderId": "601",
+                            "makerOrderId": "501",
+                            "side": "B",
+                            "price": "1801",
+                            "takerFee": "0.05",
+                            "qty": "0.1",
+                            "type": "ORDER_MATCH",
+                            "timestamp": 1700000002000,
+                            "sequenceNumber": 9002,
+                            "fillId": "601"
+                        },
+                        "id": "9002",
+                        "order": null,
+                        "timestamp": 1700000002000,
+                        "datetime": "2023-11-14T22:13:22.000Z",
+                        "symbol": "ETH/RUSD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 1801,
+                        "amount": 0.1,
+                        "cost": 180.1,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV account isolation and public API semantics",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    "1m",
+                    1699999920000,
+                    2
+                ],
+                "httpResponse": {
+                    "t": [
+                        1699999980,
+                        1699999920
+                    ],
+                    "o": [
+                        100,
+                        99
+                    ],
+                    "h": [
+                        102,
+                        101
+                    ],
+                    "l": [
+                        99,
+                        98
+                    ],
+                    "c": [
+                        101,
+                        100
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1699999920000,
+                        99,
+                        101,
+                        98,
+                        100,
+                        null
+                    ],
+                    [
+                        1699999980000,
+                        100,
+                        102,
+                        99,
+                        101,
+                        null
+                    ]
+                ]
+            },
+            {
+                "description": "column candles with base volume",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/RUSD:RUSD",
+                    "1m",
+                    null,
+                    null,
+                    {
+                        "until": 1700000060000
+                    }
+                ],
+                "httpResponse": {
+                    "t": [
+                        1700000000,
+                        1700000060
+                    ],
+                    "o": [
+                        "100",
+                        "101"
+                    ],
+                    "h": [
+                        "102",
+                        "101.5"
+                    ],
+                    "l": [
+                        "99",
+                        "100.5"
+                    ],
+                    "c": [
+                        "101",
+                        "101.2"
+                    ],
+                    "v": [
+                        "1.5",
+                        "0"
+                    ],
+                    "qv": [
+                        "151.5",
+                        "0"
+                    ],
+                    "n": [
+                        3,
+                        0
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1700000000000,
+                        100,
+                        102,
+                        99,
+                        101,
+                        1.5
+                    ],
+                    [
+                        1700000060000,
+                        101,
+                        101.5,
+                        100.5,
+                        101.2,
+                        0
+                    ]
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "settled credits preserve string and safe integer sequence ids; filter account asset and type",
+                "method": "fetchDeposits",
+                "input": [
+                    "RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": "9007199254740993",
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000010,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 8,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 7,
+                            "accountId": 42,
+                            "asset": "WSTETH",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 6,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-1",
+                            "netDepositsAfter": "1000",
+                            "type": "WITHDRAWAL",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 9007199254740991,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 9007199254740991,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "9007199254740991",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 25,
+                        "currency": "RUSD",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "sequenceNumber": "9007199254740993",
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000010,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "9007199254740993",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000010,
+                        "datetime": "2023-11-14T22:13:20.010Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 25,
+                        "currency": "RUSD",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "unknown collateral asset can be filtered without a traded market",
+                "method": "fetchDeposits",
+                "input": [
+                    "WSTETH"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": 14,
+                            "accountId": 42,
+                            "asset": "WSTETH",
+                            "amount": "0.12345678",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 13,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 14,
+                            "accountId": 42,
+                            "asset": "WSTETH",
+                            "amount": "0.12345678",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "14",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 0.12345678,
+                        "currency": "WSTETH",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "advance cursor past pages with no matching account or asset",
+                "method": "fetchDeposits",
+                "input": [
+                    "RUSD",
+                    1700000000000,
+                    2,
+                    {
+                        "cursor": "first-page"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "cursor=page-two": {
+                        "data": [
+                            {
+                                "sequenceNumber": "9007199254740993",
+                                "accountId": 42,
+                                "asset": "RUSD",
+                                "amount": "25",
+                                "netDepositsAfter": "1000",
+                                "type": "DEPOSIT",
+                                "timestamp": 1700000000010,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                            },
+                            {
+                                "sequenceNumber": 9007199254740991,
+                                "accountId": 42,
+                                "asset": "RUSD",
+                                "amount": "25",
+                                "netDepositsAfter": "1000",
+                                "type": "DEPOSIT",
+                                "timestamp": 1700000000000,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                            }
+                        ],
+                        "meta": {
+                            "nextCursor": null
+                        }
+                    },
+                    "cursor=first-page": {
+                        "data": [
+                            {
+                                "sequenceNumber": 22,
+                                "accountId": 43,
+                                "asset": "RUSD",
+                                "amount": "25",
+                                "netDepositsAfter": "1000",
+                                "type": "DEPOSIT",
+                                "timestamp": 1700000000000,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                            },
+                            {
+                                "sequenceNumber": 21,
+                                "accountId": 42,
+                                "asset": "WSTETH",
+                                "amount": "25",
+                                "netDepositsAfter": "1000",
+                                "type": "DEPOSIT",
+                                "timestamp": 1700000000000,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                            }
+                        ],
+                        "meta": {
+                            "nextCursor": "page-two"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 9007199254740991,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "9007199254740991",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 25,
+                        "currency": "RUSD",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "sequenceNumber": "9007199254740993",
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000010,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "9007199254740993",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000010,
+                        "datetime": "2023-11-14T22:13:20.010Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 25,
+                        "currency": "RUSD",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "since filtering does not fill result budget and paginationCalls bounds wallet reads",
+                "method": "fetchDeposits",
+                "input": [
+                    "RUSD",
+                    1700000000000,
+                    2,
+                    {
+                        "paginationCalls": 1
+                    }
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": 19,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1699999999999,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 9007199254740991,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": "unvisited"
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 9007199254740991,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "25",
+                            "netDepositsAfter": "1000",
+                            "type": "DEPOSIT",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "9007199254740991",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 25,
+                        "currency": "RUSD",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "empty history terminates without more pages",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                    "data": [],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "settled debit has positive amount and unknown destination lifecycle",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": "9007199254740995",
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-12.5",
+                            "netDepositsAfter": "1000",
+                            "type": "WITHDRAWAL",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        {
+                            "sequenceNumber": 16,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "-100",
+                            "netDepositsAfter": "1000",
+                            "type": "WITHDRAWAL",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": "9007199254740995",
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-12.5",
+                            "netDepositsAfter": "1000",
+                            "type": "WITHDRAWAL",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "9007199254740995",
+                        "txid": "0xabababababababababababababababababababababababababababababababab",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "network": null,
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "withdrawal",
+                        "amount": 12.5,
+                        "currency": "RUSD",
+                        "status": null,
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "paired same-wallet legs and identical movements keep only selected account and distinct ids",
+                "method": "fetchTransfers",
+                "input": [
+                    "RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": 35,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 42
+                        },
+                        {
+                            "sequenceNumber": 34,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        },
+                        {
+                            "sequenceNumber": 33,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 42
+                        },
+                        {
+                            "sequenceNumber": 32,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 32,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        },
+                        "id": "32",
+                        "timestamp": 1700000000001,
+                        "datetime": "2023-11-14T22:13:20.001Z",
+                        "currency": "RUSD",
+                        "amount": 9,
+                        "fromAccount": "42",
+                        "toAccount": "43",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "sequenceNumber": 34,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        },
+                        "id": "34",
+                        "timestamp": 1700000000002,
+                        "datetime": "2023-11-14T22:13:20.002Z",
+                        "currency": "RUSD",
+                        "amount": 9,
+                        "fromAccount": "42",
+                        "toAccount": "43",
+                        "status": "ok"
+                    }
+                ]
+            },
+            {
+                "description": "account override maps receiving leg to same source and destination",
+                "method": "fetchTransfers",
+                "input": [
+                    "RUSD",
+                    null,
+                    null,
+                    {
+                        "accountId": 43
+                    }
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": 35,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 42
+                        },
+                        {
+                            "sequenceNumber": 34,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        },
+                        {
+                            "sequenceNumber": 33,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 42
+                        },
+                        {
+                            "sequenceNumber": 32,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 33,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 42
+                        },
+                        "id": "33",
+                        "timestamp": 1700000000001,
+                        "datetime": "2023-11-14T22:13:20.001Z",
+                        "currency": "RUSD",
+                        "amount": 9,
+                        "fromAccount": "42",
+                        "toAccount": "43",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "sequenceNumber": 35,
+                            "accountId": 43,
+                            "asset": "RUSD",
+                            "amount": "9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 42
+                        },
+                        "id": "35",
+                        "timestamp": 1700000000002,
+                        "datetime": "2023-11-14T22:13:20.002Z",
+                        "currency": "RUSD",
+                        "amount": 9,
+                        "fromAccount": "42",
+                        "toAccount": "43",
+                        "status": "ok"
+                    }
+                ]
+            },
+            {
+                "description": "deduplicate exact sequence across pages without collapsing shared transaction hash",
+                "method": "fetchTransfers",
+                "input": [
+                    "RUSD",
+                    1700000000000,
+                    2,
+                    {
+                        "cursor": "first-page"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "cursor=last-page": {
+                        "data": [
+                            {
+                                "sequenceNumber": 32,
+                                "accountId": 42,
+                                "asset": "RUSD",
+                                "amount": "-9",
+                                "netDepositsAfter": "1000",
+                                "type": "TRANSFER",
+                                "timestamp": 1700000000001,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                                "counterpartyAccountId": 43
+                            }
+                        ],
+                        "meta": {
+                            "nextCursor": null
+                        }
+                    },
+                    "cursor=repeat-page": {
+                        "data": [
+                            {
+                                "sequenceNumber": 34,
+                                "accountId": 42,
+                                "asset": "RUSD",
+                                "amount": "-9",
+                                "netDepositsAfter": "1000",
+                                "type": "TRANSFER",
+                                "timestamp": 1700000000002,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                                "counterpartyAccountId": 43
+                            }
+                        ],
+                        "meta": {
+                            "nextCursor": "last-page"
+                        }
+                    },
+                    "cursor=first-page": {
+                        "data": [
+                            {
+                                "sequenceNumber": 35,
+                                "accountId": 43,
+                                "asset": "RUSD",
+                                "amount": "9",
+                                "netDepositsAfter": "1000",
+                                "type": "TRANSFER",
+                                "timestamp": 1700000000002,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                                "counterpartyAccountId": 42
+                            },
+                            {
+                                "sequenceNumber": 34,
+                                "accountId": 42,
+                                "asset": "RUSD",
+                                "amount": "-9",
+                                "netDepositsAfter": "1000",
+                                "type": "TRANSFER",
+                                "timestamp": 1700000000002,
+                                "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                                "counterpartyAccountId": 43
+                            }
+                        ],
+                        "meta": {
+                            "nextCursor": "repeat-page"
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 32,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000001,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        },
+                        "id": "32",
+                        "timestamp": 1700000000001,
+                        "datetime": "2023-11-14T22:13:20.001Z",
+                        "currency": "RUSD",
+                        "amount": 9,
+                        "fromAccount": "42",
+                        "toAccount": "43",
+                        "status": "ok"
+                    },
+                    {
+                        "info": {
+                            "sequenceNumber": 34,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "-9",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000002,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab",
+                            "counterpartyAccountId": 43
+                        },
+                        "id": "34",
+                        "timestamp": 1700000000002,
+                        "datetime": "2023-11-14T22:13:20.002Z",
+                        "currency": "RUSD",
+                        "amount": 9,
+                        "fromAccount": "42",
+                        "toAccount": "43",
+                        "status": "ok"
+                    }
+                ]
+            },
+            {
+                "description": "preserve missing counterparty as unknown",
+                "method": "fetchTransfers",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "sequenceNumber": 40,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "2",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        }
+                    ],
+                    "meta": {
+                        "nextCursor": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequenceNumber": 40,
+                            "accountId": 42,
+                            "asset": "RUSD",
+                            "amount": "2",
+                            "netDepositsAfter": "1000",
+                            "type": "TRANSFER",
+                            "timestamp": 1700000000000,
+                            "transactionHash": "0xabababababababababababababababababababababababababababababababab"
+                        },
+                        "id": "40",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "currency": "RUSD",
+                        "amount": 2,
+                        "fromAccount": null,
+                        "toAccount": "42",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "hourly percentage rates become fractions, oldest first",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "timestamp": 1700003600000,
+                            "fundingRate": "0.0118",
+                            "fundingPerUnit": "0.4"
+                        },
+                        {
+                            "timestamp": 1700000000000,
+                            "fundingRate": "-0.00125"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": 1700000000000,
+                            "fundingRate": "-0.00125"
+                        },
+                        "symbol": "BTC/RUSD:RUSD",
+                        "fundingRate": -0.0000125,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z"
+                    },
+                    {
+                        "info": {
+                            "timestamp": 1700003600000,
+                            "fundingRate": "0.0118",
+                            "fundingPerUnit": "0.4"
+                        },
+                        "symbol": "BTC/RUSD:RUSD",
+                        "fundingRate": 0.000118,
+                        "timestamp": 1700003600000,
+                        "datetime": "2023-11-14T23:13:20.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "hourly payments of the configured account",
+                "method": "fetchFundingHistory",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "accountId": 42,
+                            "symbol": "ETHRUSDPERP",
+                            "timestamp": 1700003600000,
+                            "side": "B",
+                            "qty": "3",
+                            "payment": "-0.75",
+                            "fundingRate": "0.0118"
+                        },
+                        {
+                            "accountId": 42,
+                            "symbol": "BTCRUSDPERP",
+                            "timestamp": 1700000000000,
+                            "side": "A",
+                            "qty": "0",
+                            "payment": "0.2"
+                        }
+                    ],
+                    "meta": {
+                        "limit": 100,
+                        "count": 2
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "symbol": "BTCRUSDPERP",
+                            "timestamp": 1700000000000,
+                            "side": "A",
+                            "qty": "0",
+                            "payment": "0.2"
+                        },
+                        "symbol": "BTC/RUSD:RUSD",
+                        "code": "RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "id": null,
+                        "amount": 0.2
+                    },
+                    {
+                        "info": {
+                            "accountId": 42,
+                            "symbol": "ETHRUSDPERP",
+                            "timestamp": 1700003600000,
+                            "side": "B",
+                            "qty": "3",
+                            "payment": "-0.75",
+                            "fundingRate": "0.0118"
+                        },
+                        "symbol": "ETH/RUSD:RUSD",
+                        "code": "RUSD",
+                        "timestamp": 1700003600000,
+                        "datetime": "2023-11-14T23:13:20.000Z",
+                        "id": null,
+                        "amount": -0.75
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "the wallet fee tier applies to every market",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponseByUrl": {
+                    "configuration": {
+                        "feeTierId": 1,
+                        "ogStatus": false,
+                        "affiliateStatus": false,
+                        "refereeStatus": false
+                    },
+                    "feeTiers": [
+                        {
+                            "tierId": 0,
+                            "takerFee": "0.0003",
+                            "makerFee": "0",
+                            "volume": "0",
+                            "lookbackWindowSeconds": 1209600,
+                            "volume30d": "0",
+                            "tierType": "REGULAR"
+                        },
+                        {
+                            "tierId": 1,
+                            "takerFee": "0.00029",
+                            "makerFee": "-0.00001",
+                            "volume": "500000",
+                            "lookbackWindowSeconds": 1209600,
+                            "volume30d": "1000000",
+                            "tierType": "REGULAR"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/RUSD": {
+                        "info": {
+                            "tierId": 1,
+                            "takerFee": "0.00029",
+                            "makerFee": "-0.00001",
+                            "volume": "500000",
+                            "lookbackWindowSeconds": 1209600,
+                            "volume30d": "1000000",
+                            "tierType": "REGULAR"
+                        },
+                        "symbol": "BTC/RUSD",
+                        "maker": -0.00001,
+                        "taker": 0.00029,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "BTC/RUSD:RUSD": {
+                        "info": {
+                            "tierId": 1,
+                            "takerFee": "0.00029",
+                            "makerFee": "-0.00001",
+                            "volume": "500000",
+                            "lookbackWindowSeconds": 1209600,
+                            "volume30d": "1000000",
+                            "tierType": "REGULAR"
+                        },
+                        "symbol": "BTC/RUSD:RUSD",
+                        "maker": -0.00001,
+                        "taker": 0.00029,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "ETH/RUSD": {
+                        "info": {
+                            "tierId": 1,
+                            "takerFee": "0.00029",
+                            "makerFee": "-0.00001",
+                            "volume": "500000",
+                            "lookbackWindowSeconds": 1209600,
+                            "volume30d": "1000000",
+                            "tierType": "REGULAR"
+                        },
+                        "symbol": "ETH/RUSD",
+                        "maker": -0.00001,
+                        "taker": 0.00029,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "ETH/RUSD:RUSD": {
+                        "info": {
+                            "tierId": 1,
+                            "takerFee": "0.00029",
+                            "makerFee": "-0.00001",
+                            "volume": "500000",
+                            "lookbackWindowSeconds": 1209600,
+                            "volume30d": "1000000",
+                            "tierType": "REGULAR"
+                        },
+                        "symbol": "ETH/RUSD:RUSD",
+                        "maker": -0.00001,
+                        "taker": 0.00029,
+                        "percentage": true,
+                        "tierBased": true
+                    }
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "every market summary in the list, hourly percentage rates as fractions",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/RUSD:RUSD",
+                        "ETH/RUSD:RUSD"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "10",
+                        "fundingRate": "0.0118",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "50000",
+                        "pxChange24h": "2",
+                        "markPrice": "100",
+                        "oraclePrice": "99"
+                    },
+                    {
+                        "symbol": "ETHRUSDPERP",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "5",
+                        "fundingRate": "-0.00125",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "-1",
+                        "markPrice": "10"
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/RUSD:RUSD": {
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "10",
+                            "fundingRate": "0.0118",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "50000",
+                            "pxChange24h": "2",
+                            "markPrice": "100",
+                            "oraclePrice": "99"
+                        },
+                        "symbol": "BTC/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "markPrice": 100,
+                        "indexPrice": 99,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "fundingRate": 0.000118,
+                        "interval": "1h",
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null
+                    },
+                    "ETH/RUSD:RUSD": {
+                        "info": {
+                            "symbol": "ETHRUSDPERP",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "5",
+                            "fundingRate": "-0.00125",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "1000",
+                            "pxChange24h": "-1",
+                            "markPrice": "10"
+                        },
+                        "symbol": "ETH/RUSD:RUSD",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "markPrice": 10,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "fundingRate": -0.0000125,
+                        "interval": "1h",
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null
+                    }
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "restates the resting order and keeps its price, flags and client id",
+                "input": [
+                    "123456789012345678",
+                    "BTC/RUSD:RUSD",
+                    "limit",
+                    "buy",
+                    3,
+                    null
+                ],
+                "httpResponseByUrl": {
+                    "openOrders": [
+                        {
+                            "exchangeId": 2,
+                            "accountId": 43,
+                            "orderId": "99",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000005000,
+                            "status": "OPEN",
+                            "postOnly": true,
+                            "reduceOnly": false
+                        },
+                        {
+                            "exchangeId": 2,
+                            "accountId": 42,
+                            "orderId": "123456789012345678",
+                            "clientOrderId": "42",
+                            "symbol": "BTCRUSDPERP",
+                            "orderType": "LIMIT",
+                            "side": "B",
+                            "timeInForce": "GTC",
+                            "qty": "2",
+                            "cumQty": "0.5",
+                            "avgFillPx": "100",
+                            "limitPx": "100",
+                            "createdAt": 1700000000000,
+                            "lastUpdateAt": 1700000005000,
+                            "status": "OPEN",
+                            "postOnly": true,
+                            "reduceOnly": false
+                        }
+                    ],
+                    "modifyOrder": {
+                        "status": "OPEN",
+                        "orderId": "123456789012345678",
+                        "clientOrderId": "42",
+                        "cumQty": "0.5",
+                        "avgFillPx": "100"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "exchangeId": 2,
+                        "accountId": 42,
+                        "orderId": "123456789012345678",
+                        "clientOrderId": "42",
+                        "symbol": "BTCRUSDPERP",
+                        "orderType": "LIMIT",
+                        "side": "B",
+                        "timeInForce": "GTC",
+                        "qty": "3",
+                        "cumQty": "0.5",
+                        "avgFillPx": "100",
+                        "limitPx": "100",
+                        "createdAt": 1700000000000,
+                        "lastUpdateAt": 1700000005000,
+                        "status": "OPEN",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "isBuy": true
+                    },
+                    "id": "123456789012345678",
+                    "clientOrderId": "42",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1700000005000,
+                    "symbol": "BTC/RUSD:RUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 100,
+                    "triggerPrice": null,
+                    "amount": 3,
+                    "filled": 0.5,
+                    "remaining": 2.5,
+                    "average": 100,
+                    "cost": 50,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "a crossing modification that fills",
+                "input": [
+                    "123456789012345678",
+                    "BTC/RUSD:RUSD",
+                    "limit",
+                    "sell",
+                    2,
+                    99,
+                    {
+                        "timeInForce": "GTC",
+                        "postOnly": false
+                    }
+                ],
+                "httpResponse": {
+                    "status": "FILLED",
+                    "orderId": "123456789012345678",
+                    "execQty": "2",
+                    "cumQty": "2",
+                    "avgFillPx": "99.5",
+                    "firstFillId": "5001",
+                    "fillCount": 2
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountId": 42,
+                        "symbol": "BTCRUSDPERP",
+                        "exchangeId": 2,
+                        "isBuy": false,
+                        "orderType": "LIMIT",
+                        "timeInForce": "GTC",
+                        "qty": "2",
+                        "limitPx": "99",
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "orderId": "123456789012345678",
+                        "side": "A",
+                        "status": "FILLED",
+                        "execQty": "2",
+                        "cumQty": "2",
+                        "avgFillPx": "99.5",
+                        "firstFillId": "5001",
+                        "fillCount": 2
+                    },
+                    "id": "123456789012345678",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/RUSD:RUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 99,
+                    "triggerPrice": null,
+                    "amount": 2,
+                    "filled": 2,
+                    "remaining": 0,
+                    "average": 99.5,
+                    "cost": 199,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "armed countdown",
+                "input": [
+                    30000
+                ],
+                "httpResponse": {
+                    "accountId": 42,
+                    "timeoutMs": 30000,
+                    "triggerAt": 1700000030000
+                },
+                "parsedResponse": {
+                    "accountId": 42,
+                    "timeoutMs": 30000,
+                    "triggerAt": 1700000030000
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "collateral assets, then the base of every perpetual that is not one",
+                "input": [],
+                "httpResponseByUrl": {
+                    "assetDefinitions": [
+                        {
+                            "asset": "RUSD",
+                            "priceHaircut": "0",
+                            "liquidationDiscount": "0",
+                            "status": "ENABLED",
+                            "decimals": 6,
+                            "displayDecimals": 2
+                        },
+                        {
+                            "asset": "USDC",
+                            "priceHaircut": "0",
+                            "liquidationDiscount": "0",
+                            "status": "WITHDRAWAL_ONLY",
+                            "decimals": 6,
+                            "displayDecimals": 4
+                        },
+                        {
+                            "asset": "ETH",
+                            "spotMarketSymbol": "WETHRUSD",
+                            "priceHaircut": "0.1",
+                            "liquidationDiscount": "0.02",
+                            "status": "ENABLED",
+                            "decimals": 18,
+                            "displayDecimals": 4
+                        },
+                        {
+                            "asset": "SRUSD",
+                            "spotMarketSymbol": "SRUSDRUSD",
+                            "priceHaircut": "0.1",
+                            "liquidationDiscount": "0",
+                            "status": "ENABLED",
+                            "decimals": 30,
+                            "displayDecimals": 2
+                        }
+                    ],
+                    "perpMarketDefinitions": [
+                        {
+                            "symbol": "ETHRUSDPERP",
+                            "marketId": 1,
+                            "status": "TRADING",
+                            "categories": [
+                                "CRYPTO"
+                            ],
+                            "minOrderQty": "0.01",
+                            "qtyStepSize": "0.001",
+                            "tickSize": "0.01",
+                            "liquidationMarginParameter": "0.02",
+                            "initialMarginParameter": "0.04",
+                            "maxLeverage": 25,
+                            "oiCap": "1000"
+                        },
+                        {
+                            "symbol": "SOLRUSDPERP",
+                            "marketId": 3,
+                            "status": "TRADING",
+                            "categories": [
+                                "CRYPTO"
+                            ],
+                            "minOrderQty": "0.1",
+                            "qtyStepSize": "0.01",
+                            "tickSize": "0.001",
+                            "liquidationMarginParameter": "0.02",
+                            "initialMarginParameter": "0.04",
+                            "maxLeverage": 25,
+                            "oiCap": "1000"
+                        },
+                        {
+                            "symbol": "NVDARUSDPERP",
+                            "marketId": 80,
+                            "status": "TRADING",
+                            "categories": [
+                                "EQUITIES"
+                            ],
+                            "minOrderQty": "0.1",
+                            "qtyStepSize": "0.01",
+                            "tickSize": "0.01",
+                            "liquidationMarginParameter": "0.1",
+                            "initialMarginParameter": "0.14",
+                            "maxLeverage": 7,
+                            "oiCap": "1000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "RUSD": {
+                        "info": {
+                            "asset": "RUSD",
+                            "priceHaircut": "0",
+                            "liquidationDiscount": "0",
+                            "status": "ENABLED",
+                            "decimals": 6,
+                            "displayDecimals": 2
+                        },
+                        "id": "RUSD",
+                        "numericId": null,
+                        "code": "RUSD",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDC": {
+                        "info": {
+                            "asset": "USDC",
+                            "priceHaircut": "0",
+                            "liquidationDiscount": "0",
+                            "status": "WITHDRAWAL_ONLY",
+                            "decimals": 6,
+                            "displayDecimals": 4
+                        },
+                        "id": "USDC",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": false,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "ETH": {
+                        "info": {
+                            "asset": "ETH",
+                            "spotMarketSymbol": "WETHRUSD",
+                            "priceHaircut": "0.1",
+                            "liquidationDiscount": "0.02",
+                            "status": "ENABLED",
+                            "decimals": 18,
+                            "displayDecimals": 4
+                        },
+                        "id": "ETH",
+                        "numericId": null,
+                        "code": "ETH",
+                        "precision": 1e-18,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "SRUSD": {
+                        "info": {
+                            "asset": "SRUSD",
+                            "spotMarketSymbol": "SRUSDRUSD",
+                            "priceHaircut": "0.1",
+                            "liquidationDiscount": "0",
+                            "status": "ENABLED",
+                            "decimals": 30,
+                            "displayDecimals": 2
+                        },
+                        "id": "SRUSD",
+                        "numericId": null,
+                        "code": "SRUSD",
+                        "precision": 1e-30,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "SOL": {
+                        "info": {
+                            "symbol": "SOLRUSDPERP",
+                            "marketId": 3,
+                            "status": "TRADING",
+                            "categories": [
+                                "CRYPTO"
+                            ],
+                            "minOrderQty": "0.1",
+                            "qtyStepSize": "0.01",
+                            "tickSize": "0.001",
+                            "liquidationMarginParameter": "0.02",
+                            "initialMarginParameter": "0.04",
+                            "maxLeverage": 25,
+                            "oiCap": "1000"
+                        },
+                        "id": "SOL",
+                        "numericId": null,
+                        "code": "SOL",
+                        "precision": 0.01,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "NVDA": {
+                        "info": {
+                            "symbol": "NVDARUSDPERP",
+                            "marketId": 80,
+                            "status": "TRADING",
+                            "categories": [
+                                "EQUITIES"
+                            ],
+                            "minOrderQty": "0.1",
+                            "qtyStepSize": "0.01",
+                            "tickSize": "0.01",
+                            "liquidationMarginParameter": "0.1",
+                            "initialMarginParameter": "0.14",
+                            "maxLeverage": 7,
+                            "oiCap": "1000"
+                        },
+                        "id": "NVDA",
+                        "numericId": null,
+                        "code": "NVDA",
+                        "precision": 0.01,
+                        "type": "other",
+                        "name": null,
+                        "active": null,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "quantity and value at the mark price",
+                "input": [
+                    "BTC/RUSD:RUSD"
+                ],
+                "httpResponse": {
+                    "symbol": "BTCRUSDPERP",
+                    "status": "TRADING",
+                    "updatedAt": 1700000000000,
+                    "oiQty": "3.5",
+                    "fundingRate": "0.0012",
+                    "longFundingValue": "0",
+                    "shortFundingValue": "0",
+                    "volume24h": "1000",
+                    "pxChange24h": "1",
+                    "markPrice": "64000",
+                    "oraclePrice": "64000",
+                    "pricesUpdatedAt": 1699999999000
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/RUSD:RUSD",
+                    "openInterestAmount": 3.5,
+                    "openInterestValue": 224000,
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "info": {
+                        "symbol": "BTCRUSDPERP",
+                        "status": "TRADING",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "3.5",
+                        "fundingRate": "0.0012",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "1",
+                        "markPrice": "64000",
+                        "oraclePrice": "64000",
+                        "pricesUpdatedAt": 1699999999000
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "filtered to the requested markets",
+                "input": [
+                    [
+                        "ETH/RUSD:RUSD"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCRUSDPERP",
+                        "status": "TRADING",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "3.5",
+                        "fundingRate": "0.0012",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "1",
+                        "markPrice": "64000",
+                        "oraclePrice": "64000",
+                        "pricesUpdatedAt": 1699999999000
+                    },
+                    {
+                        "symbol": "ETHRUSDPERP",
+                        "status": "TRADING",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "120",
+                        "fundingRate": "0.0012",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "1",
+                        "markPrice": "1800",
+                        "oraclePrice": "1800",
+                        "pricesUpdatedAt": 1699999999000
+                    }
+                ],
+                "parsedResponse": {
+                    "ETH/RUSD:RUSD": {
+                        "symbol": "ETH/RUSD:RUSD",
+                        "openInterestAmount": 120,
+                        "openInterestValue": 216000,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "info": {
+                            "symbol": "ETHRUSDPERP",
+                            "status": "TRADING",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "120",
+                            "fundingRate": "0.0012",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "1000",
+                            "pxChange24h": "1",
+                            "markPrice": "1800",
+                            "oraclePrice": "1800",
+                            "pricesUpdatedAt": 1699999999000
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            },
+            {
+                "description": "every market; no value without a mark price",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "BTCRUSDPERP",
+                        "status": "TRADING",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "3.5",
+                        "fundingRate": "0.0012",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "1",
+                        "markPrice": "64000",
+                        "oraclePrice": "64000",
+                        "pricesUpdatedAt": 1699999999000
+                    },
+                    {
+                        "symbol": "ETHRUSDPERP",
+                        "status": "TRADING",
+                        "updatedAt": 1700000000000,
+                        "oiQty": "120",
+                        "fundingRate": "0.0012",
+                        "longFundingValue": "0",
+                        "shortFundingValue": "0",
+                        "volume24h": "1000",
+                        "pxChange24h": "1",
+                        "pricesUpdatedAt": 1699999999000
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC/RUSD:RUSD": {
+                        "symbol": "BTC/RUSD:RUSD",
+                        "openInterestAmount": 3.5,
+                        "openInterestValue": 224000,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "info": {
+                            "symbol": "BTCRUSDPERP",
+                            "status": "TRADING",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "3.5",
+                            "fundingRate": "0.0012",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "1000",
+                            "pxChange24h": "1",
+                            "markPrice": "64000",
+                            "oraclePrice": "64000",
+                            "pricesUpdatedAt": 1699999999000
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    },
+                    "ETH/RUSD:RUSD": {
+                        "symbol": "ETH/RUSD:RUSD",
+                        "openInterestAmount": 120,
+                        "openInterestValue": null,
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "info": {
+                            "symbol": "ETHRUSDPERP",
+                            "status": "TRADING",
+                            "updatedAt": 1700000000000,
+                            "oiQty": "120",
+                            "fundingRate": "0.0012",
+                            "longFundingValue": "0",
+                            "shortFundingValue": "0",
+                            "volume24h": "1000",
+                            "pxChange24h": "1",
+                            "pricesUpdatedAt": 1699999999000
+                        },
+                        "baseVolume": null,
+                        "quoteVolume": null
+                    }
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot order accepted and resting",
+                "input": [
+                    "ETH/RUSD",
+                    "limit",
+                    "buy",
+                    0.25,
+                    1800.5,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "status": "OPEN",
+                    "orderId": "503",
+                    "cumQty": "0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountId": 10000000042,
+                        "symbol": "WETHRUSD",
+                        "isBuy": true,
+                        "orderType": "LIMIT",
+                        "timeInForce": "GTC",
+                        "qty": "0.25",
+                        "exchangeId": 2,
+                        "limitPx": "1800.5",
+                        "postOnly": true,
+                        "side": "B",
+                        "status": "OPEN",
+                        "orderId": "503",
+                        "cumQty": "0"
+                    },
+                    "id": "503",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/RUSD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 1800.5,
+                    "triggerPrice": null,
+                    "amount": 0.25,
+                    "filled": 0,
+                    "remaining": 0.25,
+                    "average": null,
+                    "cost": 0,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ]
+    }
+}

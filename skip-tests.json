@@ -1,4 +1,20 @@
 {
+    "reya": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "USDC is withdrawal-only on Reya: it can be withdrawn but no longer deposited"
+            },
+            "fetchTrades": {
+                "sideSequence": "executions carry whole-second block timestamps and side is the taker's, so separate taker orders in one second can tick against each other, e.g. two taker sells at 63654.319 then 63655.089"
+            },
+            "fetchDeposits": {
+                "allowNull": [ "network", "updated", "fee" ]
+            },
+            "fetchWithdrawals": {
+                "allowNull": [ "network", "status", "updated", "fee" ]
+            }
+        }
+    },
     "mudrex": {
         "skip": "load markets is private",
         "skipWs": "load markets is private",
