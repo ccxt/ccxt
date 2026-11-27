@@ -330,14 +330,17 @@ func (this *WSClient) OnOpen() {
 }
 
 func (this *WSClient) Close() *Future {
+	if this.Disconnected == nil {
+		this.Disconnected = NewFuture()
+	}
 	if this.HasConnection() {
-		if this.Disconnected == nil {
-			this.Disconnected = NewFuture()
-		}
 		// the conn owner closes the handle and drops it, so the next HasConnection
 		// reads false without a reader having to observe a nil
 		this.closeConnection()
+		return this.Disconnected.(*Future)
 	}
+	// a never-connected client has no close event to await
+	this.Disconnected.(*Future).Resolve(true)
 	return this.Disconnected.(*Future)
 }
 
