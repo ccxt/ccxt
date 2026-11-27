@@ -7775,8 +7775,8 @@ public class Bitget extends BitgetApi
         {
             if (!java.util.Objects.equals(feeDetail, null))
             {
-                Object parsedFeeDetail = Helpers.parseJson(feeDetail);
-                List<Object> feeValues = Helpers.objectValues(parsedFeeDetail);
+                Map<String, Object> parsedFeeDetail = (Map<String, Object>) Helpers.parseJson(feeDetail);
+                List<Object> feeValues = (parsedFeeDetail == null ? new ArrayList<Object>() : new ArrayList<Object>(parsedFeeDetail.values()));
                 Object feeObject = null;
                 for (var i = 0; i < feeValues.size(); i++)
                 {

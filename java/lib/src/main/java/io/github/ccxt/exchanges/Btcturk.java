@@ -871,10 +871,9 @@ public class Btcturk extends BtcturkApi
         {
             request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
         }
-        Long limitResolved = null;
+        Long limitResolved = limit;
         if (!java.util.Objects.equals(limit, null))
         {
-            limitResolved = limit;
             if ((limit > 11000))
             {
                 limitResolved = 11000L; // max 11000 candles diapason can be covered
