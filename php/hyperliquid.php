@@ -47,16 +47,16 @@ class hyperliquid extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'editOrders' => true,
-                'fetchAccounts' => false,
+                'fetchAccounts' => true,
                 'fetchBalance' => true,
-                'fetchBorrowInterest' => false,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchCrossBorrowRate' => false,
-                'fetchCrossBorrowRates' => false,
+                'fetchCrossBorrowRate' => true,
+                'fetchCrossBorrowRates' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
@@ -71,11 +71,11 @@ class hyperliquid extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
-                'fetchLeverage' => false,
-                'fetchLeverageTiers' => false,
+                'fetchLeverage' => true,
+                'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
                 'fetchMarginMode' => null,
-                'fetchMarketLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyLiquidations' => true,
@@ -1367,13 +1367,48 @@ class hyperliquid extends Exchange {
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-$predicted-funding-rates-for-different-$venues
+         *
          * @param {string} [$params->dex] perp dex name for hip3 markets, eg => 'xyz', inferred from the $symbols if not provided
+         * @param {string} [$params->method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the $predicted rate and time of the next funding, only available for the main dex, the predictions for other $venues are in info
          * @return {array[]} an array of objects representing market $data
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
+        $method = $this->safe_string($this->handle_option_and_params($params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 0);
+        $paramsMethod = $this->safe_dict($this->handle_option_and_params($params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 1, array());
+        if ($method === 'predictedFundings') {
+            $predictedResponse = $this->publicPostInfo($this->extend(array( 'type' => 'predictedFundings' ), $paramsMethod));
+            //
+            //     [
+            //         [
+            //             "BTC",
+            //             [
+            //                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+            //                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+            //                 [ "BybitPerp", null ]
+            //             ]
+            //         ]
+            //     ]
+            //
+            $predictedRows = $this->info_list($predictedResponse);
+            $predicted = array();
+            for ($i = 0; $i < count($predictedRows); $i++) {
+                $coinEntry = $this->safe_list($predictedRows, $i, array());
+                $venues = $this->safe_list($coinEntry, 1, array());
+                $venuesByName = array();
+                for ($j = 0; $j < count($venues); $j++) {
+                    $venue = $this->safe_list($venues, $j, array());
+                    $venueName = $this->safe_string($venue, 0, '');
+                    $venuesByName[$venueName] = $this->safe_dict($venue, 1);
+                }
+                $predicted[] = array( 'name' => $this->safe_string($coinEntry, 0), 'predictedFundings' => $venuesByName );
+            }
+            return $this->parse_funding_rates($predicted, $symbolsNormalized);
+        }
         $request = array(
             'type' => 'metaAndAssetCtxs',
         );
@@ -1381,7 +1416,7 @@ class hyperliquid extends Exchange {
         if ($dexName !== null) {
             $request['dex'] = $dexName;
         }
-        $response = $this->publicPostInfo($this->extend($request, $params));
+        $response = $this->publicPostInfo($this->extend($request, $paramsMethod));
         //
         //     [
         //         {
@@ -1451,6 +1486,42 @@ class hyperliquid extends Exchange {
         $base = $this->safe_string($info, 'name');
         $marketId = $this->coin_to_market_id($base);
         $symbol = $this->safe_symbol($marketId, $market);
+        $predictedFundings = $this->safe_dict($info, 'predictedFundings');
+        if ($predictedFundings !== null) {
+            //
+            //     {
+            //         "name": "BTC",
+            //         "predictedFundings": {
+            //             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+            //             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+            //             "BybitPerp": null
+            //         }
+            //     }
+            //
+            $predictedFunding = $this->safe_dict($predictedFundings, 'HlPerp', array());
+            $nextFundingTimestamp = $this->safe_integer($predictedFunding, 'nextFundingTime');
+            $intervalHours = $this->safe_string($predictedFunding, 'fundingIntervalHours', '1');
+            return array(
+                'info' => $info,
+                'symbol' => $symbol,
+                'markPrice' => null,
+                'indexPrice' => null,
+                'interestRate' => null,
+                'estimatedSettlePrice' => null,
+                'timestamp' => null,
+                'datetime' => null,
+                'fundingRate' => null,
+                'fundingTimestamp' => null,
+                'fundingDatetime' => null,
+                'nextFundingRate' => $this->safe_number($predictedFunding, 'fundingRate'),
+                'nextFundingTimestamp' => $nextFundingTimestamp,
+                'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+                'previousFundingRate' => null,
+                'previousFundingTimestamp' => null,
+                'previousFundingDatetime' => null,
+                'interval' => $intervalHours . 'h',
+            );
+        }
         $funding = $this->safe_number($info, 'funding');
         $markPx = $this->safe_number($info, 'markPx');
         $oraclePx = $this->safe_number($info, 'oraclePx');
@@ -2412,6 +2483,9 @@ class hyperliquid extends Exchange {
             $defaultTimeInForce = 'alo';
         }
         $timeInForceLower = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        if ($timeInForceLower === 'po') {
+            $timeInForceLower = 'alo'; // the unified post-only time in force is called Alo on hyperliquid
+        }
         $timeInForce = $this->capitalize($timeInForceLower);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
@@ -3003,6 +3077,9 @@ class hyperliquid extends Exchange {
                 $defaultTimeInForce = 'alo';
             }
             $timeInForceLower = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
+            if ($timeInForceLower === 'po') {
+                $timeInForceLower = 'alo'; // the unified post-only time in force is called Alo on hyperliquid
+            }
             $timeInForce = $this->capitalize($timeInForceLower);
             $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
@@ -3763,6 +3840,7 @@ class hyperliquid extends Exchange {
          *
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-$twap-slice-fills
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -3770,6 +3848,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest trade
          * @param {string} [$params->subAccountAddress] sub account user address
+         * @param {boolean} [$params->twap] set to true to fetch the fills of $twap orders instead, the exchange returns the 2000 most recent ones and ignores $since and $until
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyTrades', $params);
@@ -3783,15 +3862,18 @@ class hyperliquid extends Exchange {
         $request = array(
             'user' => $userAddress,
         );
-        if ($since !== null) {
+        $twap = $this->safe_bool($paramsPublicAddress, 'twap', false);
+        $until = $this->safe_integer($paramsPublicAddress, 'until');
+        $paramsOmitted = $this->omit($paramsPublicAddress, array( 'until', 'twap' ));
+        if ($twap) {
+            $request['type'] = 'userTwapSliceFills';
+        } elseif ($since !== null) {
             $request['type'] = 'userFillsByTime';
             $request['startTime'] = $since;
         } else {
             $request['type'] = 'userFills';
         }
-        $until = $this->safe_integer($paramsPublicAddress, 'until');
-        $paramsOmitted = $this->omit($paramsPublicAddress, 'until');
-        if ($until !== null) {
+        if (($until !== null) && !$twap) {
             $request['endTime'] = $until;
         }
         $myFillsResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
@@ -3817,6 +3899,38 @@ class hyperliquid extends Exchange {
         //         }
         //     ]
         //
+        if ($twap) {
+            //
+            //     [
+            //         {
+            //             "fill": {
+            //                 "closedPnl": "0.0",
+            //                 "coin": "AVAX",
+            //                 "crossed": true,
+            //                 "dir": "Open Long",
+            //                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //                 "oid": 90542681,
+            //                 "px": "18.435",
+            //                 "side": "B",
+            //                 "startPosition": "26.86",
+            //                 "sz": "93.53",
+            //                 "time": 1681222254710,
+            //                 "fee": "0.01",
+            //                 "feeToken": "USDC",
+            //                 "tid": 118906512037719
+            //             },
+            //             "twapId": 3156
+            //         }
+            //     ]
+            //
+            $twapFills = array();
+            for ($i = 0; $i < count($myFills); $i++) {
+                $twapFill = $this->safe_dict($myFills, $i, array());
+                $fill = $this->safe_dict($twapFill, 'fill', array());
+                $twapFills[] = $this->extend($fill, array( 'twapId' => $this->safe_string($twapFill, 'twapId') ));
+            }
+            return $this->parse_trades($twapFills, $market, $since, $limit);
+        }
         return $this->parse_trades($myFills, $market, $since, $limit);
     }
 
@@ -4250,6 +4364,179 @@ class hyperliquid extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-$universe-and-margin-tables
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-$tiers
+         *
+         * @param {string[]} [$symbols] list of unified $market $symbols, all $symbols must belong to the same dex for hip3 markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->dex] the hip3 dex to fetch the $tiers from, inferred from the $symbols when omitted
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-$tiers-structure leverage $tiers structures~, indexed by $market $symbols
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $request = array(
+            'type' => 'meta',
+        );
+        $dexName = $this->get_dex_from_symbols('fetchLeverageTiers', $symbolsNormalized);
+        if ($dexName !== null) {
+            $request['dex'] = $dexName;
+        }
+        $response = $this->publicPostInfo($this->extend($request, $params));
+        //
+        //     {
+        //         "universe": [
+        //             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+        //             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+        //         ],
+        //         "marginTables": [
+        //             [
+        //                 54,
+        //                 {
+        //                     "description": "tiered 20x (2)",
+        //                     "marginTiers": [
+        //                         { "lowerBound": "0.0", "maxLeverage": 20 },
+        //                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //                     ]
+        //                 }
+        //             ]
+        //         ],
+        //         "collateralToken": 0
+        //     }
+        //
+        $universe = $this->safe_list($response, 'universe', array());
+        $marginTables = $this->safe_list($response, 'marginTables', array());
+        $tablesById = array();
+        for ($i = 0; $i < count($marginTables); $i++) {
+            $marginTable = $this->safe_list($marginTables, $i, array());
+            $tableId = $this->safe_string($marginTable, 0, '');
+            $tablesById[$tableId] = $this->safe_dict($marginTable, 1, array());
+        }
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        $tiers = array();
+        for ($i = 0; $i < count($universe); $i++) {
+            $asset = $this->safe_dict($universe, $i, array());
+            // the coin name resolves to the unified symbol, delisted assets have no market
+            $symbol = $this->coin_to_market_id($this->safe_string($asset, 'name'));
+            $market = $this->safe_dict($this->markets, $symbol);
+            if ($market === null) {
+                continue;
+            }
+            if (($symbolsLength > 0) && !$this->in_array($symbol, $symbolsNormalized)) {
+                continue;
+            }
+            $assetTable = $this->safe_dict($tablesById, $this->safe_string($asset, 'marginTableId'), array());
+            $marginTiers = $this->safe_list($assetTable, 'marginTiers');
+            if ($marginTiers === null) {
+                // margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+                $marginTiers = array( array( 'lowerBound' => '0.0', 'maxLeverage' => $this->safe_integer($asset, 'maxLeverage') ) );
+            }
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($this->extend($asset, array( 'marginTiers' => $marginTiers )), $market);
+        }
+        return $tiers;
+    }
+
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
+        //
+        //     {
+        //         "szDecimals": 2,
+        //         "name": "SOL",
+        //         "maxLeverage": 20,
+        //         "marginTableId": 54,
+        //         "marginTiers": [
+        //             { "lowerBound": "0.0", "maxLeverage": 20 },
+        //             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //         ]
+        //     }
+        //
+        $marginTiers = $this->safe_list($info, 'marginTiers', array());
+        $tiers = array();
+        for ($i = 0; $i < count($marginTiers); $i++) {
+            $tier = $this->safe_dict($marginTiers, $i, array());
+            $nextTier = $this->safe_dict($marginTiers, $i + 1, array());
+            $maxLeverage = $this->safe_string($tier, 'maxLeverage');
+            // the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+            $maintenanceMarginRate = Precise::string_div('1', Precise::string_mul('2', $maxLeverage));
+            $tiers[] = array(
+                'tier' => $i + 1,
+                'symbol' => $this->safe_string($market, 'symbol'),
+                'currency' => $this->safe_string($market, 'settle'),
+                'minNotional' => $this->safe_number($tier, 'lowerBound'),
+                'maxNotional' => $this->safe_number($nextTier, 'lowerBound'),
+                'maintenanceMarginRate' => $this->parse_number($maintenanceMarginRate),
+                'maxLeverage' => $this->parse_number($maxLeverage),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
+    }
+
+    public function fetch_leverage(string $symbol, $params = array()): array {
+        /**
+         * fetch the set leverage and margin mode for a swap $market
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new NotSupported($this->id . ' fetchLeverage() supports swap markets only');
+        }
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchLeverage', $params);
+        $request = array(
+            'type' => 'activeAssetData',
+            'user' => $userAddress,
+            'coin' => $this->safe_string($market, 'baseName'),
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     {
+        //         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        //         "coin": "SOL",
+        //         "leverage": {
+        //             "type": "cross", // or "isolated", which also carries "rawUsd"
+        //             "value": 20
+        //         },
+        //         "maxTradeSzs": [ "13.63", "13.63" ],
+        //         "availableToTrade": [ "48.103059", "48.103059" ],
+        //         "markPx": "70.58"
+        //     }
+        //
+        return $this->parse_leverage($this->extend(array(), $response), $market);
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        $leverageInfo = $this->safe_dict($leverage, 'leverage', array());
+        $leverageValue = $this->safe_integer($leverageInfo, 'value');
+        $coin = $this->safe_string($leverage, 'coin');
+        $marketId = null;
+        if ($coin !== null) {
+            $marketId = $this->coin_to_market_id($coin);
+        }
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'marginMode' => $this->safe_string_lower($leverageInfo, 'type'),
+            'longLeverage' => $leverageValue,
+            'shortLeverage' => $leverageValue,
+        );
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
@@ -5243,6 +5530,780 @@ class hyperliquid extends Exchange {
         $request['signature'] = $signature;
         $response = $this->privatePostExchange($this->extend($request, $params));
         return $response;
+    }
+
+    public function build_approve_agent_sig(array $message): array {
+        $messageTypes = array(
+            'HyperliquidTransaction:ApproveAgent' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'agentAddress', 'type' => 'address' ),
+                array( 'name' => 'agentName', 'type' => 'string' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
+    public function approve_agent(string $agentAddress, ?string $agentName = null, $params = array()): array {
+        /**
+         * approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the $request must be signed with the private key of the main wallet, not with the one of an API wallet
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+         *
+         * @param {string} $agentAddress the address of the API wallet to approve
+         * @param {string} [$agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $response object
+         */
+        $nonce = $this->incrementing_nonce();
+        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $hyperliquidChain = ($isSandboxMode) ? 'Testnet' : 'Mainnet';
+        // the name is always part of the signed message, it is empty for the unnamed API wallet
+        $payload = array(
+            'hyperliquidChain' => $hyperliquidChain,
+            'agentAddress' => $agentAddress,
+            'agentName' => ($agentName === null) ? '' : $agentName,
+            'nonce' => $nonce,
+        );
+        $sig = $this->build_approve_agent_sig($payload);
+        $action = array(
+            'hyperliquidChain' => $hyperliquidChain,
+            'signatureChainId' => '0x66eee',
+            'agentAddress' => $agentAddress,
+            'nonce' => $nonce,
+            'type' => 'approveAgent',
+        );
+        if ($agentName !== null) {
+            $action['agentName'] = $agentName;
+        }
+        $request = array(
+            'action' => $action,
+            'nonce' => $nonce,
+            'signature' => $sig,
+        );
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        $response = $this->privatePostExchange($this->extend($request, $params));
+        return $response;
+    }
+
+    public function noop(?int $nonce = null, $params = array()): array {
+        /**
+         * sends an $action that does nothing but marks the $nonce as used, which invalidates a pending request sent with the same $nonce, it can be a more effective way to cancel in-flight orders than a cancel
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-$nonce-noop
+         *
+         * @param {int} [$nonce] the $nonce to mark as used, a new one is generated when omitted
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vaultAddress] the vault or sub-account address to send the $action for
+         * @return {array} a response object
+         */
+        $action = array(
+            'type' => 'noop',
+        );
+        return $this->post_l1_action($action, $nonce, $params);
+    }
+
+    public function claim_rewards($params = array()): array {
+        /**
+         * claims the rewards earned by the account
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a response object
+         */
+        $action = array(
+            'type' => 'claimRewards',
+        );
+        return $this->post_l1_action($action, null, $params);
+    }
+
+    public function post_l1_action(array $action, ?int $nonce = null, $params = array()): array {
+        /**
+         * @ignore
+         * signs an L1 $action that has no market or order data and posts it to the exchange endpoint
+         * @param {array} $action the $action to sign and send
+         * @param {int} [$nonce] the $nonce to sign with, a new one is generated when omitted
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vaultAddress] the vault or sub-account address to send the $action for
+         * @return {array} a $response object
+         */
+        $requestNonce = ($nonce === null) ? $this->incrementing_nonce() : $nonce;
+        list($vaultAddressOption, $paramsVault) = $this->handle_option_string_and_params($params, 'createOrder', 'vaultAddress');
+        $vaultAddress = $this->format_vault_address($vaultAddressOption);
+        $signature = $this->sign_l1_action($action, $requestNonce, $vaultAddress);
+        $request = array(
+            'action' => $action,
+            'nonce' => $requestNonce,
+            'signature' => $signature,
+        );
+        if ($vaultAddress !== null) {
+            $request['vaultAddress'] = $vaultAddress;
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        $response = $this->privatePostExchange($this->extend($request, $paramsVault));
+        return $response;
+    }
+
+    public function usd_send(float $amount, string $address, $params = array()): array {
+        /**
+         * sends USDC from the perp balance to another $address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+         *
+         * @param {float} $amount the $amount of USDC to send
+         * @param {string} $address the $address to send to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a response object
+         */
+        $this->check_address($address);
+        $nonce = $this->incrementing_nonce();
+        $messageTypes = array(
+            array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+            array( 'name' => 'destination', 'type' => 'string' ),
+            array( 'name' => 'amount', 'type' => 'string' ),
+            array( 'name' => 'time', 'type' => 'uint64' ),
+        );
+        $message = array(
+            'hyperliquidChain' => $this->hyperliquid_chain_name(),
+            'destination' => $address,
+            'amount' => $this->number_to_string($amount),
+            'time' => $nonce,
+        );
+        return $this->post_user_signed_action('usdSend', 'HyperliquidTransaction:UsdSend', $messageTypes, $message, $nonce, $params);
+    }
+
+    public function spot_send(string $code, float $amount, string $address, $params = array()): array {
+        /**
+         * sends a spot asset to another $address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+         *
+         * @param {string} $code unified $currency $code of the asset to send
+         * @param {float} $amount the $amount to send
+         * @param {string} $address the $address to send to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a response object
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $this->check_address($address);
+        $currency = $this->currency($code);
+        $currencyInfo = $this->safe_dict($currency, 'info', array());
+        $nonce = $this->incrementing_nonce();
+        $messageTypes = array(
+            array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+            array( 'name' => 'destination', 'type' => 'string' ),
+            array( 'name' => 'token', 'type' => 'string' ),
+            array( 'name' => 'amount', 'type' => 'string' ),
+            array( 'name' => 'time', 'type' => 'uint64' ),
+        );
+        $message = array(
+            'hyperliquidChain' => $this->hyperliquid_chain_name(),
+            'destination' => $address,
+            'token' => $this->safe_string($currencyInfo, 'name', '') . ':' . $this->safe_string($currencyInfo, 'tokenId', ''),
+            'amount' => $this->number_to_string($amount),
+            'time' => $nonce,
+        );
+        return $this->post_user_signed_action('spotSend', 'HyperliquidTransaction:SpotSend', $messageTypes, $message, $nonce, $params);
+    }
+
+    public function staking_deposit(float $amount, $params = array()): array {
+        /**
+         * moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+         *
+         * @param {float} $amount the $amount of HYPE to move into staking
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a response object
+         */
+        $nonce = $this->incrementing_nonce();
+        $messageTypes = array(
+            array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+            array( 'name' => 'wei', 'type' => 'uint64' ),
+            array( 'name' => 'nonce', 'type' => 'uint64' ),
+        );
+        $message = array(
+            'hyperliquidChain' => $this->hyperliquid_chain_name(),
+            'wei' => $this->hype_to_wei($amount),
+            'nonce' => $nonce,
+        );
+        return $this->post_user_signed_action('cDeposit', 'HyperliquidTransaction:CDeposit', $messageTypes, $message, $nonce, $params);
+    }
+
+    public function staking_withdraw(float $amount, $params = array()): array {
+        /**
+         * moves HYPE from the staking balance back to the spot balance, the $amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+         *
+         * @param {float} $amount the $amount of HYPE to move out of staking
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a response object
+         */
+        $nonce = $this->incrementing_nonce();
+        $messageTypes = array(
+            array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+            array( 'name' => 'wei', 'type' => 'uint64' ),
+            array( 'name' => 'nonce', 'type' => 'uint64' ),
+        );
+        $message = array(
+            'hyperliquidChain' => $this->hyperliquid_chain_name(),
+            'wei' => $this->hype_to_wei($amount),
+            'nonce' => $nonce,
+        );
+        return $this->post_user_signed_action('cWithdraw', 'HyperliquidTransaction:CWithdraw', $messageTypes, $message, $nonce, $params);
+    }
+
+    public function token_delegate(string $validator, float $amount, bool $isUndelegate = false, $params = array()): array {
+        /**
+         * delegates HYPE of the staking balance to a $validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-$validator
+         *
+         * @param {string} $validator the address of the $validator
+         * @param {float} $amount the $amount of HYPE to delegate or undelegate
+         * @param {boolean} [$isUndelegate] true to undelegate, false (default) to delegate
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a response object
+         */
+        $this->check_address($validator);
+        $nonce = $this->incrementing_nonce();
+        $messageTypes = array(
+            array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+            array( 'name' => 'validator', 'type' => 'address' ),
+            array( 'name' => 'wei', 'type' => 'uint64' ),
+            array( 'name' => 'isUndelegate', 'type' => 'bool' ),
+            array( 'name' => 'nonce', 'type' => 'uint64' ),
+        );
+        $message = array(
+            'hyperliquidChain' => $this->hyperliquid_chain_name(),
+            'validator' => $validator,
+            'wei' => $this->hype_to_wei($amount),
+            'isUndelegate' => $isUndelegate,
+            'nonce' => $nonce,
+        );
+        return $this->post_user_signed_action('tokenDelegate', 'HyperliquidTransaction:TokenDelegate', $messageTypes, $message, $nonce, $params);
+    }
+
+    public function hyperliquid_chain_name(): string {
+        /**
+         * @ignore
+         * the chain name that user-signed actions are signed for
+         * @return {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+         */
+        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        return ($isSandboxMode) ? 'Testnet' : 'Mainnet';
+    }
+
+    public function hype_to_wei(float $amount): int {
+        /**
+         * @ignore
+         * converts an $amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+         * @param {float} $amount the $amount of HYPE
+         * @return {int} the $amount in wei
+         */
+        return $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '100000000'));
+    }
+
+    public function post_user_signed_action(string $actionType, string $primaryType, array $messageTypes, array $message, int $nonce, $params = array()): array {
+        /**
+         * @ignore
+         * signs a user-signed $action with the EIP-712 $types given and posts it to the exchange endpoint
+         * @param {string} $actionType the type of the $action
+         * @param {string} $primaryType the EIP-712 primary type of the $message
+         * @param {array[]} $messageTypes the EIP-712 fields of the $message
+         * @param {array} $message the $message to sign, its fields are sent as the $action
+         * @param {int} $nonce the $nonce of the $request
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $response object
+         */
+        $types = array();
+        $types[$primaryType] = $messageTypes;
+        $signature = $this->sign_user_signed_action($types, $message);
+        $action = $this->extend($message, array(
+            'signatureChainId' => '0x66eee',
+            'type' => $actionType,
+        ));
+        $request = array(
+            'action' => $action,
+            'nonce' => $nonce,
+            'signature' => $signature,
+        );
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        $response = $this->privatePostExchange($this->extend($request, $params));
+        return $response;
+    }
+
+    public function fetch_approved_builders($params = array()): array {
+        /**
+         * fetch the addresses of the builders the user approved a builder fee for
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {string[]} a list of builder addresses
+         */
+        $userAddress = $this->safe_string($this->handle_public_address('fetchApprovedBuilders', $params), 0);
+        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchApprovedBuilders', $params), 1, array());
+        $request = array(
+            'type' => 'approvedBuilders',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+        //
+        return $response;
+    }
+
+    public function fetch_vault_details(string $vaultAddress, $params = array()): array {
+        /**
+         * fetch the details of a vault, its leader, description, portfolio history, apr and followers
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+         *
+         * @param {string} $vaultAddress the address of the vault
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] a user address, when provided the $response includes the state of that user as a follower of the vault
+         * @return {array} the vault details as returned by the exchange
+         */
+        $request = array(
+            'type' => 'vaultDetails',
+            'vaultAddress' => $vaultAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $params));
+        //
+        //     {
+        //         "name": "Test",
+        //         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+        //         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+        //         "description": "This community-owned vault provides liquidity to Hyperliquid",
+        //         "portfolio": [
+        //             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+        //         ],
+        //         "apr": 0.36387129259090006,
+        //         "followerState": null,
+        //         "leaderFraction": 0.0007904828725729887,
+        //         "leaderCommission": 0,
+        //         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+        //         "maxDistributable": 94856870.164485,
+        //         "maxWithdrawable": 742557.680863,
+        //         "isClosed": false,
+        //         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+        //         "allowDeposits": true,
+        //         "alwaysCloseOnWithdraw": false
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_staking_delegations($params = array()): array {
+        /**
+         * fetch the amounts of HYPE the user delegated to each validator
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array[]} a list of delegations as returned by the exchange
+         */
+        $userAddress = $this->safe_string($this->handle_public_address('fetchStakingDelegations', $params), 0);
+        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchStakingDelegations', $params), 1, array());
+        $request = array(
+            'type' => 'delegations',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //             "amount": "12060.16529862",
+        //             "lockedUntilTimestamp": 1735466781353
+        //         }
+        //     ]
+        //
+        return $response;
+    }
+
+    public function fetch_staking_summary($params = array()): array {
+        /**
+         * fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array} the staking summary as returned by the exchange
+         */
+        $userAddress = $this->safe_string($this->handle_public_address('fetchStakingSummary', $params), 0);
+        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchStakingSummary', $params), 1, array());
+        $request = array(
+            'type' => 'delegatorSummary',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     {
+        //         "delegated": "12060.16529862",
+        //         "undelegated": "0.0",
+        //         "totalPendingWithdrawal": "0.0",
+        //         "nPendingWithdrawals": 0
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_staking_history($params = array()): array {
+        /**
+         * fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array[]} a list of staking events as returned by the exchange
+         */
+        $userAddress = $this->safe_string($this->handle_public_address('fetchStakingHistory', $params), 0);
+        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchStakingHistory', $params), 1, array());
+        $request = array(
+            'type' => 'delegatorHistory',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1735380381353,
+        //             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+        //             "delta": {
+        //                 "delegate": {
+        //                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //                     "amount": "10000.0",
+        //                     "isUndelegate": false
+        //                 }
+        //             }
+        //         }
+        //     ]
+        //
+        return $response;
+    }
+
+    public function fetch_staking_rewards($params = array()): array {
+        /**
+         * fetch the staking rewards earned by the user
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array[]} a list of staking rewards as returned by the exchange
+         */
+        $userAddress = $this->safe_string($this->handle_public_address('fetchStakingRewards', $params), 0);
+        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchStakingRewards', $params), 1, array());
+        $request = array(
+            'type' => 'delegatorRewards',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1736726400073,
+        //             "source": "delegation",
+        //             "totalAmount": "0.73117184"
+        //         }
+        //     ]
+        //
+        return $response;
+    }
+
+    public function fetch_accounts($params = array()): array {
+        /**
+         * fetch the sub-accounts of a master account
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] the master account address, will default to $this->walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
+         */
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchAccounts', $params);
+        $request = array(
+            'type' => 'subAccounts',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "name": "Test",
+        //             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+        //             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+        //             "clearinghouseState": {
+        //                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMaintenanceMarginUsed": "0.0",
+        //                 "withdrawable": "29.78001",
+        //                 "assetPositions": [],
+        //                 "time": 1733968369395
+        //             },
+        //             "spotState": {
+        //                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+        //             }
+        //         }
+        //     ]
+        //
+        // the response is null when the account has no sub-accounts
+        $rows = $this->info_list($response);
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $result[] = $this->parse_account($this->safe_dict($rows, $i, array()));
+        }
+        return $result;
+    }
+
+    public function parse_account(array $account): array {
+        return array(
+            'id' => $this->safe_string($account, 'subAccountUser'),
+            'type' => 'subaccount',
+            'name' => $this->safe_string($account, 'name'),
+            'code' => null,
+            'info' => $account,
+        );
+    }
+
+    public function fetch_cross_borrow_rates($params = array()): array {
+        /**
+         * fetch the borrow interest $rates of all currencies of the borrow/lend protocol
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-$reserve-states
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=borrow-$rate-structure borrow $rate structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $request = array(
+            'type' => 'allBorrowLendReserveStates',
+        );
+        $response = $this->publicPostInfo($this->extend($request, $params));
+        //
+        //     [
+        //         [
+        //             0,
+        //             {
+        //                 "borrowYearlyRate": "0.05",
+        //                 "supplyYearlyRate": "0.0249808267",
+        //                 "balance": "284714721.5832400322",
+        //                 "utilization": "0.5551294814",
+        //                 "oraclePx": "1.0",
+        //                 "ltv": "0.0",
+        //                 "totalSupplied": "639994288.7804760933",
+        //                 "totalBorrowed": "355279697.6056296229"
+        //             }
+        //         ]
+        //     ]
+        //
+        $rows = $this->info_list($response);
+        $rates = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $reserve = $this->safe_list($rows, $i, array());
+            $reserveState = $this->safe_dict($reserve, 1, array());
+            $rate = $this->parse_borrow_rate($this->extend($reserveState, array( 'token' => $this->safe_string($reserve, 0) )));
+            $code = $this->safe_string($rate, 'currency', '');
+            $rates[$code] = $rate;
+        }
+        return $rates;
+    }
+
+    public function fetch_cross_borrow_rate(string $code, $params = array()): array {
+        /**
+         * fetch the borrow interest rate of a $currency of the borrow/lend protocol
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'type' => 'borrowLendReserveState',
+            'token' => $this->parse_to_int($currency['id']),
+        );
+        $response = $this->publicPostInfo($this->extend($request, $params));
+        //
+        //     {
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0008245002",
+        //         "balance": "3245939.4732256099",
+        //         "utilization": "0.018322226",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "3306509.7335290499",
+        //         "totalBorrowed": "60582.61869494"
+        //     }
+        //
+        return $this->parse_borrow_rate($this->extend($response, array( 'token' => $currency['id'] )), $currency);
+    }
+
+    public function token_index_to_currency_code(?string $tokenIndex): ?string {
+        /**
+         * @ignore
+         * resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified $currency $code
+         * @param {string} $tokenIndex the index of the token
+         * @return {string} the unified $currency $code
+         */
+        $cachedCurrencies = $this->safe_dict($this->options, 'cachedCurrenciesById', array());
+        $tokenName = $this->safe_string($cachedCurrencies, $tokenIndex);
+        if ($tokenName !== null) {
+            return $this->safe_currency_code($tokenName);
+        }
+        // the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
+        $currencies = $this->currencies;
+        $codes = is_array($currencies) ? array_keys($currencies) : array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->safe_dict($currencies, $code, array());
+            $currencyInfo = $this->safe_dict($currency, 'info', array());
+            if ($this->safe_string($currencyInfo, 'index') === $tokenIndex) {
+                return $code;
+            }
+        }
+        return $this->safe_currency_code($tokenIndex);
+    }
+
+    public function parse_borrow_rate(mixed $info, ?array $currency = null): array {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0249808267",
+        //         "balance": "284714721.5832400322",
+        //         "utilization": "0.5551294814",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "639994288.7804760933",
+        //         "totalBorrowed": "355279697.6056296229"
+        //     }
+        //
+        return array(
+            'currency' => $this->token_index_to_currency_code($this->safe_string($info, 'token')),
+            'rate' => $this->safe_number($info, 'borrowYearlyRate'),
+            'period' => 31536000000, // the rate is yearly
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-$borrow-lend-user-$state
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {string} [$symbol] not used by hyperliquid fetchBorrowInterest
+         * @param {int} [$since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current $state only
+         * @param {int} [$limit] the maximum number of structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$borrow-interest-structure $borrow interest structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchBorrowInterest', $params);
+        $request = array(
+            'type' => 'borrowLendUserState',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo($this->extend($request, $paramsPublicAddress));
+        //
+        //     {
+        //         "tokenToState": [
+        //             [
+        //                 0,
+        //                 {
+        //                     "borrow": { "basis": "100.0", "value": "100.25" },
+        //                     "supply": { "basis": "0.0", "value": "0.0" }
+        //                 }
+        //             ]
+        //         ],
+        //         "health": "healthy",
+        //         "healthFactor": null
+        //     }
+        //
+        $tokenToState = $this->safe_list($response, 'tokenToState', array());
+        $interests = array();
+        for ($i = 0; $i < count($tokenToState); $i++) {
+            $tokenState = $this->safe_list($tokenToState, $i, array());
+            $state = $this->safe_dict($tokenState, 1, array());
+            $borrow = $this->safe_dict($state, 'borrow', array());
+            // tokens that are only supplied have nothing borrowed
+            if (Precise::string_gt($this->safe_string($borrow, 'value', '0'), '0')) {
+                $interests[] = $this->extend($state, array( 'token' => $this->safe_string($tokenState, 0) ));
+            }
+        }
+        $parsed = $this->parse_borrow_interests($interests);
+        return $this->filter_by_currency_since_limit($parsed, $code, null, $limit);
+    }
+
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrow": { "basis": "100.0", "value": "100.25" },
+        //         "supply": { "basis": "0.0", "value": "0.0" }
+        //     }
+        //
+        $borrow = $this->safe_dict($info, 'borrow', array());
+        $borrowed = $this->safe_string($borrow, 'value');
+        // the basis is the amount borrowed, the value includes the interest accrued since
+        $interest = Precise::string_sub($borrowed, $this->safe_string($borrow, 'basis'));
+        return array(
+            'info' => $info,
+            'symbol' => null,
+            'currency' => $this->token_index_to_currency_code($this->safe_string($info, 'token')),
+            'interest' => $this->parse_number($interest),
+            'interestRate' => null,
+            'amountBorrowed' => $this->parse_number($borrowed),
+            'marginMode' => 'cross',
+            'timestamp' => null,
+            'datetime' => null,
+        );
     }
 
     public function create_sub_account(string $name, $params = array()) {

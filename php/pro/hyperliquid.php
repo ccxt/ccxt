@@ -475,7 +475,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return $this->safe_string($symbols, 0, '');
     }
 
-    public function handle_bid_ask(Client $client, array $message) {
+    public function handle_bid_ask(Client $client, array $message): void {
         //
         //     {
         //         "channel": "bbo",
@@ -2035,7 +2035,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function handle_bid_ask_unsubscription(Client $client, array $subscription) {
+    public function handle_bid_ask_unsubscription(Client $client, array $subscription): void {
         //
         //        "subscription":{
         //           "type":"bbo",
