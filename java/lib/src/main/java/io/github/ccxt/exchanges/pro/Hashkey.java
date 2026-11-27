@@ -891,7 +891,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String type = "spot";
-        String typeMarketType = (String) ((List<Object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type)).get(0);
+        Pair<String, Map<String, Object>> typeMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
+        String typeMarketType = typeMarketTypeVariable.first();
         String messageHash = ("balance:" + typeMarketType);
         String url = this.getPrivateUrl(listenKey);
         Client client = this.client(url);
