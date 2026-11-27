@@ -52,6 +52,7 @@ public partial class BaseTest
         testArrayCacheBySymbolByIdMutatesStoredReference();
         testArrayCacheBySymbolBySideMutatesStoredReference();
         testArrayCacheBySymbolByIdSharedHashmap();
+        testWsCacheReadWindows();
     }
 
     // 1. THE CRITICAL ONE. ArrayCacheByTimestamp(3) fed 10 distinct timestamps

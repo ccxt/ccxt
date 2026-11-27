@@ -253,11 +253,9 @@ export default class bitstamp extends bitstampRest {
         };
         const message = this.extend (request, params);
         const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -449,11 +447,9 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const orders = await this.subscribePrivate (subscription, channel + '_' + this.safeString (market, 'id', ''), params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbolValue, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (orders, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -512,11 +508,9 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const trades = await this.subscribePrivate (subscription, messageHash, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbolValue, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
+        const cacheRead = this.getCacheRead (trades, symbolValue, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySymbolSinceLimit (cacheRead['data'], symbolValue, since, limitResolved, true);
     }
 
     /**

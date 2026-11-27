@@ -440,11 +440,9 @@ export default class xt extends xtRest {
         }
         const market = this.market (symbol);
         const ohlcv = await this.subscribe ('kline@' + this.safeString (market, 'id', '') + ',' + timeframe, 'public', 'watchOHLCV', market, undefined, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = ohlcv.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (ohlcv, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
     }
 
     /**
@@ -487,11 +485,9 @@ export default class xt extends xtRest {
         }
         const market = this.market (symbol);
         const trades = await this.subscribe ('trade@' + this.safeString (market, 'id', ''), 'public', 'watchTrades', market, undefined, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp');
     }
 
     /**
@@ -595,11 +591,9 @@ export default class xt extends xtRest {
             market = this.market (symbol);
         }
         const orders = await this.subscribe (name, 'private', 'watchOrders', market, undefined, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = orders.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
+        const cacheRead = this.getCacheRead (orders, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp');
     }
 
     /**
@@ -624,11 +618,9 @@ export default class xt extends xtRest {
             market = this.market (symbol);
         }
         const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, undefined, params);
-        let limitResolved: Int = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
+        const cacheRead = this.getCacheRead (trades, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        return this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp');
     }
 
     /**

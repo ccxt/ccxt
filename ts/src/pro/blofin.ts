@@ -111,11 +111,9 @@ export default class blofin extends blofinRest {
         const trades = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
         const firstMarket = this.safeDict (trades, 0);
         const firstSymbol = this.safeString (firstMarket, 'symbol');
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = trades.getLimit (firstSymbol, limit);
-        }
-        const result = this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
+        const cacheRead = this.getCacheRead (trades, firstSymbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const result = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 'timestamp', true);
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
@@ -461,11 +459,9 @@ export default class blofin extends blofinRest {
         const symbol = this.safeString (result, 0, '');
         const timeframe = this.safeString (result, 1, '');
         const candles = this.safeValue (result, 2);
-        let limitResolved = limit;
-        if (this.newUpdates) {
-            limitResolved = candles.getLimit (symbol, limit);
-        }
-        const filtered = this.filterBySinceLimit (candles, since, limitResolved, 0, true);
+        const cacheRead = this.getCacheRead (candles, symbol, limit);
+        const limitResolved = this.safeInteger (cacheRead, 'limit');
+        const filtered = this.filterBySinceLimit (cacheRead['data'], since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -665,21 +661,19 @@ export default class blofin extends blofinRest {
                 countSymbol = unifiedSymbols[0];
             }
         }
-        let newest = orders;
+        const cacheLimit = (countSymbol === undefined) ? undefined : limit;
+        const cacheRead = this.getCacheRead (orders, countSymbol, cacheLimit);
+        let newest = cacheRead['data'];
         let limitResolved = limit;
         if (this.newUpdates) {
+            const newCount = this.safeInteger (cacheRead, 'limit');
             if (countSymbol !== undefined) {
-                limitResolved = orders.getLimit (countSymbol, limit);
+                limitResolved = newCount;
+            } else if (newCount === 0) {
+                newest = [];
             } else {
-                // updated orders move to the end of the shared cache, so the newest entries across all
-                // symbols are exactly this read's updates; take them before filtering by symbol
-                const newCount = orders.getLimit (undefined, undefined);
-                if (newCount === 0) {
-                    // another watcher already took the count, and a limit of 0 would return the whole cache
-                    newest = [];
-                } else {
-                    newest = this.filterBySinceLimit (orders, undefined, newCount, 'timestamp', true);
-                }
+                // Only updates from this read should enter the symbol filter.
+                newest = this.filterBySinceLimit (newest, undefined, newCount, 'timestamp', true);
             }
         }
         const requested = this.filterByArray (newest, 'symbol', requestedSymbols, false);
