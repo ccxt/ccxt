@@ -230,7 +230,7 @@ function goStructReturnsSelfTest (): string[] {
 
 // ===== typed async carriers (`<-chan EndpointResult[T]`) and their consumers =====
 // A tabled method's cores send EndpointResult[T]{Value: v, Raw: v}; Raw is the value sent today, so
-// IsError / PanicOnError / ReturnPanicErrorT see the same payload. Table: build/go-chan-tables.json (endpoint).
+// IsError / PanicOnError see the same payload. Table: build/go-chan-tables.json (endpoint).
 
 const GO_CHAN_TABLE_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
 const GO_MAP = 'map[string]any';

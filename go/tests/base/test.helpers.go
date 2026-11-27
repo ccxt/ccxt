@@ -349,10 +349,6 @@ func IsString(v interface{}) bool {
 	return ccxt.IsString(v)
 }
 
-func IsFunction(v interface{}) bool {
-	return ccxt.IsFunction(v)
-}
-
 func IsNumber(v interface{}) bool {
 	return ccxt.IsNumber(v)
 }

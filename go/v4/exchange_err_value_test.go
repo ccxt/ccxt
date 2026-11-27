@@ -113,20 +113,6 @@ func TestReturnPanicErrorBreakSendsNothing(t *testing.T) {
 	}
 }
 
-func TestReturnPanicErrorT(t *testing.T) {
-	original := BadSymbol("nope")
-	ch := make(chan EndpointResult[map[string]any], 1)
-	go func() {
-		defer close(ch)
-		defer ReturnPanicErrorT(ch)
-		panic(original)
-	}()
-	r := <-ch
-	if r.Err != original || r.Failure() != original {
-		t.Fatalf("expected the original error, got %#v", r.Err)
-	}
-}
-
 func resolvedTask(v any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	ch <- AsyncResult[any]{Value: v}

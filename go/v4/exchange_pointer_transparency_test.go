@@ -141,7 +141,6 @@ func unaryShims() []unaryShim {
 	return []unaryShim{
 		// exchange_helpers.go
 		{"JsonParse", func(v any) any { return JsonParse(v) }},
-		{"IsFunction", func(v any) any { return IsFunction(v) }},
 		{"ObjectKeys", func(v any) any { return ObjectKeys(v) }},
 		{"IsInteger", func(v any) any { return IsInteger(v) }},
 		{"GetArrayLength", func(v any) any { return GetArrayLength(v) }},

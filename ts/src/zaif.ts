@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/zaif.js';
 import { ExchangeError, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from './base/functions/number.js';
 import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Fee, Endpoint, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -849,8 +849,7 @@ export default class zaif extends Exchange {
     }
 
     customNonce (): string {
-        const nonce: number = this.milliseconds () / 1000;
-        return nonce.toFixed (8);
+        return this.decimalToPrecision (this.milliseconds () / 1000, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {

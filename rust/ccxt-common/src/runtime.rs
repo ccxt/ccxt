@@ -114,10 +114,6 @@ impl KeyDictRead for HashMap<String, Value> {
     fn key_list(&self, key: &str) -> crate::value::List { if let Some(Value::Arr(a)) = self.get(key) { Arc::clone(a) } else { Arc::default() } }
 }
 
-// ── type checks ─────────────────────────────────────────────────────────────
-
-pub fn is_function(_v: &Value)-> bool { false }
-
 /// Convert a `catch_unwind` panic payload into the `Value::Str` shape
 /// that transpiled `catch (e)` blocks expect. The transpiled code uses
 /// this from the catch arm emitted by `rewriteTryCatchAsync` — kept in
@@ -524,28 +520,6 @@ pub fn append_to_array(arr: &mut Value, v: Value) {
     }
 }
 
-/// `obj[key].push(v)` — append to an array *field* of a dict in place. The
-/// transpiled `dict['bids'].push(x)` otherwise lowers to
-/// `append_to_array(&mut get_value(&dict, &key), x)`, whose `get_value` yields a
-/// COW clone, so the push is lost (paradex's order-book inserts). Mutate the
-/// field through the dict instead.
-pub fn append_to_object_array(obj: &mut Value, key: &Value, v: Value) {
-    // Registry-backed fields (a book's "cache") expose a live handle whose
-    // append already reflects — route through it.
-    let field = crate::get_value(obj, key);
-    if crate::value::try_book_cache_push(&field, &v) {
-        return;
-    }
-    // Plain array field: mutate through the dict (get_value would COW-clone).
-    if let (Value::Dict(m), Value::Str(k)) = (obj, key) {
-        let entry = Arc::make_mut(m).entry(k.to_string())
-            .or_insert_with(|| Value::Array(Vec::new()));
-        if let Value::Arr(a) = entry {
-            Arc::make_mut(a).push(v);
-        }
-    }
-}
-
 /// Recursively deep-extend `base` with `over` (CCXT `deepExtend` semantics):
 /// nested dicts are merged key-by-key rather than wholesale-replaced, and
 /// `over`'s leaves win on conflict. Used by generated init() to merge a pro
@@ -567,17 +541,6 @@ pub fn deep_merge_dict(base: &Value, over: &Value) -> Value {
             Value::Map(out)
         }
         _ => over.clone(),
-    }
-}
-
-pub fn concat_arrays(a: &Value, b: &Value) -> Value {
-    match (a, b) {
-        (Value::Arr(x), Value::Arr(y)) => {
-            let mut out = (**x).clone();
-            out.extend(y.iter().cloned());
-            Value::Array(out)
-        }
-        _ => Value::Array(vec![]),
     }
 }
 

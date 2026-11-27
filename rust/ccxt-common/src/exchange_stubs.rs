@@ -2176,7 +2176,14 @@ impl Exchange {
     }
 
     pub fn array_concat(&self, a: impl Into<Value>, b: impl Into<Value>) -> Value {
-        crate::runtime::concat_arrays(&a.into(), &b.into())
+        match (a.into(), b.into()) {
+            (Value::Arr(x), Value::Arr(y)) => {
+                let mut out = (*x).clone();
+                out.extend(y.iter().cloned());
+                Value::Array(out)
+            }
+            _ => Value::Array(vec![]),
+        }
     }
 
     /// Typed twins of `to_array` / `array_concat` / `sort_by`: the list the boxed result holds, else the empty list,

@@ -12287,12 +12287,6 @@ function javaBaseStringCoreCall (printer, node) {
             const declarations = printer.getChecker ().getSymbolAtLocation (node.expression)?.declarations ?? [];
             return declarations.length === 1 && ts.isImportSpecifier (declarations[0]) && String (printer.printNode (node, 0)).startsWith (`${node.expression.text}(`);
         }
-        // `n.toFixed (d)` on a TS number prints the hand-written BaseExchange `public String toFixed(`
-        if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
-            && node.expression.name.text === 'toFixed' && javaBaseHeaderStringMethod ('toFixed')
-            && (printer.getChecker ().getTypeAtLocation (node.expression.expression).flags & ts.TypeFlags.NumberLike) !== 0) {
-            return String (printer.printNode (node, 0)).startsWith ('toFixed(');
-        }
         // `x.toString ()` on a TS string prints `String.valueOf(x)`
         if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
             && node.expression.name.text === 'toString' && node.arguments.length === 0) {

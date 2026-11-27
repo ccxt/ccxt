@@ -4,7 +4,7 @@
 import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
-import { TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE, ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Int, Market, NullableDict, NullableList, FeeString, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int, Endpoint, List, Bool } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
@@ -816,7 +816,7 @@ export default class mercado extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
-            'quantity': amount.toFixed (10),
+            'quantity': this.decimalToPrecision (amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address': address,
         };
         if (code === 'BRL') {

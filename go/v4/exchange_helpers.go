@@ -894,15 +894,6 @@ func IsString(v any) bool {
 	return ok
 }
 
-// IsFunction checks if the input is a function
-func IsFunction(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	return reflect.TypeOf(v).Kind() == reflect.Func
-}
-
 func IsNumber(v any) bool {
 	v = derefScalar(v)
 	if v == nil {
@@ -2411,15 +2402,6 @@ func EndpointTyped[T any](in <-chan AsyncResult[any]) <-chan EndpointResult[T] {
 		}
 	}()
 	return out
-}
-
-// ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel.
-func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
-	if r := recover(); r != nil {
-		if r != "break" {
-			ch <- EndpointResult[T]{Err: RecoveredError(r)}
-		}
-	}
 }
 
 func HandleDelta(bookside any, delta any) any {
