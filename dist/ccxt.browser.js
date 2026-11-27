@@ -274262,7 +274262,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                     '411': _base_errors_js__rspack_import_1.BadRequest,
                     '412': _base_errors_js__rspack_import_1.InvalidAddress,
                     '413': _base_errors_js__rspack_import_1.InvalidAddress,
-                    '414': _base_errors_js__rspack_import_1.ExchangeError
+                    '414': _base_errors_js__rspack_import_1.ExchangeError,
+                    '431': _base_errors_js__rspack_import_1.MarketClosed
                 },
                 'broad': {
                     'start parameter is invalid': _base_errors_js__rspack_import_1.BadRequest,
