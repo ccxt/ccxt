@@ -1693,7 +1693,10 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
-	order := r4.Value
+	var order any = nil
+	if r4.Value != nil {
+		order = r4.Value
+	}
 
 	ch <- AsyncResult[Conversion]{Value: this.ParseConversion(order, this.Currency(fromCode), this.Currency(toCode))}
 	return nil
@@ -3398,7 +3401,10 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		rfqResponse := r1.Value
+		var rfqResponse any = nil
+		if r1.Value != nil {
+			rfqResponse = r1.Value
+		}
 		var rfqOrder map[string]any = SafeMapTyped(map[string]any{
 			"order": rfqResponse,
 		}, "order")
@@ -3435,12 +3441,12 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
  * @param {int} [params.clientOrderId] requester client identifier
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Backpack) CreateRfqOrderAsync(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Backpack) CreateRfqOrderAsync(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.createRfqOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol *string, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[map[string]any], symbol *string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3549,7 +3555,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol *strin
 	var order map[string]any = OrderToMap(this.ParseOrder(response, market))
 	order["type"] = typeVar
 
-	ch <- AsyncResult[any]{Value: order}
+	ch <- AsyncResult[map[string]any]{Value: order}
 	return nil
 }
 

@@ -3484,10 +3484,10 @@ func (this *Myriad) ParsePredictionTicker(raw map[string]any, optionalArgs ...an
 			price = priceValue
 			change = changeValue
 			if (priceValue != nil) && (changeValue != nil) {
-				var previousCloseValue any = (*priceValue - *changeValue)
+				var previousCloseValue float64 = (*priceValue - *changeValue)
 				previousClose = previousCloseValue
 				if priceValue != changeValue && (priceValue == nil || changeValue == nil || *priceValue != *changeValue) {
-					percentage = ccxt.Multiply(ccxt.Divide(changeValue, previousCloseValue), 100)
+					percentage = ((*changeValue / previousCloseValue) * 100)
 				}
 			}
 			break

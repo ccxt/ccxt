@@ -924,7 +924,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 	if pageSize == nil || int64(firstPageLength) >= *pageSize {
 		var offsets []any = []any{}
 		for p := 1; maxPages > float64(p); p++ {
-			offsets = append(offsets, ccxt.Multiply(p, pageSize))
+			offsets = append(offsets, (int64(p) * *pageSize))
 		}
 		var restPromises []<-chan ccxt.EndpointResult[[]any]
 		for oi := 0; oi < len(offsets); oi++ {

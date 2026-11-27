@@ -393,7 +393,7 @@ func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 			if timestamp == nil {
 				continue
 			}
-			var candleTimestamp int64 = this.ParseToInt(ccxt.Multiply((float64(*timestamp) / float64(duration)), duration))
+			var candleTimestamp int64 = this.ParseToInt(float64(*timestamp)/float64(duration)) * duration
 			var parsed []any = []any{candleTimestamp, this.SafeFloat(ohlcv, 3), this.SafeFloat(ohlcv, 1), this.SafeFloat(ohlcv, 2), this.SafeFloat(ohlcv, 4), this.SafeFloat(ohlcv, 5)}
 			var stored any = this.Ohlcvs[*symbol][timeframe]
 			if stored == nil {
