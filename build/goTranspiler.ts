@@ -11099,7 +11099,7 @@ ${constStatements.join('\n')}
             const file = this.baseFileNilCompares (fileHeader + '\n' + structDef + methods + shims);
             // this is the one generated .go write that does not go through
             const stringReturns = { 'PadHexAddress': [ 'return ""', 'return "000000000000000000000000" + stripped' ], 'PadHexToEven': [ 'return ""', 'return "0" + hex', 'return hex' ], 'HexToRlpBytes': [ 'return ""', 'return this.PadHexToEven(h[i:])', 'return ""' ], 'RlpEncodeBytes': [ 'return "80"', 'return hex', 'return this.IntToBase16(128+byteLength) + hex', 'return this.IntToBase16(183+lengthOfLength) + lengthHex + hex' ], 'ShortenSlug': [ 'return strings.ToUpper(joined)' ], 'NormalizeTagKey': [ 'return s' ], 'SlugToMarketSymbol': [ 'return marketPart', 'return eventPart + "_" + marketPart' ], 'SlugToOutcomeSymbol': [ 'return this.SlugToMarketSymbol(eventSlug, marketSlug) + ":" + label' ], 'RlpEncodeList': [ 'return this.IntToBase16(192+byteLength) + concatenated', 'return this.IntToBase16(247+lengthOfLength) + lengthHex + concatenated' ], 'IntToRlpHex': [ 'return ""', 'return hex' ] };
-            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goJoinStringLocals (goRetypeStringReturns (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (guardMultiSendCores (normalizeGoFileHeader (file))))))))), 'PredictionExchange', stringReturns))))), baseFile.stdlibImports)), 'PredictionExchange', stringReturns));
+            fs.writeFileSync (goPredictionBase, goRetypeStringReturns (goGofmtLayout (goTypedStrNativeStringHelpers (goPredictionBase, this.declareBaseFileStdlibImports ((alignGoTrailingComments (goStdlibStringHelpers (goJoinStringLocals (goRetypeStringReturns (goGofmtSplicedText (goGofmtNestedParens (goBaseNativePasses (goListTypedOfLiteral (goSafeListSliceReads (goChan3Pass (goErrValuePass (guardMultiSendCores (normalizeGoFileHeader (file))))))))), 'PredictionExchange', stringReturns))))), baseFile.stdlibImports))), 'PredictionExchange', stringReturns));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -14816,8 +14816,18 @@ function goSliceLiteralNative (recv: { kind: string, text: string } | undefined,
     return { text: s + '[' + from + ':' + to + ']', pkg: '' };
 }
 
+// a `for i := N; ...; i++` counter with no other write never goes negative
+function goSliceNonNegForCounter (name: string, masked: string): boolean {
+    return (masked.match (new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=]*:=', 'g')) ?? []).length === 1
+        && new RegExp ('\\bfor ' + name + ' := \\d+; ').test (masked) && !new RegExp ('\\bvar ' + name + '\\b|&' + name + '\\b|\\bfunc\\b[^\\n]*\\b' + name + '\\b').test (masked)
+        && (() => {
+            const writes = (masked.match (new RegExp ('(?<![\\w.])' + name + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)', 'g')) ?? []);
+            return (writes.length === 1) && (writes[0].trim ().endsWith ('++'));
+        }) ();
+}
+
 // an int/int64 Slice bound read more than once: a once-declared local, a `for i := 0` counter, `x+N`, len(recv)
-function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: string, nonneg: boolean } | undefined {
+function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: string, nonneg: boolean, forCounter?: boolean } | undefined {
     if ((arg === 'len(' + recv + ')') || (arg === 'len((' + recv + '))')) { return { kind: 'int', nonneg: true }; }
     const m = /^([A-Za-z_]\w*)(?:\s*\+\s*(\d{1,6}))?$/.exec (arg);
     if (m === null) { return undefined; }
@@ -14826,13 +14836,13 @@ function goSliceBoundKind (arg: string, masked: string, recv: string): { kind: s
         && new RegExp ('\\bfor ' + m[1] + ' := \\d+; ').test (masked) && !new RegExp ('\\bvar ' + m[1] + '\\b|&' + m[1] + '\\b|\\bfunc\\b[^\\n]*\\b' + m[1] + '\\b').test (masked)) {
         // a `for i := N; ..; i++` counter with no other write never goes negative
         const writes = (masked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)', 'g')) ?? []);
-        return (writes.length === 1) && (writes[0].trim ().endsWith ('++')) ? { kind: 'int', nonneg: true } : { kind: 'int', nonneg: false };
+        return (writes.length === 1) && (writes[0].trim ().endsWith ('++')) ? { kind: 'int', nonneg: true, forCounter: true } : { kind: 'int', nonneg: false };
     }
     if ((kind !== 'int') && (kind !== 'int64')) { return undefined; }
     return { kind, nonneg: (m[2] === undefined) ? goSliceNonNegLocal (m[1], masked, new Set ()) : false };
 }
 
-// every write of a once-declared int local is a len(), a non-negative literal, a sum of those, a proven local,
+// every write of a once-declared int local is a len(), a non-negative literal, a sum/product of those or non-negative for counters, a proven local,
 // or `x = y` directly under `if y >= 0 {` with y such a local proven by its own writes or a single write
 function goSliceNonNegLocal (name: string, masked: string, seen: Set<string>): boolean {
     if (seen.has (name) || (seen.size > 6)) { return false; }
@@ -14844,9 +14854,9 @@ function goSliceNonNegLocal (name: string, masked: string, seen: Set<string>): b
     const leaf = (e: string): boolean => {
         if (/^(?:int64\()?\d{1,9}\)?$/.test (e) || /^(?:int64\()?len\(\(?\*?[A-Za-z_][\w.]*\)?\)\)?$/.test (e)) { return true; }
         const l = /^(?:int64\()?([A-Za-z_]\w*)\)?$/.exec (e);
-        return (l !== null) && goSliceNonNegLocal (l[1], masked, new Set (seen));
+        return (l !== null) && (goSliceNonNegForCounter (l[1], masked) || goSliceNonNegLocal (l[1], masked, new Set (seen)));
     };
-    const expr = (e: string): boolean => e.split ('+').every ((p) => leaf (p.trim ()));
+    const expr = (e: string): boolean => e.split (/[+*]/).every ((p) => leaf (p.trim ()));
     const lines = masked.split ('\n');
     let writes = 0;
     for (let i = 0; i < lines.length; i++) {
@@ -14864,33 +14874,54 @@ function goSliceNonNegLocal (name: string, masked: string, seen: Set<string>): b
     return writes > 0;
 }
 
+// true when `name` is an unwritable local guarded by `if name >= 0 {` immediately enclosing the Slice line
+function goSliceGuardedNonNegAt (name: string, masked: string, at: number | undefined): boolean {
+    if ((at === undefined) || !/^[A-Za-z_]\w*$/.test (name)) { return false; }
+    const pre = masked.slice (0, at).split ('\n');
+    const prev = (pre.length >= 2) ? pre[pre.length - 2] : '';
+    if (!new RegExp ('^\\s*if ' + name + ' >= 0 \\{$').test (prev)) { return false; }
+    const n = name.replace (/\$/g, '\\$');
+    return /^\s*var /.test (masked.split ('\n').find ((x) => new RegExp ('^\\s*var ' + n + ' ').test (x)) ?? '')
+        && !new RegExp ('(?<![\\w.])' + n + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)|&' + n + '\\b').test (masked.replace (new RegExp ('^\\s*var ' + n + ' \\w+ = ', 'm'), ''));
+}
+
 // `Slice(s, a, b)` with int-typed bounds: a negative bound counts from the end (indicator min(max(-x, 0), 1)),
 // the end is clamped to len, a nil end clamps the start at 0; out-of-range bounds panic as in the helper
-function goSliceTypedBoundNative (recv: { kind: string, text: string } | undefined, rawArgs: string[], masked: string): { text: string, pkg: string } | undefined {
-    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^\*?[A-Za-z_]\w*$/.test (recv.text)) { return undefined; }
+function goSliceTypedBoundNative (recv: { kind: string, text: string } | undefined, rawArgs: string[], masked: string, at?: number): { text: string, pkg: string } | undefined {
+    if ((recv === undefined) || (recv.kind !== 'string') || (rawArgs.length !== 3) || !/^(?:\*?[A-Za-z_]\w*|this\.[A-Z]\w*)$/.test (recv.text)) { return undefined; }
     const s = recv.text.startsWith ('*') ? '(' + recv.text + ')' : recv.text;
+    // `Slice(s, 0, len(s)-k)` with a positive integer literal k is s[0:max(len(s)-k, 0)]
+    const lenSub = new RegExp ('^len\\(' + recv.text.replace (/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\)\\s*-\\s*(\\d{1,9})$').exec (rawArgs[2]);
+    if ((rawArgs[1] === '0') && (lenSub !== null)) { return { text: s + '[0:max(len(' + s + ')-' + lenSub[1] + ', 0)]', pkg: '' }; }
     const lit = (a: string) => /^(?:int64\()?(\d{1,9})\)?$/.exec (a);
-    const one = (a: string): { text: string, kind: string, nonneg: boolean } | undefined => {
+    const one = (a: string): { text: string, kind: string, nonneg: boolean, forCounter?: boolean } | undefined => {
         const l = lit (a);
         if (l !== null) { return { text: l[1], kind: 'const', nonneg: true }; }
         const b = goSliceBoundKind (a, masked, recv.text);
         if (b === undefined) { return undefined; }
-        if (b.nonneg) { return { text: a, kind: b.kind, nonneg: true }; }
+        const nonneg = b.nonneg || goSliceGuardedNonNegAt (a, masked, at);
+        if (nonneg) { return { text: a, kind: b.kind, nonneg: true, forCounter: b.forCounter }; }
         const len = (b.kind === 'int64') ? 'int64(len(' + s + '))' : 'len(' + s + ')';
         const x = /^\w+$/.test (a) ? a : '(' + a + ')';
-        return { text: x + '+' + len + '*min(max(-' + x + ', 0), 1)', kind: b.kind, nonneg: b.nonneg };
+        return { text: x + '+' + len + '*min(max(-' + x + ', 0), 1)', kind: b.kind, nonneg: false };
     };
     const a = one (rawArgs[1]);
     if (a === undefined) { return undefined; }
     if (rawArgs[2] === 'nil') { return { text: s + '[' + (a.nonneg ? a.text : 'max(' + a.text + ', 0)') + ':]', pkg: '' }; }
     const b = one (rawArgs[2]);
     if ((b === undefined) || ((a.kind === 'const') && (b.kind === 'const'))) { return undefined; }
-    const end = (rawArgs[2] === 'len(' + recv.text + ')') ? b.text : 'min(' + b.text + ', ' + ((b.kind === 'int64') ? 'int64(len(' + s + '))' : 'len(' + s + ')') + ')';
-    return { text: s + '[' + a.text + ':' + end + ']', pkg: '' };
+    const lenType = ((b.kind === 'int64') || (a.kind === 'int64')) ? 'int64' : 'int';
+    const lenExpr = (lenType === 'int64') ? 'int64(len(' + recv.text + '))' : 'len(' + recv.text + ')';
+    // a general non-negative local start (not 0, not len(s), not a for counter, not initialized to len(s)) clamps to len(s) so short strings answer "" instead of panicking
+    const isLenLocal = /^\w+$/.test (a.text) && new RegExp ('^\\s*var ' + a.text + ' \\w+ = len\\(').test (masked.split ('\n').find ((x) => new RegExp ('^\\s*var ' + a.text + ' ').test (x)) ?? '');
+    const clampStart = a.nonneg && (a.kind !== 'const') && !a.forCounter && !isLenLocal && (rawArgs[1] !== 'len(' + recv.text + ')');
+    const startExpr = clampStart ? 'min(' + a.text + ', ' + lenExpr + ')' : a.text;
+    const end = (rawArgs[2] === 'len(' + recv.text + ')') ? b.text : 'min(' + (clampStart ? 'max(' + b.text + ', ' + a.text + ')' : b.text) + ', ' + lenExpr + ')';
+    return { text: s + '[' + startExpr + ':' + end + ']', pkg: '' };
 }
 
-function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[], masked?: string): { text: string, pkg: string } | undefined {
-    if (helper === 'Slice') { return goSliceLiteralNative (ops[0], rawArgs) ?? ((masked === undefined) ? undefined : goSliceTypedBoundNative (ops[0], rawArgs, masked)); }
+function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[], masked?: string, at?: number): { text: string, pkg: string } | undefined {
+    if (helper === 'Slice') { return goSliceLiteralNative (ops[0], rawArgs) ?? ((masked === undefined) ? undefined : goSliceTypedBoundNative (ops[0], rawArgs, masked, at)); }
     if ((helper === 'PadStart') || (helper === 'PadEnd')) {
         // one printable pad byte and a literal or side-effect-free int/int64 width on a deref'd identifier
         if ((ops.length !== 3) || (ops[0]?.kind !== 'string') || (ops[2]?.kind !== 'string') || !/^\*?[A-Za-z_]\w*$/.test (ops[0].text) || !/^"[ !#-[\]-~]"$/.test (rawArgs[2])) { return undefined; }
@@ -14947,7 +14978,13 @@ function goTypedStrNative (helper: string, ops: ({ kind: string, text: string } 
 // a once-declared `*string` local read under a dominating nil proof (an enclosing `if x != nil`, an exiting
 // `if x == nil` with no later write, or a `(x != nil) && ` conjunct chain right before the call) is its pointee
 function goNilProvenStringPtr (arg: string, masked: string, at: number): { kind: string, text: string } | undefined {
-    if (!/^[A-Za-z_]\w*$/.test (arg) || (goStringOperandDeclaredType (masked.replace (new RegExp ('\\bvar ' + arg + ' \\*string ', 'g'), 'var ' + arg + ' PTRstring '), arg) !== 'PTRstring')) { return undefined; }
+    if (!/^[A-Za-z_]\w*$/.test (arg)) { return undefined; }
+    const isPtrLocal = goStringOperandDeclaredType (masked.replace (new RegExp ('\\bvar ' + arg + ' \\*string ', 'g'), 'var ' + arg + ' PTRstring '), arg) === 'PTRstring';
+    const sig = masked.substring (0, masked.indexOf ('{'));
+    const body = masked.substring (masked.indexOf ('{'));
+    const isPtrParam = !isPtrLocal && new RegExp ('[(,]\\s*' + arg + ' \\*string(?=[,)])').test (sig)
+        && !new RegExp ('\\bvar ' + arg + '\\b|\\b' + arg + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + arg + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + arg + '\\b|\\brange\\b[^\\n]*\\b' + arg + '\\b').test (body);
+    if (!isPtrLocal && !isPtrParam) { return undefined; }
     const lineStart = masked.lastIndexOf ('\n', at) + 1;
     const lineEnd = masked.indexOf ('\n', at);
     const line = masked.substring (lineStart, (lineEnd < 0) ? masked.length : lineEnd);
@@ -14966,7 +15003,7 @@ function GO_TYPED_STR_CALL_RX (): RegExp { return /(?<![\w.])(ccxt\.)?(ToString|
 
 function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): string {
     return goStringHelperCallsRewrite (func, pkgs, GO_TYPED_STR_CALL_RX, (name, args, out, masked, at) =>
-        goTypedStrNative (name, args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, at)), args, masked));
+        goTypedStrNative (name, args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, at)), args, masked, at));
 }
 
 // a func-local `var X []any = []any{<strings>}` only appended proven strings, measured with len() and joined with Join(X, sep) is a `[]string` (Join then
@@ -15144,6 +15181,10 @@ function goTypedStrSelfTest (ok: SelfTestOk): void {
     ok (f (np + '\tvar b bool = (t != nil) && ((GetIndexOf(t, "x") > -1) || (GetIndexOf(t, "y") > -1))\n\treturn b\n').indexOf ('((strings.Index(*t, "x") > -1) || (strings.Index(*t, "y") > -1))') >= 0, 'guarded group goes native');
     ok (f (np + '\tvar b bool = (t != nil) && (GetIndexOf(t, "x") > -1) || (GetIndexOf(t, "y") > -1)\n\treturn b\n').indexOf ('GetIndexOf(t, "y")') >= 0, 'trailing disjunct keeps the helper');
     ok (f (np + '\tif t == nil {\n\t\treturn nil\n\t}\n\tt = this.SafeString(m, "j")\n\treturn GetIndexOf(t, "x")\n').indexOf ('GetIndexOf(t, "x")') >= 0, 'rewritten after the guard keeps the helper');
+    ok (f ('\tvar s string = "ab"\n\treturn Slice(s, 0, len(s)-1)\n').includes ('s[0:max(len(s)-1, 0)]'), 'len(s)-k Slice end goes native');
+    ok (f ('\tvar s string = "a:b"\n\tvar c int = strings.Index(s, ":")\n\tif c >= 0 {\n\t\ts = Slice(s, 0, c)\n\t}\n\treturn s\n').includes ('s[0:min(c, len(s))]'), 'guarded >= 0 Slice end goes native without clamp');
+    ok (f ('\tvar pem string = ""\n\tfor i := 0; i < 2; i++ {\n\t\tvar st int64 = int64(i) * 64\n\t\tvar en int64 = st + 64\n\t\tpem += Slice(this.Secret, st, en)\n\t}\n\treturn pem\n').includes ('this.Secret[min(st, int64(len(this.Secret))):min(max(en, st), int64(len(this.Secret)))]'), 'this.Secret product bounds slice natively');
+    ok (goTypedStrNativeStringHelpers ('x/foo.go', hdr + 'func (this *X) f(id *string) any {\n\tif id == nil {\n\t\treturn nil\n\t}\n\tvar a int = 3\n\tvar b int = 6\n\treturn Slice(id, a, b)\n}\n').includes ('(*id)[min(a, len(*id)):min(max(b, a), len(*id))]'), 'nil-exited *string param slices natively');
 }
 
 // ===== native len() on block-scoped typed operands =====

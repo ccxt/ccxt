@@ -478,7 +478,7 @@ type IDerivedExchange interface {
 	Sign(path string, optionalArgs ...any) map[string]any
 	FetchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	FetchDepositWithdrawFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]DepositWithdrawFee]
-	CreateExpiredOptionMarket(symbol any) any
+	CreateExpiredOptionMarket(symbol any) map[string]any
 	FetchTimeAsync(optionalArgs ...any) <-chan AsyncResult[*int64]
 	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent]
 	FetchOutcomeAsync(outcomeSymbol string) <-chan AsyncResult[PredictionOutcome]

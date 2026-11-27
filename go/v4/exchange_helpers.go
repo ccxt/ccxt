@@ -1703,43 +1703,6 @@ func errorTypeIs(typ ErrorType, name string) bool {
 	return false
 }
 
-func Slice(str2 any, idx1 any, idx2 any) string {
-	str2 = derefScalar(str2)
-	idx1 = derefScalar(idx1)
-	idx2 = derefScalar(idx2)
-	if str2 == nil {
-		return ""
-	}
-	str := derefScalar(str2).(string)
-	var start int64 = -1
-	if idx1 != nil {
-		start = ParseInt(idx1)
-	}
-	var lenStr int64 = int64(len(str))
-	if idx2 == nil {
-		if start < 0 {
-			innerStart := lenStr + start
-			if innerStart < 0 {
-				innerStart = 0
-			}
-			return str[innerStart:]
-		}
-		return str[start:]
-	} else {
-		end := ParseInt(idx2)
-		if start < 0 {
-			start = lenStr + start
-		}
-		if end < 0 {
-			end = lenStr + end
-		}
-		if end > lenStr {
-			end = lenStr
-		}
-		return str[start:end]
-	}
-}
-
 type Task func() any
 
 func PromiseAll(tasksInterface any) <-chan AsyncResult[[]any] {
@@ -2060,69 +2023,6 @@ func ThrowDynamicException(exceptionType any, message any) {
 
 	// // err := constructor(messageStr)
 	// // panic(err)
-}
-
-func Remove(dict any, key any) {
-	// Attempt to cast the key to string first
-	keyStr, ok := derefScalar(key).(string)
-	if !ok {
-		// Panic if the key is not a string
-		panic("provided key is not a string")
-	}
-	switch v := dict.(type) {
-	case ArrayCache, *ArrayCache, ArrayCacheByTimestamp, *ArrayCacheByTimestamp, ArrayCacheBySymbolById, *ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, *ArrayCacheBySymbolBySide:
-		v.(interface{ Remove(string) }).Remove(keyStr)
-		return
-	case map[string]*ArrayCache:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]*ArrayCacheByTimestamp:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]*ArrayCacheBySymbolById:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]*ArrayCacheBySymbolBySide:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
-		if cache := v[keyStr]; cache != nil {
-			cache.Remove(keyStr)
-		}
-		delete(v, keyStr)
-		return
-	case map[string]map[string]any:
-		// the ohlcv book is two-level; the javascript delete is a no-op on a missing key
-		delete(v, keyStr)
-		return
-	case map[string]*Future:
-		delete(v, keyStr)
-		return
-	case map[string]any:
-		// the javascript delete statement is a no-op on a missing key
-		delete(v, keyStr)
-		return
-	default:
-		panic(fmt.Sprintf("exchange_helpers.Remove: provided value type is %T", v))
-	}
 }
 
 func Capitalize(s string) string {
@@ -2484,24 +2384,6 @@ func endpointValue[T any](raw any) T {
 			out = v
 		}
 	}
-	return out
-}
-
-// Fetch2Result relays the single Fetch2Async outcome unchanged in Raw/Err, adding its typed view.
-func Fetch2Result[T any](this interface {
-	Fetch2Async(path string, optionalArgs ...any) <-chan AsyncResult[any]
-}, path string, optionalArgs ...any) <-chan EndpointResult[T] {
-	out := make(chan EndpointResult[T], 1)
-	in := this.Fetch2Async(path, optionalArgs...)
-	go func() {
-		defer close(out)
-		defer ReturnPanicErrorT(out)
-		v, ok := <-in
-		if !ok {
-			return
-		}
-		out <- EndpointResult[T]{Value: endpointValue[T](v.Value), Raw: v.Value, Err: v.Err}
-	}()
 	return out
 }
 

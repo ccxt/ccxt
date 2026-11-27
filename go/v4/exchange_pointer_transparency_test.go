@@ -361,35 +361,6 @@ func TestPointerTransparencyBinaryShims(t *testing.T) {
 	t.Logf("binary shims: %d helpers, %d differential cells", len(binaryShims()), c.cells)
 }
 
-// Slice takes three deref'd operands; each position is exercised independently.
-func TestPointerTransparencySlice(t *testing.T) {
-	c := &ptChecker{t: t}
-	base := []any{"abcdef", int64(1), int64(4)}
-	for _, g := range ptGroups() {
-		for pos := 0; pos < 3; pos++ {
-			pos := pos
-			mk := func(x any) []any {
-				args := append([]any{}, base...)
-				args[pos] = x
-				return args
-			}
-			nilArgs := mk(g.typedNil)
-			plainNil := mk(nil)
-			c.cell("Slice", g.name, fmt.Sprintf("absent@%d", pos+1),
-				func() any { return Slice(nilArgs[0], nilArgs[1], nilArgs[2]) },
-				func() any { return Slice(plainNil[0], plainNil[1], plainNil[2]) })
-			for _, v := range g.vals {
-				pa := mk(g.ptrOf(v))
-				va := mk(v)
-				c.cell("Slice", g.name, fmt.Sprintf("present@%d &%s", pos+1, variantName(v)),
-					func() any { return Slice(pa[0], pa[1], pa[2]) },
-					func() any { return Slice(va[0], va[1], va[2]) })
-			}
-		}
-	}
-	t.Logf("Slice: %d differential cells", c.cells)
-}
-
 // The Safe* family derefs three independent things: the container, the key, and the
 // value stored under that key.
 func TestPointerTransparencySafeFamily(t *testing.T) {

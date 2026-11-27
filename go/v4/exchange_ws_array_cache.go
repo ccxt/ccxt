@@ -6,4 +6,5 @@ type WsArrayCache interface {
 	Append(item any)
 	ToArray() []any
 	GetLimit(symbol any, limit any) *int64
+	Remove(symbol string)
 }

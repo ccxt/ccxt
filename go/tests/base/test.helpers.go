@@ -561,10 +561,6 @@ func IsInstance(value interface{}, typ interface{}) bool {
 	return ccxt.IsInstance(value, typ)
 }
 
-func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
-	return ccxt.Slice(str2, idx1, idx2)
-}
-
 func promiseAll(tasksInterface interface{}) <-chan ccxt.AsyncResult[[]any] {
 	return ccxt.PromiseAll(tasksInterface)
 }
@@ -624,10 +620,6 @@ func JsonStringify(obj interface{}) string {
 	}
 	jsonData, _ := json.Marshal(obj)
 	return string(jsonData)
-}
-
-func Remove(dict interface{}, key interface{}) {
-	ccxt.Remove(dict, key)
 }
 
 func Capitalize(s string) string {
