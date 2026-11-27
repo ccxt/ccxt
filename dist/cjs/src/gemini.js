@@ -842,7 +842,7 @@ class gemini extends gemini$1["default"] {
         }
         else {
             // if no detailed API was called, then parse either string or array
-            if (isString) {
+            if (typeof response === 'string') {
                 marketId = response;
             }
             else {
@@ -850,6 +850,9 @@ class gemini extends gemini$1["default"] {
                 tickSize = this.parseNumber(this.parsePrecision(this.safeString(response, 1))); // priceTickDecimalPlaces
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
+            }
+            if (marketId === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
             }
             const marketIdUpper = marketId.toUpperCase();
             const isPerp = (marketIdUpper.indexOf('PERP') >= 0);

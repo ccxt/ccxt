@@ -6365,7 +6365,7 @@ class BaseExchange {
         }
         return bidAsk;
     }
-    safeCurrency(currencyId, currency = undefined) {
+    safeCurrency(currencyId = undefined, currency = undefined) {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }

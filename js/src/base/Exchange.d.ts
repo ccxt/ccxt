@@ -853,7 +853,7 @@ export declare class BaseExchange {
     fetchLedgerEntry(id: string, code?: Str, params?: Dict): Promise<LedgerEntry>;
     parseOrderBookBidAsk(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): Num[];
     parseOrderBookBidAskL3(bidask: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): any[];
-    safeCurrency(currencyId: Str, currency?: Currency): CurrencyInterface;
+    safeCurrency(currencyId?: Str, currency?: Currency): CurrencyInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     marketOrNull(symbol?: Str): Market;
     checkRequiredCredentials(error?: boolean): boolean;

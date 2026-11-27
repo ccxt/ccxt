@@ -184307,7 +184307,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         }
         return bidAsk;
     }
-    safeCurrency(currencyId, currency = undefined) {
+    safeCurrency(currencyId = undefined, currency = undefined) {
         if (currencyId === undefined && currency !== undefined) {
             return currency;
         }
@@ -372417,13 +372417,16 @@ class gemini extends _abstract_gemini_js__rspack_import_0/* ["default"] */.A {
             settleId = this.safeString(response, 'contract_price_currency');
         } else {
             // if no detailed API was called, then parse either string or array
-            if (isString) {
+            if (typeof response === 'string') {
                 marketId = response;
             } else {
                 marketId = this.safeStringLower(response, 0);
                 tickSize = this.parseNumber(this.parsePrecision(this.safeString(response, 1))); // priceTickDecimalPlaces
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
+            }
+            if (marketId === undefined) {
+                throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' parseMarket() missing marketId');
             }
             const marketIdUpper = marketId.toUpperCase();
             const isPerp = marketIdUpper.indexOf('PERP') >= 0;
