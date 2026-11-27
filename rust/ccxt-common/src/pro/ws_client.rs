@@ -650,13 +650,7 @@ impl ClientState {
 
     /// Snapshot of `rejections` as a `Value::Map { hash: error }`.
     pub fn rejections_value(&self) -> Value {
-        self.with(|c| {
-            let mut m = indexmap::IndexMap::new();
-            for (h, e) in c.rejections.iter() {
-                m.insert(h.clone(), e.clone());
-            }
-            Value::Map(m)
-        })
+        self.with(|c| Value::Map(c.rejections.iter().map(|(h, e)| (h.to_owned(), e.to_owned())).collect()))
     }
 
     /// Snapshot of `futures` as a `Value::Map { hash: true }`.
@@ -1235,12 +1229,6 @@ impl ClientHandle {
     }
     /// `key in client.rejections`, read live.
     pub fn has_rejection<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("rejections").as_ref().unwrap_or(&self.rejections), key.into()) }
-    /// `client.rejections[key]` (Null when absent).
-    pub fn get_rejection<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(self.field("rejections").as_ref().unwrap_or(&self.rejections), key.into()) }
-    /// `Object.keys(client.rejections)`.
-    pub fn rejection_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(self.field("rejections").as_ref().unwrap_or(&self.rejections)).as_array().cloned().unwrap_or_default()
-    }
     pub fn future(&self, hash: impl Into<Value>) -> Flight {
         self.value.future(hash)
     }
