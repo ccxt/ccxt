@@ -6981,34 +6981,34 @@ export class BaseExchange {
             }
             let isNewCandle = candle === -1;
             if (!isNewCandle) {
-                const candleTimestamp = this.safeInteger (this.safeList (ohlcvs, candle), i_timestamp);
+                const prevCandle = this.safeList (ohlcvs, candle);
+                const candleTimestamp = this.safeInteger (prevCandle, i_timestamp);
                 if (candleTimestamp === undefined) {
                     throw new ExchangeError (this.id + ' buildOHLCVC() missing candle timestamp');
                 }
                 isNewCandle = openingTime >= this.sum (candleTimestamp, ms);
+                if (!isNewCandle) {
+                    // still processing the same timeframe -> update opening trade
+                    const prevHigh = this.safeNumber (prevCandle, 2);
+                    const prevLow = this.safeNumber (prevCandle, 3);
+                    ohlcvs[candle][i_high] = Math.max ((prevHigh === undefined) ? price : prevHigh, price);
+                    ohlcvs[candle][i_low] = Math.min ((prevLow === undefined) ? price : prevLow, price);
+                    ohlcvs[candle][i_close] = price;
+                    ohlcvs[candle][i_volume] = this.sum (this.safeValue (prevCandle, i_volume), trade['amount']);
+                    ohlcvs[candle][i_count] = this.sum (this.safeValue (prevCandle, i_count), 1);
+                    continue;
+                }
             }
-            if (isNewCandle) {
-                // moved to a new timeframe -> create a new candle from opening trade
-                ohlcvs.push ([
-                    openingTime, // timestamp
-                    price, // O
-                    price, // H
-                    price, // L
-                    price, // C
-                    trade['amount'], // V
-                    1, // count
-                ]);
-            } else {
-                // still processing the same timeframe -> update opening trade
-                const prevCandle = this.safeList (ohlcvs, candle);
-                const prevHigh = this.safeNumber (prevCandle, 2);
-                const prevLow = this.safeNumber (prevCandle, 3);
-                ohlcvs[candle][i_high] = Math.max ((prevHigh === undefined) ? price : prevHigh, price);
-                ohlcvs[candle][i_low] = Math.min ((prevLow === undefined) ? price : prevLow, price);
-                ohlcvs[candle][i_close] = price;
-                ohlcvs[candle][i_volume] = this.sum (this.safeValue (prevCandle, i_volume), trade['amount']);
-                ohlcvs[candle][i_count] = this.sum (this.safeValue (prevCandle, i_count), 1);
-            }
+            // moved to a new timeframe -> create a new candle from opening trade
+            ohlcvs.push ([
+                openingTime, // timestamp
+                price, // O
+                price, // H
+                price, // L
+                price, // C
+                trade['amount'], // V
+                1, // count
+            ]);
         }
         return ohlcvs;
     }

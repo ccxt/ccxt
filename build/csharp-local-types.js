@@ -6911,6 +6911,8 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `this.sum (a, b)` over the operand family its hand-written helper boxes as Int64: the declaration names that box behind an exact `((Int64))` cast. `a % b` is the cast-free mod t...
         const modTwin = modTwinCallType (csharp, declaration.initializer, ctx);
         const integerBox = integerBoxCastType (csharp, declaration.initializer, ctx);
+        // `let x: Int = a - b * c` over a lifted Int64? subtraction/product chain prints native lifted Int64?
+        const liftedInt64Init = (annotationType (declaration) === 'Int64?' && liftedIntegerChain (csharp, declaration.initializer, ctx)?.nullable) ? 'Int64?' : undefined;
         // `this.sum (a, b)`: the typed twins Exchange.Generic.cs carries beside the hand-written helpers bind for the operand family integerBoxCastType proved (see integerOverloadCallType...
         const integerOverload = (integerBox === undefined) ? undefined : integerOverloadCallType (declaration.initializer);
         // `const x = recv[key]`: the runtime element is a proven box, but the call's C# type is `object`, so the declaration needs the cast the printer does not emit by itself. Nullable w...
@@ -6938,6 +6940,8 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             cast = predictionFunnel.cast;
         } else if (modTwin !== undefined) {
             csharpType = modTwin;
+        } else if (liftedInt64Init !== undefined) {
+            csharpType = liftedInt64Init;
         } else if (integerBox !== undefined) {
             csharpType = integerBox;
             cast = (integerOverload === undefined) ? integerBox : undefined;
@@ -8066,7 +8070,11 @@ function int64AnnotatedLocalWriteType (csharp, declaration, node, context) {
     }
     selfReadStack.push ({ declaration, type: 'Int64?' });
     try {
-        const direct = integerBoxCastType (csharp, bare, context) ?? int64LocalsMinMaxWriteType (csharp, declaration, node, context) ?? mathMinMaxBoxType (csharp, bare, context)?.type;
+        const selfMinMax = (bare?.kind === ts.SyntaxKind.CallExpression && bare.arguments?.length === 2
+            && bare.arguments.some ((a) => a.kind === ts.SyntaxKind.Identifier && a.text === declaration.name.text)
+            && bare.arguments.every ((a) => a.kind === ts.SyntaxKind.Identifier || a.kind === ts.SyntaxKind.NumericLiteral))
+            ? mathMinMaxBoxType (csharp, bare, context)?.type : undefined;
+        const direct = integerBoxCastType (csharp, bare, context) ?? int64LocalsMinMaxWriteType (csharp, declaration, node, context) ?? selfMinMax;
         if (direct !== undefined) { return direct; }
         return liftedIntegerChain (csharp, node, context)?.nullable ? 'Int64?' : undefined;
     } finally {
