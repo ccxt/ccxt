@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Exchange;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ public class TestKeysort extends BaseTest
                 put( "id", "sampleexchange" );
             }});
             // temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-            if (Helpers.isGreaterThan(exchange.milliseconds(), 0))
+            if (TestHelpers.isGreaterThan(exchange.milliseconds(), 0))
             {
                 return;
             }

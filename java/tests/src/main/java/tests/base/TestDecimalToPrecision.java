@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 
 
@@ -30,12 +31,12 @@ public class TestDecimalToPrecision extends BaseTest
             Assert(Helpers.isEqual(exchange.decimalToPrecision("0.00000001", TRUNCATE, 8, DECIMAL_PLACES), "0.00000001"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("0.000000000", TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO), "0.000000000"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("0.000000001", TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO), "0.000000001"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("12.3456", TRUNCATE, Helpers.opNeg(1), DECIMAL_PLACES), "10"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", TRUNCATE, Helpers.opNeg(1), DECIMAL_PLACES), "120"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", TRUNCATE, Helpers.opNeg(2), DECIMAL_PLACES), "100"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("9.99999", TRUNCATE, Helpers.opNeg(1), DECIMAL_PLACES), "0"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", TRUNCATE, Helpers.opNeg(1), DECIMAL_PLACES), "90"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", TRUNCATE, Helpers.opNeg(2), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("12.3456", TRUNCATE, TestHelpers.opNeg(1), DECIMAL_PLACES), "10"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", TRUNCATE, TestHelpers.opNeg(1), DECIMAL_PLACES), "120"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", TRUNCATE, TestHelpers.opNeg(2), DECIMAL_PLACES), "100"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("9.99999", TRUNCATE, TestHelpers.opNeg(1), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", TRUNCATE, TestHelpers.opNeg(1), DECIMAL_PLACES), "90"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", TRUNCATE, TestHelpers.opNeg(2), DECIMAL_PLACES), "0"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("0", TRUNCATE, 0, DECIMAL_PLACES), "0"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("-0.9", TRUNCATE, 0, DECIMAL_PLACES), "0"));
             // ----------------------------------------------------------------------------
@@ -85,12 +86,12 @@ public class TestDecimalToPrecision extends BaseTest
             // a problematic case in PHP
             Assert(Helpers.isEqual(exchange.decimalToPrecision("10000", ROUND, 6, DECIMAL_PLACES), "10000"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("0.00003186", ROUND, 8, DECIMAL_PLACES), "0.00003186"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("12.3456", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "10"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "120"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", ROUND, Helpers.opNeg(2), DECIMAL_PLACES), "100"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("9.99999", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "10"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "100"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", ROUND, Helpers.opNeg(2), DECIMAL_PLACES), "100"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("12.3456", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "10"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "120"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("123.456", ROUND, TestHelpers.opNeg(2), DECIMAL_PLACES), "100"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("9.99999", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "10"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "100"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("99.9999", ROUND, TestHelpers.opNeg(2), DECIMAL_PLACES), "100"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("9.999", ROUND, 3, DECIMAL_PLACES), "9.999"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("9.999", ROUND, 2, DECIMAL_PLACES), "10"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("9.999", ROUND, 2, DECIMAL_PLACES, PAD_WITH_ZERO), "10.00"));
@@ -192,17 +193,17 @@ public class TestDecimalToPrecision extends BaseTest
             // negative precision only implemented so far in python
             // pretty useless for decimal applications as anything |x| < 5 === 0
             // NO_PADDING and PAD_WITH_ZERO are ignored
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("5", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "10"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("4.999", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "0"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("0.0431531423", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "0"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("-69.3", ROUND, Helpers.opNeg(1), DECIMAL_PLACES), "-70"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("5001", ROUND, Helpers.opNeg(4), DECIMAL_PLACES), "10000"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("4999.999", ROUND, Helpers.opNeg(4), DECIMAL_PLACES), "0"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("69.3", TRUNCATE, Helpers.opNeg(2), DECIMAL_PLACES), "0"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("-69.3", TRUNCATE, Helpers.opNeg(2), DECIMAL_PLACES), "0"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("69.3", TRUNCATE, Helpers.opNeg(1), SIGNIFICANT_DIGITS), "60"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("-69.3", TRUNCATE, Helpers.opNeg(1), SIGNIFICANT_DIGITS), "-60"));
-            Assert(Helpers.isEqual(exchange.decimalToPrecision("69.3", TRUNCATE, Helpers.opNeg(2), SIGNIFICANT_DIGITS), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("5", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "10"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("4.999", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("0.0431531423", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("-69.3", ROUND, TestHelpers.opNeg(1), DECIMAL_PLACES), "-70"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("5001", ROUND, TestHelpers.opNeg(4), DECIMAL_PLACES), "10000"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("4999.999", ROUND, TestHelpers.opNeg(4), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("69.3", TRUNCATE, TestHelpers.opNeg(2), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("-69.3", TRUNCATE, TestHelpers.opNeg(2), DECIMAL_PLACES), "0"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("69.3", TRUNCATE, TestHelpers.opNeg(1), SIGNIFICANT_DIGITS), "60"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("-69.3", TRUNCATE, TestHelpers.opNeg(1), SIGNIFICANT_DIGITS), "-60"));
+            Assert(Helpers.isEqual(exchange.decimalToPrecision("69.3", TRUNCATE, TestHelpers.opNeg(2), SIGNIFICANT_DIGITS), "0"));
             Assert(Helpers.isEqual(exchange.decimalToPrecision("1602000000000000000000", TRUNCATE, 3, SIGNIFICANT_DIGITS), "1600000000000000000000"));
             // ----------------------------------------------------------------------------
             // stringified precision

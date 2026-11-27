@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 
 
@@ -68,15 +69,15 @@ public class TestExtend extends BaseTest
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(extended, "b"), 0), 3));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(extended, "b"), 1), 4));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(extended, "c"), 0), "test1"), 2));
-            Assert(!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(Helpers.GetValue(extended, "c"), 0), "test2"))));
+            Assert(!TestHelpers.isTrue((TestHelpers.inOp(Helpers.GetValue(Helpers.GetValue(extended, "c"), 0), "test2"))));
             Assert(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(extended, "c"), 0), "test3"), 3));
             Assert(Helpers.isEqual(Helpers.GetValue(extended, "d"), "not_undefined"));
             Assert(Helpers.isEqual(Helpers.GetValue(extended, "e"), null));
             Assert(Helpers.isEqual(Helpers.GetValue(extended, "other1"), "x"));
             Assert(Helpers.isEqual(Helpers.GetValue(extended, "other2"), "y"));
-            if (Helpers.isTrue(hasSub))
+            if (TestHelpers.isTrue(hasSub))
             {
-                Assert(Helpers.inOp(extended, "sub"));
+                Assert(TestHelpers.inOp(extended, "sub"));
             }
         }
 }

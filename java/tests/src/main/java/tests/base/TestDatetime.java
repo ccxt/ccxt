@@ -1,6 +1,7 @@
 package tests.base;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 
 
@@ -18,7 +19,7 @@ public class TestDatetime extends BaseTest
             Assert(Helpers.isEqual(exchange.iso8601(514862627559L), "1986-04-26T01:23:47.559Z"));
             Assert(Helpers.isEqual(exchange.iso8601(514862627062L), "1986-04-26T01:23:47.062Z"));
             Assert(Helpers.isEqual(exchange.iso8601(1), "1970-01-01T00:00:00.001Z"));
-            Assert(Helpers.isEqual(exchange.iso8601(Helpers.opNeg(1)), null));
+            Assert(Helpers.isEqual(exchange.iso8601(TestHelpers.opNeg(1)), null));
             // Assert (exchange.iso8601 () === undefined);
             // todo: Assert (exchange.iso8601 () === undefined);
             Assert(Helpers.isEqual(exchange.iso8601(null), null));
