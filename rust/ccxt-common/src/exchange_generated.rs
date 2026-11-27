@@ -5913,7 +5913,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // note, default limit value (2147483647) is max int32 value
         let ms: i64 = ((self.parse_timeframe(timeframe)) * 1000);
         let mut ohlcvs: Value = Value::from(vec![]);
-        let i_timestamp: Value = Value::Int(0);
+        let i_timestamp: i64 = 0;
         // const open = 1;
         let i_high: Value = Value::Int(2);
         let i_low: Value = Value::Int(3);
@@ -5958,15 +5958,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut isNewCandle: bool = candle.as_f64() == Value::Int(-1).as_f64();
             if !(isNewCandle) {
-                let candleTimestamp: Value = get_value(&ohlcvs, &candle).as_array().and_then(|__arr| match &i_timestamp { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                if (candleTimestamp == Value::Null) {
+                let candleRow: crate::value::List = self.safe_list_t(&ohlcvs, &candle);
+                let candleTimestamp: Option<i64> = self.safe_integer(&candleRow, Value::from(i_timestamp), &[]).as_i64();
+                if (candleTimestamp.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " buildOHLCVC() missing candle timestamp")));
                 }
-                isNewCandle = (match (&(openingTime), &(self.sum(&[candleTimestamp, Value::from(ms)]))) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-                    (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x > __y, _ => matches!((__a, __b), (Value::Str(__x), Value::Str(__y)) if __x > __y) }) || (match (__a,
-                    __b) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, _ => matches!(((match __a { Value::Int(__n) => Some(*__n as f64),
-                    Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }),
-                    _ => None })), (Some(__x), Some(__y)) if __x == __y) }) });
+                isNewCandle = (match (&(openingTime), &(Value::from((if let Some(__m0) = candleTimestamp { Some((__m0 + ms)) } else { None })))) { (__a, __b) => (match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }),
+                    _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x > __y, _ => matches!((__a, __b), (Value::Str(__x),
+                    Value::Str(__y)) if __x > __y) }) || (match (__a, __b) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x), Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y,
+                    _ => matches!(((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), (match __b { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
+                    Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })), (Some(__x), Some(__y)) if __x == __y) }) });
             }
             if isNewCandle {
                 // moved to a new timeframe -> create a new candle from opening trade
