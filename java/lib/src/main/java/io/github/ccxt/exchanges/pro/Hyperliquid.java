@@ -47,6 +47,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "createOrdersWs", true );
                 put( "editOrderWs", true );
                 put( "watchBalance", true );
+                put( "watchBidsAsks", true );
                 put( "watchMyLiquidations", true );
                 put( "watchMyLiquidationsForSymbols", true );
                 put( "watchMyTrades", true );
@@ -59,6 +60,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 put( "watchTradesForSymbols", false );
                 put( "watchPosition", false );
                 put( "unWatchBalance", true );
+                put( "unWatchBidsAsks", true );
                 put( "watchPositions", true );
                 put( "unWatchPositions", true );
                 put( "unWatchOrderBook", true );
@@ -416,6 +418,156 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         orderbook.reset(snapshot);
         String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#watchBidsAsks
+     * @description watches the best bid & ask of a market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(this.singleBidAskSymbol("watchBidsAsks", symbols));
+            String symbol = this.safeString(market, "symbol", "");
+            String messageHash = ("bidask:" + symbol);
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", "subscribe" );
+                put( "subscription", new HashMap<String, Object>() {{
+                    put( "type", "bbo" );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
+                }} );
+            }};
+            Map<String, Object> message = this.extend(request, parameters);
+            (this.waitForPendingUnsubscribe(url, messageHash)).join();
+            Object ticker = (this.watch(url, messageHash, message, messageHash, null)).join();
+            if (this.newUpdates)
+            {
+                Map<String, Object> result = new HashMap<String, Object>() {{}};
+                result.put(symbol, ticker);
+                return result;
+            }
+            return this.filterByArray(this.bidsasks, "symbol", new ArrayList<Object>(Arrays.asList(symbol)), true);
+        }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchBidsAsks
+     * @description unWatches the best bid & ask of a market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(this.singleBidAskSymbol("unWatchBidsAsks", symbols));
+            String symbol = this.safeString(market, "symbol", "");
+            String subMessageHash = ("bidask:" + symbol);
+            String messageHash = ("unsubscribe:" + subMessageHash);
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
+            Long nonce = this.incrementingNonce();
+            String id = this.numberToString(nonce);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "id", id );
+                put( "method", "unsubscribe" );
+                put( "subscription", new HashMap<String, Object>() {{
+                    put( "type", "bbo" );
+                    put( "coin", ((Boolean.TRUE.equals((Hyperliquid.this.safeBool(market, "swap", false))))) ? market.get("baseName") : market.get("id") );
+                }} );
+            }};
+            Map<String, Object> message = this.extend(request, parameters);
+            return (this.watch(url, messageHash, message, messageHash, null)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#singleBidAskSymbol
+     * @description the bbo stream is subscribed per market, returns the only symbol of the list or throws
+     * @param {string} methodName the name of the calling method
+     * @param {string[]} symbols a list with a single unified symbol
+     * @returns {string} the symbol
+     */
+    public String singleBidAskSymbol(String methodName, List<String> symbols)
+    {
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbols, null))
+        {
+            symbolsLength = symbols.size();
+        }
+        if (!java.util.Objects.equals(symbolsLength, 1))
+        {
+            throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol")) ;
+        }
+        return this.safeString(symbols, 0, "");
+    }
+
+    public void handleBidAsk(Client client, Map<String, Object> message)
+    {
+        //
+        //     {
+        //         "channel": "bbo",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "time": 1795692679488,
+        //             "bbo": [
+        //                 { "px": "60612.0", "sz": "12.46853", "n": 39 },
+        //                 { "px": "60613.0", "sz": "1.43894", "n": 8 }
+        //             ]
+        //         }
+        //     }
+        //
+        Map<String, Object> entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(entry, (Map<String, Object>) null);
+        String symbol = this.safeString(ticker, "symbol", "");
+        this.bidsasks.put(symbol, ticker);
+        String messageHash = ("bidask:" + symbol);
+        client.resolve(ticker, messageHash);
+    }
+
+    public Object parseWsBidAsk(Map<String, Object> ticker, Map<String, Object> market)
+    {
+        String coin = this.safeString(ticker, "coin");
+        String marketId = this.coinToMarketId((String) (coin));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(ticker, "time");
+        // either side is null when the book has no orders on it
+        List<Object> levels = this.safeList(ticker, "bbo", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> bid = this.safeDict(levels, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> ask = this.safeDict(levels, 1, new HashMap<String, Object>() {{}});
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", Hyperliquid.this.safeString(marketResolved, "symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", Hyperliquid.this.iso8601(timestamp) );
+            put( "bid", Hyperliquid.this.safeString(bid, "px") );
+            put( "bidVolume", Hyperliquid.this.safeString(bid, "sz") );
+            put( "ask", Hyperliquid.this.safeString(ask, "px") );
+            put( "askVolume", Hyperliquid.this.safeString(ask, "sz") );
+            put( "info", ticker );
+        }}, marketResolved);
     }
 
     /**
@@ -2086,6 +2238,26 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
     }
 
+    public void handleBidAskUnsubscription(Client client, Map<String, Object> subscription)
+    {
+        //
+        //        "subscription":{
+        //           "type":"bbo",
+        //           "coin":"BTC"
+        //        }
+        //
+        String coin = this.safeString(subscription, "coin");
+        String marketId = this.coinToMarketId((String) (coin));
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String subMessageHash = ("bidask:" + symbol);
+        String messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash, false);
+        if (this.bidsasks.containsKey(symbol))
+        {
+            this.bidsasks.remove((String)symbol);
+        }
+    }
+
     public void handleTickerUnsubscription(Client client, Map<String, Object> subscription)
     {
         //
@@ -2235,6 +2407,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (java.util.Objects.equals(type, "l2Book"))
         {
             this.handleOrderBookUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "bbo"))
+        {
+            this.handleBidAskUnsubscription(client, subscription);
         } else if (java.util.Objects.equals(type, "trades"))
         {
             this.handleTradesUnsubscription(client, subscription);
@@ -2287,6 +2462,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             put("pong", "handlePong");
             put("trades", "handleTrades");
             put("l2Book", "handleOrderBook");
+            put("bbo", "handleBidAsk");
             put("candle", "handleOHLCV");
             put("orderUpdates", "handleOrder");
             put("userFills", "handleMyTrades");
@@ -2310,6 +2486,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                     break;
                 case "handleOrderBook":
                     this.handleOrderBook(client, message);
+                    break;
+                case "handleBidAsk":
+                    this.handleBidAsk(client, message);
                     break;
                 case "handleOHLCV":
                     this.handleOHLCV(client, message);
@@ -2356,6 +2535,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                         break;
                     case "handleOrderBook":
                         this.handleOrderBook(client, message);
+                        break;
+                    case "handleBidAsk":
+                        this.handleBidAsk(client, message);
                         break;
                     case "handleOHLCV":
                         this.handleOHLCV(client, message);
