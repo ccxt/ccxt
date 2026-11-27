@@ -2946,7 +2946,7 @@ func (this *Interactivebrokers) marketsEndpointCallBody(ch chan AsyncResult[any]
 	_ = defaultValue
 	var opts, _ = this.Options["fetchMarkets"].(map[string]any)
 	var retries int64 = *this.SafeInteger(opts, "endpointRetries", 3)
-	var retryDelay any = (*this.SafeInteger(opts, "retryDelay", 1000))
+	var retryDelay int64 = *this.SafeInteger(opts, "retryDelay", 1000)
 	for i := 0; int64(i) < retries; i++ {
 		var isLastRetry bool = (int64(i) >= retries-1)
 		var data any = nil
@@ -2983,7 +2983,7 @@ func (this *Interactivebrokers) marketsEndpointCallBody(ch chan AsyncResult[any]
 					}
 					data = r.Raw
 				} else if ep == "webapiPostV1ApiIserverScannerRun" {
-					retryDelay = mathMax(retryDelay, 1000)
+					retryDelay = max(retryDelay, 1000)
 
 					r1 := <-this.WebapiPostV1ApiIserverScannerRun(request)
 					if r1.Err != nil {

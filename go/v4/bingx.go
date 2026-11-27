@@ -1831,7 +1831,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		if since != nil {
 			// the exchange aligns the window to endTime, so keep it within limit candles of since
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
-			request["endTime"] = mathMin(until, *since+duration*requestLimit)
+			request["endTime"] = min(*until, *since+duration*requestLimit)
 		} else {
 			request["endTime"] = until
 		}

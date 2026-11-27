@@ -1412,7 +1412,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan AsyncResult[[]map[string]any
 	if totalOrderRequests > 1 {
 		// the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
 		// a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
-		var groupOrderExpiry int64 = this.Sum(this.Milliseconds(), 2419200000).(int64) // 28 days
+		var groupOrderExpiry int64 = this.Milliseconds() + 2419200000 // 28 days
 		for i := 0; i < totalOrderRequests; i++ {
 			var legExpiry int64 = *this.SafeInteger(orderRequests[i], "order_expiry", 0)
 			if legExpiry == int64(-1) {

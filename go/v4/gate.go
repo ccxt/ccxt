@@ -9327,13 +9327,13 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 	if requestedLimit != nil {
 		limit = this.ParseToInt(mathMax(1, min(*requestedLimit, 100)))
 	}
-	var offset any = (*this.SafeInteger(requestParams, "offset", 0))
+	var offset int64 = *this.SafeInteger(requestParams, "offset", 0)
 	var contract string = *this.SafeString(requestParams, "contract", "")
 	var paramsOmitted map[string]any = this.OmitDict(requestParams, []any{"limit", "offset"})
 	request["limit"] = limit
 	var tiers map[string]any = map[string]any{}
 	for true {
-		AddElementToObject(request, "offset", offset)
+		request["offset"] = offset
 		var response []any = nil
 		if typeVar != nil && *typeVar == "swap" {
 
@@ -9369,7 +9369,7 @@ func (this *Gate) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		if (contract != "") || (int64(numContracts) < limit) {
 			break
 		}
-		offset = this.Sum(offset, limit)
+		offset = offset + limit
 	}
 
 	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(tiers, symbols))}

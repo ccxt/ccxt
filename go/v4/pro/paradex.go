@@ -380,19 +380,19 @@ func (this *Paradex) unsubscribeChannelsBody(ch chan ccxt.AsyncResult[any], url 
  * @param {object} [params] extra parameters merged into each unsubscribe request
  * @returns {int} the number of channels refused
  */
-func (this *Paradex) UnsubscribeChannelsFromAsync(url string, topic string, channels []string, subMessageHashes any, symbols any, start any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) UnsubscribeChannelsFromAsync(url string, topic string, channels []string, subMessageHashes any, symbols any, start int, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unsubscribeChannelsFromBody(ch, url, topic, channels, subMessageHashes, symbols, start, optionalArgs...)
 	return ch
 }
-func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], url string, topic string, channels []string, subMessageHashes any, symbols any, start any, optionalArgs ...any) any {
+func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], url string, topic string, channels []string, subMessageHashes any, symbols any, start int, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var refused int = 0
 	for i := 0; i < len(channels); i++ {
-		if ccxt.IsGreaterThanOrEqual(i, start) {
+		if i >= start {
 
 			{
 				func(this *Paradex) (ret_ any) {

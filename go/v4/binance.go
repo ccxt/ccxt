@@ -18251,9 +18251,9 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	}
 	if since != nil {
 		request["startTime"] = *since
-		var endTime int64 = ((*since + limitResolved*86400000) - 1) // required when startTime is further than 93 days in the past
+		var endTime int64 = (*since + limitResolved*86400000) - 1 // required when startTime is further than 93 days in the past
 		var now int64 = this.Milliseconds()
-		request["endTime"] = mathMin(endTime, now) // cannot have an endTime later than current time
+		request["endTime"] = min(endTime, now) // cannot have an endTime later than current time
 	}
 
 	responseRecv := <-this.SapiGetMarginInterestRateHistory(this.Extend(request, params))

@@ -351,12 +351,12 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messag
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Kucoin) SubscribePrivateUtaAsync(messageHashes any, subscribeHash any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Kucoin) SubscribePrivateUtaAsync(messageHashes []string, subscribeHash any, channel string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateUtaBody(ch, messageHashes, subscribeHash, channel, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribePrivateUtaBody(ch chan ccxt.AsyncResult[any], messageHashes any, subscribeHash any, channel string, optionalArgs ...any) any {
+func (this *Kucoin) subscribePrivateUtaBody(ch chan ccxt.AsyncResult[any], messageHashes []string, subscribeHash any, channel string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2897,7 +2897,7 @@ func (this *Kucoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			channel += "All"
 		}
 
-		r2 := <-this.SubscribePrivateUtaAsync([]any{messageHash}, messageHash, channel, symbolResolved, paramsExtended)
+		r2 := <-this.SubscribePrivateUtaAsync([]string{messageHash}, messageHash, channel, symbolResolved, paramsExtended)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -2927,7 +2927,7 @@ func (this *Kucoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		if symbolResolved == nil {
 			topicStr := topic
 			var suffix string = this.GetOrdersMessageHashSuffix(&topicStr)
-			messageHash = messageHash + suffix
+			messageHash += suffix
 		}
 		var request map[string]any = map[string]any{
 			"privateChannel": true,
@@ -3395,7 +3395,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		messageHash = "uta:" + messageHash
 		var channel string = "execution.lite"
 
-		r2 := <-this.SubscribePrivateUtaAsync([]any{messageHash}, channel, channel, nil, paramsExtended)
+		r2 := <-this.SubscribePrivateUtaAsync([]string{messageHash}, channel, channel, nil, paramsExtended)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
@@ -3421,7 +3421,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		}
 		if symbolResolved == nil {
 			var suffix string = this.GetMyTradesMessageHashSuffix(*topic)
-			messageHash = messageHash + suffix
+			messageHash += suffix
 		}
 
 		r4 := <-this.SubscribeAsync(url, messageHash, *topic, this.Extend(request, paramsTopic))
@@ -3697,7 +3697,7 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		}
 		var channel string = "balance"
 
-		r5 := <-this.SubscribePrivateUtaAsync([]any{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, paramsOmitted))
+		r5 := <-this.SubscribePrivateUtaAsync([]string{messageHash}, subscriptionHash, channel, nil, this.Extend(extendedParams, paramsOmitted))
 		if r5.Err != nil {
 			panic(r5.Err)
 		}
