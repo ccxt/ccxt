@@ -4951,13 +4951,14 @@ export default class bitget extends Exchange {
         let historicalEndpointNeeded = (useHistoryEndpoint === true);
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        let calculatedStartTime = undefined;
-        let calculatedEndTime = undefined;
+        // the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        const hasEndTime = (since !== undefined) || (until !== undefined);
+        let calculatedEndTime = now;
         if (since !== undefined) {
-            calculatedStartTime = since;
             request['startTime'] = since;
             if (until === undefined) {
-                calculatedEndTime = this.sum(since, recentDuration);
+                const sinceEndTime = this.sum(since, recentDuration);
+                calculatedEndTime = sinceEndTime;
                 if (since > now - recentDuration) {
                     calculatedEndTime = now;
                 }
@@ -4973,7 +4974,6 @@ export default class bitget extends Exchange {
             request['endTime'] = untilEndTime;
             if (since === undefined) {
                 const untilStartTime = untilEndTime - recentDuration;
-                calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
                 if ((recentEndpointAvailableDays !== undefined) && (untilStartTime <= now - (recentEndpointAvailableDays - 1) * msInDay)) {
                     historicalEndpointNeeded = true;
@@ -4985,15 +4985,16 @@ export default class bitget extends Exchange {
             const historicalLimit = (recentLimit > maxLimitForHistoryEndpoint) ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             const historicalDuration = historicalLimit * duration;
-            calculatedStartTime = calculatedEndTime - historicalDuration;
-            request['startTime'] = calculatedStartTime;
-            // for contract, maximum 90 days allowed between start-end times
-            if (!this.safeBool(market, 'spot', false)) {
-                const maxDistanceForContracts = 90 * msInDay;
-                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if ((calculatedEndTime !== undefined) && (historicalDuration > maxDistanceForContracts)) {
-                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
-                    request['endTime'] = calculatedEndTime;
+            if (hasEndTime) {
+                const historicalStartTime = calculatedEndTime - historicalDuration;
+                request['startTime'] = historicalStartTime;
+                // for contract, maximum 90 days allowed between start-end times
+                if (!this.safeBool(market, 'spot', false)) {
+                    const maxDistanceForContracts = 90 * msInDay;
+                    // endTime - startTime is historicalDuration here
+                    if (historicalDuration > maxDistanceForContracts) {
+                        request['endTime'] = this.sum(historicalStartTime, maxDistanceForContracts);
+                    }
                 }
             }
         }

@@ -57,7 +57,7 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
-    subscribePublicMultipleUta(messageHashes: string[], channel: string, symbols: any[], params?: Dict, subscription?: NullableDict): Promise<any>;
+    subscribePublicMultipleUta(messageHashes: string[], channel: string, symbols: string[], params?: Dict, subscription?: NullableDict): Promise<any>;
     watchUtaTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     handleTicker(client: Client, message: Dict): void;
     handleContractTicker(client: Client, message: Dict): void;

@@ -192688,14 +192688,15 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
             let matched = false;
             for(let ti = 0; ti < eventTags.length; ti++){
                 const tag = eventTags[ti];
-                let tagLabel = undefined;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                let tagLabel = '';
                 if (typeof tag === 'string') {
-                    tagLabel = tag;
+                    tagLabel = this.safeString(eventTags, ti, '');
                 } else {
-                    tagLabel = this.safeString2(tag, 'slug', 'title');
+                    tagLabel = this.safeString2(tag, 'slug', 'title', '');
                 }
-                if (tagLabel !== undefined) {
-                    const tagKey = this.normalizeTagKey(tagLabel);
+                const tagKey = this.normalizeTagKey(tagLabel);
+                if (tagKey !== '') {
                     for(let wi = 0; wi < wanted.length; wi++){
                         if (tagKey.indexOf(wanted[wi]) >= 0) {
                             matched = true;
@@ -213351,7 +213352,8 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             [isPortfolioMargin, paramsPaginate] = this.handleOptionBoolAndParams2(paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
             if (stock) {
                 // request['endTime'] holds endTime whenever endTime is defined
-                const endTimeResolved = this.safeInteger(request, 'endTime', this.milliseconds());
+                const endTimeRequest = this.safeInteger(request, 'endTime');
+                const endTimeResolved = endTimeRequest !== undefined ? endTimeRequest : this.milliseconds();
                 if (endTime === undefined) {
                     request['endTime'] = endTimeResolved;
                 }
@@ -246767,13 +246769,14 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         let historicalEndpointNeeded = useHistoryEndpoint === true;
         // exchange aligns from endTime, so it's important, not startTime
         // startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        let calculatedStartTime = undefined;
-        let calculatedEndTime = undefined;
+        // the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        const hasEndTime = since !== undefined || until !== undefined;
+        let calculatedEndTime = now;
         if (since !== undefined) {
-            calculatedStartTime = since;
             request['startTime'] = since;
             if (until === undefined) {
-                calculatedEndTime = this.sum(since, recentDuration);
+                const sinceEndTime = this.sum(since, recentDuration);
+                calculatedEndTime = sinceEndTime;
                 if (since > now - recentDuration) {
                     calculatedEndTime = now;
                 }
@@ -246789,7 +246792,6 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             request['endTime'] = untilEndTime;
             if (since === undefined) {
                 const untilStartTime = untilEndTime - recentDuration;
-                calculatedStartTime = untilStartTime;
                 // we do not need to set "startTime" here
                 if (recentEndpointAvailableDays !== undefined && untilStartTime <= now - (recentEndpointAvailableDays - 1) * msInDay) {
                     historicalEndpointNeeded = true;
@@ -246801,15 +246803,16 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
             const historicalLimit = recentLimit > maxLimitForHistoryEndpoint ? maxLimitForHistoryEndpoint : recentLimit;
             limitResolved = historicalLimit;
             const historicalDuration = historicalLimit * duration;
-            calculatedStartTime = calculatedEndTime - historicalDuration;
-            request['startTime'] = calculatedStartTime;
-            // for contract, maximum 90 days allowed between start-end times
-            if (!this.safeBool(market, 'spot', false)) {
-                const maxDistanceForContracts = 90 * msInDay;
-                // endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (calculatedEndTime !== undefined && historicalDuration > maxDistanceForContracts) {
-                    calculatedEndTime = this.sum(calculatedStartTime, maxDistanceForContracts);
-                    request['endTime'] = calculatedEndTime;
+            if (hasEndTime) {
+                const historicalStartTime = calculatedEndTime - historicalDuration;
+                request['startTime'] = historicalStartTime;
+                // for contract, maximum 90 days allowed between start-end times
+                if (!this.safeBool(market, 'spot', false)) {
+                    const maxDistanceForContracts = 90 * msInDay;
+                    // endTime - startTime is historicalDuration here
+                    if (historicalDuration > maxDistanceForContracts) {
+                        request['endTime'] = this.sum(historicalStartTime, maxDistanceForContracts);
+                    }
                 }
             }
         }
@@ -411858,11 +411861,13 @@ class interactivebrokers extends _abstract_interactivebrokers_js__rspack_import_
      * @returns {int} the timestamp when the session was found lost
      */ ibkrGatewayOnSessionLost() {
         this.options['gatewayAuthenticatedTimestamp'] = undefined;
-        let lostTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
-        if (lostTimestamp === undefined) {
-            lostTimestamp = this.milliseconds();
+        let lostTimestamp = this.milliseconds();
+        const storedTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
+        if (storedTimestamp === undefined) {
             this.options['gatewaySessionLostTimestamp'] = lostTimestamp;
             this.ibkrGatewayScheduleRegain();
+        } else {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }
@@ -459785,7 +459790,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined || typeof response !== 'object') {
+        if (response === undefined) {
             return undefined;
         }
         const success = this.safeBool(response, 'success', true);
@@ -464307,8 +464312,8 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
         const zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         if (left) {
             const paddedLeft = zeros + value;
-            const start = paddedLeft.length - this.parseToInt(length);
-            return paddedLeft.slice(start, paddedLeft.length);
+            const start = paddedLeft.length - length;
+            return paddedLeft.slice(start);
         }
         const paddedRight = value + zeros;
         const end = this.parseToInt(length);
@@ -506956,7 +506961,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (name !== undefined && name !== '') {
+        if (name !== '') {
             return this.shortenSlug(name) + '_' + outcomeId;
         }
         return 'OUTCOME_' + outcomeId;
@@ -518901,7 +518906,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         const info = this.safeDict(outcomeObj, 'info', {});
         const networkId = this.safeString(info, 'networkId', '');
         const marketId = this.safeString(info, 'marketId', '');
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
         const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
@@ -519175,12 +519180,12 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             const info = this.safeDict(outcomeObj, 'info', {});
             networkId = this.safeString(info, 'networkId', networkId);
-            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
         }
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
         const orders = await this.subscribeMyriadChannel(messageHash, channel, params);
-        return this.filterByValueSinceLimit(orders, 'outcome', outcomeResolved, since, limit, 'timestamp', true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limit, true);
     }
     handleOrder(client, data) {
         if (this.orders === undefined) {
@@ -521513,7 +521518,7 @@ class opinion extends _abstract_prediction_opinion_js__rspack_import_0/* ["defau
         const marketId = this.safeInteger(info, 'marketId');
         const messageHash = 'orders';
         const orders = await this.subscribeOpinionChannel(messageHash, 'trade.order.update', marketId);
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         return this.filterByValueSinceLimit(orders, 'outcome', sym, since, limit, 'timestamp', true);
     }
     /**
@@ -521629,7 +521634,7 @@ class opinion extends _abstract_prediction_opinion_js__rspack_import_0/* ["defau
         const marketId = this.safeInteger(info, 'marketId');
         const messageHash = 'myTrades';
         const trades = await this.subscribeOpinionChannel(messageHash, 'trade.record.new', marketId);
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         return this.filterByValueSinceLimit(trades, 'outcome', sym, since, limit, 'timestamp', true);
     }
     handleMyTrade(client, message) {
@@ -526750,9 +526755,6 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */ stripPriceFormatting(text) {
-        if (text === undefined) {
-            return undefined;
-        }
         const digits = '0123456789';
         const chars = this.stringToCharsArray(text);
         let stripped = '';
@@ -526802,6 +526804,9 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if (marketCount === 1 && topicSlug !== undefined) {
             return topicSlug;
+        }
+        if (title === undefined) {
+            return '';
         }
         return this.stripPriceFormatting(title);
     }
@@ -526936,7 +526941,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
             const rawOutcome = rawOutcomes[oi];
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            const rawLabel = this.safeStringUpper(rawOutcome, 'name');
+            const rawLabel = this.safeStringUpper(rawOutcome, 'name', '');
             const label = this.stripPriceFormatting(rawLabel);
             const tokenId = this.safeString(rawOutcome, 'onChainId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -529433,7 +529438,8 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         if (topicSlug !== undefined) {
             eventHandle = this.shortenSlug(topicSlug);
         }
-        const label = this.stripPriceFormatting(this.safeStringUpper(details, 'outcomeName'));
+        const rawOutcomeName = this.safeStringUpper(details, 'outcomeName');
+        const label = rawOutcomeName !== undefined ? this.stripPriceFormatting(rawOutcomeName) : undefined;
         return {
             'outcome': undefined,
             'outcomeId': undefined,
@@ -530147,7 +530153,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const teamTwoName = this.safeString(raw, 'teamTwoName', '');
         const outcomeOneName = this.safeString(raw, 'outcomeOneName');
         const outcomeTwoName = this.safeString(raw, 'outcomeTwoName');
-        const eventSlug = this.shortenSlug(teamOneName + ' ' + teamTwoName);
+        const matchTitle = teamOneName + ' ' + teamTwoName;
+        const eventSlug = this.shortenSlug(matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -530278,7 +530285,7 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         const tags = this.safeList(params, 'tags', []);
         const tagsLength = tags.length;
         for(let i = 0; i < tagsLength; i++){
-            queries.push(tags[i]);
+            queries.push(this.safeString(tags, i, ''));
         }
         const rest = this.omit(params, [
             'eventId',
@@ -530476,7 +530483,8 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         let eventSlug = undefined;
         if (teamOneName !== undefined && teamTwoName !== undefined) {
             title = teamOneName + ' vs ' + teamTwoName;
-            eventSlug = this.shortenSlug(teamOneName + ' ' + teamTwoName);
+            const matchTitle = teamOneName + ' ' + teamTwoName;
+            eventSlug = this.shortenSlug(matchTitle);
         } else {
             eventSlug = this.shortenSlug(fixtureId);
         }
@@ -532638,16 +532646,14 @@ class sxbet extends _abstract_prediction_sxbet_js__rspack_import_0/* ["default"]
         if (response === undefined) {
             return undefined;
         }
-        const message = this.safeValue(response, 'message');
-        if (message === undefined) {
-            return undefined;
-        }
         // validation failures arrive in string-array form, business errors in single-code-string form
-        let messageString = undefined;
-        if (Array.isArray(message)) {
-            messageString = message.join(', ');
-        } else {
-            messageString = message;
+        const messageList = this.safeList(response, 'message', []);
+        let messageString = this.safeString(response, 'message');
+        if (this.safeString(messageList, 0) !== undefined) {
+            messageString = messageList.join(', ');
+        }
+        if (messageString === undefined) {
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], messageString, feedback);
@@ -591074,18 +591080,15 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
         const sent = {};
         const keys = Object.keys(client.subscriptions);
         for(let i = 0; i < keys.length; i++){
-            const subscription = client.subscriptions[keys[i]];
-            if (typeof subscription === 'object') {
-                const request = this.safeString(subscription, 'request');
-                if (request !== undefined && request.startsWith('smd+') && !(request in sent)) {
-                    sent[request] = true;
-                    try {
-                        await client.send(request);
-                    } catch (e) {
-                        // the connection is gone, the client reconnects on the next watch call
-                        if (this.verbose) {
-                            this.log('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage(e));
-                        }
+            const request = this.safeString(client.subscriptions[keys[i]], 'request');
+            if (request !== undefined && request.startsWith('smd+') && !(request in sent)) {
+                sent[request] = true;
+                try {
+                    await client.send(request);
+                } catch (e) {
+                    // the connection is gone, the client reconnects on the next watch call
+                    if (this.verbose) {
+                        this.log('ibkrKeepAliveSession resubscribe failed ' + this.exceptionMessage(e));
                     }
                 }
             }
@@ -591152,11 +591155,10 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
      */ async ibkrUnsubscribeMarketData(client, marketId) {
         const keys = Object.keys(client.subscriptions);
         for(let i = 0; i < keys.length; i++){
-            const subscription = client.subscriptions[keys[i]];
-            if (typeof subscription === 'object') {
-                const request = this.safeString(subscription, 'request');
-                const conid = this.safeString(subscription, 'conid');
-                if (request !== undefined && request.startsWith('smd+') && conid === marketId) {
+            const request = this.safeString(client.subscriptions[keys[i]], 'request');
+            if (request !== undefined && request.startsWith('smd+')) {
+                const conid = this.safeString(client.subscriptions[keys[i]], 'conid');
+                if (conid === marketId) {
                     return undefined; // still in use
                 }
             }
@@ -591538,7 +591540,8 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
         // the live candles built from smd before the history arrived are kept only when they are newer than the history
         for(let i = 0; i < stored.length; i++){
             const candle = stored[i];
-            if (lastHistoryTimestamp === undefined || candle[0] > lastHistoryTimestamp) {
+            const candleTimestamp = this.safeInteger(candle, 0, 0);
+            if (lastHistoryTimestamp === undefined || candleTimestamp > lastHistoryTimestamp) {
                 bars.push(candle);
             }
         }
@@ -591637,9 +591640,10 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
             let candle = undefined;
             if (length > 0) {
                 const lastCandle = stored[length - 1];
-                if (lastCandle[0] === candleTimestamp) {
+                const lastTimestamp = this.safeInteger(lastCandle, 0, 0);
+                if (lastTimestamp === candleTimestamp) {
                     candle = lastCandle;
-                } else if (lastCandle[0] > candleTimestamp) {
+                } else if (lastTimestamp > candleTimestamp) {
                     continue;
                 }
             }
@@ -596163,9 +596167,10 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
             client.keepAlive = pingInterval;
             return result;
         } catch (e) {
-            const future = this.safeValue(this.options['urls'], connectId);
+            const urls = this.safeDict(this.options, 'urls', {});
+            const future = this.safeValue(urls, connectId);
             future.reject(e);
-            delete this.options['urls'][connectId];
+            this.options['urls'] = this.omit(urls, connectId);
         }
         return undefined;
     }
@@ -618234,7 +618239,8 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
             const entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             const numInGroup = this.parseToInt(this.sbeReadUint(frameHex, position + 2, 2));
             position = position + 4;
-            if (entryLength < 16 || this.parseToInt(this.sum(position, numInGroup * entryLength)) > frameEnd) {
+            const groupEnd = this.parseToInt(this.sum(position, numInGroup * entryLength));
+            if (entryLength < 16 || groupEnd > frameEnd) {
                 return undefined;
             }
             for(let j = 0; j < numInGroup; j++){

@@ -81,7 +81,7 @@ export default class predictfun extends Exchange {
      * @param {string} [text] the raw title or outcome label
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
-    stripPriceFormatting(text: Str): Str;
+    stripPriceFormatting(text: string): string;
     /**
      * @ignore
      * @method
@@ -92,7 +92,7 @@ export default class predictfun extends Exchange {
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    titleForMarketSymbol(topicSlug: Str, title: Str, marketCount?: Int): Str;
+    titleForMarketSymbol(topicSlug: Str, title: Str, marketCount?: Int): string;
     /**
      * @ignore
      * @method

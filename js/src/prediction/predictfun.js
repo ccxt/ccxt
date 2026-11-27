@@ -980,9 +980,6 @@ export default class predictfun extends Exchange {
      * @returns {string} the same text with '$' removed and thousands separators closed up
      */
     stripPriceFormatting(text) {
-        if (text === undefined) {
-            return undefined;
-        }
         const digits = '0123456789';
         const chars = this.stringToCharsArray(text);
         let stripped = '';
@@ -1035,6 +1032,9 @@ export default class predictfun extends Exchange {
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
         if ((marketCount === 1) && (topicSlug !== undefined)) {
             return topicSlug;
+        }
+        if (title === undefined) {
+            return '';
         }
         return this.stripPriceFormatting(title);
     }
@@ -1170,7 +1170,7 @@ export default class predictfun extends Exchange {
             const rawOutcome = rawOutcomes[oi];
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            const rawLabel = this.safeStringUpper(rawOutcome, 'name');
+            const rawLabel = this.safeStringUpper(rawOutcome, 'name', '');
             const label = this.stripPriceFormatting(rawLabel);
             const tokenId = this.safeString(rawOutcome, 'onChainId');
             const outcomeHandle = marketSymbol + ':' + label;
@@ -3616,7 +3616,8 @@ export default class predictfun extends Exchange {
         if (topicSlug !== undefined) {
             eventHandle = this.shortenSlug(topicSlug);
         }
-        const label = this.stripPriceFormatting(this.safeStringUpper(details, 'outcomeName'));
+        const rawOutcomeName = this.safeStringUpper(details, 'outcomeName');
+        const label = (rawOutcomeName !== undefined) ? this.stripPriceFormatting(rawOutcomeName) : undefined;
         return {
             'outcome': undefined,
             'outcomeId': undefined,

@@ -303,15 +303,16 @@ export default class PredictionExchange extends BaseExchange {
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
                 const tag = eventTags[ti];
-                let tagLabel = undefined;
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                let tagLabel = '';
                 if (typeof tag === 'string') {
-                    tagLabel = tag;
+                    tagLabel = this.safeString(eventTags, ti, '');
                 }
                 else {
-                    tagLabel = this.safeString2(tag, 'slug', 'title');
+                    tagLabel = this.safeString2(tag, 'slug', 'title', '');
                 }
-                if (tagLabel !== undefined) {
-                    const tagKey = this.normalizeTagKey(tagLabel);
+                const tagKey = this.normalizeTagKey(tagLabel);
+                if (tagKey !== '') {
                     for (let wi = 0; wi < wanted.length; wi++) {
                         if (tagKey.indexOf(wanted[wi]) >= 0) {
                             matched = true;

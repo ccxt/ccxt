@@ -3352,7 +3352,7 @@ export default class myriad extends Exchange {
         const info = this.safeDict(outcomeObj, 'info', {});
         const networkId = this.safeString(info, 'networkId', '');
         const marketId = this.safeString(info, 'marketId', '');
-        const sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        const sym = this.safeString(outcomeObj, 'outcome');
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
         const trades = await this.subscribeMyriadChannel(messageHash, channel, params);
@@ -3618,12 +3618,12 @@ export default class myriad extends Exchange {
             const outcomeObj = await this.loadOutcome(outcomeResolved);
             const info = this.safeDict(outcomeObj, 'info', {});
             networkId = this.safeString(info, 'networkId', networkId);
-            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
         }
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
         const orders = await this.subscribeMyriadChannel(messageHash, channel, params);
-        return this.filterByValueSinceLimit(orders, 'outcome', outcomeResolved, since, limit, 'timestamp', true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limit, true);
     }
     handleOrder(client, data) {
         if (this.orders === undefined) {

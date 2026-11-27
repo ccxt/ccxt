@@ -857,11 +857,14 @@ export default class interactivebrokers extends Exchange {
      */
     ibkrGatewayOnSessionLost() {
         this.options['gatewayAuthenticatedTimestamp'] = undefined;
-        let lostTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
-        if (lostTimestamp === undefined) {
-            lostTimestamp = this.milliseconds();
+        let lostTimestamp = this.milliseconds();
+        const storedTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
+        if (storedTimestamp === undefined) {
             this.options['gatewaySessionLostTimestamp'] = lostTimestamp;
             this.ibkrGatewayScheduleRegain();
+        }
+        else {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }

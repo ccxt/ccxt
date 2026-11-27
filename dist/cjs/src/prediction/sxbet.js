@@ -324,7 +324,8 @@ class sxbet extends sxbet$1["default"] {
         const teamTwoName = this.safeString(raw, 'teamTwoName', '');
         const outcomeOneName = this.safeString(raw, 'outcomeOneName');
         const outcomeTwoName = this.safeString(raw, 'outcomeTwoName');
-        const eventSlug = this.shortenSlug(teamOneName + ' ' + teamTwoName);
+        const matchTitle = teamOneName + ' ' + teamTwoName;
+        const eventSlug = this.shortenSlug(matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -441,7 +442,7 @@ class sxbet extends sxbet$1["default"] {
         const tags = this.safeList(params, 'tags', []);
         const tagsLength = tags.length;
         for (let i = 0; i < tagsLength; i++) {
-            queries.push(tags[i]);
+            queries.push(this.safeString(tags, i, ''));
         }
         const rest = this.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit']);
         let rawMarkets = [];
@@ -615,7 +616,8 @@ class sxbet extends sxbet$1["default"] {
         let eventSlug = undefined;
         if ((teamOneName !== undefined) && (teamTwoName !== undefined)) {
             title = teamOneName + ' vs ' + teamTwoName;
-            eventSlug = this.shortenSlug(teamOneName + ' ' + teamTwoName);
+            const matchTitle = teamOneName + ' ' + teamTwoName;
+            eventSlug = this.shortenSlug(matchTitle);
         }
         else {
             eventSlug = this.shortenSlug(fixtureId);
@@ -2685,17 +2687,14 @@ class sxbet extends sxbet$1["default"] {
         if (response === undefined) {
             return undefined;
         }
-        const message = this.safeValue(response, 'message');
-        if (message === undefined) {
-            return undefined;
-        }
         // validation failures arrive in string-array form, business errors in single-code-string form
-        let messageString = undefined;
-        if (Array.isArray(message)) {
-            messageString = message.join(', ');
+        const messageList = this.safeList(response, 'message', []);
+        let messageString = this.safeString(response, 'message');
+        if (this.safeString(messageList, 0) !== undefined) {
+            messageString = messageList.join(', ');
         }
-        else {
-            messageString = message;
+        if (messageString === undefined) {
+            return undefined;
         }
         const feedback = this.id + ' ' + body;
         this.throwExactlyMatchedException(this.exceptions['exact'], messageString, feedback);

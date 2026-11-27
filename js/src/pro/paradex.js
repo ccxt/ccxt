@@ -2225,7 +2225,8 @@ export default class paradex extends paradexRest {
             const entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             const numInGroup = this.parseToInt(this.sbeReadUint(frameHex, position + 2, 2));
             position = position + 4;
-            if ((entryLength < 16) || (this.parseToInt(this.sum(position, numInGroup * entryLength)) > frameEnd)) {
+            const groupEnd = this.parseToInt(this.sum(position, numInGroup * entryLength));
+            if ((entryLength < 16) || (groupEnd > frameEnd)) {
                 return undefined;
             }
             for (let j = 0; j < numInGroup; j++) {

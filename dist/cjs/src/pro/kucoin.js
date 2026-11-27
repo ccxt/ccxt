@@ -165,9 +165,10 @@ class kucoin extends kucoin$1["default"] {
             return result;
         }
         catch (e) {
-            const future = this.safeValue(this.options['urls'], connectId);
+            const urls = this.safeDict(this.options, 'urls', {});
+            const future = this.safeValue(urls, connectId);
             future.reject(e);
-            delete this.options['urls'][connectId];
+            this.options['urls'] = this.omit(urls, connectId);
         }
         return undefined;
     }

@@ -856,11 +856,14 @@ class interactivebrokers extends interactivebrokers$1["default"] {
      */
     ibkrGatewayOnSessionLost() {
         this.options['gatewayAuthenticatedTimestamp'] = undefined;
-        let lostTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
-        if (lostTimestamp === undefined) {
-            lostTimestamp = this.milliseconds();
+        let lostTimestamp = this.milliseconds();
+        const storedTimestamp = this.safeInteger(this.options, 'gatewaySessionLostTimestamp');
+        if (storedTimestamp === undefined) {
             this.options['gatewaySessionLostTimestamp'] = lostTimestamp;
             this.ibkrGatewayScheduleRegain();
+        }
+        else {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }

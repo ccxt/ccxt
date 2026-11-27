@@ -217,7 +217,7 @@ export default class mudrex extends Exchange {
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined || typeof response !== 'object') {
+        if (response === undefined) {
             return undefined;
         }
         const success = this.safeBool(response, 'success', true);
