@@ -1343,18 +1343,29 @@ export default class kalshi extends Exchange {
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const id = this.safeString (trade, 'trade_id');
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
+        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
+        const marketInfo = this.safeDict (outcomeObj, 'info', {});
+        const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
         const priceCents = this.safeNumber2 (trade, 'yes_price', 'price');
         let centsPrice: Num = undefined;
         if (priceCents !== undefined) {
             centsPrice = priceCents / 100;
         }
-        const price = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars', centsPrice);
+        let price = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars', centsPrice);
+        // every trade carries both legs' prices — report the no price for a NO outcome, the same
+        // way the ticker, the order book and fetchMyTrades quote the NO leg
+        if (requestedOutcomeLabel === 'no') {
+            const noPrice = this.safeNumber (trade, 'no_price_dollars');
+            if (noPrice !== undefined) {
+                price = noPrice;
+            } else if (price !== undefined) {
+                price = this.parseNumber (Precise.stringSub ('1', this.numberToString (price)));
+            }
+        }
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
-        const rawSide = this.safeStringLower (trade, 'taker_side');
-        const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
-        const marketInfo = this.safeDict (outcomeObj, 'info', {});
-        const requestedOutcomeLabel = this.safeStringLower (outcomeObj, 'label', this.safeStringLower (marketInfo, 'outcomeLabel'));
+        // taker_side is deprecated in favour of taker_outcome_side, which carries the same 'yes' | 'no' values
+        const rawSide = this.safeStringLower2 (trade, 'taker_outcome_side', 'taker_side');
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
         const outcomeId = this.safeString2 (outcomeObj, 'outcomeId', 'id');
         let side: Str = undefined;
