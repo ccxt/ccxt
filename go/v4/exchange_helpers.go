@@ -16,27 +16,6 @@ import (
 // goroutine (the markets book owner or the ws dispatch loop), and no writer anywhere
 // takes a helper lock, so a read-side mutex was never a synchronization edge.
 
-func UnWrapType(value any) any {
-	// converts from wrapped types to basic types
-	// like OrderBook, Ticker, Trade, etc to map[string]any or []any
-	// also if value is a string, it panics with that string (error message)
-	if value == nil {
-		return nil
-	}
-	switch v := value.(type) {
-	case OrderBookInterface:
-		return v.ToMap()
-	case ArrayCacheByTimestamp:
-		return v.ToArray()
-	case ArrayCache:
-		return v.ToArray()
-	case string:
-		panic(v)
-	default:
-		return value
-	}
-}
-
 func Add(a any, b any) any {
 	a = derefScalar(a)
 	b = derefScalar(b)
@@ -1586,12 +1565,6 @@ func Int64PtrTyped(v any) *int64 {
 	}
 	num := *res
 	return &num
-}
-
-// Float64PtrTyped stores a numeric result boxed in `any` (ParseNumber) into a *float64 local;
-// absent stays a nil pointer.
-func Float64PtrTyped(v any) *float64 {
-	return toFloat64Ptr(v)
 }
 
 // GetArgFloat64Ptr is GetArgStringPtr for a `number` parameter (`price`, `amount`).

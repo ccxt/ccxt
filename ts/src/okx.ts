@@ -8459,7 +8459,7 @@ export default class okx extends Exchange {
         const paramsOmitted: Dict = this.omit (params, 'until');
         let end: Int = undefined;
         if (until !== undefined) {
-            end = this.sum (until, 1);
+            end = this.parseToInt (this.sum (until, 1));
         }
         if (since !== undefined) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -8472,13 +8472,25 @@ export default class okx extends Exchange {
                 // all entries in it are requested and the caller keeps the earliest limit of them
                 const months = this.parseToInt (unitPeriod.slice (0, -1));
                 const day = 86400000;
-                windowDuration = Math.min (effectiveLimit * months * 31 * day, maxLimit * months * 28 * day);
+                if ((effectiveLimit !== undefined) && (months !== undefined)) {
+                    const maxMonthsDuration = this.parseToInt (effectiveLimit * months * 31 * day);
+                    const minMonthsDuration = this.parseToInt (maxLimit * months * 28 * day);
+                    if ((maxMonthsDuration !== undefined) && (minMonthsDuration !== undefined)) {
+                        windowDuration = Math.min (maxMonthsDuration, minMonthsDuration);
+                    }
+                }
                 request['limit'] = maxLimit;
             } else {
                 windowDuration = effectiveLimit * this.parseTimeframe (unitPeriod.toLowerCase ()) * 1000;
             }
-            const windowEnd = this.sum (since, windowDuration);
-            end = (end === undefined) ? windowEnd : Math.min (end, windowEnd);
+            if (windowDuration !== undefined) {
+                const windowEnd = this.parseToInt (this.sum (since, windowDuration));
+                if (end === undefined) {
+                    end = windowEnd;
+                } else if (windowEnd !== undefined) {
+                    end = Math.min (end, windowEnd);
+                }
+            }
         }
         if (end !== undefined) {
             request['end'] = end;

@@ -4370,7 +4370,7 @@ export class BaseExchange {
             const featureBlock = featuresObj[key];
             if (!this.inArray (key, [ 'sandbox' ]) && featureBlock !== undefined) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if (!('symbolRequired' in featureBlock)) {
+                if (this.safeBool (featureBlock, 'symbolRequired') === undefined) {
                     featureBlock['symbolRequired'] = this.inArray (key, [ 'createOrder', 'createOrders', 'fetchOHLCV' ]);
                 }
             }
@@ -4472,7 +4472,7 @@ export class BaseExchange {
                 return methodDict[parentKey];
             }
             // throw an exception for unsupported subKey
-            if (!(subKey in methodDict[parentKey])) {
+            if (!(subKey in dictionary)) {
                 return defaultValue; // unsupported subKey, check "exchange.features" for details
             }
             return this.safeValue (dictionary, subKey);
@@ -5532,7 +5532,7 @@ export class BaseExchange {
                 if (!(feeCurrencyCode in reduced)) {
                     reduced[feeCurrencyCode] = {};
                 }
-                const rateKey = (rate === undefined) ? '' : rate;
+                const rateKey: string = (rate === undefined) ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {

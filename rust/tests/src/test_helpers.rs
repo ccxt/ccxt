@@ -210,6 +210,14 @@ pub fn split(s: &Value, delim: &Value) -> Value {
     }
 }
 
+pub fn in_op(obj: &Value, key: &Value) -> bool {
+    match (obj, key) {
+        (Value::Dict(m), Value::Str(k)) => m.contains_key(k.as_ref()),
+        (Value::Arr(a), v) => a.iter().any(|x| ccxt::runtime::is_equal(x, v)),
+        _ => false,
+    }
+}
+
 pub trait Truthy { fn truthy(&self) -> bool; }
 impl Truthy for bool      { fn truthy(&self) -> bool { *self } }
 impl Truthy for Value     { fn truthy(&self) -> bool { is_true(self) } }

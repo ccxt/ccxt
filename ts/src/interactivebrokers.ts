@@ -1143,7 +1143,7 @@ export default class interactivebrokers extends Exchange {
         return this.parseBalance (balanceResponse);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         //     {
         //         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },
@@ -3043,7 +3043,11 @@ export default class interactivebrokers extends Exchange {
         if (months <= 12) {
             return this.numberToString (months) + 'm';
         }
-        const years = Math.min (this.parseToInt ((months + 11) / 12), 15); // 15y is the documented maximum period
+        const rawYears = this.parseToInt ((months + 11) / 12);
+        if (rawYears === undefined) {
+            return '15y';
+        }
+        const years = Math.min (rawYears, 15); // 15y is the documented maximum period
         return this.numberToString (years) + 'y';
     }
 

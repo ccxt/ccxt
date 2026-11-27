@@ -12131,7 +12131,7 @@ impl std::ops::DerefMut for ${coreName} {
                     [/^(\s*)fn (test[A-Z][a-zA-Z0-9_]*)\(/gm, '$1pub fn $2('],
                     [/^(\s*)async fn (test[A-Z][a-zA-Z0-9_]*)\(/gm, '$1pub async fn $2('],
                     // Base tests live in the `ccxt_tests` crate, not in `ccxt`. Route test-only helpers to `crate::test_helpers`, the rest to `ccxt::runtime`.
-                    [/\bcrate::runtime::(is_true|parse_float|starts_with|contains|split)\b/g, 'crate::test_helpers::$1'],
+                    [/\bcrate::runtime::(is_true|parse_float|starts_with|contains|split|in_op)\b/g, 'crate::test_helpers::$1'],
                     [/\bcrate::runtime\b/g,           'ccxt::runtime'],
                     [/\bcrate::set_value\b/g,         'ccxt::set_value'],
                     [/\bcrate::precise\b/g,           'ccxt::precise'],
@@ -12197,7 +12197,7 @@ impl std::ops::DerefMut for ${coreName} {
                     'use ccxt::Value;',
                     'use ccxt::get_value;',
                     'use ccxt::runtime::*;',
-                    'use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};',
+                    'use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};',
                     // The transpiled tests reference bare types `ArrayCache`, `ArrayCacheByTimestamp`, etc. from `'../../base/ws/Cache.js'` — provide them via the tests_support stubs.
                     'use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};',
                     'use ccxt::exchange_generated::ExchangeBase;',
@@ -12297,7 +12297,7 @@ impl std::ops::DerefMut for ${coreName} {
                         return `${cls}::new(${args}, Value::Null)`;
                     },
                 );
-                const file = [ ...this.createGeneratedHeader(), '#![allow(unused, non_snake_case, dead_code, clippy::all)]', 'use ccxt::Value;', 'use ccxt::get_value;', 'use ccxt::runtime::*;', 'use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};', 'use ccxt::pro::*;', '', content, ].join('\n')
+                const file = [ ...this.createGeneratedHeader(), '#![allow(unused, non_snake_case, dead_code, clippy::all)]', 'use ccxt::Value;', 'use ccxt::get_value;', 'use ccxt::runtime::*;', 'use crate::test_helpers::{is_true, parse_float, starts_with, contains, split, in_op};', 'use ccxt::pro::*;', '', content, ].join('\n')
                     .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
                 overwriteFileAndFolder(outFile, file);
                 log.magenta('→', (outFile as any).yellow);

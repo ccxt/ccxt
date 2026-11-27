@@ -2568,7 +2568,7 @@ export default class kucoin extends Exchange {
         return this.parseDepositWithdrawFee (data, currency) as DepositWithdrawFee;
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //        "currency": "USDT",

@@ -188,48 +188,6 @@ public partial class BaseExchange
         return false;
     }
 
-    public static object mathMin(object a, object b)
-    {
-        if (a == null || b == null)
-        {
-            return null;
-        }
-        var first = Convert.ToDouble(a);
-        var second = Convert.ToDouble(b);
-
-        if (first < second)
-        {
-            return a;
-        }
-        else
-        {
-            return b;
-        }
-
-        // a = normalizeIntIfNeeded(a);
-        // b = normalizeIntIfNeeded(b);
-        // if (a.GetType() == typeof(Int64))
-        // {
-        //     return Math.Min((Int64)a, (Int64)b);
-        // }
-        // else if (a.GetType() == typeof(double))
-        // {
-        //     return Math.Min((double)a, (double)b);
-        // }
-        // else if (a.GetType() == typeof(float))
-        // {
-        //     return Math.Min((float)a, (float)b);
-        // }
-        // else if (a.GetType() == typeof(int))
-        // {
-        //     return Math.Min((int)a, (int)b);
-        // }
-        // else
-        // {
-        //     return null;
-        // }
-    }
-
     // Every return path of this helper is the Convert.ToInt64 box or null (the
     // catch), so the signature names that single box instead of `object`. A call site that
     // keeps the value in an object context (a dict slot, a request value, an object local)

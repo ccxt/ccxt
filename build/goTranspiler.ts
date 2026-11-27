@@ -10145,7 +10145,7 @@ class NewTranspiler {
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit', '.GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
-            [/this.ParseWsBidAsk\(this\.Orderbooks\[(\*?symbol)\]/g, 'this.ParseWsBidAsk(UnWrapType(this.Orderbooks[$1])'],
+            [/this.ParseWsBidAsk\(this\.Orderbooks\[(\*?symbol)\]/g, 'this.ParseWsBidAsk(this.Orderbooks[$1].ToMap()'],
             // Clients
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription(ccxt.AsClient($1),'],
@@ -14030,12 +14030,13 @@ function goStringHelperFilePass (filePath: string, content: string, guard: RegEx
 
 function goNativeStringHelpers (filePath: string, content: string): string { return goStringHelperFilePass (filePath, content, undefined, goDropEndpointRaw, goNativeStringHelpersRewriteFunc); }
 
-// ===== Int64PtrTyped(rN.Value) of an int64 / *int64 async receive =====
-// The same file declares the callee `<-chan AsyncResult[int64|*int64]`, so the box round-trip is dropped.
+// ===== Int64PtrTyped / Float64PtrTyped (rN.Value) of a typed numeric async receive =====
+// The same file declares the callee `<-chan AsyncResult[int64|*int64|float64|*float64]`, so the box round-trip is dropped.
 export function goAsyncInt64Value (content: string): string {
-    if (content.indexOf ('Int64PtrTyped(') < 0) { return content; }
-    const re = /^(\t+var \w+ \*int64 = )Int64PtrTyped\((r\d+)\.Value\)$/gm;
-    return content.replace (re, (line: string, head: string, recv: string, at: number) => {
+    if ((content.indexOf ('Int64PtrTyped(') < 0) && (content.indexOf ('Float64PtrTyped(') < 0)) { return content; }
+    const re = /^(\t+var \w+ \*(int64|float64) = )(Int64PtrTyped|Float64PtrTyped)\((r\d+)\.Value\)$/gm;
+    return content.replace (re, (line: string, head: string, kind: string, helper: string, recv: string, at: number) => {
+        if (helper !== ((kind === 'int64') ? 'Int64PtrTyped' : 'Float64PtrTyped')) { return line; }
         const before = content.slice (0, at);
         // the receive may sit in a nested block: any tab depth before `rN := <-this.`
         const recvAt = before.lastIndexOf ('\t' + recv + ' := <-this.');
@@ -14043,9 +14044,9 @@ export function goAsyncInt64Value (content: string): string {
         if ((recvAt < 0) || (recvAt < funcAt) || !/\n\t*$/.test (before.slice (funcAt, recvAt + 1))) { return line; }
         const callee = /^<-this\.(\w+Async)\(/.exec (before.slice (recvAt + recv.length + 5, recvAt + recv.length + 80));
         if (!callee) { return line; }
-        const sig = new RegExp ('^func \\(this \\*\\w+\\) ' + callee[1] + '\\(.*\\) <-chan AsyncResult\\[(\\*?int64)\\] \\{$', 'm').exec (content);
+        const sig = new RegExp ('^func \\(this \\*\\w+\\) ' + callee[1] + '\\(.*\\) <-chan AsyncResult\\[(\\*?' + kind + ')\\] \\{$', 'm').exec (content);
         if (!sig) { return line; }
-        return head + ((sig[1] === 'int64') ? '&' : '') + recv + '.Value';
+        return head + ((sig[1] === kind) ? '&' : '') + recv + '.Value';
     });
 }
 

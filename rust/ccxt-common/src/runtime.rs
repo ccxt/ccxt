@@ -378,14 +378,6 @@ pub fn add_element_to_object(obj: &mut impl AddTarget, key: impl crate::value::V
     key.with_key(|k| obj.add_element(k, val));
 }
 
-pub fn in_op(obj: &Value, key: &Value) -> bool {
-    match (obj, key) {
-        (Value::Dict(m), Value::Str(k)) => m.contains_key(k.as_ref()),
-        (Value::Arr(a), v) => a.iter().any(|x| is_equal(x, v)),
-        _ => false,
-    }
-}
-
 /// Synthetic key that tags a live-subscriptions snapshot with its client URL
 /// (see `try_ws_subs_write`). It must never surface to transpiled code that
 /// enumerates `client.subscriptions` (upbit builds its subscribe frame from

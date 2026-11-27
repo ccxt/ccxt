@@ -5508,7 +5508,7 @@ export default class coinbase extends Exchange {
             }
         }
         const advancedTrade = this.safeBool (this.options, 'advanced', false);
-        if (!('data' in response) && !advancedTrade) {
+        if ((this.safeValue (response, 'data') === undefined) && !advancedTrade) {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
         return undefined;

@@ -92,7 +92,7 @@ pub mod shared {
             }
         }
         let markets = ccxt::get_value(ex, &Value::Str("markets".into()));
-        ccxt::runtime::in_op(&markets, symbol)
+        crate::test_helpers::in_op(&markets, symbol)
     }
 
     /// `testSharedMethods.isTemporaryFailure(e)` — the WS method tests treat a

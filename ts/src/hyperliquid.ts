@@ -788,7 +788,7 @@ export default class hyperliquid extends Exchange {
      * @returns {int} The calculated price precision
      */
     calculatePricePrecision (price: number, amountPrecision: int, maxDecimals: int): int {
-        let pricePrecision: int = 0;
+        let pricePrecision = this.parseToInt (0);
         const priceStr = this.numberToString (price);
         if (priceStr === undefined) {
             return 0;
@@ -825,7 +825,9 @@ export default class hyperliquid extends Exchange {
             pricePrecision = digitsLeft;
         }
         // cap by maxDecimals - szDecimals
-        pricePrecision = Math.min (decimalsLeft, pricePrecision);
+        if ((decimalsLeft !== undefined) && (pricePrecision !== undefined)) {
+            pricePrecision = Math.min (decimalsLeft, pricePrecision);
+        }
         return this.parseToInt (pricePrecision);
     }
 

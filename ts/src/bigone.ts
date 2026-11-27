@@ -1390,7 +1390,7 @@ export default class bigone extends Exchange {
             // const start = this.parseToInt (since / 1000);
             const duration = this.parseTimeframe (timeframe);
             const endByLimit = this.parseToInt (this.sum (since, limitResolved * duration * 1000));
-            if (until !== undefined) {
+            if ((until !== undefined) && (endByLimit !== undefined)) {
                 request['time'] = this.iso8601 (Math.min (endByLimit, until + 1));
             } else {
                 request['time'] = this.iso8601 (endByLimit);

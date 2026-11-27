@@ -5549,10 +5549,15 @@ function declaredIntMinMax (region: CsharpRegion, original: string, masked: stri
     const ta = literal (a) ? 'int' : methodNameType (region, a, line);
     const tb = literal (b) ? 'int' : methodNameType (region, b, line);
     if ((ta === undefined) || (tb === undefined)) return undefined;
-    const guarded = (x) => { const prev = (region.lines[line - 2] ?? '').trim (); return (region.lines[line - 1] ?? '').trim () === '{' && (prev === `if ((${x} != null))` || prev === `if (${x} != null)`); };
-    // two Int64 names, or an Int64 beside a dominated-non-null Int64? (boxed as Int64): one Int64 box either way
+    const guarded = (x) => {
+        const prev = (region.lines[line - 2] ?? '').trim ();
+        if ((region.lines[line - 1] ?? '').trim () !== '{') return false;
+        return (prev === `if ((${x} != null))`) || (prev === `if (${x} != null)`)
+            || (prev.startsWith ('if (') && !prev.includes ('||') && (prev.includes (`(${x} != null)`) || prev.includes (`!(${x} == null)`)));
+    };
+    // two Int64/guarded Int64? names (each boxes as Int64): one Int64 box either way
     const wide = (t, x) => (t === 'Int64') || ((t === 'Int64?') && guarded (x));
-    if (wide (ta, a) && wide (tb, b) && ((ta === 'Int64') || (tb === 'Int64'))) { return `Math.${name}(${(ta === 'Int64?') ? a + '.Value' : a}, ${(tb === 'Int64?') ? b + '.Value' : b})`; }
+    if (wide (ta, a) && wide (tb, b)) { return `Math.${name}(${(ta === 'Int64?') ? a + '.Value' : a}, ${(tb === 'Int64?') ? b + '.Value' : b})`; }
     const field = /^[ ]*(?:[A-Za-z_]\w*\["[^"]*"\][ ]*=[ ]*(?:mathMin|mathMax)\([^;]*\);|\{[ ]*"[^"]*",[ ]*(?:mathMin|mathMax)\([^;]*\)[ ]*\},?)[ ]*$/.test (masked);
     if (!field) return undefined;
     if ((ta === 'Int64?') && (tb === 'int') && guarded (a)) return `Math.${name}(${a}.Value, ${b})`;
