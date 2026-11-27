@@ -2,7 +2,7 @@
 
 import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
-import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, NullableList, Market } from '../base/types.js';
 import { Precise } from '../base/Precise.js';
@@ -144,6 +144,24 @@ export default class poloniex extends poloniexRest {
     /**
      * @ignore
      * @method
+     * @description throws NotSupported for non-spot markets, the websocket urls serve the spot api only
+     * @param {string[]} [symbols] CCXT market symbols
+     * @param {string} name name of the channel
+     */
+    checkSpotMarkets (symbols: Strings, name: string) {
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                if (!market['spot']) {
+                    throw new NotSupported (this.id + ' ' + name + ' websocket channel does not support ' + market['type'] + ' markets');
+                }
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
      * @description Connects to a websocket channel
      * @param {string} name name of the channel
      * @param {string} messageHash unique identifier for the message
@@ -174,6 +192,7 @@ export default class poloniex extends poloniexRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' subscribe() symbols is required');
             }
+            this.checkSpotMarkets (symbols, name);
             marketIds = this.marketIds (symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join (',');
@@ -513,6 +532,7 @@ export default class poloniex extends poloniexRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const name = 'trades';
+        this.checkSpotMarkets (symbolsNormalized, name);
         const url = this.safeString (this.urls['api']['ws'], 'public', '');
         const marketIds = this.marketIds (symbolsNormalized);
         const subscribe: Dict = {
