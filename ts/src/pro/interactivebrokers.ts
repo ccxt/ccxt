@@ -188,8 +188,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const sent: Dict = {};
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
-            const subscription = client.subscriptions[keys[i]];
-            const request = this.safeString (subscription, 'request');
+            const request = this.safeString (client.subscriptions[keys[i]], 'request');
             if ((request !== undefined) && request.startsWith ('smd+') && !(request in sent)) {
                 sent[request] = true;
                 try {
@@ -268,11 +267,12 @@ export default class interactivebrokers extends interactivebrokersRest {
     async ibkrUnsubscribeMarketData (client: Client, marketId: Str): Promise<any> {
         const keys = Object.keys (client.subscriptions);
         for (let i = 0; i < keys.length; i++) {
-            const subscription = client.subscriptions[keys[i]];
-            const request = this.safeString (subscription, 'request');
-            const conid = this.safeString (subscription, 'conid');
-            if ((request !== undefined) && request.startsWith ('smd+') && (conid === marketId)) {
-                return undefined; // still in use
+            const request = this.safeString (client.subscriptions[keys[i]], 'request');
+            if ((request !== undefined) && request.startsWith ('smd+')) {
+                const conid = this.safeString (client.subscriptions[keys[i]], 'conid');
+                if (conid === marketId) {
+                    return undefined; // still in use
+                }
             }
         }
         // the connection is open, the callers get the client from ibkrConnect ()

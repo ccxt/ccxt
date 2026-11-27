@@ -2637,9 +2637,8 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols);
-        const [ fieldsOption, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields');
-        const fields: string[] = fieldsOption;
-        const fieldsString = fields.join (',');
+        const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as List;
+        const fieldsString = (fields as string[]).join (',');
         const readyFields: string[] = [ '31', '84', '86' ];
         const response = await this.ibkrFetchSnapshot (symbolsNormalized, fieldsString, readyFields, query);
         //

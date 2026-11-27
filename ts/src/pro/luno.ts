@@ -448,14 +448,14 @@ export default class luno extends lunoRest {
     }
 
     override handleMessage (client: Client, message: Dict) {
-        const subscriptionHashes = Object.keys (client.subscriptions);
-        const subscriptionsLength = subscriptionHashes.length;
+        const subscriptions = Object.values (client.subscriptions);
+        const subscriptionsLength = subscriptions.length;
         if (subscriptionsLength === 0) {
             // the subscription was dropped after a sequence gap, ignore the
             // frames still arriving until the client resubscribes
             return;
         }
-        const subscription: Dict = this.safeDict (client.subscriptions, subscriptionHashes[0], {});
+        const subscription: Dict = this.safeDict (subscriptions, 0, {});
         this.handleOrderBook (client, message, subscription);
         this.handleTrades (client, message, subscription);
     }

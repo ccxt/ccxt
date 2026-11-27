@@ -5391,17 +5391,23 @@ function csharpTypedStringSlice (content: string): string {
             return seen > 0;
         };
         const ints = [ 'int', 'Int64' ];
-        const index = (b: string, s: string): string | undefined => {
+        const nullableInts = [ 'Int64?' ];
+        const index = (b: string, s: string, isEnd: boolean): string | undefined => {
             if (/^\d+L?$/.test (b)) { return b.replace ('L', ''); }
             if (/^-\d+L?$/.test (b)) { return s + '.Length' + b.replace ('L', ''); }
             const sum = /^\(([A-Za-z_]\w*) \+ (\d+)L?\)$/.exec (b);
             if (sum !== null) { return declaredAs (sum[1], ints) ? '(int)(' + b + ' < 0 ? ' + s + '.Length + ' + b + ' : ' + b + ')' : undefined; }
-            return declaredAs (b, ints) ? '(int)(' + b + ' < 0 ? ' + s + '.Length + ' + b + ' : ' + b + ')' : undefined;
+            if (declaredAs (b, ints)) { return '(int)(' + b + ' < 0 ? ' + s + '.Length + ' + b + ' : ' + b + ')'; }
+            if (declaredAs (b, nullableInts)) {
+                const v = isEnd ? '(' + b + ' ?? ' + s + '.Length)' : '(' + b + ' ?? -1)';
+                return '(int)(' + v + ' < 0 ? ' + s + '.Length + ' + v + ' : ' + v + ')';
+            }
+            return undefined;
         };
         const next = lines[i].replace (call, (all, s, a, b) => {
             const isString = s.startsWith ('this.') ? (s === 'this.secret') : declaredAs (s, [ 'string', 'string?' ]);
-            const from = index (a, s);
-            const to = index (b, s);
+            const from = index (a, s, false);
+            const to = index (b, s, true);
             if (!isString || (from === undefined) || (to === undefined)) { return all; }
             return '((' + s + ' == null) ? null : ' + s + '[' + from + '..Math.Min(' + to + ', ' + s + '.Length)])';
         });

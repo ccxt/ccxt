@@ -2450,10 +2450,10 @@ export default class myriad extends Exchange {
                 price = priceValue;
                 change = changeValue;
                 if ((priceValue !== undefined) && (changeValue !== undefined)) {
-                    previousClose = priceValue - changeValue;
+                    const previousCloseValue = priceValue - changeValue;
+                    previousClose = previousCloseValue;
                     if (priceValue !== changeValue) {
-                        const ratio = changeValue / previousClose;
-                        percentage = ratio * 100;
+                        percentage = changeValue / previousCloseValue * 100;
                     }
                 }
                 break;
@@ -3686,7 +3686,7 @@ export default class myriad extends Exchange {
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
         const orders: ArrayCacheByOutcomeById = await this.subscribeMyriadChannel (messageHash, channel, params);
-        return this.filterByValueSinceLimit (orders, 'outcome', outcomeResolved, since, limit, 'timestamp', true) as PredictionOrder[];
+        return this.filterByOutcomeSinceLimit (orders, outcomeResolved, since, limit, true) as PredictionOrder[];
     }
 
     handleOrder (client: Client, data: Dict) {

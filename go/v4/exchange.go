@@ -2542,7 +2542,7 @@ func (this *BaseExchange) Uuid5(namespace any, name any) string {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol string) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome])
 	go func() {
 		defer close(ch)

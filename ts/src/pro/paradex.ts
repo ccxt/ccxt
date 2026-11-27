@@ -2021,9 +2021,9 @@ export default class paradex extends paradexRest {
         if (frameLength < 8) {
             return {};
         }
-        const blockLength = this.sbeReadUint (frameHex, 0, 2);
-        const templateId = this.sbeReadUint (frameHex, 2, 2);
-        const schemaId = this.sbeReadUint (frameHex, 4, 2);
+        const blockLength = this.parseToInt (this.sbeReadUint (frameHex, 0, 2));
+        const templateId = this.parseToInt (this.sbeReadUint (frameHex, 2, 2));
+        const schemaId = this.parseToInt (this.sbeReadUint (frameHex, 4, 2));
         if ((schemaId !== 1) || (frameLength < this.sum (blockLength, 8))) {
             return {};
         }
@@ -2080,29 +2080,32 @@ export default class paradex extends paradexRest {
         };
     }
 
-    sbeReadUint (frameHex: string, offset: int, length: int): int {
+    sbeReadUint (frameHex: string, offset: number, length: number): int {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         const digits = '0123456789abcdef';
         let result: int = 0;
         let factor: int = 1;
-        let position: int = offset * 2;
-        for (let i = 0; i < length; i++) {
+        const count = this.parseToInt (length);
+        const start = this.parseToInt (offset);
+        let position: int = start * 2;
+        for (let i = 0; i < count; i++) {
             // plain variables as slice bounds, php gets end - start unparenthesized
             const middle = position + 1;
             const next = position + 2;
             const high = digits.indexOf (frameHex.slice (position, middle));
             const low = digits.indexOf (frameHex.slice (middle, next));
-            result = this.sum (result, high * factor * 16, low * factor);
-            factor = factor * 256;
-            position = next;
+            result = this.parseToInt (this.sum (result, high * factor * 16, low * factor));
+            factor = this.parseToInt (factor * 256);
+            position = this.parseToInt (next);
         }
-        return result;
+        // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
+        return this.parseToInt (result);
     }
 
-    sbeReadInt64 (frameHex: string, offset: int): Str {
+    sbeReadInt64 (frameHex: string, offset: number): Str {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
-        const low = this.sbeReadUint (frameHex, offset, 4);
-        const high = this.sbeReadUint (frameHex, offset + 4, 4);
+        const low = this.parseToInt (this.sbeReadUint (frameHex, offset, 4));
+        const high = this.parseToInt (this.sbeReadUint (frameHex, this.sum (offset, 4), 4));
         if ((high === 2147483648) && (low === 0)) {
             return undefined;
         }
@@ -2116,7 +2119,7 @@ export default class paradex extends paradexRest {
         return result;
     }
 
-    sbeReadDecimal (frameHex: string, offset: int): Str {
+    sbeReadDecimal (frameHex: string, offset: number): Str {
         // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
         const mantissa = this.sbeReadInt64 (frameHex, offset);
         if (mantissa === undefined) {
@@ -2125,7 +2128,7 @@ export default class paradex extends paradexRest {
         return Precise.stringDiv (mantissa, '100000000', 8);
     }
 
-    sbeReadTimestamp (frameHex: string, offset: int): Int {
+    sbeReadTimestamp (frameHex: string, offset: number): Int {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
         const microseconds = this.sbeReadInt64 (frameHex, offset);
@@ -2135,20 +2138,23 @@ export default class paradex extends paradexRest {
         return this.parseToInt (Precise.stringDiv (microseconds, '1000', 0));
     }
 
-    sbeReadEnum (frameHex: string, offset: int, values: Dict): Str {
-        const value = this.sbeReadUint (frameHex, offset, 1);
+    sbeReadEnum (frameHex: string, offset: number, values: Dict): Str {
+        const value = this.parseToInt (this.sbeReadUint (frameHex, offset, 1));
         return this.safeString (values, this.numberToString (value));
     }
 
-    sbeReadString (frameHex: string, offset: int, length: int): string {
-        const start = offset * 2;
-        const end = start + length * 2;
+    sbeReadString (frameHex: string, offset: number, length: number): string {
+        const first = this.parseToInt (offset);
+        const size = this.parseToInt (length);
+        const start = first * 2;
+        const end = this.sum (start, size * 2);
         return this.binaryToString (this.base16ToBinary (frameHex.slice (start, end)));
     }
 
-    sbeReadAddress (frameHex: string, offset: int): string {
+    sbeReadAddress (frameHex: string, offset: number): string {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
-        const rawStart = offset * 2;
+        const first = this.parseToInt (offset);
+        const rawStart = first * 2;
         const rawEnd = rawStart + 64;
         const raw = frameHex.slice (rawStart, rawEnd);
         let start = 63;
@@ -2162,20 +2168,21 @@ export default class paradex extends paradexRest {
         return '0x' + raw.slice (start, 64);
     }
 
-    sbeReadVarStrings (frameHex: string, offset: int, count: int, frameLength: number): string[] {
+    sbeReadVarStrings (frameHex: string, offset: number, count: number, frameLength: number): string[] {
         // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
         // absent, which is how a field appended to var-data reads on a frame from before it.
         // Every caller guards on the count it needs, so an empty list and a short one read alike
         const result: string[] = [];
         const end = this.parseToInt (frameLength);
-        let position: int = offset;
-        for (let i = 0; i < count; i++) {
+        const total = this.parseToInt (count);
+        let position = this.parseToInt (offset);
+        for (let i = 0; i < total; i++) {
             if (position >= end) {
                 return result;
             }
-            const length = this.sbeReadUint (frameHex, position, 1);
-            const next = position + 1 + length;
+            const length = this.parseToInt (this.sbeReadUint (frameHex, position, 1));
+            const next = this.parseToInt (this.sum (position, 1, length));
             if (next > end) {
                 return [];
             }
@@ -2242,8 +2249,8 @@ export default class paradex extends paradexRest {
         };
     }
 
-    parseSbeOrderBook (frameHex: string, blockLength: int, frameLength: number): NullableDict {
-        const blockSize = blockLength;
+    parseSbeOrderBook (frameHex: string, blockLength: number, frameLength: number): NullableDict {
+        const blockSize = this.parseToInt (blockLength);
         //
         // BookEvent (templateId 3), 89-byte block
         //
@@ -2254,22 +2261,22 @@ export default class paradex extends paradexRest {
         if (blockSize < 17) {
             return undefined;
         }
-        const pkgType = this.sbeReadUint (frameHex, 24, 1);
+        const pkgType = this.parseToInt (this.sbeReadUint (frameHex, 24, 1));
         if ((pkgType !== 0) && (pkgType !== 1)) {
             return undefined;
         }
         const levels: Dict[] = [];
         const sides = [ 'BUY', 'SELL' ];
         const frameEnd = this.parseToInt (frameLength);
-        let position: int = blockLength + 8;
+        let position = this.parseToInt (this.sum (blockLength, 8));
         for (let i = 0; i < sides.length; i++) {
             if (position + 4 > frameEnd) {
                 return undefined;
             }
-            const entryLength = this.sbeReadUint (frameHex, position, 2);
-            const numInGroup = this.sbeReadUint (frameHex, position + 2, 2);
+            const entryLength = this.parseToInt (this.sbeReadUint (frameHex, position, 2));
+            const numInGroup = this.parseToInt (this.sbeReadUint (frameHex, position + 2, 2));
             position = position + 4;
-            const groupEnd = position + numInGroup * entryLength;
+            const groupEnd = this.parseToInt (this.sum (position, numInGroup * entryLength));
             if ((entryLength < 16) || (groupEnd > frameEnd)) {
                 return undefined;
             }
@@ -2279,7 +2286,7 @@ export default class paradex extends paradexRest {
                     'price': this.sbeReadDecimal (frameHex, position),
                     'size': this.sbeReadDecimal (frameHex, position + 8),
                 });
-                position = position + entryLength;
+                position = this.parseToInt (this.sum (position, entryLength));
             }
         }
         const strings = this.sbeReadVarStrings (frameHex, position, 1, frameLength);
@@ -2435,10 +2442,10 @@ export default class paradex extends paradexRest {
         return order;
     }
 
-    sbeReadFlags (frameHex: string, offset: int, names: string[]): string[] {
+    sbeReadFlags (frameHex: string, offset: number, names: string[]): string[] {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         const flags: string[] = [];
-        let bits = this.sbeReadUint (frameHex, offset, 1);
+        let bits = this.parseToInt (this.sbeReadUint (frameHex, offset, 1));
         for (let i = 0; i < names.length; i++) {
             const bit = this.parseToInt (bits % 2);
             const name: string = this.safeString (names, i, '');

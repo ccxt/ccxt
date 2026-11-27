@@ -1139,11 +1139,11 @@ export default class whitebit extends whitebitRest {
     handleSubscriptionStatus (client: Client, message: Dict , id: Int) {
         // not every method stores its subscription
         // as an object so we can't do indeById here
-        const subscriptionHashes = Object.keys (client.subscriptions);
-        for (let i = 0; i < subscriptionHashes.length; i++) {
-            const subscriptionHash = subscriptionHashes[i];
-            const subscription = this.safeDict (client.subscriptions, subscriptionHash);
-            if (subscription !== undefined) {
+        const subs = client.subscriptions;
+        const values = Object.values (subs);
+        for (let i = 0; i < values.length; i++) {
+            const subscription = values[i];
+            if (subscription !== true) {
                 const subId = this.safeInteger (subscription, 'id');
                 if ((subId !== undefined) && (subId === id)) {
                     const method = this.safeValue (subscription, 'method');
