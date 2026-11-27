@@ -1036,8 +1036,8 @@ export default class blofin extends blofinRest {
         if (authenticated === undefined) {
             const milliseconds = this.milliseconds ();
             const timestamp = milliseconds.toString ();
-            const nonce = 'n_' + timestamp;
-            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const nonce = this.uuid ();
+            const auth = '/users/self/verify' + 'GET' + timestamp + nonce;
             const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
             const request: Dict = {
                 'op': 'login',
