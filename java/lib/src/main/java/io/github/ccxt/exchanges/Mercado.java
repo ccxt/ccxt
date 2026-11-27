@@ -995,7 +995,7 @@ public class Mercado extends MercadoApi
         Map<String, Object> currency = this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "coin", currency.get("id") );
-            put( "quantity", toFixed(amount, 10) );
+            put( "quantity", Mercado.this.decimalToPrecision(amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO) );
             put( "address", address );
         }};
         if (java.util.Objects.equals(code, "BRL"))

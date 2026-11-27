@@ -2072,8 +2072,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             return;
         }
-        List<Map<String, Object>> newPositions = new ArrayList<Map<String, Object>>();
-        Map<String, Object> positionsByMarginMode = new HashMap<String, Object>() {{}};
+        List<Object> crossPositions = new ArrayList<Object>(Arrays.asList());
+        List<Object> isolatedPositions = new ArrayList<Object>(Arrays.asList());
         Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; i < rawPositions.size(); i++)
         {
@@ -2091,31 +2091,43 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 cache = new ArrayCache.ArrayCacheBySymbolBySide();
                 this.positionsByType.put(marginMode, cache);
             }
-            newPositions.add(position);
-            positionsByMarginMode.put(marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
-            ((List<Object>)(positionsByMarginMode == null || marginMode == null ? null : positionsByMarginMode.get(marginMode))).add(position);
+            if (java.util.Objects.equals(marginMode, "cross"))
+            {
+                crossPositions.add(position);
+            } else
+            {
+                isolatedPositions.add(position);
+            }
             ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         }
-        List<String> marginModes = new ArrayList<String>(positionsByMarginMode.keySet());
-        for (var i = 0; i < marginModes.size(); i++)
+        Integer crossLength = crossPositions.size();
+        if ((crossLength != null && crossLength > 0))
         {
-            Object marginMode = (marginModes == null || i < 0 || i >= marginModes.size() ? null : marginModes.get(i));
-            List<Object> marginModePositions = this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList()));
-            List<Object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
-            for (var j = 0; j < messageHashes.size(); j++)
-            {
-                String messageHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
-                String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-                List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
-                List<Object> positions = (List<Object>) this.filterByArray(marginModePositions, "symbol", symbols, false);
-                if (!this.isEmpty(positions))
-                {
-                    client.resolve(positions, messageHash);
-                }
-            }
-            client.resolve(marginModePositions, (marginMode + ":positions"));
+            this.resolvePositionsByMarginMode(client, "cross", crossPositions);
         }
+        Integer isolatedLength = isolatedPositions.size();
+        if ((isolatedLength != null && isolatedLength > 0))
+        {
+            this.resolvePositionsByMarginMode(client, "isolated", isolatedPositions);
+        }
+    }
+
+    public void resolvePositionsByMarginMode(Client client, String marginMode, List<?> marginModePositions)
+    {
+        List<Object> messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
+        for (var j = 0; j < messageHashes.size(); j++)
+        {
+            String messageHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+            List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
+            List<Object> positions = (List<Object>) this.filterByArray(marginModePositions, "symbol", symbols, false);
+            if (!this.isEmpty(positions))
+            {
+                client.resolve(positions, messageHash);
+            }
+        }
+        client.resolve(marginModePositions, (marginMode + ":positions"));
     }
 
     /**

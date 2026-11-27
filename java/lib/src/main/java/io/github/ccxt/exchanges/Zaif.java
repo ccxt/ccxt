@@ -1034,8 +1034,7 @@ public class Zaif extends ZaifApi
 
     public String customNonce()
     {
-        Double nonce = (((double) this.milliseconds()) / ((double) 1000));
-        return toFixed(nonce, 8);
+        return this.decimalToPrecision((((double) this.milliseconds()) / ((double) 1000)), ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
