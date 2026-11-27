@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -219,6 +220,18 @@ func IsFunction(v interface{}) bool {
 
 func IsNumber(v interface{}) bool {
 	return ccxt.IsNumber(v)
+}
+
+func ToLower(v interface{}) string {
+	switch s := v.(type) {
+	case string:
+		return strings.ToLower(s)
+	case *string:
+		if s != nil {
+			return strings.ToLower(*s)
+		}
+	}
+	return ""
 }
 
 func ToUpper(v interface{}) string {
