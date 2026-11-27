@@ -32,6 +32,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 			"createOrdersWs":                true,
 			"editOrderWs":                   true,
 			"watchBalance":                  true,
+			"watchBidsAsks":                 true,
 			"watchMyLiquidations":           true,
 			"watchMyLiquidationsForSymbols": true,
 			"watchMyTrades":                 true,
@@ -44,6 +45,7 @@ func (this *Hyperliquid) Describe() map[string]any {
 			"watchTradesForSymbols":         false,
 			"watchPosition":                 false,
 			"unWatchBalance":                true,
+			"unWatchBidsAsks":               true,
 			"watchPositions":                true,
 			"unWatchPositions":              true,
 			"unWatchOrderBook":              true,
@@ -525,6 +527,209 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	orderbook.Reset(snapshot)
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+}
+
+/**
+ * @method
+ * @name hyperliquid#watchBidsAsks
+ * @description watches the best bid & ask of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Hyperliquid) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
+	go this.watchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(this.SingleBidAskSymbol("watchBidsAsks", symbols))
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "bidask:" + symbol
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var request map[string]any = map[string]any{
+		"method": "subscribe",
+		"subscription": map[string]any{
+			"type": "bbo",
+			"coin": func() any {
+				if *this.SafeBool(market, "swap", false) {
+					return market["baseName"]
+				}
+				return market["id"]
+			}(),
+		},
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+
+	r2 := <-this.Watch(url, messageHash, message, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ticker := r2.Value
+	if this.NewUpdates {
+		var result map[string]any = map[string]any{}
+		result[symbol] = ticker
+
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
+		return nil
+	}
+
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, []any{symbol})}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#unWatchBidsAsks
+ * @description unWatches the best bid & ask of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the exchange response
+ */
+func (this *Hyperliquid) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(this.SingleBidAskSymbol("unWatchBidsAsks", symbols))
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "bidask:" + symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
+	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
+	var nonce int64 = this.IncrementingNonce()
+	var id *string = this.NumberToString(nonce)
+	var request map[string]any = map[string]any{
+		"id":     id,
+		"method": "unsubscribe",
+		"subscription": map[string]any{
+			"type": "bbo",
+			"coin": func() any {
+				if *this.SafeBool(market, "swap", false) {
+					return market["baseName"]
+				}
+				return market["id"]
+			}(),
+		},
+	}
+	var message map[string]any = this.Extend(request, params)
+
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var resolved bool
+	switch resolvedBox := r1.Value.(type) {
+	case bool:
+		resolved = resolvedBox
+	case []any:
+		resolved = len(resolvedBox) > 0
+	case map[string]any:
+		resolved = true
+	case nil:
+	default:
+		panic(ccxt.ExchangeError("resolved value is not bool"))
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: resolved}
+	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#singleBidAskSymbol
+ * @description the bbo stream is subscribed per market, returns the only symbol of the list or throws
+ * @param {string} methodName the name of the calling method
+ * @param {string[]} symbols a list with a single unified symbol
+ * @returns {string} the symbol
+ */
+func (this *Hyperliquid) SingleBidAskSymbol(methodName string, optionalArgs ...any) any {
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	var symbolsLength int = 0
+	if symbols != nil {
+		symbolsLength = ccxt.GetArrayLength(symbols)
+	}
+	if symbolsLength != 1 {
+		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol"))
+	}
+	return this.SafeString(symbols, 0, "")
+}
+func (this *Hyperliquid) HandleBidAsk(client any, message map[string]any) {
+	//
+	//     {
+	//         "channel": "bbo",
+	//         "data": {
+	//             "coin": "BTC",
+	//             "time": 1795692679488,
+	//             "bbo": [
+	//                 { "px": "60612.0", "sz": "12.46853", "n": 39 },
+	//                 { "px": "60613.0", "sz": "1.43894", "n": 8 }
+	//             ]
+	//         }
+	//     }
+	//
+	var entry map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var ticker map[string]any = this.ParseWsBidAsk(entry)
+	var symbol string = *this.SafeString(ticker, "symbol", "")
+	this.Bidsasks[symbol] = ccxt.TickerFromMap(ticker)
+	var messageHash string = "bidask:" + symbol
+	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
+}
+func (this *Hyperliquid) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var coin *string = this.SafeString(ticker, "coin")
+	var marketId any = this.CoinToMarketId(coin)
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var timestamp *int64 = this.SafeInteger(ticker, "time")
+	// either side is null when the book has no orders on it
+	var levels []any = ccxt.SafeListTyped(ticker, "bbo")
+	var bid map[string]any = ccxt.SafeMapTyped(levels, 0)
+	var ask map[string]any = ccxt.SafeMapTyped(levels, 1)
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
+		"symbol":    this.SafeString(marketResolved, "symbol"),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"bid":       this.SafeString(bid, "px"),
+		"bidVolume": this.SafeString(bid, "sz"),
+		"ask":       this.SafeString(ask, "px"),
+		"askVolume": this.SafeString(ask, "sz"),
+		"info":      ticker,
+	}, marketResolved))
 }
 
 /**
@@ -2651,6 +2856,27 @@ func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription an
 		delete(this.Tickers, symbols[i])
 	}
 }
+func (this *Hyperliquid) HandleBidAskUnsubscription(client any, subscription any) {
+	//
+	//        "subscription":{
+	//           "type":"bbo",
+	//           "coin":"BTC"
+	//        }
+	//
+	var coin *string = this.SafeString(subscription, "coin")
+	var marketId any = this.CoinToMarketId(coin)
+	var symbol *string = this.SafeSymbol(marketId)
+	var subMessageHash string = "bidask:" + *symbol
+	var messageHash string = "unsubscribe:" + subMessageHash
+	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
+	if symbol != nil {
+		if _, ok := this.Bidsasks[*symbol]; ok {
+			if symbol != nil {
+				delete(this.Bidsasks, *symbol)
+			}
+		}
+	}
+}
 func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any) {
 	//
 	var coin *string = this.SafeString(subscription, "coin")
@@ -2778,6 +3004,8 @@ func (this *Hyperliquid) HandleUnsubscription(client any, subscription any) {
 	var typeVar *string = this.SafeString(subscription, "type")
 	if typeVar != nil && *typeVar == "l2Book" {
 		this.HandleOrderBookUnsubscription(client, subscription)
+	} else if typeVar != nil && *typeVar == "bbo" {
+		this.HandleBidAskUnsubscription(client, subscription)
 	} else if typeVar != nil && *typeVar == "trades" {
 		this.HandleTradesUnsubscription(client, subscription)
 	} else if typeVar != nil && *typeVar == "candle" {
@@ -2819,6 +3047,7 @@ func (this *Hyperliquid) HandleMessage(client any, message map[string]any) {
 		"pong":                 this.HandlePong,
 		"trades":               this.HandleTrades,
 		"l2Book":               this.HandleOrderBook,
+		"bbo":                  this.HandleBidAsk,
 		"candle":               this.HandleOHLCV,
 		"orderUpdates":         this.HandleOrder,
 		"userFills":            this.HandleMyTrades,
@@ -3089,6 +3318,53 @@ func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...ccxt.UnWatch
 		opt(&opts)
 	}
 	r := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#watchBidsAsks
+ * @description watches the best bid & ask of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Hyperliquid) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
+
+	opts := ccxt.WatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
+	}
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#unWatchBidsAsks
+ * @description unWatches the best bid & ask of a market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} the exchange response
+ */
+func (this *Hyperliquid) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
+
+	opts := ccxt.UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

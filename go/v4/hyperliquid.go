@@ -53,16 +53,16 @@ func (this *Hyperliquid) Describe() map[string]any {
 			"createTriggerOrder":                   true,
 			"editOrder":                            true,
 			"editOrders":                           true,
-			"fetchAccounts":                        false,
+			"fetchAccounts":                        true,
 			"fetchBalance":                         true,
-			"fetchBorrowInterest":                  false,
+			"fetchBorrowInterest":                  true,
 			"fetchBorrowRateHistories":             false,
 			"fetchBorrowRateHistory":               false,
 			"fetchCanceledAndClosedOrders":         true,
 			"fetchCanceledOrders":                  true,
 			"fetchClosedOrders":                    true,
-			"fetchCrossBorrowRate":                 false,
-			"fetchCrossBorrowRates":                false,
+			"fetchCrossBorrowRate":                 true,
+			"fetchCrossBorrowRates":                true,
 			"fetchCurrencies":                      true,
 			"fetchDepositAddress":                  false,
 			"fetchDepositAddresses":                false,
@@ -77,11 +77,11 @@ func (this *Hyperliquid) Describe() map[string]any {
 			"fetchIsolatedBorrowRate":              false,
 			"fetchIsolatedBorrowRates":             false,
 			"fetchLedger":                          true,
-			"fetchLeverage":                        false,
-			"fetchLeverageTiers":                   false,
+			"fetchLeverage":                        true,
+			"fetchLeverageTiers":                   true,
 			"fetchLiquidations":                    false,
 			"fetchMarginMode":                      nil,
-			"fetchMarketLeverageTiers":             false,
+			"fetchMarketLeverageTiers":             "emulated",
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       false,
 			"fetchMyLiquidations":                  true,
@@ -1616,7 +1616,9 @@ func (this *Hyperliquid) fetchFundingRateBody(ch chan AsyncResult[FundingRate], 
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
  * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+ * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hyperliquid) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate] {
@@ -1639,6 +1641,50 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fu
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var method *string = this.SafeString(this.HandleOptionAndParams(params, "fetchFundingRates", "method", "metaAndAssetCtxs"), 0)
+	var paramsMethod map[string]any = this.SafeDictMap(this.HandleOptionAndParams(params, "fetchFundingRates", "method", "metaAndAssetCtxs"), 1, map[string]any{})
+	if method != nil && *method == "predictedFundings" {
+
+		r1 := <-this.PublicPostInfo(this.Extend(map[string]any{
+			"type": "predictedFundings",
+		}, paramsMethod))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		predictedResponse := r1.Value
+		//
+		//     [
+		//         [
+		//             "BTC",
+		//             [
+		//                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+		//                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+		//                 [ "BybitPerp", null ]
+		//             ]
+		//         ]
+		//     ]
+		//
+		var predicted []any = []any{}
+		if IsArray(predictedResponse) {
+			for i := 0; i < GetArrayLength(predictedResponse); i++ {
+				var coinEntry []any = SafeListTyped(predictedResponse, i)
+				var venues []any = SafeListTyped(coinEntry, 1)
+				var venuesByName map[string]any = map[string]any{}
+				for j := 0; j < len(venues); j++ {
+					var venue []any = SafeListTyped(venues, j)
+					var venueName string = *this.SafeString(venue, 0, "")
+					venuesByName[venueName] = this.SafeDict(venue, 1)
+				}
+				predicted = append(predicted, map[string]any{
+					"name":              this.SafeString(coinEntry, 0),
+					"predictedFundings": venuesByName,
+				})
+			}
+		}
+
+		ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(predicted, symbolsNormalized))}
+		return nil
+	}
 	var request map[string]any = map[string]any{
 		"type": "metaAndAssetCtxs",
 	}
@@ -1647,11 +1693,11 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fu
 		request["dex"] = dexName
 	}
 
-	r1 := <-this.PublicPostInfo(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.PublicPostInfo(this.Extend(request, paramsMethod))
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	response := r1.Value
+	response := r2.Value
 	//
 	//     [
 	//         {
@@ -1721,6 +1767,42 @@ func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) Funding
 	var base *string = this.SafeString(info, "name")
 	var marketId any = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId, market)
+	var predictedFundings map[string]any = SafeMapTyped(info, "predictedFundings")
+	if predictedFundings != nil {
+		//
+		//     {
+		//         "name": "BTC",
+		//         "predictedFundings": {
+		//             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+		//             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+		//             "BybitPerp": null
+		//         }
+		//     }
+		//
+		var predictedFunding map[string]any = SafeMapTyped(predictedFundings, "HlPerp")
+		var nextFundingTimestamp *int64 = this.SafeInteger(predictedFunding, "nextFundingTime")
+		var intervalHours string = *this.SafeString(predictedFunding, "fundingIntervalHours", "1")
+		return FundingRateFromMap(map[string]any{
+			"info":                     info,
+			"symbol":                   symbol,
+			"markPrice":                nil,
+			"indexPrice":               nil,
+			"interestRate":             nil,
+			"estimatedSettlePrice":     nil,
+			"timestamp":                nil,
+			"datetime":                 nil,
+			"fundingRate":              nil,
+			"fundingTimestamp":         nil,
+			"fundingDatetime":          nil,
+			"nextFundingRate":          this.SafeNumber(predictedFunding, "fundingRate"),
+			"nextFundingTimestamp":     nextFundingTimestamp,
+			"nextFundingDatetime":      this.Iso8601(nextFundingTimestamp),
+			"previousFundingRate":      nil,
+			"previousFundingTimestamp": nil,
+			"previousFundingDatetime":  nil,
+			"interval":                 intervalHours + "h",
+		})
+	}
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "markPx")
 	var oraclePx *float64 = this.SafeNumber(info, "oraclePx")
@@ -4960,12 +5042,14 @@ func (this *Hyperliquid) ParseOrderType(status *string) *string {
  * @description fetch all trades made by the user
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Hyperliquid) FetchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade] {
@@ -5000,15 +5084,18 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 	}
-	if since != nil {
+	var twap *bool = this.SafeBool(paramsPublicAddress, "twap", false)
+	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
+	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, []any{"until", "twap"})
+	if twap != nil && *twap {
+		request["type"] = "userTwapSliceFills"
+	} else if since != nil {
 		request["type"] = "userFillsByTime"
 		request["startTime"] = since
 	} else {
 		request["type"] = "userFills"
 	}
-	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
-	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")
-	if until != nil {
+	if (until != nil) && !(twap != nil && *twap) {
 		request["endTime"] = until
 	}
 
@@ -5041,6 +5128,40 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	var myFills []any = []any{}
 	if IsArray(response) {
 		myFills = ArrayTyped(response)
+	}
+	if twap != nil && *twap {
+		//
+		//     [
+		//         {
+		//             "fill": {
+		//                 "closedPnl": "0.0",
+		//                 "coin": "AVAX",
+		//                 "crossed": true,
+		//                 "dir": "Open Long",
+		//                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+		//                 "oid": 90542681,
+		//                 "px": "18.435",
+		//                 "side": "B",
+		//                 "startPosition": "26.86",
+		//                 "sz": "93.53",
+		//                 "time": 1681222254710,
+		//                 "fee": "0.01",
+		//                 "feeToken": "USDC",
+		//                 "tid": 118906512037719
+		//             },
+		//             "twapId": 3156
+		//         }
+		//     ]
+		//
+		var twapFills []any = []any{}
+		for i := 0; i < len(myFills); i++ {
+			var twapFill map[string]any = SafeMapTyped(myFills, i)
+			var fill map[string]any = this.SafeDictMap(twapFill, "fill", map[string]any{})
+			twapFills = append(twapFills, this.Extend(fill, map[string]any{
+				"twapId": this.SafeString(twapFill, "twapId"),
+			}))
+		}
+		myFills = twapFills
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(myFills, market, since, limit))}
@@ -5605,6 +5726,229 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	//
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+ * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+ */
+func (this *Hyperliquid) FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers] {
+	ch := make(chan AsyncResult[LeverageTiers], 1)
+	go this.fetchLeverageTiersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var request map[string]any = map[string]any{
+		"type": "meta",
+	}
+	var dexName any = this.GetDexFromSymbols("fetchLeverageTiers", symbolsNormalized)
+	if dexName != nil {
+		request["dex"] = dexName
+	}
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
+	//
+	//     {
+	//         "universe": [
+	//             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+	//             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+	//         ],
+	//         "marginTables": [
+	//             [
+	//                 54,
+	//                 {
+	//                     "description": "tiered 20x (2)",
+	//                     "marginTiers": [
+	//                         { "lowerBound": "0.0", "maxLeverage": 20 },
+	//                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+	//                     ]
+	//                 }
+	//             ]
+	//         ],
+	//         "collateralToken": 0
+	//     }
+	//
+	var universe []any = SafeListTyped(response, "universe")
+	var marginTables []any = SafeListTyped(response, "marginTables")
+	var tablesById map[string]any = map[string]any{}
+	for i := 0; i < len(marginTables); i++ {
+		var marginTable []any = SafeListTyped(marginTables, i)
+		var tableId string = *this.SafeString(marginTable, 0, "")
+		tablesById[tableId] = this.SafeDict(marginTable, 1, map[string]any{})
+	}
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	var tiers map[string]any = map[string]any{}
+	for i := 0; i < len(universe); i++ {
+		var asset map[string]any = this.SafeDictMap(universe, i, map[string]any{})
+		// the coin name resolves to the unified symbol, delisted assets have no market
+		var symbol any = this.CoinToMarketId(this.SafeString(asset, "name"))
+		var market any = this.SafeDict(this.Markets, symbol)
+		if IsEqual(market, nil) {
+			continue
+		}
+		if (symbolsLength > 0) && !this.InArray(symbol, symbolsNormalized) {
+			continue
+		}
+		var assetTable map[string]any = SafeMapTyped(tablesById, this.SafeString(asset, "marginTableId"))
+		var marginTiers any = this.SafeList(assetTable, "marginTiers")
+		if IsEqual(marginTiers, nil) {
+			// margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+			marginTiers = []any{map[string]any{
+				"lowerBound":  "0.0",
+				"maxLeverage": this.SafeInteger(asset, "maxLeverage"),
+			}}
+		}
+		AddElementToObject(tiers, symbol, this.ParseMarketLeverageTiers(this.Extend(asset, map[string]any{
+			"marginTiers": marginTiers,
+		}), market))
+	}
+
+	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(tiers)}
+	return nil
+}
+func (this *Hyperliquid) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
+	//
+	//     {
+	//         "szDecimals": 2,
+	//         "name": "SOL",
+	//         "maxLeverage": 20,
+	//         "marginTableId": 54,
+	//         "marginTiers": [
+	//             { "lowerBound": "0.0", "maxLeverage": 20 },
+	//             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+	//         ]
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marginTiers []any = SafeListTyped(info, "marginTiers")
+	var tiers []any = []any{}
+	for i := 0; i < len(marginTiers); i++ {
+		var tier map[string]any = this.SafeDictMap(marginTiers, i, map[string]any{})
+		var nextTier map[string]any = SafeMapTyped(marginTiers, i+1)
+		var maxLeverage *string = this.SafeString(tier, "maxLeverage")
+		// the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+		var maintenanceMarginRate *string = Precise.StringDiv("1", Precise.StringMul("2", maxLeverage))
+		tiers = append(tiers, map[string]any{
+			"tier":                  i + 1,
+			"symbol":                this.SafeString(market, "symbol"),
+			"currency":              this.SafeString(market, "settle"),
+			"minNotional":           this.SafeNumber(tier, "lowerBound"),
+			"maxNotional":           this.SafeNumber(nextTier, "lowerBound"),
+			"maintenanceMarginRate": this.ParseNumber(maintenanceMarginRate),
+			"maxLeverage":           this.ParseNumber(maxLeverage),
+			"info":                  tier,
+		})
+	}
+	return tiers
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchLeverage
+ * @description fetch the set leverage and margin mode for a swap market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+ */
+func (this *Hyperliquid) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[Leverage] {
+	ch := make(chan AsyncResult[Leverage], 1)
+	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	if !(market["swap"] == true) {
+		panic(NotSupported(this.Id + " fetchLeverage() supports swap markets only"))
+	}
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchLeverage", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchLeverage", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "activeAssetData",
+		"user": userAddress,
+		"coin": this.SafeString(market, "baseName"),
+	}
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
+
+	//
+	//     {
+	//         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+	//         "coin": "SOL",
+	//         "leverage": {
+	//             "type": "cross", // or "isolated", which also carries "rawUsd"
+	//             "value": 20
+	//         },
+	//         "maxTradeSzs": [ "13.63", "13.63" ],
+	//         "availableToTrade": [ "48.103059", "48.103059" ],
+	//         "markPx": "70.58"
+	//     }
+	//
+	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(response, market)}
+	return nil
+}
+func (this *Hyperliquid) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var leverageInfo map[string]any = SafeMapTyped(leverage, "leverage")
+	var leverageValue *int64 = this.SafeInteger(leverageInfo, "value")
+	var coin *string = this.SafeString(leverage, "coin")
+	var marketId any = nil
+	if coin != nil {
+		marketId = this.CoinToMarketId(coin)
+	}
+	return LeverageFromMap(map[string]any{
+		"info":          leverage,
+		"symbol":        this.SafeSymbol(marketId, market),
+		"marginMode":    this.SafeStringLower(leverageInfo, "type"),
+		"longLeverage":  leverageValue,
+		"shortLeverage": leverageValue,
+	})
 }
 
 /**
@@ -7015,6 +7359,1211 @@ func (this *Hyperliquid) reserveRequestWeightBody(ch chan AsyncResult[map[string
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
+func (this *Hyperliquid) BuildApproveAgentSig(message map[string]any) any {
+	var messageTypes map[string]any = map[string]any{
+		"HyperliquidTransaction:ApproveAgent": []any{map[string]any{
+			"name": "hyperliquidChain",
+			"type": "string",
+		}, map[string]any{
+			"name": "agentAddress",
+			"type": "address",
+		}, map[string]any{
+			"name": "agentName",
+			"type": "string",
+		}, map[string]any{
+			"name": "nonce",
+			"type": "uint64",
+		}},
+	}
+	return this.SignUserSignedAction(messageTypes, message)
+}
+
+/**
+ * @method
+ * @name hyperliquid#approveAgent
+ * @description approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+ * @param {string} agentAddress the address of the API wallet to approve
+ * @param {string} [agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) ApproveAgentAsync(agentAddress any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.approveAgentBody(ch, agentAddress, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) approveAgentBody(ch chan AsyncResult[any], agentAddress any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var agentName *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = agentName
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var nonce int64 = this.IncrementingNonce()
+	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	var hyperliquidChain string
+	if isSandboxMode != nil && *isSandboxMode {
+		hyperliquidChain = "Testnet"
+	} else {
+		hyperliquidChain = "Mainnet"
+	}
+	// the name is always part of the signed message, it is empty for the unnamed API wallet
+	var payload map[string]any = map[string]any{
+		"hyperliquidChain": hyperliquidChain,
+		"agentAddress":     agentAddress,
+		"agentName": func() any {
+			if agentName == nil {
+				return ""
+			}
+			return agentName
+		}(),
+		"nonce": nonce,
+	}
+	var sig any = this.BuildApproveAgentSig(payload)
+	var action map[string]any = map[string]any{
+		"hyperliquidChain": hyperliquidChain,
+		"signatureChainId": "0x66eee",
+		"agentAddress":     agentAddress,
+		"nonce":            nonce,
+		"type":             "approveAgent",
+	}
+	if agentName != nil {
+		action["agentName"] = agentName
+	}
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": sig,
+	}
+	//
+	//     {
+	//         "status": "ok",
+	//         "response": {
+	//             "type": "default"
+	//         }
+	//     }
+	//
+
+	r := <-this.PrivatePostExchange(this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Raw
+
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#noop
+ * @description sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+ * @param {int} [nonce] the nonce to mark as used, a new one is generated when omitted
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) NoopAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.noopBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) noopBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var nonce *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = nonce
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var action map[string]any = map[string]any{
+		"type": "noop",
+	}
+
+	r := <-this.PostL1ActionAsync(action, nonce, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#claimRewards
+ * @description claims the rewards earned by the account
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) ClaimRewardsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.claimRewardsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) claimRewardsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var action map[string]any = map[string]any{
+		"type": "claimRewards",
+	}
+
+	r := <-this.PostL1ActionAsync(action, nil, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#postL1Action
+ * @description signs an L1 action that has no market or order data and posts it to the exchange endpoint
+ * @param {object} action the action to sign and send
+ * @param {int} [nonce] the nonce to sign with, a new one is generated when omitted
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) PostL1ActionAsync(action map[string]any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.postL1ActionBody(ch, action, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) postL1ActionBody(ch chan AsyncResult[any], action map[string]any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	nonce := GetArg(optionalArgs, 0, nil)
+	_ = nonce
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var requestNonce any = func() any {
+		if nonce == nil {
+			return this.IncrementingNonce()
+		}
+		return nonce
+	}()
+	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
+	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var signature any = this.SignL1Action(action, requestNonce, vaultAddress)
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     requestNonce,
+		"signature": signature,
+	}
+	if vaultAddress != nil {
+		request["vaultAddress"] = vaultAddress
+	}
+	//
+	//     {
+	//         "status": "ok",
+	//         "response": {
+	//             "type": "default"
+	//         }
+	//     }
+	//
+
+	r := <-this.PrivatePostExchange(this.Extend(request, paramsVault))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Raw
+
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#usdSend
+ * @description sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+ * @param {float} amount the amount of USDC to send
+ * @param {string} address the address to send to
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) UsdSendAsync(amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.usdSendBody(ch, amount, address, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) usdSendBody(ch chan AsyncResult[any], amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckAddress(address)
+	var nonce int64 = this.IncrementingNonce()
+	var messageTypes []any = []any{map[string]any{
+		"name": "hyperliquidChain",
+		"type": "string",
+	}, map[string]any{
+		"name": "destination",
+		"type": "string",
+	}, map[string]any{
+		"name": "amount",
+		"type": "string",
+	}, map[string]any{
+		"name": "time",
+		"type": "uint64",
+	}}
+	var message map[string]any = map[string]any{
+		"hyperliquidChain": this.HyperliquidChainName(),
+		"destination":      address,
+		"amount":           this.NumberToString(amount),
+		"time":             nonce,
+	}
+
+	r := <-this.PostUserSignedActionAsync("usdSend", "HyperliquidTransaction:UsdSend", messageTypes, message, nonce, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#spotSend
+ * @description sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+ * @param {string} code unified currency code of the asset to send
+ * @param {float} amount the amount to send
+ * @param {string} address the address to send to
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) SpotSendAsync(code any, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.spotSendBody(ch, code, amount, address, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) spotSendBody(ch chan AsyncResult[any], code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	this.CheckAddress(address)
+	var currency map[string]any = this.Currency(code)
+	var currencyInfo map[string]any = SafeMapTyped(currency, "info")
+	var nonce int64 = this.IncrementingNonce()
+	var messageTypes []any = []any{map[string]any{
+		"name": "hyperliquidChain",
+		"type": "string",
+	}, map[string]any{
+		"name": "destination",
+		"type": "string",
+	}, map[string]any{
+		"name": "token",
+		"type": "string",
+	}, map[string]any{
+		"name": "amount",
+		"type": "string",
+	}, map[string]any{
+		"name": "time",
+		"type": "uint64",
+	}}
+	var message map[string]any = map[string]any{
+		"hyperliquidChain": this.HyperliquidChainName(),
+		"destination":      address,
+		"token":            *this.SafeString(currencyInfo, "name", "") + ":" + *this.SafeString(currencyInfo, "tokenId", ""),
+		"amount":           this.NumberToString(amount),
+		"time":             nonce,
+	}
+
+	r1 := <-this.PostUserSignedActionAsync("spotSend", "HyperliquidTransaction:SpotSend", messageTypes, message, nonce, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- AsyncResult[any]{Value: r1.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#stakingDeposit
+ * @description moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+ * @param {float} amount the amount of HYPE to move into staking
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) StakingDepositAsync(amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.stakingDepositBody(ch, amount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) stakingDepositBody(ch chan AsyncResult[any], amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var nonce int64 = this.IncrementingNonce()
+	var messageTypes []any = []any{map[string]any{
+		"name": "hyperliquidChain",
+		"type": "string",
+	}, map[string]any{
+		"name": "wei",
+		"type": "uint64",
+	}, map[string]any{
+		"name": "nonce",
+		"type": "uint64",
+	}}
+	var message map[string]any = map[string]any{
+		"hyperliquidChain": this.HyperliquidChainName(),
+		"wei":              this.HypeToWei(amount),
+		"nonce":            nonce,
+	}
+
+	r := <-this.PostUserSignedActionAsync("cDeposit", "HyperliquidTransaction:CDeposit", messageTypes, message, nonce, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#stakingWithdraw
+ * @description moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+ * @param {float} amount the amount of HYPE to move out of staking
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) StakingWithdrawAsync(amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.stakingWithdrawBody(ch, amount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) stakingWithdrawBody(ch chan AsyncResult[any], amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var nonce int64 = this.IncrementingNonce()
+	var messageTypes []any = []any{map[string]any{
+		"name": "hyperliquidChain",
+		"type": "string",
+	}, map[string]any{
+		"name": "wei",
+		"type": "uint64",
+	}, map[string]any{
+		"name": "nonce",
+		"type": "uint64",
+	}}
+	var message map[string]any = map[string]any{
+		"hyperliquidChain": this.HyperliquidChainName(),
+		"wei":              this.HypeToWei(amount),
+		"nonce":            nonce,
+	}
+
+	r := <-this.PostUserSignedActionAsync("cWithdraw", "HyperliquidTransaction:CWithdraw", messageTypes, message, nonce, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#tokenDelegate
+ * @description delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+ * @param {string} validator the address of the validator
+ * @param {float} amount the amount of HYPE to delegate or undelegate
+ * @param {boolean} [isUndelegate] true to undelegate, false (default) to delegate
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) TokenDelegateAsync(validator any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.tokenDelegateBody(ch, validator, amount, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) tokenDelegateBody(ch chan AsyncResult[any], validator any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var isUndelegate bool = GetArgBool(optionalArgs, 0, false)
+	_ = isUndelegate
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	this.CheckAddress(validator)
+	var nonce int64 = this.IncrementingNonce()
+	var messageTypes []any = []any{map[string]any{
+		"name": "hyperliquidChain",
+		"type": "string",
+	}, map[string]any{
+		"name": "validator",
+		"type": "address",
+	}, map[string]any{
+		"name": "wei",
+		"type": "uint64",
+	}, map[string]any{
+		"name": "isUndelegate",
+		"type": "bool",
+	}, map[string]any{
+		"name": "nonce",
+		"type": "uint64",
+	}}
+	var message map[string]any = map[string]any{
+		"hyperliquidChain": this.HyperliquidChainName(),
+		"validator":        validator,
+		"wei":              this.HypeToWei(amount),
+		"isUndelegate":     isUndelegate,
+		"nonce":            nonce,
+	}
+
+	r := <-this.PostUserSignedActionAsync("tokenDelegate", "HyperliquidTransaction:TokenDelegate", messageTypes, message, nonce, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#hyperliquidChainName
+ * @description the chain name that user-signed actions are signed for
+ * @returns {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+ */
+func (this *Hyperliquid) HyperliquidChainName() string {
+	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
+	return func() string {
+		if isSandboxMode != nil && *isSandboxMode {
+			return "Testnet"
+		}
+		return "Mainnet"
+	}()
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#hypeToWei
+ * @description converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+ * @param {float} amount the amount of HYPE
+ * @returns {int} the amount in wei
+ */
+func (this *Hyperliquid) HypeToWei(amount any) any {
+	return this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "100000000"))
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#postUserSignedAction
+ * @description signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+ * @param {string} actionType the type of the action
+ * @param {string} primaryType the EIP-712 primary type of the message
+ * @param {object[]} messageTypes the EIP-712 fields of the message
+ * @param {object} message the message to sign, its fields are sent as the action
+ * @param {int} nonce the nonce of the request
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a response object
+ */
+func (this *Hyperliquid) PostUserSignedActionAsync(actionType string, primaryType string, messageTypes []any, message map[string]any, nonce any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.postUserSignedActionBody(ch, actionType, primaryType, messageTypes, message, nonce, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) postUserSignedActionBody(ch chan AsyncResult[any], actionType string, primaryType string, messageTypes []any, message map[string]any, nonce any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var types map[string]any = map[string]any{}
+	types[primaryType] = messageTypes
+	var signature any = this.SignUserSignedAction(types, message)
+	var action map[string]any = this.Extend(message, map[string]any{
+		"signatureChainId": "0x66eee",
+		"type":             actionType,
+	})
+	var request map[string]any = map[string]any{
+		"action":    action,
+		"nonce":     nonce,
+		"signature": signature,
+	}
+	//
+	//     {
+	//         "status": "ok",
+	//         "response": {
+	//             "type": "default"
+	//         }
+	//     }
+	//
+
+	r := <-this.PrivatePostExchange(this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Raw
+
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchApprovedBuilders
+ * @description fetch the addresses of the builders the user approved a builder fee for
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {string[]} a list of builder addresses
+ */
+func (this *Hyperliquid) FetchApprovedBuildersAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchApprovedBuildersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchApprovedBuildersBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchApprovedBuilders", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchApprovedBuilders", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "approvedBuilders",
+		"user": userAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+
+	//
+	//     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+	//
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchVaultDetails
+ * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+ * @param {string} vaultAddress the address of the vault
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+ * @returns {object} the vault details as returned by the exchange
+ */
+func (this *Hyperliquid) FetchVaultDetailsAsync(vaultAddress any, optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchVaultDetailsBody(ch, vaultAddress, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchVaultDetailsBody(ch chan AsyncResult[any], vaultAddress any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"type":         "vaultDetails",
+		"vaultAddress": vaultAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, params))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+
+	//
+	//     {
+	//         "name": "Test",
+	//         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+	//         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+	//         "description": "This community-owned vault provides liquidity to Hyperliquid",
+	//         "portfolio": [
+	//             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+	//         ],
+	//         "apr": 0.36387129259090006,
+	//         "followerState": null,
+	//         "leaderFraction": 0.0007904828725729887,
+	//         "leaderCommission": 0,
+	//         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+	//         "maxDistributable": 94856870.164485,
+	//         "maxWithdrawable": 742557.680863,
+	//         "isClosed": false,
+	//         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+	//         "allowDeposits": true,
+	//         "alwaysCloseOnWithdraw": false
+	//     }
+	//
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingDelegations
+ * @description fetch the amounts of HYPE the user delegated to each validator
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of delegations as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingDelegationsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchStakingDelegationsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchStakingDelegationsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchStakingDelegations", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchStakingDelegations", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "delegations",
+		"user": userAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+
+	//
+	//     [
+	//         {
+	//             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+	//             "amount": "12060.16529862",
+	//             "lockedUntilTimestamp": 1735466781353
+	//         }
+	//     ]
+	//
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingSummary
+ * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} the staking summary as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingSummaryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchStakingSummaryBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchStakingSummaryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchStakingSummary", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchStakingSummary", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "delegatorSummary",
+		"user": userAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+
+	//
+	//     {
+	//         "delegated": "12060.16529862",
+	//         "undelegated": "0.0",
+	//         "totalPendingWithdrawal": "0.0",
+	//         "nPendingWithdrawals": 0
+	//     }
+	//
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingHistory
+ * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of staking events as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingHistoryAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchStakingHistoryBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchStakingHistoryBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchStakingHistory", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchStakingHistory", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "delegatorHistory",
+		"user": userAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+
+	//
+	//     [
+	//         {
+	//             "time": 1735380381353,
+	//             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+	//             "delta": {
+	//                 "delegate": {
+	//                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+	//                     "amount": "10000.0",
+	//                     "isUndelegate": false
+	//                 }
+	//             }
+	//         }
+	//     ]
+	//
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingRewards
+ * @description fetch the staking rewards earned by the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of staking rewards as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingRewardsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
+	ch := make(chan AsyncResult[any], 1)
+	go this.fetchStakingRewardsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchStakingRewardsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchStakingRewards", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchStakingRewards", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "delegatorRewards",
+		"user": userAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+
+	//
+	//     [
+	//         {
+	//             "time": 1736726400073,
+	//             "source": "delegation",
+	//             "totalAmount": "0.73117184"
+	//         }
+	//     ]
+	//
+	ch <- AsyncResult[any]{Value: response}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchAccounts
+ * @description fetch the sub-accounts of a master account
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+ */
+func (this *Hyperliquid) FetchAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]Account] {
+	ch := make(chan AsyncResult[[]Account], 1)
+	go this.fetchAccountsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchAccounts", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchAccounts", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "subAccounts",
+		"user": userAddress,
+	}
+
+	r := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	response := r.Value
+	//
+	//     [
+	//         {
+	//             "name": "Test",
+	//             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+	//             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+	//             "clearinghouseState": {
+	//                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+	//                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+	//                 "crossMaintenanceMarginUsed": "0.0",
+	//                 "withdrawable": "29.78001",
+	//                 "assetPositions": [],
+	//                 "time": 1733968369395
+	//             },
+	//             "spotState": {
+	//                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+	//             }
+	//         }
+	//     ]
+	//
+	// the response is null when the account has no sub-accounts
+	var result []any = []any{}
+	if IsArray(response) {
+		for i := 0; i < GetArrayLength(response); i++ {
+			result = append(result, this.ParseAccount(this.SafeDict(response, i, map[string]any{})))
+		}
+	}
+
+	ch <- AsyncResult[[]Account]{Value: AccountsFromList(result)}
+	return nil
+}
+func (this *Hyperliquid) ParseAccount(account any) map[string]any {
+	return map[string]any{
+		"id":   this.SafeString(account, "subAccountUser"),
+		"type": "subaccount",
+		"name": this.SafeString(account, "name"),
+		"code": nil,
+		"info": account,
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCrossBorrowRates
+ * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+ */
+func (this *Hyperliquid) FetchCrossBorrowRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]CrossBorrowRate] {
+	ch := make(chan AsyncResult[map[string]CrossBorrowRate], 1)
+	go this.fetchCrossBorrowRatesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchCrossBorrowRatesBody(ch chan AsyncResult[map[string]CrossBorrowRate], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var request map[string]any = map[string]any{
+		"type": "allBorrowLendReserveStates",
+	}
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
+	//
+	//     [
+	//         [
+	//             0,
+	//             {
+	//                 "borrowYearlyRate": "0.05",
+	//                 "supplyYearlyRate": "0.0249808267",
+	//                 "balance": "284714721.5832400322",
+	//                 "utilization": "0.5551294814",
+	//                 "oraclePx": "1.0",
+	//                 "ltv": "0.0",
+	//                 "totalSupplied": "639994288.7804760933",
+	//                 "totalBorrowed": "355279697.6056296229"
+	//             }
+	//         ]
+	//     ]
+	//
+	var rates map[string]any = map[string]any{}
+	if IsArray(response) {
+		for i := 0; i < GetArrayLength(response); i++ {
+			var reserve []any = SafeListTyped(response, i)
+			var reserveState map[string]any = this.SafeDictMap(reserve, 1, map[string]any{})
+			var rate map[string]any = this.ParseBorrowRate(this.Extend(reserveState, map[string]any{
+				"token": this.SafeString(reserve, 0),
+			}))
+			var code string = *this.SafeString(rate, "currency", "")
+			rates[code] = rate
+		}
+	}
+
+	ch <- AsyncResult[map[string]CrossBorrowRate]{Value: CrossBorrowRateMapFromMap(rates)}
+	return nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCrossBorrowRate
+ * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+ */
+func (this *Hyperliquid) FetchCrossBorrowRateAsync(code string, optionalArgs ...any) <-chan AsyncResult[CrossBorrowRate] {
+	ch := make(chan AsyncResult[CrossBorrowRate], 1)
+	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate], code string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var currency map[string]any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"type":  "borrowLendReserveState",
+		"token": this.ParseToInt(currency["id"]),
+	}
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
+
+	//
+	//     {
+	//         "borrowYearlyRate": "0.05",
+	//         "supplyYearlyRate": "0.0008245002",
+	//         "balance": "3245939.4732256099",
+	//         "utilization": "0.018322226",
+	//         "oraclePx": "1.0",
+	//         "ltv": "0.0",
+	//         "totalSupplied": "3306509.7335290499",
+	//         "totalBorrowed": "60582.61869494"
+	//     }
+	//
+	ch <- AsyncResult[CrossBorrowRate]{Value: CrossBorrowRateFromMap(this.ParseBorrowRate(this.Extend(response, map[string]any{
+		"token": currency["id"],
+	}), currency))}
+	return nil
+}
+
+/**
+ * @method
+ * @ignore
+ * @name hyperliquid#tokenIndexToCurrencyCode
+ * @description resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+ * @param {string} tokenIndex the index of the token
+ * @returns {string} the unified currency code
+ */
+func (this *Hyperliquid) TokenIndexToCurrencyCode(tokenIndex *string) any {
+	var cachedCurrencies map[string]any = SafeMapTyped(this.Options, "cachedCurrenciesById")
+	var tokenName *string = this.SafeString(cachedCurrencies, tokenIndex)
+	if tokenName != nil {
+		return this.SafeCurrencyCode(tokenName)
+	}
+	// the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
+	var codes []string = nil
+	if this.Currencies != nil {
+		codes = make([]string, 0, len(this.Currencies))
+		for objectKey := range this.Currencies {
+			codes = append(codes, objectKey)
+		}
+	}
+	for i := 0; i < len(codes); i++ {
+		var code string = codes[i]
+		var currencyInfo map[string]any = SafeMapTyped(this.Currencies[code], "info")
+		if this.SafeString(currencyInfo, "index") == tokenIndex || (this.SafeString(currencyInfo, "index") != nil && tokenIndex != nil && *this.SafeString(currencyInfo, "index") == *tokenIndex) {
+			return code
+		}
+	}
+	return this.SafeCurrencyCode(tokenIndex)
+}
+func (this *Hyperliquid) ParseBorrowRate(info any, optionalArgs ...any) map[string]any {
+	//
+	//     {
+	//         "token": "0",
+	//         "borrowYearlyRate": "0.05",
+	//         "supplyYearlyRate": "0.0249808267",
+	//         "balance": "284714721.5832400322",
+	//         "utilization": "0.5551294814",
+	//         "oraclePx": "1.0",
+	//         "ltv": "0.0",
+	//         "totalSupplied": "639994288.7804760933",
+	//         "totalBorrowed": "355279697.6056296229"
+	//     }
+	//
+	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = currency
+	return map[string]any{
+		"currency":  this.TokenIndexToCurrencyCode(this.SafeString(info, "token")),
+		"rate":      this.SafeNumber(info, "borrowYearlyRate"),
+		"period":    31536000000,
+		"timestamp": nil,
+		"datetime":  nil,
+		"info":      info,
+	}
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchBorrowInterest
+ * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+ * @param {string} [code] unified currency code
+ * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+ * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+ * @param {int} [limit] the maximum number of structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+ */
+func (this *Hyperliquid) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[[]BorrowInterest] {
+	ch := make(chan AsyncResult[[]BorrowInterest], 1)
+	go this.fetchBorrowInterestBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Hyperliquid) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
+	_ = code
+	var symbol *string = GetArgStringPtr(optionalArgs, 1, nil)
+	_ = symbol
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
+	_ = since
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 3, nil)
+	_ = limit
+	var params map[string]any = GetArgMap(optionalArgs, 4, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var userAddress *string = this.SafeString(this.HandlePublicAddress("fetchBorrowInterest", params), 0)
+	var paramsPublicAddress map[string]any = this.SafeDictMap(this.HandlePublicAddress("fetchBorrowInterest", params), 1, map[string]any{})
+	var request map[string]any = map[string]any{
+		"type": "borrowLendUserState",
+		"user": userAddress,
+	}
+
+	r1 := <-this.PublicPostInfo(this.Extend(request, paramsPublicAddress))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	response := r1.Value
+	//
+	//     {
+	//         "tokenToState": [
+	//             [
+	//                 0,
+	//                 {
+	//                     "borrow": { "basis": "100.0", "value": "100.25" },
+	//                     "supply": { "basis": "0.0", "value": "0.0" }
+	//                 }
+	//             ]
+	//         ],
+	//         "health": "healthy",
+	//         "healthFactor": null
+	//     }
+	//
+	var tokenToState []any = SafeListTyped(response, "tokenToState")
+	var interests []any = []any{}
+	for i := 0; i < len(tokenToState); i++ {
+		var tokenState []any = SafeListTyped(tokenToState, i)
+		var state map[string]any = this.SafeDictMap(tokenState, 1, map[string]any{})
+		var borrow map[string]any = SafeMapTyped(state, "borrow")
+		// tokens that are only supplied have nothing borrowed
+		if Precise.StringGt(this.SafeString(borrow, "value", "0"), "0") {
+			interests = append(interests, this.Extend(state, map[string]any{
+				"token": this.SafeString(tokenState, 0),
+			}))
+		}
+	}
+	var parsed any = this.ParseBorrowInterests(interests)
+
+	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(parsed, code, nil, limit))}
+	return nil
+}
+func (this *Hyperliquid) ParseBorrowInterest(info any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "token": "0",
+	//         "borrow": { "basis": "100.0", "value": "100.25" },
+	//         "supply": { "basis": "0.0", "value": "0.0" }
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var borrow map[string]any = SafeMapTyped(info, "borrow")
+	var borrowed *string = this.SafeString(borrow, "value")
+	// the basis is the amount borrowed, the value includes the interest accrued since
+	var interest *string = Precise.StringSub(borrowed, this.SafeString(borrow, "basis"))
+	return map[string]any{
+		"info":           info,
+		"symbol":         nil,
+		"currency":       this.TokenIndexToCurrencyCode(this.SafeString(info, "token")),
+		"interest":       this.ParseNumber(interest),
+		"interestRate":   nil,
+		"amountBorrowed": this.ParseNumber(borrowed),
+		"marginMode":     "cross",
+		"timestamp":      nil,
+		"datetime":       nil,
+	}
+}
 
 /**
  * @method
@@ -7482,7 +9031,9 @@ func (this *Hyperliquid) FetchFundingRate(symbol string, options ...FetchFunding
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
  * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+ * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hyperliquid) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
@@ -8054,12 +9605,14 @@ func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (Or
  * @description fetch all trades made by the user
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
@@ -8182,6 +9735,57 @@ func (this *Hyperliquid) SetMarginMode(marginMode string, options ...SetMarginMo
 		return map[string]any{}, r.Err
 	}
 	var res map[string]any = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+ * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+ */
+func (this *Hyperliquid) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
+
+	opts := FetchLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchLeverageTiersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return LeverageTiers{}, r.Err
+	}
+	var res LeverageTiers = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchLeverage
+ * @description fetch the set leverage and margin mode for a swap market
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+ */
+func (this *Hyperliquid) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
+
+	opts := FetchLeverageOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchLeverageAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return Leverage{}, r.Err
+	}
+	var res Leverage = r.Value
 	return res, nil
 }
 
@@ -8453,6 +10057,208 @@ func (this *Hyperliquid) FetchFundingHistory(options ...FetchFundingHistoryOptio
 		return nil, r.Err
 	}
 	var res []FundingHistory = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchApprovedBuilders
+ * @description fetch the addresses of the builders the user approved a builder fee for
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {string[]} a list of builder addresses
+ */
+func (this *Hyperliquid) FetchApprovedBuilders(params ...any) ([]map[string]any, error) {
+	r := <-this.FetchApprovedBuildersAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []map[string]any = NewMapArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchVaultDetails
+ * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+ * @param {string} vaultAddress the address of the vault
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+ * @returns {object} the vault details as returned by the exchange
+ */
+func (this *Hyperliquid) FetchVaultDetails(vaultAddress string, options ...FetchVaultDetailsOptions) (map[string]any, error) {
+
+	opts := FetchVaultDetailsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchVaultDetailsAsync(vaultAddress, opts.Params)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
+	}
+	var res map[string]any = r.Value.(map[string]any)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingDelegations
+ * @description fetch the amounts of HYPE the user delegated to each validator
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of delegations as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingDelegations(params ...any) ([]map[string]any, error) {
+	r := <-this.FetchStakingDelegationsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []map[string]any = NewMapArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingSummary
+ * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object} the staking summary as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingSummary(params ...any) (map[string]any, error) {
+	r := <-this.FetchStakingSummaryAsync(params...)
+	if r.Err != nil {
+		return map[string]any{}, r.Err
+	}
+	var res map[string]any = r.Value.(map[string]any)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingHistory
+ * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of staking events as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingHistory(params ...any) ([]map[string]any, error) {
+	r := <-this.FetchStakingHistoryAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []map[string]any = NewMapArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchStakingRewards
+ * @description fetch the staking rewards earned by the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of staking rewards as returned by the exchange
+ */
+func (this *Hyperliquid) FetchStakingRewards(params ...any) ([]map[string]any, error) {
+	r := <-this.FetchStakingRewardsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []map[string]any = NewMapArray(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchAccounts
+ * @description fetch the sub-accounts of a master account
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+ */
+func (this *Hyperliquid) FetchAccounts(params ...any) ([]Account, error) {
+	r := <-this.FetchAccountsAsync(params...)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []Account = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCrossBorrowRates
+ * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+ */
+func (this *Hyperliquid) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
+	r := <-this.FetchCrossBorrowRatesAsync(params...)
+	if r.Err != nil {
+		return CrossBorrowRates{}, r.Err
+	}
+	var res CrossBorrowRates = CrossBorrowRates{CrossBorrowRates: r.Value}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchCrossBorrowRate
+ * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+ * @param {string} code unified currency code
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+ */
+func (this *Hyperliquid) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+
+	opts := FetchCrossBorrowRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchCrossBorrowRateAsync(code, opts.Params)
+	if r.Err != nil {
+		return CrossBorrowRate{}, r.Err
+	}
+	var res CrossBorrowRate = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#fetchBorrowInterest
+ * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+ * @param {string} [code] unified currency code
+ * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+ * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+ * @param {int} [limit] the maximum number of structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+ */
+func (this *Hyperliquid) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
+
+	opts := FetchBorrowInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchBorrowInterestAsync(opts.Code, opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []BorrowInterest = r.Value
 	return res, nil
 }
 
