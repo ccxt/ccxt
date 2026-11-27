@@ -2516,7 +2516,8 @@ export default class polymarket extends Exchange {
         const request: Dict = {
             'marginMode': marginMode,
         };
-        return await this.setLeverage (leverage, symbol, this.extend (request, paramsOmitted));
+        const leverageInt: int = this.parseToInt (leverage);
+        return await this.setLeverage (leverageInt, symbol, this.extend (request, paramsOmitted));
     }
 
     /**

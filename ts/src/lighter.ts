@@ -3209,7 +3209,7 @@ export default class lighter extends Exchange {
         const signer = await this.loadAccount (this.safeInteger (this.options, 'chainId'), this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const market = this.market (symbol);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, paramsAccountIndex);
-        const leverageNum = this.parseNumber (leverage);
+        const leverageNum: number = this.parseNumber (leverage);
         if ((leverageNum === undefined) || (leverageNum <= 0)) {
             throw new BadRequest (this.id + ' modifyLeverageAndMarginMode() requires leverage > 0');
         }

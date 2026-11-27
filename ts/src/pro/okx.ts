@@ -2852,7 +2852,13 @@ export default class okx extends okxRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        this.cleanUnsubscription (client, channel + ':' + this.marketId (symbol), undefined);
+        const marketId = this.marketId (symbol);
+        if (marketId !== undefined) {
+            const marketSubHash = channel + ':' + marketId;
+            this.cleanUnsubscription (client, marketSubHash, undefined);
+        } else {
+            this.cleanUnsubscription (client, undefined, undefined);
+        }
         if (timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }

@@ -232,7 +232,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const client = this.client (url);
         this.watchMultiple (url, unWatchMessageHashes, this.deepExtend (request, paramsResolved), unWatchMessageHashes);
         for (let i = 0; i < channelsLength; i++) {
-            this.cleanUnsubscription (client, this.safeString (channels, i, ''), this.safeString (unWatchMessageHashes, i, ''));
+            const channel = this.safeString (channels, i, '');
+            this.cleanUnsubscription (client, channel, this.safeString (unWatchMessageHashes, i, ''));
         }
         return true;
     }
