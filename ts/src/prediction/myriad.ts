@@ -3408,7 +3408,7 @@ export default class myriad extends Exchange {
         const info = this.safeDict (outcomeObj, 'info', {});
         const networkId = this.safeString (info, 'networkId', '');
         const marketId = this.safeString (info, 'marketId', '');
-        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const sym = this.safeString (outcomeObj, 'outcome');
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
         const trades: ArrayCacheByOutcomeById = await this.subscribeMyriadChannel (messageHash, channel, params);

@@ -1978,7 +1978,7 @@ export default class opinion extends Exchange {
         const marketId = this.safeInteger (info, 'marketId');
         const messageHash = 'orders';
         const orders = await this.subscribeOpinionChannel (messageHash, 'trade.order.update', marketId);
-        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const sym = this.safeString (outcomeObj, 'outcome');
         return this.filterByValueSinceLimit (orders, 'outcome', sym, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
@@ -2099,7 +2099,7 @@ export default class opinion extends Exchange {
         const marketId = this.safeInteger (info, 'marketId');
         const messageHash = 'myTrades';
         const trades = await this.subscribeOpinionChannel (messageHash, 'trade.record.new', marketId);
-        const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
+        const sym = this.safeString (outcomeObj, 'outcome');
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 

@@ -1021,7 +1021,7 @@ export default class predictfun extends Exchange {
      * @param {int} [marketCount] how many markets the topic carries
      * @returns {string} the title to append, or the slug itself when the topic holds a single market
      */
-    titleForMarketSymbol (topicSlug: Str, title: Str, marketCount: Int = undefined): Str {
+    titleForMarketSymbol (topicSlug: Str, title: Str, marketCount: Int = undefined): string {
         // a topic holding one market needs nothing to tell its markets apart, and the title there
         // only restates the slug in another spelling - the venue writes the same window as
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
@@ -1031,7 +1031,7 @@ export default class predictfun extends Exchange {
             return topicSlug;
         }
         if (title === undefined) {
-            return undefined;
+            return '';
         }
         return this.stripPriceFormatting (title);
     }
