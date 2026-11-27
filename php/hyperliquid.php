@@ -2479,6 +2479,9 @@ class hyperliquid extends Exchange {
             $defaultTimeInForce = 'alo';
         }
         $timeInForceLower = $this->safe_string_lower($params, 'timeInForce', $defaultTimeInForce);
+        if ($timeInForceLower === 'po') {
+            $timeInForceLower = 'alo'; // the unified post-only time in force is called Alo on hyperliquid
+        }
         $timeInForce = $this->capitalize($timeInForceLower);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
@@ -3076,6 +3079,9 @@ class hyperliquid extends Exchange {
                 $defaultTimeInForce = 'alo';
             }
             $timeInForceLower = $this->safe_string_lower($orderParams, 'timeInForce', $defaultTimeInForce);
+            if ($timeInForceLower === 'po') {
+                $timeInForceLower = 'alo'; // the unified post-only time in force is called Alo on hyperliquid
+            }
             $timeInForce = $this->capitalize($timeInForceLower);
             $clientOrderId = $this->safe_string_2($orderParams, 'clientOrderId', 'client_id');
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
