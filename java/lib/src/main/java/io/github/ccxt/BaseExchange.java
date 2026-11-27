@@ -11599,7 +11599,7 @@ public Map<String, Object> describe()
                 currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 dictionary = Helpers.GetValue(response, currencyId);
             }
-            Map<String, Object> currency = this.safeCurrency((String) (currencyId), null);
+            Map<String, Object> currency = this.safeCurrency(java.util.Objects.toString(currencyId, null), null);
             String code = this.safeString(currency, "code");
             if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
             {

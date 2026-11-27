@@ -1154,7 +1154,7 @@ public class Gemini extends GeminiApi
         } else
         {
             // if no detailed API was called, then parse either string or array
-            if (Boolean.TRUE.equals(isString))
+            if ((response instanceof String))
             {
                 marketId = response;
             } else
@@ -1164,7 +1164,11 @@ public class Gemini extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3, null); // quantityMinimum
             }
-            String marketIdUpper = ((String)((String)marketId)).toUpperCase();
+            if (java.util.Objects.equals(marketId, null))
+            {
+                throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
+            }
+            String marketIdUpper = ((String)marketId).toUpperCase();
             Boolean isPerp = (((String)marketIdUpper).indexOf("PERP") >= 0);
             String marketIdWithoutPerp = (marketIdUpper == null ? null : ((String)marketIdUpper).replaceFirst("PERP", ""));
             Map<String, Object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
