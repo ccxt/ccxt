@@ -924,7 +924,7 @@ func (this *Mexc) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if timeframe != nil {
-			if timeframe != nil && this.Ohlcvs[symbol] != nil {
+			if this.Ohlcvs[symbol] != nil {
 				this.Ohlcvs[symbol][*timeframe] = stored
 			}
 		}

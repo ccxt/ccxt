@@ -2097,9 +2097,7 @@ func (this *Delta) ParseBalance(response map[string]any) map[string]any {
 		account["total"] = this.SafeString(balance, "balance")
 		account["free"] = this.SafeString(balance, "available_balance")
 		if code != nil {
-			if code != nil {
-				result[*code] = account
-			}
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)

@@ -3587,9 +3587,7 @@ func (this *Nado) ParseBalance(response map[string]any) map[string]any {
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
 		account["free"] = amount
 		if code != nil {
-			if code != nil {
-				result[*code] = account
-			}
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result).(map[string]any)

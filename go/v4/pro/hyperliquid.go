@@ -2046,9 +2046,7 @@ func (this *Hyperliquid) ParseWsBalance(balance map[string]any, optionalArgs ...
 			accountBalance = map[string]any{}
 		}
 		if code != nil {
-			if code != nil {
-				accountBalance[*code] = account
-			}
+			accountBalance[*code] = account
 		}
 		this.Balance[*accountType] = accountBalance
 	} else {

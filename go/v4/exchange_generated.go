@@ -3838,33 +3838,38 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan AsyncResult[any], method 
 					break // this is needed because of GO
 				}
 			}
-			var content any = response
-			if IsEqual(content, nil) {
+			if IsEqual(response, nil) {
 				panic(NullResponse(this.Id + " fetchWebEndpoint() returned empty content"))
 			}
+			responseStr, isResponseStr := response.(string)
+			if !isResponseStr {
+				if (startRegex != nil) || (endRegex != nil) {
+					panic(BadResponse(this.Id + " fetchWebEndpoint() returned non-string content"))
+				}
+
+				ch <- AsyncResult[any]{Value: response}
+				chSent = true
+				return nil
+			}
+			var content string = responseStr
 			if startRegex != nil {
-				var splitted_by_start []string = Split(content, startRegex)
-				content = func() any {
-					if 1 >= 0 && 1 < len(splitted_by_start) {
-						return splitted_by_start[1]
-					}
-					return nil
-				}() // we need second part after start
-			}
-			if IsEqual(content, nil) {
-				panic(NullResponse(this.Id + " fetchWebEndpoint() returned empty content"))
+				var splitted_by_start []string = strings.Split(content, *startRegex)
+				var startLen int = len(splitted_by_start)
+				if startLen < 2 {
+					panic(NullResponse(this.Id + " fetchWebEndpoint() returned empty content"))
+				}
+				content = splitted_by_start[1] // we need second part after start
 			}
 			if endRegex != nil {
-				var splitted_by_end []string = Split(content, endRegex)
-				content = func() any {
-					if 0 >= 0 && 0 < len(splitted_by_end) {
-						return splitted_by_end[0]
-					}
-					return nil
-				}() // we need first part after start
+				var splitted_by_end []string = strings.Split(content, *endRegex)
+				var endLen int = len(splitted_by_end)
+				if endLen < 1 {
+					panic(NullResponse(this.Id + " fetchWebEndpoint() returned empty content"))
+				}
+				content = splitted_by_end[0] // we need first part after start
 			}
-			if (returnAsJson == true) && (IsString(content)) {
-				var jsoned any = this.ParseJson(Trim(content)) // content should be trimmed before json parsing
+			if returnAsJson == true {
+				var jsoned any = this.ParseJson(strings.TrimSpace(content)) // content should be trimmed before json parsing
 				if jsoned != nil {
 
 					ch <- AsyncResult[any]{Value: jsoned} // if parsing was not successfull, exception should be thrown
@@ -4653,11 +4658,11 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) []a
 	var positionsArray []any = this.ToArray(positions)
 	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
-		positionsArrayDict652762, _ := positionsArray[i].(map[string]any)
-		if positionsArrayDict652762 == nil {
-			positionsArrayDict652762 = map[string]any{}
+		positionsArrayDict653862, _ := positionsArray[i].(map[string]any)
+		if positionsArrayDict653862 == nil {
+			positionsArrayDict653862 = map[string]any{}
 		}
-		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positionsArrayDict652762)), params)
+		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positionsArrayDict653862)), params)
 		result = append(result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbolsNormalized)
@@ -4758,11 +4763,11 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	var transactionsArray []any = this.ToArray(transactions)
 	var result []any = []any{}
 	for i := 0; i < len(transactionsArray); i++ {
-		transactionsArrayDict659168, _ := transactionsArray[i].(map[string]any)
-		if transactionsArrayDict659168 == nil {
-			transactionsArrayDict659168 = map[string]any{}
+		transactionsArrayDict660268, _ := transactionsArray[i].(map[string]any)
+		if transactionsArrayDict660268 == nil {
+			transactionsArrayDict660268 = map[string]any{}
 		}
-		var transaction map[string]any = this.Extend(TransactionToMap(this.DerivedExchange.ParseTransaction(transactionsArrayDict659168, currency)), params)
+		var transaction map[string]any = this.Extend(TransactionToMap(this.DerivedExchange.ParseTransaction(transactionsArrayDict660268, currency)), params)
 		result = append(result, transaction)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4786,11 +4791,11 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) []a
 	var transfersArray []any = this.ToArray(transfers)
 	var result []any = []any{}
 	for i := 0; i < len(transfersArray); i++ {
-		transfersArrayDict660362, _ := transfersArray[i].(map[string]any)
-		if transfersArrayDict660362 == nil {
-			transfersArrayDict660362 = map[string]any{}
+		transfersArrayDict661462, _ := transfersArray[i].(map[string]any)
+		if transfersArrayDict661462 == nil {
+			transfersArrayDict661462 = map[string]any{}
 		}
-		var transfer map[string]any = this.Extend(TransferEntryToMap(this.DerivedExchange.ParseTransfer(transfersArrayDict660362, currency)), params)
+		var transfer map[string]any = this.Extend(TransferEntryToMap(this.DerivedExchange.ParseTransfer(transfersArrayDict661462, currency)), params)
 		result = append(result, transfer)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4815,11 +4820,11 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) []any {
 	var arrayData []any = this.ToArray(data)
 	for i := 0; i < len(arrayData); i++ {
 
-		arrayDataDict661549, _ := arrayData[i].(map[string]any)
-		if arrayDataDict661549 == nil {
-			arrayDataDict661549 = map[string]any{}
+		arrayDataDict662649, _ := arrayData[i].(map[string]any)
+		if arrayDataDict662649 == nil {
+			arrayDataDict662649 = map[string]any{}
 		}
-		var entry map[string]any = LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(arrayDataDict661549, currency))
+		var entry map[string]any = LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(arrayDataDict662649, currency))
 		result = append(result, this.Extend(entry, params))
 	}
 	result = this.SortBy(result, "timestamp")
@@ -5731,11 +5736,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes717015 map[string]any = r.Value
-	if retRes717015 == nil {
+	var retRes718115 map[string]any = r.Value
+	if retRes718115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes717015}
+		ch <- AsyncResult[map[string]any]{Value: retRes718115}
 	}
 	return nil
 }
@@ -7095,11 +7100,11 @@ func (this *BaseExchange) ParseTickersList(tickers any, optionalArgs ...any) map
 	var results []any = []any{}
 	var tickersArray []any = this.ToArray(tickers)
 	for i := 0; i < len(tickersArray); i++ {
-		tickersArrayDict810858, _ := tickersArray[i].(map[string]any)
-		if tickersArrayDict810858 == nil {
-			tickersArrayDict810858 = map[string]any{}
+		tickersArrayDict811958, _ := tickersArray[i].(map[string]any)
+		if tickersArrayDict811958 == nil {
+			tickersArrayDict811958 = map[string]any{}
 		}
-		var ticker map[string]any = this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(tickersArrayDict810858)), params)
+		var ticker map[string]any = this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(tickersArrayDict811958)), params)
 		results = append(results, ticker)
 	}
 	return this.FilterByArrayTickers(results, "symbol", this.MarketSymbols(symbols))
@@ -7141,11 +7146,11 @@ func (this *BaseExchange) ParseDepositAddresses(addresses []any, optionalArgs ..
 	_ = params
 	var result []any = []any{}
 	for i := 0; i < len(addresses); i++ {
-		addressesDict813167, _ := addresses[i].(map[string]any)
-		if addressesDict813167 == nil {
-			addressesDict813167 = map[string]any{}
+		addressesDict814267, _ := addresses[i].(map[string]any)
+		if addressesDict814267 == nil {
+			addressesDict814267 = map[string]any{}
 		}
-		var address map[string]any = this.Extend(DepositAddressToMap(this.DerivedExchange.ParseDepositAddress(addressesDict813167)), params)
+		var address map[string]any = this.Extend(DepositAddressToMap(this.DerivedExchange.ParseDepositAddress(addressesDict814267)), params)
 		result = append(result, address)
 	}
 	if codes != nil {
@@ -7239,11 +7244,11 @@ func (this *BaseExchange) ParseFundingRates(response []any, optionalArgs ...any)
 	var fundingRates map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
 
-		responseDict819850, _ := response[i].(map[string]any)
-		if responseDict819850 == nil {
-			responseDict819850 = map[string]any{}
+		responseDict820950, _ := response[i].(map[string]any)
+		if responseDict820950 == nil {
+			responseDict820950 = map[string]any{}
 		}
-		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(responseDict819850))
+		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(responseDict820950))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			fundingRates[*symbol] = parsed
@@ -8633,9 +8638,7 @@ func (this *BaseExchange) RemoveRepeatedElementsFromArray(input []any, optionalA
 			_, uniqValueInUniqueDic = uniqueDic[*uniqValue]
 		}
 		if (uniqValue != nil) && !(uniqValueInUniqueDic) {
-			if uniqValue != nil {
-				uniqueDic[*uniqValue] = 1
-			}
+			uniqueDic[*uniqValue] = 1
 			uniqueResult = append(uniqueResult, entry)
 		}
 	}
@@ -8771,11 +8774,11 @@ func (this *BaseExchange) ParseAllGreeksList(greeks any, optionalArgs ...any) ma
 	var results []any = []any{}
 	var greeksArray []any = this.ToArray(greeks)
 	for i := 0; i < len(greeksArray); i++ {
-		greeksArrayDict923557, _ := greeksArray[i].(map[string]any)
-		if greeksArrayDict923557 == nil {
-			greeksArrayDict923557 = map[string]any{}
+		greeksArrayDict924657, _ := greeksArray[i].(map[string]any)
+		if greeksArrayDict924657 == nil {
+			greeksArrayDict924657 = map[string]any{}
 		}
-		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(greeksArrayDict923557)), params))
+		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(greeksArrayDict924657)), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -8797,11 +8800,11 @@ func (this *BaseExchange) ParseAllGreeksDict(greeks any, optionalArgs ...any) ma
 		var marketId string = marketIds[i]
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-		greeksDictDict924757, _ := greeksDict[marketId].(map[string]any)
-		if greeksDictDict924757 == nil {
-			greeksDictDict924757 = map[string]any{}
+		greeksDictDict925857, _ := greeksDict[marketId].(map[string]any)
+		if greeksDictDict925857 == nil {
+			greeksDictDict925857 = map[string]any{}
 		}
-		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(greeksDictDict924757, market)), params))
+		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(greeksDictDict925857, market)), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -8834,11 +8837,11 @@ func (this *BaseExchange) ParseOptionChain(response []any, optionalArgs ...any) 
 		}
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "option")
-		responseDict926367, _ := response[i].(map[string]any)
-		if responseDict926367 == nil {
-			responseDict926367 = map[string]any{}
+		responseDict927467, _ := response[i].(map[string]any)
+		if responseDict927467 == nil {
+			responseDict927467 = map[string]any{}
 		}
-		AddElementToObject(optionStructures, market["symbol"], OptionToMap(this.DerivedExchange.ParseOption(responseDict926367, currency, market)))
+		AddElementToObject(optionStructures, market["symbol"], OptionToMap(this.DerivedExchange.ParseOption(responseDict927467, currency, market)))
 	}
 	return optionStructures
 }
@@ -8867,11 +8870,11 @@ func (this *BaseExchange) ParseMarginModes(response []any, optionalArgs ...any) 
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketTypeResolved)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
-			responseDict927679, _ := response[i].(map[string]any)
-			if responseDict927679 == nil {
-				responseDict927679 = map[string]any{}
+			responseDict928779, _ := response[i].(map[string]any)
+			if responseDict928779 == nil {
+				responseDict928779 = map[string]any{}
 			}
-			AddElementToObject(marginModeStructures, market["symbol"], MarginModeToMap(this.DerivedExchange.ParseMarginMode(responseDict927679, market)))
+			AddElementToObject(marginModeStructures, market["symbol"], MarginModeToMap(this.DerivedExchange.ParseMarginMode(responseDict928779, market)))
 		}
 	}
 	return marginModeStructures
@@ -9139,11 +9142,11 @@ func (this *BaseExchange) ParseMarginModifications(response []any, optionalArgs 
 
 		var market map[string]any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		if (symbols == nil) || this.InArray(market["symbol"], symbols) {
-			responseDict945472, _ := response[i].(map[string]any)
-			if responseDict945472 == nil {
-				responseDict945472 = map[string]any{}
+			responseDict946572, _ := response[i].(map[string]any)
+			if responseDict946572 == nil {
+				responseDict946572 = map[string]any{}
 			}
-			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(responseDict945472, market))
+			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(responseDict946572, market))
 		}
 	}
 	return marginModifications
@@ -11637,12 +11640,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1063215Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1063215 []any = retRes1063215Recv
-	if retRes1063215 == nil {
+	retRes1064315Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1064315 []any = retRes1064315Recv
+	if retRes1064315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1063215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1064315)}
 	}
 	return nil
 }

@@ -627,7 +627,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			}
 			var literal47529 map[string]any = map[string]any{
 				"id":             marketId,
-				"symbol":         Add(Add(base, "/"), quote),
+				"symbol":         *base + "/" + *quote,
 				"base":           base,
 				"quote":          quote,
 				"settle":         nil,
