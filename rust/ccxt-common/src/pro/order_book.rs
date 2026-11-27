@@ -242,7 +242,7 @@ mod side_tests {
         let mut book = new_book(BOOK_PLAIN, Value::Map(crate::value::HashMap::new()), Value::Null);
         book.cache_push(Value::Int(1));
         let boxed = Value::from(&book);
-        let mut field = crate::get_value(&boxed, &Value::Str("cache".into()));
+        let mut field = boxed.book_field("cache");
         crate::runtime::append_to_array(&mut field, Value::Int(2));
         let items = book.cache_items();
         assert_eq!(items.as_ref(), &vec![Value::Int(1), Value::Int(2)]);
