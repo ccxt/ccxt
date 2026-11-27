@@ -582988,7 +582988,7 @@ class hashkey extends _hashkey_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const type = 'spot';
-        const typeMarketType = this.handleMarketTypeAndParams('watchBalance', undefined, params, type)[0];
+        const [typeMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
         const messageHash = 'balance:' + typeMarketType;
         const url = this.getPrivateUrl(listenKey);
         const client = this.client(url);
