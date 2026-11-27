@@ -1324,6 +1324,9 @@ export default class polymarket extends Exchange {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         const resolutionMs = fidelityMin * 60 * 1000;
+        if (resolutionMs <= 0) {
+            throw new BadRequest (this.id + ' fetchOHLCV() invalid timeframe resolution');
+        }
         const buckets: Dict = {};
         for (let i = 0; i < history.length; i++) {
             const item = this.safeDict (history, i);

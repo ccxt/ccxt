@@ -206,7 +206,33 @@ func Multiply(a, b interface{}) interface{} {
 }
 
 func Divide(a, b interface{}) interface{} {
-	return ccxt.Divide(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a == nil || b == nil {
+		return nil
+	}
+	aVal := reflect.ValueOf(a)
+	bVal := reflect.ValueOf(b)
+	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
+		return nil
+	}
+	switch bVal.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		aFloat := aVal.Convert(reflect.TypeOf(float64(0))).Float()
+		bFloat := bVal.Convert(reflect.TypeOf(float64(0))).Float()
+		if bFloat == 0.0 {
+			return nil
+		}
+		res := aFloat / bFloat
+		if ccxt.IsInteger(res) {
+			return ccxt.ParseInt(res)
+		}
+		return res
+	default:
+		return nil
+	}
 }
 
 func Subtract(a, b interface{}) interface{} {
@@ -227,15 +253,52 @@ func GetArrayLength(value interface{}) int {
 }
 
 func IsGreaterThan(a, b interface{}) bool {
-	return ccxt.IsGreaterThan(a, b)
+	a = ccxt.DerefScalar(a)
+	b = ccxt.DerefScalar(b)
+	if a != nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	switch aVal := a.(type) {
+	case int:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > bVal
+		case int64:
+			return int64(aVal) > bVal
+		case float64:
+			return float64(aVal) > bVal
+		}
+	case int64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > int64(bVal)
+		case int64:
+			return aVal > bVal
+		case float64:
+			return float64(aVal) > bVal
+		}
+	case float64:
+		switch bVal := b.(type) {
+		case int:
+			return aVal > float64(bVal)
+		case int64:
+			return aVal > float64(bVal)
+		case float64:
+			return aVal > bVal
+		}
+	}
+	return false
 }
 
 func IsLessThan(a, b interface{}) bool {
-	return !ccxt.IsGreaterThan(a, b) && !ccxt.IsEqual(a, b)
+	return !IsGreaterThan(a, b) && !ccxt.IsEqual(a, b)
 }
 
 func IsGreaterThanOrEqual(a, b interface{}) bool {
-	return ccxt.IsGreaterThan(a, b) || ccxt.IsEqual(a, b)
+	return IsGreaterThan(a, b) || ccxt.IsEqual(a, b)
 }
 
 func IsLessThanOrEqual(a, b interface{}) bool {

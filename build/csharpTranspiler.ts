@@ -1794,6 +1794,7 @@ function csharpDeclaredOperandType (value: string, content: string, methodLines:
     }
     const call = /^this\.([A-Za-z_]\w*)\(/.exec (value)
     if ((call === null) || (csharpMatchingClose (value, call[0].length - 1, '(', ')', '"') !== value.length - 1)) { return '' }
+    if (call[1] === 'parseToInt') { return 'Int64?' }
     if ((csharpOwnDeclsCache === undefined) || (csharpOwnDeclsCache.content !== content)) { csharpOwnDeclsCache = { content, decls: csharpScanDeclarations (content.split ('\n')) } }
     const types = new Set<string> ()
     for (const d of (csharpRuntimeDeclarations ().get (call[1]) ?? []).concat (csharpOwnDeclsCache.decls.get (call[1]) ?? [])) { types.add (d.ret) }
@@ -1802,6 +1803,17 @@ function csharpDeclaredOperandType (value: string, content: string, methodLines:
 // the native expression a `To<R>(object)` wrapper collapses to, or '' when the helper stays
 function csharpNativeCoreConversion (helper: string, value: string, content: string, methodLines: string[]): string {
     const name = helper.replace (/^ccxt\.BaseExchange\./, '')
+    const operand = csharpDeclaredOperandType (value, content, methodLines)
+    if (name === 'ToInt64Value') {
+        if (value === 'null') { return '0' }
+        return (operand === 'Int64') ? value : ((operand === 'Int64?') ? value + ' ?? 0' : '')
+    }
+    if (name === 'ToStringValue') {
+        return ((operand === 'string') || (operand === 'string?')) ? value : ''
+    }
+    if (name === 'ToStringList') {
+        return (operand === 'List<string>') ? value : ''
+    }
     const declared = (csharpRuntimeDeclarations ().get (name) ?? []).filter ((d) => d.params.length === 1 && d.params[0].type === 'object')
     if (declared.length !== 1) { return '' }
     const ret = declared[0].ret
@@ -1810,17 +1822,6 @@ function csharpNativeCoreConversion (helper: string, value: string, content: str
         // `(value is IOrderBook book) ? book.Copy() : null` on a `limit()` read of a proven IOrderBook
         const limit = /^\(([A-Za-z_]\w*) as (?:ccxt\.pro\.)?IOrderBook\)\.limit\(\)$/.exec (value)
         return (limit !== null) && /\(value is ccxt\.pro\.IOrderBook (\w+)\) \? \1\.Copy\(\) : null; \}$/.test (body) && csharpBookLimitReturnsSelf () ? value + '.Copy()' : ''
-    }
-    const operand = csharpDeclaredOperandType (value, content, methodLines)
-    if (ret === 'Int64') {
-        // ToInt64Value delegates to ToInt64ArgRequired: `(value == null) ? 0 : Convert.ToInt64(value, ...)`
-        const required = (csharpRuntimeDeclarations ().get ('ToInt64ArgRequired') ?? []).filter ((d) => d.ret === 'Int64' && d.params.length === 1 && d.params[0].type === 'object')
-        if ((required.length !== 1) || !/^\{ return \(value == null\) \? 0 : Convert\.ToInt64\(value, System\.Globalization\.CultureInfo\.InvariantCulture\); \}$/.test (required[0].body) || !/^\{ return ToInt64ArgRequired\(value\); \}$/.test (body)) return ''
-        return (operand === 'Int64') ? value : ((operand === 'Int64?') ? value + ' ?? 0' : '')
-    }
-    if (ret === 'string') {
-        // `if (value is string s) { return s; }` first, everything else stringified or null
-        return /^\{ if \(value is string s\) \{ return s; \}/.test (body) && ((operand === 'string') || (operand === 'string?')) ? value : ''
     }
     return ''
 }
@@ -2073,8 +2074,18 @@ function csharpTypedCoreConversionSelfTest (): string[] {
     expect ('int64-safeinteger', int64 ('this.safeInteger(response, "ts")'), 'this.safeInteger(response, "ts") ?? 0')
     expect ('int64-safetimestamp', int64 ('this.safeTimestamp(response, "ts")'), 'this.safeTimestamp(response, "ts") ?? 0')
     expect ('int64-sum-of-calls', int64 ('this.safeInteger(a, "x") + this.safeInteger(b, "y")'), '')
-    expect ('int64-generated-base', int64 ('this.parseToInt(nonce)'), '')
-    expect ('int64-literal', int64 ('null'), '')
+    expect ('int64-generated-base', int64 ('this.parseToInt(nonce)'), 'this.parseToInt(nonce) ?? 0')
+    expect ('int64-literal', int64 ('null'), '0')
+    const strListBody = [
+        'public async virtual Task<List<string>> FetchUnderlyingAssets(object parameters = null)',
+        '{',
+        '    List<string> underlyings = new List<string>() {};',
+        '    List<object> boxed = new List<object>() {};',
+        '}',
+    ]
+    const strList = (value: string) => csharpNativeCoreConversion ('ccxt.BaseExchange.ToStringList', value, '', strListBody)
+    expect ('strlist-local', strList ('underlyings'), 'underlyings')
+    expect ('strlist-boxed', strList ('boxed'), '')
     const strBody = [
         'public async virtual Task<string> FetchAccountIdByType(object type, object parameters = null)',
         '{',

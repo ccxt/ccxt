@@ -11,31 +11,12 @@ public partial class BaseExchange
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
 
-    public static object normalizeIntIfNeeded(object a)
-    {
-        if (a == null)
-            return null;
-
-        if (a is int)
-        {
-            return System.Convert.ToInt64(a);
-        }
-        // large int literals (2^31..2^32-1, e.g. 2592000000 = 30 days in ms)
-        // are typed uint by the C# compiler and would fail the (Int64) casts
-        // in the arithmetic helpers
-        if (a is uint)
-        {
-            return System.Convert.ToInt64(a);
-        }
-        return a;
-    }
-
     public object parseJson(object json)
     {
         return JsonHelper.Deserialize((string)json);
     }
 
-    public static bool isNumber(object number)
+    private static bool isNumber(object number)
     {
         return Double.TryParse(number.ToString(), out _);
     }
@@ -522,46 +503,6 @@ public partial class BaseExchange
         return result;
     }
 
-    public static Int64 ToInt64Value(object value)
-    {
-        return ToInt64ArgRequired(value);
-    }
-
-    public static string ToStringValue(object value)
-    {
-        // a string-typed core may tail-return a numeric id read off user params
-        // (htx fetchAccountIdByType); stringify primitives instead of nulling them
-        if (value is string s)
-        {
-            return s;
-        }
-        if (value is Int64 || value is int || value is double || value is decimal || value is float)
-        {
-            return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
-        }
-        return null;
-    }
-
-    // a `Promise<string[]>` core (fetchUnderlyingAssets, fetchOptionUnderlyings) hands back
-    // a `List<object>` of strings from the generated body; project it to `List<string>`
-    public static List<string> ToStringList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<string> already)
-        {
-            return already;
-        }
-        var result = new List<string>();
-        foreach (var item in (System.Collections.IEnumerable)values)
-        {
-            result.Add(ToStringValue(item));
-        }
-        return result;
-    }
-
     public static object FromDictList(object values)
     {
         // getValue / getArrayLength read any IList through the non-generic interface, but the
@@ -769,11 +710,6 @@ public partial class BaseExchange
     public static double ToDoubleArgRequired(object value)
     {
         return (value == null) ? 0 : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
-    }
-
-    public static Int64 ToInt64ArgRequired(object value)
-    {
-        return (value == null) ? 0 : Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
     }
 
     public static object callDynamically(object obj, object methodName, object[] args = null)

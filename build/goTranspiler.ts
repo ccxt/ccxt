@@ -3849,7 +3849,7 @@ function goTypedArithPointerIsNonNil (scope: GoArithScope, name: string): boolea
     const lines = head.split ('\n');
     const cur = lines[lines.length - 1];
     const guard = '\\(?' + name + ' != nil\\)? && \\(*';
-    if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) { return true; }
+    if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?(?:[^|]*\\|\\|\\s*\\(+)?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) { return true; }
     // `var p *float64\n if x == nil { p = y } else { p = x }` right above: non-nil whenever y is non-nil
     if (lines.length >= 7) {
         const ind = cur.slice (0, cur.length - cur.trimStart ().length);
@@ -3973,7 +3973,7 @@ function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: stri
         if (/\bfunc\b/.test (s)) { return false; }
         const li = indentOf (lines[k]);
         if (li < indent) { indent = li; continue; }
-        if ((li === indent) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (s)) {
+        if ((li === indent) && new RegExp ('^if \\(*' + name + ' == nil\\)*(?:\\s*\\|\\|\\s*[^&]+)? \\{$').test (s)) {
             // body = following deeper lines; it must end in an exit and close with a bare `}`
             let j = k + 1;
             let last = '';
@@ -4776,12 +4776,9 @@ function goIfGuarded (scope: GoArithScope, conjunct: string): boolean {
     return goEnclosingIfHeads (scope).some ((h) => !h.negated && (h.cond.indexOf ('||') < 0) && (h.cond.indexOf (';') < 0) && goSplitTopLevel (h.cond, '&&').includes (conjunct));
 }
 
-// `var p *int64 = this.SafeInteger{,2,N}(..., D)` with D an int literal, a plain int/int64 local, or such a pointer
-function goNonNilIntInit (scope: GoArithScope, name: string, depth: number): boolean {
-    if ((depth > 3) || !goSingleWrite (scope, name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== '*int64')) { return false; }
-    const decl = new RegExp ('\\bvar\\s+' + name + '\\s+\\*int64\\s*=\\s*([^\\n]+)').exec (scope.masked);
-    if (!decl || (decl.index > scope.pos)) { return false; }
-    const text = decl[1].trim ();
+// `this.SafeInteger{,2,N}(..., D)` with D a non-nil int literal, plain int/int64 local, plain int64 base call, or non-nil *int64
+function goSafeIntegerHasNonNilDefault (scope: GoArithScope, rhs: string, depth: number): boolean {
+    const text = rhs.trim ();
     const call = /^this\.SafeInteger(2|N)?\(/.exec (text);
     if (!call || (goArithClose (text, call[0].length - 1) !== text.length - 1)) { return false; }
     const spans = goArithArgs (text, call[0].length - 1, text.length - 1);
@@ -4789,9 +4786,22 @@ function goNonNilIntInit (scope: GoArithScope, name: string, depth: number): boo
     if (spans.length !== want) { return false; }
     const def = text.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
     if (/^-?\d+$/.test (def)) { return true; }
+    const mCall = /^this\.(\w+)\(/.exec (def);
+    if (mCall && GO_ARITH_INT64_METHODS.includes (mCall[1]) && !scope.ownMethods.has (mCall[1]) && (goArithClose (def, mCall[0].length - 1) === def.length - 1)) { return true; }
     if (!/^[A-Za-z_]\w*$/.test (def)) { return false; }
     const type = goArithDeclaredType (scope.masked, scope.signature, def);
     return (type === 'int') || (type === 'int64') || goNonNilIntInit (scope, def, depth + 1);
+}
+
+// `var p *int64 = this.SafeInteger{,2,N}(..., D)` (and any subsequent writes to p are also non-nil-default SafeInteger calls)
+function goNonNilIntInit (scope: GoArithScope, name: string, depth: number): boolean {
+    if ((depth > 3) || (goArithDeclaredType (scope.masked, scope.signature, name) !== '*int64')) { return false; }
+    if (new RegExp ('&' + name + '\\b|(?<![\\w.*&])' + name + '\\s*(?::=|\\+\\+|--|[-+*/]=)').test (scope.masked)) { return false; }
+    const decl = new RegExp ('\\bvar\\s+' + name + '\\s+\\*int64\\s*=\\s*([^\\n]+)').exec (scope.masked);
+    if (!decl || (decl.index > scope.pos) || !goSafeIntegerHasNonNilDefault (scope, decl[1], depth)) { return false; }
+    if (goSingleWrite (scope, name)) { return true; }
+    const writes = [ ...scope.masked.matchAll (new RegExp ('(?<![\\w.*&])' + name + '\\s*=(?!=)\\s*([^\\n]+)', 'g')) ];
+    return (writes.length > 0) && writes.every ((w) => goSafeIntegerHasNonNilDefault (scope, w[1], depth));
 }
 
 // kind + Go spelling of an operand, or undefined
@@ -4802,9 +4812,10 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
     if (known !== undefined) { return { 'kind': known, 'text': t }; }
     if (/^[A-Za-z_]\w*$/.test (t)) {
         const declared = goArithDeclaredType (scope.masked, scope.signature, t);
+        if ((declared === '*int64') && goNonNilIntInit (scope, t, 0)) { return { 'kind': 'i64', 'text': '*' + t }; }
         if (((declared === '*int64') || (declared === '*float64')) && goSingleWrite (scope, t)) {
             const elseOfNil = goEnclosingIfHeads (scope).some ((h) => h.negated && (goArithStripParens (h.cond) === t + ' == nil'));
-            if (elseOfNil || goNonNilIntInit (scope, t, 0)) { return { 'kind': (declared === '*int64') ? 'i64' : 'f64', 'text': '*' + t }; }
+            if (elseOfNil || goEarlyExitPointerNonNil (scope, t, declared)) { return { 'kind': (declared === '*int64') ? 'i64' : 'f64', 'text': '*' + t }; }
         }
         if ((goTupleElementType (scope, t, fileOwn) === '*int64') && goIfGuarded (scope, '!IsEqual(' + t + ', nil)')) { return { 'kind': 'i64', 'text': '*' + t + '.(*int64)' }; }
     }
@@ -4854,18 +4865,54 @@ function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: stri
     return { 'kind': kind, 'text': (/^[\w.*]+$|^-?\d+(?:\.\d+)?$/.test (spelled) || /^[\w.]+\(.*\)$/.test (spelled) && (goArithClose (goMaskGoCode (spelled), spelled.indexOf ('(')) === spelled.length - 1)) ? spelled : '(' + spelled + ')' };
 }
 
-// divisor never zero (nor negative zero): approved period names, a positive literal local, or an enclosing `x > 0`
+// early-exit `if` guard at an enclosing/same indent whose body exits (return/continue/break/panic) with bare `}`
+function goEarlyExitPositiveGuard (scope: GoArithScope, name: string, isPtr: boolean): boolean {
+    const all = scope.masked.split ('\n');
+    const lines = scope.masked.slice (0, scope.pos).split ('\n');
+    const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
+    let indent = indentOf (lines[lines.length - 1]);
+    const pat = isPtr
+        ? new RegExp ('^if (?:\\(*' + name + ' == nil\\)*\\s*\\|\\|\\s*)?\\(*(?:' + name + ' == nil\\s*\\|\\|\\s*)?(?:\\*' + name + ' <= 0|!\\(\\*' + name + ' > 0\\))\\)* \\{$')
+        : new RegExp ('^if \\(*(?:' + name + ' <= 0|!\\(' + name + ' > 0\\))\\)* \\{$');
+    for (let k = lines.length - 2; k >= 0; k--) {
+        const s = lines[k].trim ();
+        if (s === '') { continue; }
+        if (/\bfunc\b/.test (s)) { return false; }
+        const li = indentOf (lines[k]);
+        if (li < indent) { indent = li; continue; }
+        if ((li === indent) && pat.test (s)) {
+            let j = k + 1;
+            let last = '';
+            while ((j < all.length) && ((all[j].trim () === '') || (indentOf (all[j]) > li))) {
+                if (all[j].trim () !== '') { last = all[j].trim (); }
+                j++;
+            }
+            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) { return true; }
+        }
+    }
+    return false;
+}
+
+// divisor never zero (nor negative zero): approved period names, a positive literal local, or an enclosing/early-exit `x > 0`
 function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
     const t = goArithStripParens (b);
     const lit = (t.indexOf ('.') < 0) ? goArithIntLiteralValue (t) : Number (t);
     if ((lit !== undefined) && (lit > 0)) { return true; }
+    const isPtr = t.startsWith ('*');
     const name = t.replace (/^\*/, '');
     if (/^[A-Za-z_]\w*$/.test (name)) {
         if (goPositiveDivisorLiteral (name) || goPowOfTenDivisor (scope, name)) { return true; }
-        if (goSingleWrite (scope, name) && new RegExp ('\\bvar\\s+' + name + '\\s+(?:int|int64)\\s*=\\s*[1-9]\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n') && (goArithDeclaredType (scope.masked, scope.signature, name) !== undefined)) {
+        const declared = goArithDeclaredType (scope.masked, scope.signature, name);
+        if (goSingleWrite (scope, name) && new RegExp ('\\bvar\\s+' + name + '\\s+(?:int|int64)\\s*=\\s*[1-9]\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n') && (declared !== undefined)) {
             return true;
         }
-        if (goSingleWrite (scope, name) && (goArithDeclaredType (scope.masked, scope.signature, name) === 'float64')) {
+        if (goSingleWrite (scope, name) && ((declared === 'int') || (declared === 'int64') || (declared === 'float64'))) {
+            if (goIfGuarded (scope, name + ' > 0') || goEarlyExitPositiveGuard (scope, name, false)) { return true; }
+        }
+        if (isPtr && goSingleWrite (scope, name) && ((declared === '*int64') || (declared === '*float64'))) {
+            if (goEarlyExitPositiveGuard (scope, name, true)) { return true; }
+        }
+        if (goSingleWrite (scope, name) && (declared === 'float64')) {
             if (goIfGuarded (scope, name + ' != 0')) { return true; }
             const diff = new RegExp ('\\bvar\\s+' + name + '\\s+float64\\s*=\\s*\\(\\*([A-Za-z_]\\w*)\\s*-\\s*\\*([A-Za-z_]\\w*)\\)\\s*(?:\\n|$)').exec (scope.masked + '\n');
             if (diff && (diff.index < scope.pos)) {
@@ -10196,8 +10243,8 @@ class NewTranspiler {
                 "unifiedBoolParams": GO_UNIFIED_BOOL_PARAMS,
                 // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
-                // PredictionExchange Str params: callers pass *string or addressable string
-                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ] },
+                // PredictionExchange Str params and BaseExchange.cleanUnsubscription subHash: callers pass *string or addressable string
+                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ] },
                 // Prediction-tier only required string/float64 params (separate from BaseExchange)
                 "predictionUnifiedStringParams": { "watchTrades": [ 0 ] },
                 "predictionUnifiedFloat64Params": { "createOrder": [ 3 ] },

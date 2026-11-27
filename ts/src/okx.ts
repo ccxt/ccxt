@@ -8882,7 +8882,15 @@ export default class okx extends Exchange {
         //     }
         //
         const underlyings = this.safeList (response, 'data', []);
-        return this.toArray (this.safeList (underlyings, 0, []));
+        const first = this.safeList (underlyings, 0, []);
+        const result: string[] = [];
+        for (let i = 0; i < first.length; i++) {
+            const item = this.safeString (first, i);
+            if (item !== undefined) {
+                result.push (item);
+            }
+        }
+        return result;
     }
 
     /**

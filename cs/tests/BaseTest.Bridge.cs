@@ -100,12 +100,18 @@ public partial class BaseTest
     // statically List<object>/IList<object> must resolve to the library's own list branch
     public static int getArrayLength(List<object> a) => Exchange.getArrayLength(a);
     public static int getArrayLength(IList<object> a) => Exchange.getArrayLength(a);
+    private static object normalizeIntIfNeeded(object a)
+    {
+        if (a == null) return null;
+        if (a is int || a is uint) return System.Convert.ToInt64(a);
+        return a;
+    }
     public static bool isGreaterThan(object a, object b)
     {
         if (a != null && b == null) return true;
         if (a == null || b == null) return false;
-        a = Exchange.normalizeIntIfNeeded(a);
-        b = Exchange.normalizeIntIfNeeded(b);
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64)) return Convert.ToInt64(a) > Convert.ToInt64(b);
         if (a.GetType() == typeof(int) && b.GetType() == typeof(int)) return (int)a > (int)b;
         if (a.GetType() == typeof(double) || b.GetType() == typeof(double)) return Convert.ToDouble(a) > Convert.ToDouble(b);
@@ -134,8 +140,8 @@ public partial class BaseTest
     }
     public static object add(object a, object b)
     {
-        a = Exchange.normalizeIntIfNeeded(a);
-        b = Exchange.normalizeIntIfNeeded(b);
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a is Int64) { return (Int64)a + (Int64)b; }
         if (a is double) { return (double)a + Convert.ToDouble(b); }
         if (a is string) { return (string)a + (string)b; }
@@ -147,8 +153,8 @@ public partial class BaseTest
     public static double add(double a, double b) => a + b;
     public static object multiply(object a, object b)
     {
-        a = Exchange.normalizeIntIfNeeded(a);
-        b = Exchange.normalizeIntIfNeeded(b);
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a == null || b == null) { return null; }
         if (a is Int64 && b is Int64) { return (Int64)a * (Int64)b; }
         var res = System.Convert.ToDouble(a) * System.Convert.ToDouble(b);
@@ -158,8 +164,8 @@ public partial class BaseTest
     public static Int64? multiply(Int64? a, Int64? b) => a * b;
     public static object subtract(object a, object b)
     {
-        a = Exchange.normalizeIntIfNeeded(a);
-        b = Exchange.normalizeIntIfNeeded(b);
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a.GetType() == typeof(Int64)) { return (Int64)a - (Int64)b; }
         if (a.GetType() == typeof(int)) { return (int)a - (int)b; }
         if (a.GetType() == typeof(double)) { return (double)a - System.Convert.ToDouble(b); }
@@ -170,8 +176,8 @@ public partial class BaseTest
     public static double subtract(double a, double b) => a - b;
     public static object divide(object a, object b)
     {
-        a = Exchange.normalizeIntIfNeeded(a);
-        b = Exchange.normalizeIntIfNeeded(b);
+        a = normalizeIntIfNeeded(a);
+        b = normalizeIntIfNeeded(b);
         if (a == null || b == null) { return null; }
         if (a.GetType() == typeof(Int64) && b.GetType() == typeof(Int64)) { return (double)(Int64)a / (Int64)b; }
         if (a.GetType() == typeof(double) && b.GetType() == typeof(double)) { return (double)a / (double)b; }
@@ -185,7 +191,7 @@ public partial class BaseTest
     public static bool isTrue(object value)
     {
         if (value == null) { return false; }
-        value = Exchange.normalizeIntIfNeeded(value);
+        value = normalizeIntIfNeeded(value);
         if (value is bool b) { return b; }
         if (value is Int64 i) { return i != 0; }
         if (value is double d) { return d != 0; }

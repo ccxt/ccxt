@@ -145,9 +145,6 @@ func TestPreciseStringResultFlowsThroughShims(t *testing.T) {
 	if !IsEqual(ptr, plain) {
 		t.Error("IsEqual(ptr, \"12\") = false, want true")
 	}
-	if IsGreaterThan(ptr, "1") != IsGreaterThan(plain, "1") {
-		t.Error("IsGreaterThan disagrees between the pointer and the plain form")
-	}
 
 	// an absent result is nil, matching TypeScript's undefined
 	if StringMul(nil, "4") != nil {

@@ -146,7 +146,7 @@ export const CORE_NUMERIC_ARGS = {
     'fetchOrdersWithMethod': { 2: 'Int64?', 3: 'Int64?' },
     'fetchPositionHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchPositionsHistory': { 1: 'Int64?', 2: 'Int64?' },
-    'fetchSeriesEvents': { 2: 'Int64' },
+    'fetchSeriesEvents': { 2: 'Int64?' },
     'fetchSettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
     'fetchSettlements': { 1: 'Int64?', 2: 'Int64?' },
     'fetchSpotOHLCV': { 2: 'Int64?', 3: 'Int64?' },

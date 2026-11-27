@@ -361,41 +361,6 @@ func getValue(collection any, key any) any {
 	}
 }
 
-func Divide(a, b any) any {
-	a = derefScalar(a)
-	b = derefScalar(b)
-
-	if a == nil || b == nil {
-		return nil
-	}
-
-	aVal := reflect.ValueOf(a)
-	bVal := reflect.ValueOf(b)
-
-	if !aVal.IsValid() || !bVal.IsValid() || !aVal.Type().ConvertibleTo(bVal.Type()) {
-		return nil
-	}
-
-	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		// JS number division: always float64, an integral result boxes as int64
-		aFloat := aVal.Convert(reflect.TypeOf(float64(0))).Float()
-		bFloat := bVal.Convert(reflect.TypeOf(float64(0))).Float()
-		if bFloat == 0.0 {
-			return nil // Avoid division by zero
-		}
-		res := aFloat / bFloat
-		if IsInteger(res) {
-			return ParseInt(res)
-		}
-		return res
-	default:
-		return nil
-	}
-}
-
 type Dict map[string]any
 
 // GetArrayLength returns the length of various array or slice types or string length.
@@ -471,51 +436,6 @@ func GetArrayLength(value any) int {
 	// }
 
 	return 0
-}
-
-func IsGreaterThan(a, b any) bool {
-	a = derefScalar(a)
-	b = derefScalar(b)
-	if a != nil && b == nil {
-		return true
-	}
-	if a == nil || b == nil {
-		return false
-	}
-
-	// Handle int, int64, float64 comparisons
-	switch aVal := a.(type) {
-	case int:
-		switch bVal := b.(type) {
-		case int:
-			return aVal > bVal
-		case int64:
-			return int64(aVal) > bVal
-		case float64:
-			return float64(aVal) > bVal
-		}
-	case int64:
-		switch bVal := b.(type) {
-		case int:
-			return aVal > int64(bVal)
-		case int64:
-			return aVal > bVal
-		case float64:
-			return float64(aVal) > bVal
-		}
-	case float64:
-		switch bVal := b.(type) {
-		case int:
-			return aVal > float64(bVal)
-		case int64:
-			return aVal > float64(bVal)
-		case float64:
-			return aVal > bVal
-		}
-	}
-
-	// If types cannot be compared, return false
-	return false
 }
 
 // aVal, bVal, ok := NormalizeAndConvert(a, b)
