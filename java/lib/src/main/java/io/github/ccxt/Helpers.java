@@ -318,7 +318,7 @@ private static void coerceArgs(Method m, Object[] args) {
         }
         // a String slot takes the value's string form (same as toStringArg)
         if (expected == String.class && !(args[i] instanceof String)) {
-            args[i] = toStringArg(args[i]);
+            args[i] = args[i] == null ? null : String.valueOf(args[i]);
         }
         // a symbol list given as an array
         else if (expected == List.class && args[i] instanceof Object[] arr) {
