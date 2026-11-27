@@ -1085,7 +1085,8 @@
                 "precision": "not provided"
             },
             "ticker": {
-                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/15016394551/job/42195664486?pr=25955#step:11:304"
+                "compareQuoteVolumeBaseVolume": "https://github.com/ccxt/ccxt/actions/runs/15016394551/job/42195664486?pr=25955#step:11:304",
+                "compareOHLC": "c is rounded to 4 decimals, so the derived open can land just past high/low on thin markets, e.g. ARPA/USD c -0.0360 gives open 0.00778112 with high 0.007781"
             },
             "fetchPositions": {
                 "entryPrice": "entryPrice is not provided",

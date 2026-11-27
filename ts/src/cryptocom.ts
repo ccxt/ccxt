@@ -2345,7 +2345,7 @@ export default class cryptocom extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'c'),
+            'percentage': Precise.stringMul (this.safeString (ticker, 'c'), '100'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': (marketResolved['quote'] === 'USD') ? this.safeString (ticker, 'vv') : undefined,

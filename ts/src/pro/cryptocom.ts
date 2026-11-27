@@ -6,6 +6,7 @@ import cryptocomRest from '../cryptocom.js';
 import { AuthenticationError, ArgumentsRequired, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict, Tickers, Market } from '../base/types.js';
+import { Precise } from '../base/Precise.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -650,7 +651,7 @@ export default class cryptocom extends cryptocomRest {
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeString (ticker, 'c'),
+            'percentage': Precise.stringMul (this.safeString (ticker, 'c'), '100'),
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'v'),
             'quoteVolume': (quote === 'USD') ? this.safeString (ticker, 'vv') : undefined,
