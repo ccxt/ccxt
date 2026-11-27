@@ -212,7 +212,7 @@ pub mod shared {
                     &ccxt::get_value(&exchange, &Value::Str("has".into())),
                     &Value::Str("fetchOHLCV".into()),
                 );
-                if ccxt::runtime::is_true(&has_ohlcv) {
+                if crate::test_helpers::is_true(&has_ohlcv) {
                     return true;
                 }
             }

@@ -167,13 +167,53 @@ pub fn getRootException(e: Value) -> Value { e }
 
 // ── assertions ──────────────────────────────────────────────────────────────
 
-/// Truthiness for `assert` — accepts either a `Value` (the common
-/// case) or a bare `bool` (when the condition is a comparison like
-/// `is_greater_than(...)`).
+/// Truthiness for `assert` and transpiled tests — accepts `Value`, `&Value`, `bool`, or `&bool`.
+pub trait IsTruthy { fn truthy(&self) -> bool; }
+impl IsTruthy for Value     { fn truthy(&self) -> bool { self.is_truthy() } }
+impl IsTruthy for bool      { fn truthy(&self) -> bool { *self } }
+impl IsTruthy for &Value    { fn truthy(&self) -> bool { (*self).is_truthy() } }
+impl IsTruthy for &bool     { fn truthy(&self) -> bool { **self } }
+
+pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
+
+/// Test-only `parse_float` / `starts_with` / `contains` / `split` moved out of `ccxt::runtime`.
+pub fn parse_float(v: &Value) -> Value {
+    match v {
+        Value::Float(_) => v.clone(),
+        Value::Int(n)   => Value::Float(*n as f64),
+        Value::Str(s)   => s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null),
+        _ => Value::Null,
+    }
+}
+
+pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
+    match (haystack, prefix) {
+        (Value::Str(h), Value::Str(p)) => h.starts_with(p.as_ref()),
+        _ => false,
+    }
+}
+
+pub fn contains(haystack: &Value, needle: &Value) -> bool {
+    match (haystack, needle) {
+        (Value::Str(h), Value::Str(n)) => h.contains(n.as_ref()),
+        (Value::Arr(a), n)             => a.iter().any(|el| ccxt::runtime::is_equal(el, n)),
+        _ => false,
+    }
+}
+
+pub fn split(s: &Value, delim: &Value) -> Value {
+    match (s, delim) {
+        (Value::Str(s), Value::Str(d)) => {
+            Value::Array(s.split(d.as_ref()).map(|p| Value::Str(p.to_string().into())).collect())
+        }
+        _ => Value::Array(vec![]),
+    }
+}
+
 pub trait Truthy { fn truthy(&self) -> bool; }
 impl Truthy for bool      { fn truthy(&self) -> bool { *self } }
-impl Truthy for Value     { fn truthy(&self) -> bool { ccxt::runtime::is_true(self) } }
-impl Truthy for &Value    { fn truthy(&self) -> bool { ccxt::runtime::is_true(self) } }
+impl Truthy for Value     { fn truthy(&self) -> bool { is_true(self) } }
+impl Truthy for &Value    { fn truthy(&self) -> bool { is_true(self) } }
 
 /// `assert(condition, ...message)` — the test harness's assertion.
 /// A plain function (not Rust's `assert!` macro) so the transpiled

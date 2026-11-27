@@ -2240,7 +2240,7 @@ class NewTranspiler {
         const contentIdented = contentLines.map(line => '        ' + line).join('\n');
         const file = [ 'package tests.base;', 'import tests.BaseTest;', 'import io.github.ccxt.Helpers;', '', this.createGeneratedHeader().join('\n'), 'public class TestCryptography extends BaseTest {', contentIdented, '}', ].join('\n')
         log.magenta('→', (csharpFile as any).yellow)
-        overwriteFileAndFolder(csharpFile, file);
+        overwriteFileAndFolder(csharpFile, routeJavaTestOnlyHelpers(file));
     }
     transpileBaseTests(outDir: string, force = true) {
         const baseFolders = { ts: './ts/src/test/base/', };
@@ -2286,7 +2286,7 @@ class NewTranspiler {
                 `public class ${correctedTestName} extends BaseTest`, '{', contentIdented, '}',
             ].join('\n')
             log.magenta('→', (javaFile as any).yellow)
-            overwriteFileAndFolder(javaFile, nativeJavaTestCoreArgs(file));
+            overwriteFileAndFolder(javaFile, routeJavaTestOnlyHelpers(nativeJavaTestCoreArgs(file)));
         }
     }
     capitalize(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -2362,7 +2362,7 @@ class NewTranspiler {
             'package tests.exchange;', 'import io.github.ccxt.Helpers;', 'import io.github.ccxt.Exchange;', JAVA_ASYNC_SUPPLIER_IMPORT, 'import io.github.ccxt.BaseExchange;', 'import tests.BaseTest;',
             'import io.github.ccxt.errors.*;', '', this.createGeneratedHeader().join('\n'), contentIndentend,
         ].join('\n')
-        overwriteFileAndFolder(files.javaFile, nativeJavaTestCoreArgs(file));
+        overwriteFileAndFolder(files.javaFile, routeJavaTestOnlyHelpers(nativeJavaTestCoreArgs(file)));
     }
     async transpileExchangeTests(force = true) {
         const baseFolders = { ts: './ts/src/test/Exchange/', tsBase: './ts/src/test/Exchange/base/', javaBase: EXCHANGE_BASE_FOLDER, java: EXCHANGE_GENERATED_FOLDER, };
@@ -2506,7 +2506,7 @@ class NewTranspiler {
                 ])
                 java = [ ...fileHeaders, contentIndentend, '}', ].join('\n');
             }
-            overwriteFileAndFolder(tests[idx].javaFile, nativeJavaTestCoreArgs(java));
+            overwriteFileAndFolder(tests[idx].javaFile, routeJavaTestOnlyHelpers(nativeJavaTestCoreArgs(java)));
         });
     }
     async transpileTests(force = true) {
@@ -4378,6 +4378,10 @@ export function nativeJavaCoreArgIdentities (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 // Test printer: Map-locals retype + core-arg passes over generated test classes (members sit one level deeper than in exchanges), and a list literal handed to callDynamically alre...
+const JAVA_TEST_ONLY_HELPERS_RE = /\bHelpers\.(newMap|isTrue|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual|add|subtract|divide|multiply|getArrayLength|mathMax|mathAbs|promiseAll|toStringOrNull|toString|inOp|replace|getArg|toLongOrNull|toStringArg|toMapArg|toStringListArg|objectKeys|objectValues|opNeg|split)\(/g;
+export function routeJavaTestOnlyHelpers (content: string): string {
+    return content.replace (JAVA_TEST_ONLY_HELPERS_RE, 'tests.TestHelpers.$1(');
+}
 export function nativeJavaTestCoreArgs (content: string): string {
     if (!/Helpers\.(?:toMapArg|toStringListArg)\(/.test (content)) return content;
     const lines = content.split ('\n');

@@ -131,9 +131,6 @@ func TestSafePointerIsNotTruthy(t *testing.T) {
 	empty := map[string]any{}
 	absent := this.SafeString(empty, "missing")
 
-	if IsTrue(absent) {
-		t.Errorf("IsTrue(absent pointer) = true, want false")
-	}
 	if !IsEqual(absent, nil) {
 		t.Errorf("IsEqual(absent pointer, nil) = false, want true")
 	}
@@ -144,9 +141,6 @@ func TestSafePointerIsNotTruthy(t *testing.T) {
 	present := this.SafeString(map[string]any{"k": "10"}, "k")
 	if present == nil {
 		t.Fatalf("present key returned nil")
-	}
-	if IsTrue(present) != IsTrue("10") {
-		t.Errorf("IsTrue(&\"10\") != IsTrue(\"10\")")
 	}
 	if !IsEqual(present, "10") {
 		t.Errorf("IsEqual(&\"10\", \"10\") = false, want true")

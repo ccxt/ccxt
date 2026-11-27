@@ -125,7 +125,7 @@ public class BaseTest {
     }
 
     public static CompletableFuture<List<Object>> promiseAll(Object a) {
-        return Helpers.promiseAll(a);
+        return TestHelpers.promiseAll(a);
     }
 
     public static Object getValue(Object a, Object b) {
@@ -133,51 +133,51 @@ public class BaseTest {
     }
 
     public static boolean inOp(Object a, Object b) {
-        return Helpers.inOp(a, b);
+        return TestHelpers.inOp(a, b);
     }
 
     public static Object getArrayLength(Object a) {
-        return Helpers.getArrayLength(a);
+        return TestHelpers.getArrayLength(a);
     }
 
     public static boolean isLessThan(Object a, Object b) {
-        return Helpers.isLessThan(a, b);
+        return TestHelpers.isLessThan(a, b);
     }
 
     public static boolean isGreaterThan(Object a, Object b) {
-        return Helpers.isGreaterThan(a, b);
+        return TestHelpers.isGreaterThan(a, b);
     }
 
     public static boolean isGreaterThanOrEqual(Object a, Object b) {
-        return Helpers.isGreaterThanOrEqual(a, b);
+        return TestHelpers.isGreaterThanOrEqual(a, b);
     }
 
     public static boolean isLessThanOrEqual(Object a, Object b) {
-        return Helpers.isLessThanOrEqual(a, b);
+        return TestHelpers.isLessThanOrEqual(a, b);
     }
 
     public static Object mathMax(Object a, Object b) {
-        return Helpers.mathMax(a, b);
+        return TestHelpers.mathMax(a, b);
     }
 
     public static Object add(Object a, Object b) {
-        return Helpers.add(a, b);
+        return TestHelpers.add(a, b);
     }
 
     public static Object multiply(Object a, Object b) {
-        return Helpers.multiply(a, b);
+        return TestHelpers.multiply(a, b);
     }
 
     public static Object subtract(Object a, Object b) {
-        return Helpers.subtract(a, b);
+        return TestHelpers.subtract(a, b);
     }
 
     public static Object divide(Object a, Object b) {
-        return Helpers.divide(a, b);
+        return TestHelpers.divide(a, b);
     }
 
     public static Object toStringOrNull(Object a) {
-        return Helpers.toStringOrNull(a);
+        return TestHelpers.toStringOrNull(a);
     }
 
     public static boolean isEqual(Object a, Object b) {
@@ -185,7 +185,7 @@ public class BaseTest {
     }
 
     public static boolean isTrue(Object a) {
-        return Helpers.isTrue(a);
+        return TestHelpers.isTrue(a);
     }
 
     public static Object encode(Object a) {
@@ -310,10 +310,10 @@ public class BaseTest {
     ) {
         Assert(
             deepEqual(a, b),
-            Helpers.add(
-                Helpers.add(
-                    Helpers.add(
-                        Helpers.add(
+            TestHelpers.add(
+                TestHelpers.add(
+                    TestHelpers.add(
+                        TestHelpers.add(
                             "two dicts do not match: ",
                             Functions.json(a)
                         ),
@@ -349,7 +349,7 @@ public class BaseTest {
             if (sb.length() > 0) {
                 sb.append(' ');
             }
-            sb.append(Helpers.toStringOrNull(obj));
+            sb.append(TestHelpers.toStringOrNull(obj));
         }
         System.out.println(sb.toString());
     }

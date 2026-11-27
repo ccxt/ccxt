@@ -17,9 +17,6 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if !IsEqual(v, nil) || !IsEqual(nil, v) {
 			t.Errorf("%s: IsEqual(x, nil) = false, want true", name)
 		}
-		if EvalTruthy(v) {
-			t.Errorf("%s: EvalTruthy = true", name)
-		}
 		if InOp(v, "k") {
 			t.Errorf("%s: InOp = true", name)
 		}
@@ -36,8 +33,8 @@ func TestTypedNilContainerReadsAsAbsent(t *testing.T) {
 		if SafeValue(map[string]any{"k": v}, "k", "def") != "def" {
 			t.Errorf("%s: SafeValue did not answer the default", name)
 		}
-		if !IsNil(v) || GetArrayLength(v) != 0 || ObjectKeys(v) != nil {
-			t.Errorf("%s: IsNil/GetArrayLength/ObjectKeys differ from absent", name)
+		if GetArrayLength(v) != 0 || ObjectKeys(v) != nil {
+			t.Errorf("%s: GetArrayLength/ObjectKeys differ from absent", name)
 		}
 		if ex.Omit(v, "k") != nil || ex.Clone(v) != nil || ex.ArrayConcat(v, []any{1}) != nil {
 			t.Errorf("%s: Omit/Clone/ArrayConcat differ from absent", name)

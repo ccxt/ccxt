@@ -121,11 +121,52 @@ func Add(a interface{}, b interface{}) interface{} {
 }
 
 func IsTrue(a interface{}) bool {
-	return ccxt.IsTrue(a)
+	return EvalTruthy(a)
 }
 
 func EvalTruthy(val interface{}) bool {
-	return ccxt.EvalTruthy(val)
+	val = ccxt.DerefScalar(val)
+	if val == nil {
+		return false
+	}
+	switch v := val.(type) {
+	case int:
+		return v != 0
+	case int32:
+		return v != 0
+	case int64:
+		return v != 0
+	case uint:
+		return v != 0
+	case uint32:
+		return v != 0
+	case uint64:
+		return v != 0
+	case float32:
+		return v != 0 && v == v
+	case float64:
+		return v != 0 && v == v
+	case string:
+		return v != ""
+	case bool:
+		return v
+	case []any:
+		return len(v) > 0
+	case map[string]any:
+		return len(v) > 0
+	case []string:
+		return len(v) > 0
+	case []int64:
+		return len(v) > 0
+	case []float64:
+		return len(v) > 0
+	case []bool:
+		return len(v) > 0
+	case []int:
+		return len(v) > 0
+	default:
+		return true
+	}
 }
 
 func IsInteger(value interface{}) bool {

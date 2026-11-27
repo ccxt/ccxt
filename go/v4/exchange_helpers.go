@@ -90,79 +90,6 @@ func Add(a any, b any) any {
 	return nil
 }
 
-func IsTrue(a any) bool {
-	return EvalTruthy(a)
-}
-
-// EvalTruthy determines if a single interface value is truthy.
-func EvalTruthy(val any) bool {
-	val = derefScalar(val)
-	if val == nil {
-		return false
-	}
-
-	// Check types of val
-
-	switch v := val.(type) {
-	// one type per case: in a multi-type case v stays boxed and never equals the untyped constant
-	case int:
-		return v != 0
-	case int32:
-		return v != 0
-	case int64:
-		return v != 0
-	case uint:
-		return v != 0
-	case uint32:
-		return v != 0
-	case uint64:
-		return v != 0
-	case float32:
-		return v != 0 && v == v
-	case float64:
-		return v != 0 && v == v
-	case string:
-		return v != ""
-	case bool:
-		return v // bool is already truthy or falsy
-	case []any:
-		return len(v) > 0
-	case map[string]any:
-		return len(v) > 0
-	case []string:
-		return len(v) > 0
-	case []int64:
-		return len(v) > 0
-	case []float64:
-		return len(v) > 0
-	case []bool:
-		return len(v) > 0
-	case []int:
-		return len(v) > 0
-	default:
-		return true
-		// Use reflection for other complex types (slices, maps, pointers, etc.)
-		// valType := reflect.TypeOf(val)
-		// switch valType.Kind() {
-		// case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Chan, reflect.Func:
-		// 	return !reflect.ValueOf(val).IsNil()
-		// }
-	}
-
-	// return true // Consider non-nil complex types as truthy
-}
-
-// func IsInteger(value any) bool {
-// 	switch value.(type) {
-// 	case int, int8, int16, int32, int64:
-// 		return true
-// 	case uint, uint8, uint16, uint32, uint64:
-// 		return true
-// 	default:
-// 		return false
-// 	}
-// }
-
 func IsInteger(value any) bool {
 	value = derefScalar(value)
 	switch v := value.(type) {
@@ -1385,32 +1312,6 @@ func castToSlice(slice any) ([]any, bool) {
 		sliceVal[i] = val.Index(i).Interface()
 	}
 	return sliceVal, true
-}
-
-func IsNil(x any) bool {
-	x = derefScalar(x)
-	// https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
-	if x == nil {
-		return true
-	}
-	return false
-
-	// switch val := x.(type){
-	// case any:
-	// 	return val == nil
-	// case
-
-	// }
-
-	// value := reflect.ValueOf(x)
-	// kind := value.Kind()
-
-	// switch kind {
-	// case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
-	// 	return value.IsNil()
-	// default:
-	// 	return false
-	// }
 }
 
 // derefScalar reproduces untyped-nil semantics for a maybe-undefined value that
@@ -2786,10 +2687,6 @@ func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
 			ch <- EndpointResult[T]{Err: RecoveredError(r)}
 		}
 	}
-}
-
-func Print(v any) {
-	fmt.Println(v)
 }
 
 func HandleDelta(bookside any, delta any) any {

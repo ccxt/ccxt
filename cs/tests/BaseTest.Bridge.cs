@@ -183,9 +183,23 @@ public partial class BaseTest
     public static double divide(double a, double b) => a / b;
     public static double? divide(Int64? a, Int64? b) => (double?)a / b;
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
-    public static bool isTrue(object a) => Exchange.isTrue(a);
-    // typed twin mirroring Exchange.TranspileHelpers.cs (S58): `isTrue` is the identity on a bool
-    public static bool isTrue(bool a) => Exchange.isTrue(a);
+    public static bool isTrue(bool a) => a;
+    public static bool isTrue(object value)
+    {
+        if (value == null) { return false; }
+        value = Exchange.normalizeIntIfNeeded(value);
+        if (value is bool b) { return b; }
+        if (value is Int64 i) { return i != 0; }
+        if (value is double d) { return d != 0; }
+        if (value is string s) { return s != ""; }
+        if (value is IList<object> lo) { return lo.Count > 0; }
+        if (value is IList<string> ls) { return ls.Count > 0; }
+        if (value is IList<int> li) { return li.Count > 0; }
+        if (value is IList<Int64> l64) { return l64.Count > 0; }
+        if (value is IList<double> ld) { return ld.Count > 0; }
+        if (value is IDictionary<string, object>) { return true; }
+        return false;
+    }
     public static object encode(object a) => a;
     public static object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
     public static string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Exchange.Hmac(request2, secret2, algorithm2, digest);

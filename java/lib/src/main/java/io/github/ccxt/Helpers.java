@@ -8,9 +8,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.ccxt.base.JsonHelper;
 
@@ -18,15 +16,6 @@ import io.github.ccxt.base.JsonHelper;
 public class Helpers {
 
     private static final ObjectMapper mapper = JsonHelper.mapper();
-
-    /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
-    public static HashMap<String, Object> newMap(Object... keysAndValues) {
-        HashMap<String, Object> map = new HashMap<>();
-        for (int i = 0; i + 1 < keysAndValues.length; i += 2) {
-            map.put((String) keysAndValues[i], keysAndValues[i + 1]);
-        }
-        return map;
-    }
 
     // spawn tasks: the arguments are passed by value, so the call site captures no local
     public interface Task1<A> { void run(A a) throws Exception; }
@@ -135,47 +124,13 @@ public class Helpers {
         return t;
     }
 
-    // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
-    public static Object normalizeIntIfNeeded(Object a) {
-        if (a == null) return null;
-        if (a instanceof Integer) {
-            return Long.valueOf(((Integer) a).longValue());
-        }
-        return a;
-    }
-
     // In Java, wire up your preferred JSON lib and return Map/List accordingly.
     public static Object parseJson(Object json) {
         // placeholder: return the string itself (or plug in Jackson/Gson here)
         return  JsonHelper.deserialize((String) json);
     }
 
-    public static boolean isTrue(Object value) {
-        if (value == null) return false;
-
-        value = normalizeIntIfNeeded(value);
-
-        if (value instanceof Boolean) {
-            return (Boolean) value;
-        } else if (value instanceof Long) {
-            return ((Long) value) != 0L;
-        } else if (value instanceof Integer) {
-            return ((Integer) value) != 0;
-        } else if (value instanceof Double) {
-            return ((Double) value) != 0.0;
-        } else if (value instanceof String) {
-            return !((String) value).isEmpty();
-        } else if (value instanceof List) {
-            return !((List<?>) value).isEmpty();
-        } else if (value instanceof Map) {
-            // C# returned true for any IDictionary; we can mirror that or check emptiness.
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean isNumber(Object number) {
+    private static boolean isNumber(Object number) {
         if (number == null) return false;
         try {
             Double.parseDouble(String.valueOf(number));
@@ -195,7 +150,7 @@ public class Helpers {
                 return false;
             }
 
-            if (IsInteger(a) && IsInteger(b)) {
+            if (isInteger(a) && isInteger(b)) {
                 return toLong(a).equals(toLong(b));
             }
             if ((a instanceof Long) && (b instanceof Long)) {
@@ -223,139 +178,7 @@ public class Helpers {
         }
     }
 
-    public static boolean isGreaterThan(Object a, Object b) {
-        if (a != null && b == null) return true;
-        if (a == null || b == null) return false;
-
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        if (a instanceof Long && b instanceof Long) {
-            return ((Long) a) > ((Long) b);
-        } else if (a instanceof Integer && b instanceof Integer) {
-            return ((Integer) a) > ((Integer) b);
-        } else if (isNumber(a) || isNumber(b)) {
-            return toDouble(a) > toDouble(b);
-        } else if (a instanceof String && b instanceof String) {
-            return ((String) a).compareTo((String) b) > 0;
-        } else {
-            return false;
-        }
-    }
-
-    public static boolean isLessThan(Object a, Object b) {
-        return !isGreaterThan(a, b) && !isEqual(a, b);
-    }
-
-    public static boolean isGreaterThanOrEqual(Object a, Object b) {
-        return isGreaterThan(a, b) || isEqual(a, b);
-    }
-
-    public static boolean isLessThanOrEqual(Object a, Object b) {
-        return isLessThan(a, b) || isEqual(a, b);
-    }
-
-    public static Object add(Object a, Object b) {
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        if (a instanceof Long && b instanceof Long) {
-            return ((Long) a) + ((Long) b);
-        } else if (a instanceof Double || b instanceof Double) {
-            return toDouble(a) + toDouble(b);
-        } else if (a instanceof String && b instanceof String) {
-            return ((String) a) + ((String) b);
-        } else if (a instanceof String || b instanceof String) {
-            return String.valueOf(a) + String.valueOf(b);
-        }
-
-        return null;
-    }
-
-    public static String add(String a, String b) {
-        return a + b;
-    }
-
-    public static String add(String a, Object b) {
-        return a + String.valueOf(b);
-    }
-
-//     public static String add(Object... items) {
-//     StringBuilder sb = new StringBuilder();
-
-//     for (Object item : items) {
-//         if (item instanceof String) {
-//             sb.append((String) item);
-//         }
-//     }
-
-//     return sb.toString();
-// }
-
-    public static Object subtract(Object a, Object b) {
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-
-        if (a instanceof Long && b instanceof Long) {
-            return ((Long) a) - ((Long) b);
-        } else if (a instanceof Integer && b instanceof Integer) {
-            return ((Integer) a) - ((Integer) b);
-        } else if (a instanceof Double || b instanceof Double) {
-            return toDouble(a) - toDouble(b);
-        } else {
-            return null;
-        }
-    }
-
-    // public static int subtract(int a, int b) { return a - b; }
-
-    // public float subtract(float a, float b) { return a - b; }
-
-    public static Object divide(Object a, Object b) {
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-        if (a == null || b == null) return null;
-
-        if (a instanceof Long && b instanceof Long) {
-            return ((Long) a).doubleValue() / ((Long) b); // we want the reminder hence the cast
-        } else if (a instanceof Double && b instanceof Double) {
-            return ((Double) a) / ((Double) b);
-        } else {
-            return toDouble(a) / toDouble(b);
-        }
-    }
-
-    public static Object multiply(Object a, Object b) {
-        a = normalizeIntIfNeeded(a);
-        b = normalizeIntIfNeeded(b);
-        if (a == null || b == null) return null;
-
-        if (a instanceof Long && b instanceof Long) {
-            return ((Long) a) * ((Long) b);
-        }
-        double res = toDouble(a) * toDouble(b);
-        if (IsInteger(res)) {
-            return (long) res;
-        } else {
-            return res;
-        }
-    }
-
-    public static int getArrayLength(Object value) {
-        if (value == null) return 0;
-
-        if (value instanceof List<?>) {
-            return ((List<?>) value).size();
-        } else if (value instanceof String) {
-            return ((String) value).length(); // fallback
-        } else if (value.getClass().isArray()) {
-            return java.lang.reflect.Array.getLength(value);
-        } else {
-            return 0;
-        }
-    }
-
-    public static boolean IsInteger(Object value) {
+    private static boolean isInteger(Object value) {
         if (value == null) return false;
 
         if (value instanceof Byte || value instanceof Short ||
@@ -371,17 +194,6 @@ public class Helpers {
         }
         return false;
     }
-
-    // Printed by javaTranspiler's Math.max fallback; keep at 0 call sites.
-    public static Object mathMax(Object a, Object b) {
-        if (a == null || b == null) return null;
-        double first = toDouble(a);
-        double second = toDouble(b);
-        return (first > second) ? a : b;
-    }
-
-    // generic getValue to replace elementAccesses
-    public Object getValue(Object a, Object b) { return GetValue(a, b); }
 
     public static Object GetValue(Object value2, Object key) {
         if (value2 == null || key == null) return null;
@@ -438,42 +250,6 @@ public class Helpers {
             return null;
         }
     }
-
-    public static CompletableFuture<List<Object>> promiseAll(Object promisesObj) { return PromiseAll(promisesObj); }
-
-    public static CompletableFuture<List<Object>> PromiseAll(Object promisesObj) {
-        List<?> promises = (List<?>) promisesObj;
-        List<CompletableFuture<Object>> futures = new ArrayList<>();
-        for (Object p : promises) {
-            if (p instanceof CompletableFuture) {
-                futures.add((CompletableFuture<Object>) p);
-            }
-        }
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApply(v -> {
-                    List<Object> out = new ArrayList<>(futures.size());
-                    for (CompletableFuture<Object> f : futures) {
-                        try {
-                            out.add(f.get());
-                        } catch (InterruptedException | ExecutionException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    return out;
-                });
-    }
-
-    public static Object toStringOrNull(Object value) {
-        if (value == null) return null;
-        return value;
-    }
-
-    public static String toString(Object value) {
-        if (value == null) return null;
-//        return (String) value;
-        return value.toString();
-    }
-
 
     public static Object callDynamically(Object obj, Object methodName, Object[] args) {
     if (args == null) args = new Object[]{};
@@ -586,22 +362,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     return invokeArgs;
 }
 
-    public static boolean inOp(Object obj, Object key) { return InOp(obj, key); }
-
-    public static boolean InOp(Object obj, Object key) {
-        if (obj == null || key == null) return false;
-
-        if (obj instanceof List<?>) {
-            return ((List<?>) obj).contains(key);
-        } else if (obj instanceof Map<?, ?>) {
-            if (key instanceof String) {
-                return ((Map<?, ?>) obj).containsKey(key);
-            } else return false;
-        } else {
-            return false;
-        }
-    }
-
     // --------- helpers ---------
 
     // Every generated method has ONE signature: resolve by name, child class first. Among
@@ -684,85 +444,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         return Float.parseFloat(String.valueOf(o));
     }
 
-    public static String replace(Object baseString, Object search, Object replacement) {
-        if (baseString == null) {
-            return null;
-        }
-        String s     = String.valueOf(baseString);
-        String find  = (search == null) ? "" : String.valueOf(search);
-        String repl  = (replacement == null) ? "" : String.valueOf(replacement);
-        return s.replaceFirst(java.util.regex.Pattern.quote(find),  java.util.regex.Matcher.quoteReplacement(repl)); // literal (non-regex) replacement
-    }
-
-    public static Object getArg(Object[] v, int index, Object def) {
-        if (v == null || v.length <= index) {
-            return def;
-        }
-        return v[index];
-    }
-
-    // Slot readers for the generated `Object... optionalArgs` fronts: an omitted slot takes the
-    // default, an explicit null stays null, and any Number widens to Long.
-
-    /** a write into a typed `Long` parameter: null stays null, any Number widens to Long */
-    public static Long toLongOrNull(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Long) {
-            return (Long) value;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
-        }
-        throw new ClassCastException("ccxt: expected a number, got " + value.getClass().getName());
-    }
-
-    /** a value passed to a typed `String` core parameter */
-    public static String toStringArg(Object value) {
-        return value == null ? null : (value instanceof String ? (String) value : String.valueOf(value));
-    }
-
-    /** a value passed to a typed `Map` core parameter */
-    @SuppressWarnings("unchecked")
-    public static Map<String, Object> toMapArg(Object value) {
-        if (value == null || value instanceof Map) {
-            return (Map<String, Object>) value;
-        }
-        throw new ClassCastException("ccxt: expected a dictionary, got " + value.getClass().getName());
-    }
-
-    /** a value passed to a typed `List<String>` core parameter */
-    @SuppressWarnings("unchecked")
-    public static List<String> toStringListArg(Object value) {
-        if (value == null || value instanceof List) {
-            return (List<String>) value;
-        }
-        throw new ClassCastException("ccxt: expected a list of strings, got " + value.getClass().getName());
-    }
-
-
-    /**
-     * Copy of a Map's keys. The caller owns the map or reads a published snapshot (an
-     * immutable map, or a null-free store's weakly consistent view), so the copy needs no
-     * monitor. Used by the transpile of `Object.keys(x)`.
-     * For non-Map targets returns an empty list (matches JS Object.keys on non-objects).
-     */
-    public static List<Object> objectKeys(Object target) {
-        if (target instanceof Map<?, ?> m) {
-            return new ArrayList<>(m.keySet());
-        }
-        return new ArrayList<>();
-    }
-
-    /** Same as {@link #objectKeys} but for values — transpile of `Object.values(x)`. */
-    public static List<Object> objectValues(Object target) {
-        if (target instanceof Map<?, ?> m) {
-            return new ArrayList<>(m.values());
-        }
-        return new ArrayList<>();
-    }
-
     @SuppressWarnings("unchecked")
     public static void addElementToObject(Object target, Object... args) {
         if (target instanceof Map<?, ?> map) {
@@ -788,7 +469,7 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
                 l.add(args[0]); // append
                 return;
             }
-            if (args.length == 2 && IsInteger(args[0])) {
+            if (args.length == 2 && isInteger(args[0])) {
                 int i = toInt(args[0]);
                 if (i < 0 || i > l.size()) {
                     throw new IndexOutOfBoundsException("Index " + i + " out of bounds [0," + l.size() + "]");
@@ -828,34 +509,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
 
     private static String typeName(Object o) {
         return (o == null) ? "null" : o.getClass().getName();
-    }
-
-    public static Object opNeg(Object value) {
-        if (value == null) {
-            return null;
-        }
-
-        if (value instanceof Byte) {
-            byte v = (Byte) value;
-            return (byte) -v;
-        }
-        if (value instanceof Short v) {
-            return (short) -v;
-        }
-        if (value instanceof Integer v) {
-            return -v;
-        }
-        if (value instanceof Long v) {
-            return -v;
-        }
-        if (value instanceof Float v) {
-            return -v;
-        }
-        if (value instanceof Double v) {
-            return -v;
-        }
-
-        return null;
     }
 
     public static void throwDynamicException(Object exception, Object message) {
@@ -901,79 +554,6 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
     throw (T) t;
 }
 
-//     public static void throwDynamicException(Object exception, Object message) {
-//     if (exception == null) {
-//         throw new RuntimeException(String.valueOf(message));
-//     }
-//     if (!(exception instanceof Class<?>)) {
-//         throw new IllegalArgumentException("exception must be a Class");
-//     }
-//     Class<?> exClass = (Class<?>) exception;
-//     String msg = String.valueOf(message);
-//     try {
-//         Throwable toThrow;
-//         try {
-//             var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
-//             ctorWithMsg.setAccessible(true);
-//             Object exObj = ctorWithMsg.newInstance(msg);
-//             if (exObj instanceof Throwable) {
-//                 toThrow = (Throwable) exObj;
-//             } else {
-//                 toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
-//             }
-//         } catch (NoSuchMethodException innerNoStringCtor) {
-//             var defaultCtor = exClass.getDeclaredConstructor();
-//             defaultCtor.setAccessible(true);
-//             Object exObj = defaultCtor.newInstance();
-//             if (exObj instanceof Throwable) {
-//                 toThrow = (Throwable) exObj;
-//             } else {
-//                 toThrow = new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
-//             }
-//         }
-//         throw toThrow;
-//     } catch (Throwable reflectError) {
-//         throw new RuntimeException("Failed to throw dynamic exception: " + exClass.getName() + " :: " + msg, reflectError);
-//     }
-// }
-
-    // Printed by javaTranspiler's Math.abs arm; keep at 0 call sites.
-    public static Object mathAbs(Object val) {
-        if (val == null) {
-            return null;
-        }
-
-        if (val instanceof Integer) {
-            return Math.abs((Integer) val);
-        }
-
-        if (val instanceof Long) {
-            return Math.abs((Long) val);
-        }
-
-        if (val instanceof Float) {
-            return Math.abs((Float) val);
-        }
-
-        if (val instanceof Double) {
-            return Math.abs((Double) val);
-        }
-
-        if (val instanceof BigDecimal) {
-            return ((BigDecimal) val).abs();
-        }
-
-        // if (val instanceof BigInteger) {
-        //     return ((BigInteger) val).abs();
-        // }
-
-        if (val instanceof Number) {
-            return Math.abs(((Number) val).doubleValue());
-        }
-
-        return null;
-    }
-
     public static boolean isInstance(Object value, Object type) {
         if (!(type instanceof Class<?> clazz)) {
             return false;
@@ -996,27 +576,5 @@ private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
             t = t.getCause();
         }
         return t;
-    }
-
-//    public static Object split(Object str, Object splitter) {
-//        if (str == null || splitter == null) {
-//            return new String[0];
-//        }
-//
-//        String s = String.valueOf(str);
-//        String delim = String.valueOf(splitter);
-//
-//        return s.split(Pattern.quote(delim));
-//    }
-
-    public static Object split(Object str, Object splitter) {
-        if (str == null || splitter == null) {
-            return Collections.emptyList();
-        }
-
-        String s = String.valueOf(str);
-        String delim = String.valueOf(splitter);
-
-        return Arrays.asList(s.split(Pattern.quote(delim)));
     }
 }

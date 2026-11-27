@@ -12130,7 +12130,8 @@ impl std::ops::DerefMut for ${coreName} {
                     // The transpiled tests emit private `fn testX()` entry points — we call them from base/mod.rs, so make them pub. Cover async too.
                     [/^(\s*)fn (test[A-Z][a-zA-Z0-9_]*)\(/gm, '$1pub fn $2('],
                     [/^(\s*)async fn (test[A-Z][a-zA-Z0-9_]*)\(/gm, '$1pub async fn $2('],
-                    // Base tests live in the `ccxt_tests` crate, not in `ccxt`. Any `crate::runtime::X` / `crate::Value` emitted by the per-exchange pipeline above must be retargeted at the ccxt crate.
+                    // Base tests live in the `ccxt_tests` crate, not in `ccxt`. Route test-only helpers to `crate::test_helpers`, the rest to `ccxt::runtime`.
+                    [/\bcrate::runtime::(is_true|parse_float|starts_with|contains|split)\b/g, 'crate::test_helpers::$1'],
                     [/\bcrate::runtime\b/g,           'ccxt::runtime'],
                     [/\bcrate::set_value\b/g,         'ccxt::set_value'],
                     [/\bcrate::precise\b/g,           'ccxt::precise'],
@@ -12196,6 +12197,7 @@ impl std::ops::DerefMut for ${coreName} {
                     'use ccxt::Value;',
                     'use ccxt::get_value;',
                     'use ccxt::runtime::*;',
+                    'use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};',
                     // The transpiled tests reference bare types `ArrayCache`, `ArrayCacheByTimestamp`, etc. from `'../../base/ws/Cache.js'` — provide them via the tests_support stubs.
                     'use crate::tests_support::{ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide};',
                     'use ccxt::exchange_generated::ExchangeBase;',
@@ -12295,7 +12297,7 @@ impl std::ops::DerefMut for ${coreName} {
                         return `${cls}::new(${args}, Value::Null)`;
                     },
                 );
-                const file = [ ...this.createGeneratedHeader(), '#![allow(unused, non_snake_case, dead_code, clippy::all)]', 'use ccxt::Value;', 'use ccxt::get_value;', 'use ccxt::runtime::*;', 'use ccxt::pro::*;', '', content, ].join('\n')
+                const file = [ ...this.createGeneratedHeader(), '#![allow(unused, non_snake_case, dead_code, clippy::all)]', 'use ccxt::Value;', 'use ccxt::get_value;', 'use ccxt::runtime::*;', 'use crate::test_helpers::{is_true, parse_float, starts_with, contains, split};', 'use ccxt::pro::*;', '', content, ].join('\n')
                     .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
                 overwriteFileAndFolder(outFile, file);
                 log.magenta('→', (outFile as any).yellow);
@@ -12382,7 +12384,7 @@ impl std::ops::DerefMut for ${coreName} {
             if (j >= content.length) { out += content.slice(idx + marker.length); break; }
             const inner = content.slice(idx + marker.length, j).trim();
             // Don't double-wrap if it already starts with `is_true`.
-            if (inner.startsWith('is_true(') || inner.startsWith('ccxt::runtime::is_true(')) { out += inner + ')'; } else { out += `ccxt::runtime::is_true(&(${inner}))` + ')'; }
+            if (inner.startsWith('is_true(') || inner.startsWith('crate::test_helpers::is_true(') || inner.startsWith('ccxt::runtime::is_true(')) { out += inner + ')'; } else { out += `crate::test_helpers::is_true(&(${inner}))` + ')'; }
             i = j + 1;
         }
         return out;

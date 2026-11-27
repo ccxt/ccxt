@@ -116,18 +116,6 @@ impl KeyDictRead for HashMap<String, Value> {
 
 // ── type checks ─────────────────────────────────────────────────────────────
 
-/// `is_true(x)` — polymorphic truthy check. The transpiler emits
-/// `is_true(&X)` where `X` may be a `Value`, a `bool`, or the result of
-/// any other predicate (`is_equal`, `in_op`, …). This trait lets all of
-/// them work without manual conversion at the call site.
-pub trait IsTruthy { fn truthy(&self) -> bool; }
-impl IsTruthy for Value     { fn truthy(&self) -> bool { self.is_truthy() } }
-impl IsTruthy for bool      { fn truthy(&self) -> bool { *self } }
-impl IsTruthy for &Value    { fn truthy(&self) -> bool { (*self).is_truthy() } }
-impl IsTruthy for &bool     { fn truthy(&self) -> bool { **self } }
-
-pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
-
 pub fn is_function(_v: &Value)-> bool { false }
 
 /// Convert a `catch_unwind` panic payload into the `Value::Str` shape
@@ -627,17 +615,8 @@ pub mod Math {
         if both_ints(a, b) { return Value::Int(as_i64(a).unwrap().max(as_i64(b).unwrap())); }
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.max(y)), _ => Value::Null }
     }
-    pub fn abs(a: &Value) -> Value {
-        // checked_abs so i64::MIN falls through to the float branch instead of
-        // panicking on overflow, keeping the module's lenient no-panic contract
-        if let Value::Int(n) = a { if let Some(v) = n.checked_abs() { return Value::Int(v); } }
-        match as_f64(a) { Some(x) => Value::Float(x.abs()), None => Value::Null }
-    }
     pub fn pow(a: &Value, b: &Value) -> Value {
         match (as_f64(a), as_f64(b)) { (Some(x), Some(y)) => Value::Float(x.powf(y)), _ => Value::Null }
-    }
-    pub fn log(v: &Value) -> Value {
-        match as_f64(v) { Some(x) => Value::Float(x.ln()), None => Value::Null }
     }
 }
 
@@ -652,41 +631,6 @@ pub fn to_string_val(v: &Value) -> Value {
     Value::Str(stringify_simple(v).into())
 }
 
-/// `parse_float(value)` — best-effort to float.
-pub fn parse_float(v: &Value) -> Value {
-    match v {
-        Value::Float(_) => v.clone(),
-        Value::Int(n)   => Value::Float(*n as f64),
-        Value::Str(s)   => s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null),
-        _ => Value::Null,
-    }
-}
-
-/// `starts_with(haystack, prefix)` — true if Value haystack starts with prefix.
-pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
-    match (haystack, prefix) {
-        (Value::Str(h), Value::Str(p)) => h.starts_with(p.as_ref()),
-        _ => false,
-    }
-}
-
-/// `trim(s)` — string trim.
-pub fn trim(v: &Value) -> Value {
-    match v { Value::Str(s) => Value::Str(s.trim().to_string().into()), _ => Value::Null }
-}
-
-/// `contains(haystack, needle)` — substring check for `Value::Str`,
-/// element check for `Value::Array`. Used by the transpiled tests
-/// for `string.includes(...)` / `array.includes(...)` (the regex
-/// transpiler rewrites both into this free function).
-pub fn contains(haystack: &Value, needle: &Value) -> bool {
-    match (haystack, needle) {
-        (Value::Str(h), Value::Str(n))   => h.contains(n.as_ref()),
-        (Value::Arr(a), n)             => a.iter().any(|el| is_equal(el, n)),
-        _ => false,
-    }
-}
-
 // ── Numeric / precision constants (mirrors decimal_to_precision.ts) ─────────
 
 pub const TRUNCATE:  i64 = 0;
@@ -698,16 +642,6 @@ pub const SIGNIFICANT_DIGITS:   i64 = 3;
 pub const TICK_SIZE: i64 = 4;
 pub const NO_PADDING:           i64 = 5;
 pub const PAD_WITH_ZERO:        i64 = 6;
-
-/// `split(s, delim)` — string split returning Value::Array of Value::Str.
-pub fn split(s: &Value, delim: &Value) -> Value {
-    match (s, delim) {
-        (Value::Str(s), Value::Str(d)) => {
-            Value::Array(s.split(d.as_ref()).map(|p| Value::Str(p.to_string().into())).collect())
-        }
-        _ => Value::Array(vec![]),
-    }
-}
 
 /// `repeat(s, n)` — repeat string n times.
 pub fn repeat(s: &Value, n: &Value) -> Value {

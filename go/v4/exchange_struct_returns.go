@@ -682,7 +682,10 @@ func WatchResolved[T any](v any) T {
 		}
 	case map[string]any:
 	case bool:
-		return any(IsTrue(v)).(T)
+		if b, ok := v.(*bool); ok {
+			return any(b != nil && *b).(T)
+		}
+		return zero
 	case *string:
 		if s, ok := v.(string); ok {
 			return any(&s).(T)

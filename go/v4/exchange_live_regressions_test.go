@@ -176,17 +176,3 @@ func TestCountedOrderBookSideZeroCountDeletes(t *testing.T) {
 		}
 	}
 }
-
-// JS truthiness: every numeric zero (and NaN) is falsy whatever its Go kind
-func TestEvalTruthyNumericZeroIsFalsy(t *testing.T) {
-	for _, v := range []any{int(0), int32(0), int64(0), uint(0), uint32(0), uint64(0), float32(0), float64(0), math.NaN()} {
-		if EvalTruthy(v) {
-			t.Errorf("EvalTruthy(%T %v) = true", v, v)
-		}
-	}
-	for _, v := range []any{int64(2), float64(0.5), int(-1)} {
-		if !EvalTruthy(v) {
-			t.Errorf("EvalTruthy(%T %v) = false", v, v)
-		}
-	}
-}

@@ -140,18 +140,15 @@ func unaryShims() []unaryShim {
 	var p *PreciseStruct // methods below ignore the receiver
 	return []unaryShim{
 		// exchange_helpers.go
-		{"EvalTruthy", func(v any) any { return EvalTruthy(v) }},
 		{"JsonParse", func(v any) any { return JsonParse(v) }},
 		{"IsFunction", func(v any) any { return IsFunction(v) }},
 		{"ObjectKeys", func(v any) any { return ObjectKeys(v) }},
-		{"IsTrue", func(v any) any { return IsTrue(v) }},
 		{"IsInteger", func(v any) any { return IsInteger(v) }},
 		{"GetArrayLength", func(v any) any { return GetArrayLength(v) }},
 		{"ToFloat64", func(v any) any { return ToFloat64(v) }},
 		{"IsString", func(v any) any { return IsString(v) }},
 		{"IsNumber", func(v any) any { return IsNumber(v) }},
 		{"IsArray", func(v any) any { return IsArray(v) }},
-		{"IsNil", func(v any) any { return IsNil(v) }},
 		{"ToString", func(v any) any { return ToString(v) }},
 		{"ParseInt", func(v any) any { return ParseInt(v) }},
 		{"ParseFloat", func(v any) any { return ParseFloat(v) }},

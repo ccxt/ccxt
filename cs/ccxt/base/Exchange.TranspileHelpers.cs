@@ -35,69 +35,6 @@ public partial class BaseExchange
         return JsonHelper.Deserialize((string)json);
     }
 
-    // S58 identity twin: normalizeIntIfNeeded leaves a bool alone and the object overload then
-    // returns `(bool)value` unchanged, so a statically `bool` argument is this same value.
-    public static bool isTrue(bool value)
-    {
-        return value;
-    }
-
-    public static bool isTrue(object value)
-    {
-        if (value == null)
-        {
-            return false;
-        }
-
-        value = normalizeIntIfNeeded(value);
-
-        // return value != null && value != false && value != 0 && value != "" && value != "0" && value != "false" && value != "False" && value != "FALSE";
-        if (value is (bool))
-        {
-            return (bool)value;
-        }
-        else if (value is (Int64))
-        {
-            return (Int64)value != 0;
-        }
-        else if (value is (double))
-        {
-            return (double)value != 0;
-        }
-        else if (value is (string))
-        {
-            return (string)value != "";
-        }
-        else if (value is (IList<object>))
-        {
-            return ((IList<object>)value).Count > 0;
-        }
-        else if (value is (IList<string>))
-        {
-            return ((IList<string>)value).Count > 0;
-        }
-        else if (value is (IList<int>))
-        {
-            return ((IList<string>)value).Count > 0;
-        }
-        else if (value is (IList<Int64>))
-        {
-            return ((IList<string>)value).Count > 0;
-        }
-        else if (value is (IList<double>))
-        {
-            return ((IList<double>)value).Count > 0;
-        }
-        else if (value is (IDictionary<string, object>))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     public static bool isNumber(object number)
     {
         return Double.TryParse(number.ToString(), out _);
@@ -1005,46 +942,6 @@ public partial class BaseExchange
         else
         {
             return false;
-        }
-    }
-
-    //clashing with the current method, need to rename it to concat instead of arrayConcat
-    public static object concat(object a, object b)
-    {
-        if (a == null && b == null)
-        {
-            return null;
-        }
-        else if (a == null)
-        {
-            return b;
-        }
-        else if (b == null)
-        {
-            return a;
-        }
-
-        if (a is IList<object> && b is IList<object>)
-        {
-            List<object> result = new List<object>((IList<object>)a);
-            result.AddRange((IList<object>)b);
-            return result;
-        }
-        else if (a is IList<string> && b is IList<string>)
-        {
-            List<string> result = new List<string>((IList<string>)a);
-            result.AddRange((IList<string>)b);
-            return result;
-        }
-        else if (a is IList<Dictionary<string, object>> && b is IList<Dictionary<string, object>>)
-        {
-            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>((IList<Dictionary<string, object>>)a);
-            result.AddRange((IList<Dictionary<string, object>>)b);
-            return result;
-        }
-        else
-        {
-            throw new InvalidOperationException("Unsupported types for concatenation.");
         }
     }
 
