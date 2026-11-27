@@ -1,0 +1,187 @@
+{
+ "//": "Trimmed from the Hibachi API Postman collection (api-doc.hibachi.xyz, first 6 requests)",
+ "info": {
+  "_postman_id": "3052daca-79cc-4d7d-bc40-31e64850176a",
+  "name": "Hibachi API",
+  "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+ },
+ "item": [
+  {
+   "name": "Account API",
+   "item": [
+    {
+     "name": "Capital",
+     "item": [
+      {
+       "name": "/capital/balance",
+       "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://api.hibachi.xyz/capital/balance?accountId=<accountId>",
+        "urlObject": {
+         "path": [
+          "capital",
+          "balance"
+         ],
+         "host": [
+          "https://api.hibachi.xyz"
+         ],
+         "query": [
+          {
+           "key": "accountId",
+           "value": "<accountId>"
+          }
+         ],
+         "variable": []
+        }
+       }
+      },
+      {
+       "name": "/capital/history",
+       "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://api.hibachi.xyz/capital/history?accountId=<accountId>",
+        "urlObject": {
+         "path": [
+          "capital",
+          "history"
+         ],
+         "host": [
+          "https://api.hibachi.xyz"
+         ],
+         "query": [
+          {
+           "key": "accountId",
+           "value": "<accountId>"
+          }
+         ],
+         "variable": []
+        }
+       }
+      },
+      {
+       "name": "/capital/withdraw",
+       "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+         "mode": "raw",
+         "raw": "{\n    \"accountId\": 140,\n    \"coin\": \"USDT\",\n    \"withdrawAddress\": \"0000000000000000000000000000000000000000\",\n    \"network\": \"arbitrum\",\n    \"quantity\": \"2.0113592\",\n    \"maxFees\": \"0.0113592\",\n    \"signature\": \"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"\n}",
+         "options": {
+          "raw": {
+           "language": "json"
+          }
+         }
+        },
+        "url": "https://api.hibachi.xyz/capital/withdraw",
+        "urlObject": {
+         "path": [
+          "capital",
+          "withdraw"
+         ],
+         "host": [
+          "https://api.hibachi.xyz"
+         ],
+         "query": [],
+         "variable": []
+        }
+       }
+      },
+      {
+       "name": "/capital/transfer",
+       "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+         "mode": "raw",
+         "raw": "{\n    \"accountId\": 140,\n    \"coin\": \"USDT\",\n    \"fees\": \"0\",\n    \"nonce\": 1728515344533,\n    \"quantity\": \"1\",\n    \"dstPublicKey\": \"00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\",\n    \"signature\": \"0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"\n}",
+         "options": {
+          "raw": {
+           "language": "json"
+          }
+         }
+        },
+        "url": "https://api.hibachi.xyz/capital/transfer",
+        "urlObject": {
+         "path": [
+          "capital",
+          "transfer"
+         ],
+         "host": [
+          "https://api.hibachi.xyz"
+         ],
+         "query": [],
+         "variable": []
+        }
+       }
+      },
+      {
+       "name": "/capital/deposit-info",
+       "request": {
+        "method": "GET",
+        "header": [],
+        "url": "https://api.hibachi.xyz/capital/deposit-info?accountId=<accountId>&publicKey=0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "urlObject": {
+         "path": [
+          "capital",
+          "deposit-info"
+         ],
+         "host": [
+          "https://api.hibachi.xyz"
+         ],
+         "query": [
+          {
+           "key": "accountId",
+           "value": "<accountId>"
+          },
+          {
+           "key": "publicKey",
+           "value": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+          }
+         ],
+         "variable": []
+        }
+       }
+      }
+     ]
+    },
+    {
+     "name": "Trade",
+     "item": [
+      {
+       "name": "/trade/account/info",
+       "request": {
+        "method": "GET",
+        "header": [
+         {
+          "key": "Authorization",
+          "value": ""
+         }
+        ],
+        "url": "https://api.hibachi.xyz/trade/account/info?accountId=<accountId>",
+        "urlObject": {
+         "path": [
+          "trade",
+          "account",
+          "info"
+         ],
+         "host": [
+          "https://api.hibachi.xyz"
+         ],
+         "query": [
+          {
+           "key": "accountId",
+           "value": "<accountId>"
+          }
+         ],
+         "variable": []
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

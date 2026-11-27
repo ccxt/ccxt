@@ -1,0 +1,19 @@
+{
+  "id": "binanceus",
+  "kind": "exchange",
+  "name": "Binance US",
+  "domains": ["binance.us"],
+  "sources": [
+    {
+      "id": "binanceus-changelog",
+      "type": "html",
+      "url": "https://docs.binance.us/",
+      "link": "https://docs.binance.us/#changelog",
+      "scope": "all (REST, WebSocket API, user data streams, authentication)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "#changelog ~ h4:not(#changelog ~ h1 ~ *), #changelog ~ p:not(#changelog ~ h4 ~ *):not(#changelog ~ h1 ~ *):has(> strong:only-child:contains(\"/20\"))" },
+      "date": { "from": "title", "order": "mdy" },
+      "minEntries": 20
+    }
+  ]
+}

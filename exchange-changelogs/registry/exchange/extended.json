@@ -1,0 +1,38 @@
+{
+  "id": "extended",
+  "kind": "exchange",
+  "name": "Extended",
+  "domains": ["extended.exchange", "github.com", "pypi.org"],
+  "sources": [
+    {
+      "id": "extended-api",
+      "type": "hash",
+      "url": "https://api.docs.extended.exchange/",
+      "scope": "API reference (REST + WebSocket)",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "extended-python-sdk-commits",
+      "type": "gh-commits",
+      "repo": "x10xchange/python_sdk",
+      "role": "secondary",
+      "scope": "official Python SDK commits"
+    },
+    {
+      "id": "extended-pypi-sdk",
+      "type": "rss",
+      "url": "https://pypi.org/rss/project/x10-python-trading-starknet/releases.xml",
+      "link": "https://pypi.org/project/x10-python-trading-starknet/#history",
+      "role": "secondary",
+      "scope": "official Python SDK releases"
+    },
+    {
+      "id": "extended-arc-migration",
+      "type": "hash",
+      "url": "https://docs.extended.exchange/about-extended/migration-from-starknet-to-arc.md",
+      "link": "https://docs.extended.exchange/about-extended/migration-from-starknet-to-arc",
+      "role": "secondary",
+      "scope": "Starknet to Arc migration (signature scheme)"
+    }
+  ]
+}

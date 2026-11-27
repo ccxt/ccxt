@@ -1,0 +1,89 @@
+{
+  "id": "bitflyer",
+  "kind": "exchange",
+  "name": "bitFlyer",
+  "domains": ["lightning.bitflyer.com", "bf-lightning-api.readme.io"],
+  "sources": [
+    {
+      "id": "bitflyer-docs-en",
+      "type": "hash",
+      "url": "https://lightning.bitflyer.com/docs?lang=en",
+      "scope": "HTTP API reference (English; no changelog)",
+      "slice": { "selector": ".main__container" }
+    },
+    {
+      "id": "bitflyer-docs-ja",
+      "type": "hash",
+      "url": "https://lightning.bitflyer.com/docs?lang=ja",
+      "headers": { "Cookie": "region=JP; language=ja-JP" },
+      "role": "secondary",
+      "scope": "HTTP API reference (Japanese)",
+      "slice": { "selector": ".main__container" }
+    },
+    {
+      "id": "bitflyer-endpoint-json-rpc",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/endpoint-json-rpc.md",
+      "link": "https://bf-lightning-api.readme.io/docs/endpoint-json-rpc",
+      "scope": "Realtime API: JSON-RPC 2.0 over WebSocket"
+    },
+    {
+      "id": "bitflyer-realtime-api-auth",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-api-auth.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-api-auth",
+      "scope": "Realtime API: authentication"
+    },
+    {
+      "id": "bitflyer-realtime-board-snapshot",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-board-snapshot.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-board-snapshot",
+      "scope": "Realtime API: board snapshot channel"
+    },
+    {
+      "id": "bitflyer-realtime-board",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-board.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-board",
+      "scope": "Realtime API: board diff channel"
+    },
+    {
+      "id": "bitflyer-realtime-ticker",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-ticker.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-ticker",
+      "scope": "Realtime API: ticker channel"
+    },
+    {
+      "id": "bitflyer-realtime-executions",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-executions.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-executions",
+      "scope": "Realtime API: executions channel"
+    },
+    {
+      "id": "bitflyer-realtime-child-order-events",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-child-order-events.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-child-order-events",
+      "scope": "Realtime API: child order events (private)"
+    },
+    {
+      "id": "bitflyer-realtime-parent-order-events",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/docs/realtime-parent-order-events.md",
+      "link": "https://bf-lightning-api.readme.io/docs/realtime-parent-order-events",
+      "scope": "Realtime API: parent order events (private)"
+    },
+    {
+      "id": "bitflyer-realtime-index",
+      "type": "hash",
+      "url": "https://bf-lightning-api.readme.io/llms.txt",
+      "link": "https://bf-lightning-api.readme.io/docs",
+      "role": "secondary",
+      "scope": "Realtime API docs index (new or removed pages)",
+      "minChange": 10
+    }
+  ]
+}

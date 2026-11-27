@@ -1,0 +1,17 @@
+{
+  "id": "coinmate",
+  "kind": "exchange",
+  "name": "Coinmate",
+  "domains": ["coinmate.io", "coinmate.docs.apiary.io"],
+  "sources": [
+    {
+      "id": "coinmate-changelog",
+      "type": "json",
+      "url": "https://jsapi.apiary.io/apis/coinmate/blueprint",
+      "link": "https://coinmate.docs.apiary.io/#introduction/changelog",
+      "scope": "all (REST + websocket); the Changelog section of the Apiary API description",
+      "mapper": "coinmate",
+      "minEntries": 3
+    }
+  ]
+}

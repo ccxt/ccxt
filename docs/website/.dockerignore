@@ -11,3 +11,5 @@ npm-debug.log*
 .env
 .env.*
 .env*.local
+# a local exchange-changelogs snapshot: the image build fetches its own (npm prebuild)
+src/data/changelog-snapshot

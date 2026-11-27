@@ -1,0 +1,41 @@
+{
+  "id": "dydx",
+  "kind": "exchange",
+  "name": "dYdX",
+  "domains": ["dydx.xyz", "github.com"],
+  "sources": [
+    {
+      "id": "dydx-indexer-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/swagger.json",
+      "link": "https://github.com/dydxprotocol/v4-chain/blob/main/indexer/services/comlink/public/swagger.json",
+      "scope": "Indexer REST API (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "dydx-indexer-websocket",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/dydxprotocol/v4-chain/main/indexer/services/comlink/public/websocket-documentation.md",
+      "link": "https://github.com/dydxprotocol/v4-chain/blob/main/indexer/services/comlink/public/websocket-documentation.md",
+      "scope": "Indexer websocket API"
+    },
+    {
+      "id": "dydx-docs",
+      "type": "hash",
+      "url": "https://docs.dydx.xyz/llms-full.txt",
+      "link": "https://docs.dydx.xyz/",
+      "role": "secondary",
+      "scope": "docs.dydx.xyz (full documentation text)",
+      "minChange": 200
+    },
+    {
+      "id": "dydx-docs-commits",
+      "type": "gh-commits",
+      "repo": "dydxprotocol/v4-documentation",
+      "ref": "main",
+      "path": "docs/pages",
+      "role": "secondary",
+      "scope": "docs repository commits"
+    }
+  ]
+}

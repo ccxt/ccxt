@@ -5,6 +5,8 @@
 .source
 # runtime exchange-status snapshots written by the status monitor (see lib/exchange-status.ts)
 /data
+# build-time exchange-changelogs snapshot (scripts/fetch-changelog-snapshot.mjs, npm prebuild)
+/src/data/changelog-snapshot
 # converted from wiki/ by build/wiki-to-fumadocs.ts (regenerate with `npm run fumadocs-content`)
 /content/docs
 # OG/social-card PNGs rendered at build time by scripts/generate-og-images.mjs (`npm run og-images`)

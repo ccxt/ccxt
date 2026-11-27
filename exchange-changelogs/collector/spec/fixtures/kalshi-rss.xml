@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title><![CDATA[API Changelog]]></title>
+        <description><![CDATA[Stay updated with API changes and version history]]></description>
+        <link>https://docs.kalshi.com</link>
+        <generator>Mintlify</generator>
+        <lastBuildDate>Sat, 07 Nov 2026 19:28:57 GMT</lastBuildDate>
+        <atom:link href="https://docs.kalshi.com/changelog/rss.xml" rel="self" type="application/rss+xml"/>
+        <copyright><![CDATA[API Documentation]]></copyright>
+        <docs>https://docs.kalshi.com</docs>
+        <item>
+            <title><![CDATA[API key signing algorithm metadata]]></title>
+            <description><![CDATA[GET /api_keys includes key_type for RSA and Ed25519 keys.]]></description>
+            <link>https://docs.kalshi.com/changelog#november-12-2026</link>
+            <guid isPermaLink="false">dec4dee21d01018a</guid>
+            <category><![CDATA[REST]]></category>
+            <category><![CDATA[Predictions]]></category>
+            <pubDate>Fri, 06 Nov 2026 18:45:46 GMT</pubDate>
+            <content:encoded><![CDATA[<p><code>GET /api_keys</code> now includes <code>key_type</code> (<code>rsa</code> or <code>ed25519</code>) on each supported key, including keys created before this change. The field is omitted when the algorithm is unknown.</p>]]></content:encoded>
+        </item>
+        <item>
+            <title><![CDATA[MCP portfolio access for perps]]></title>
+            <description><![CDATA[read::mcp_portfolio OAuth grants can read margin balances, positions, orders, fills and risk.]]></description>
+            <link>https://docs.kalshi.com/changelog#november-12-2026</link>
+            <guid isPermaLink="false">1568eb488b2528bb</guid>
+            <category><![CDATA[REST]]></category>
+            <category><![CDATA[Margin]]></category>
+            <pubDate>Fri, 06 Nov 2026 01:31:11 GMT</pubDate>
+            <content:encoded><![CDATA[<p>Registered MCP clients can read margin balances, positions, orders, fills and risk (<code>GET /margin/balance</code>, <code>/margin/positions</code>, <code>/margin/orders</code>, <code>/margin/fills</code>, <code>/margin/risk</code>) using explicitly granted <code>read::mcp_portfolio</code> OAuth access. <code>GET /margin/risk</code> includes leverage and estimated liquidation prices. Existing grants of this scope include this access. These grants do not allow order execution or funding changes. <code>GET /margin/markets</code>, <code>/margin/markets/{ticker}</code> and <code>/margin/markets/{ticker}/orderbook</code> accept a resource-bound MCP grant for per-user rate accounting; their anonymous payloads remain unchanged.</p>]]></content:encoded>
+        </item>
+        <item>
+            <title><![CDATA[MCP access to settlements]]></title>
+            <description><![CDATA[read::mcp_portfolio OAuth grants can read GET /portfolio/settlements.]]></description>
+            <link>https://docs.kalshi.com/changelog#november-12-2026</link>
+            <guid isPermaLink="false">485b8cdf4bf9807a</guid>
+            <category><![CDATA[REST]]></category>
+            <category><![CDATA[Predictions]]></category>
+            <pubDate>Fri, 06 Nov 2026 01:31:11 GMT</pubDate>
+            <content:encoded><![CDATA[<p>Registered MCP clients can read settlements (<code>GET /portfolio/settlements</code>) using explicitly granted <code>read::mcp_portfolio</code> OAuth access. Existing grants of this scope include this access. Archived settlements remain outside this endpoint.</p>]]></content:encoded>
+        </item>
+        <item>
+            <title><![CDATA[market_lifecycle_v2 covers trading-hours closes]]></title>
+            <description><![CDATA[Margin market_lifecycle_v2 sends deactivated when a market's trading hours end and activated when they begin.]]></description>
+            <link>https://docs.kalshi.com/changelog#november-12-2026</link>
+            <guid isPermaLink="false">0549ae0cc107d387</guid>
+            <category><![CDATA[WebSocket]]></category>
+            <category><![CDATA[Margin]]></category>
+            <pubDate>Thu, 05 Nov 2026 21:30:00 GMT</pubDate>
+            <content:encoded><![CDATA[<p>The margin <code>market_lifecycle_v2</code> channel now also sends <code>deactivated</code> when a
+market's trading hours end and <code>activated</code> when they begin. <code>is_deactivated</code>
+is true while the market is halted or outside its trading hours.</p>]]></content:encoded>
+        </item>
+        <item>
+            <title><![CDATA[Minimum order quantity in /margin/markets]]></title>
+            <description><![CDATA[Margin market responses now include minimum_quantity, the minimum order quantity in contracts.]]></description>
+            <link>https://docs.kalshi.com/changelog#november-11-2026</link>
+            <guid isPermaLink="false">96b8f661c84464f3</guid>
+            <category><![CDATA[REST]]></category>
+            <category><![CDATA[Margin]]></category>
+            <pubDate>Wed, 04 Nov 2026 19:14:07 GMT</pubDate>
+            <content:encoded><![CDATA[<p>Margin market responses now include <code>minimum_quantity</code>, the minimum order quantity in contracts.</p>]]></content:encoded>
+        </item>
+    </channel>
+</rss>

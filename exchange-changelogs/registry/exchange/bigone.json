@@ -1,0 +1,70 @@
+{
+  "id": "bigone",
+  "kind": "exchange",
+  "name": "BigONE",
+  "domains": ["big.one", "github.com"],
+  "sources": [
+    {
+      "id": "bigone-contract-changelog",
+      "type": "html",
+      "url": "https://open.big.one/docs/contract/changelog/",
+      "scope": "contract (REST, websocket)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h3" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "bigone-spot-changelog",
+      "type": "html",
+      "url": "https://open.big.one/docs/spot/changelog/",
+      "scope": "spot (stale since 2023-10-25)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h3" },
+      "date": { "from": "title", "order": "dmy" },
+      "minEntries": 10
+    },
+    {
+      "id": "bigone-convert-changelog",
+      "type": "html",
+      "url": "https://open.big.one/docs/convert/changelog/",
+      "role": "secondary",
+      "scope": "convert",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h3" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "bigone-spot-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/bigone-eng/openapi-specs/main/spot_rest.yml",
+      "link": "https://github.com/bigone-eng/openapi-specs/blob/main/spot_rest.yml",
+      "scope": "spot REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "bigone-contract-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/bigone-eng/openapi-specs/main/contract_rest.yml",
+      "link": "https://github.com/bigone-eng/openapi-specs/blob/main/contract_rest.yml",
+      "scope": "contract REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "bigone-wallet-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/bigone-eng/openapi-specs/main/wallet_rest.yml",
+      "link": "https://github.com/bigone-eng/openapi-specs/blob/main/wallet_rest.yml",
+      "scope": "wallet REST (OpenAPI; no wallet changelog page exists)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "bigone-convert-openapi",
+      "type": "spec",
+      "url": "https://raw.githubusercontent.com/bigone-eng/openapi-specs/main/convert_rest.yml",
+      "link": "https://github.com/bigone-eng/openapi-specs/blob/main/convert_rest.yml",
+      "role": "secondary",
+      "scope": "convert REST (OpenAPI)",
+      "specFormat": "openapi"
+    }
+  ]
+}

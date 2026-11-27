@@ -1,0 +1,75 @@
+---
+title: V5
+---
+
+import '/src/css/changelog.css';
+
+## 2026-11-09
+### REST API
+- [Set Auto Repay Mode](../v5/spot-margin-uta/set-auto-repay-mode) [UPDATE]
+    - When `currency` is omitted and `autoRepayMode` is enabled, the setting is now a global switch: it also applies to currencies that become borrowable after the setting is saved. Single-currency settings are unchanged.
+- [Get Trade Auto Repay](../v5/spot-margin-uta/get-trade-auto-repay) [NEW]
+    - Add `GET /v5/spot-margin-trade/get-trade-auto-repay` to retrieve the Unified account's trade auto repayment switch.
+- [Set Trade Auto Repay](../v5/spot-margin-uta/set-trade-auto-repay) [NEW]
+    - Add `POST /v5/spot-margin-trade/set-trade-auto-repay` to update the Unified account's trade auto repayment switch.
+
+## 2026-11-05
+### REST API
+- [Get Strategy List](../v5/strategy/strategy-list) [UPDATE]
+    - Restrict the query time range between `beginTimeE0` and `endTimeE0` to one year.
+- [Get Strategy Order List](../v5/strategy/order-list) [UPDATE]
+    - Restrict the query time range between `beginTimeE0` and `endTimeE0` to one year.
+
+## 2026-11-04
+### REST API
+- [Get Deposit Records (on-chain)](../v5/asset/deposit/deposit-record) [UPDATE]
+    - Add response field `requestId`.
+- [Get Sub Deposit Records (on-chain)](../v5/asset/deposit/sub-deposit-record) [UPDATE]
+    - Add response field `requestId`.
+
+## 2026-11-03
+### REST API
+- [Get API Key Information](../v5/user/apikey-info) [UPDATE]
+    - Add the `Compliance` permission category. When granted, it returns `ComplianceAppeal`, which permits querying TM Onchain appeal status and submitting related materials.
+- [Modify Master API Key](../v5/user/modify-master-apikey) [UPDATE]
+    - Support granting or revoking the `ComplianceAppeal` permission through the `Compliance` category. This is available only to Bybit global master accounts with read-write API keys.
+- [Submit Quote](../v5/event/trade/submit-quote) [UPDATE]
+    - Add optional request parameter `cancelAfterMs` to automatically cancel an Event Contract quote. `0` uses `quoteMaxValidMs`; non-zero values cannot exceed `quoteMaxValidMs`.
+- [Cancel All Quotes](../v5/event/trade/cancel-all) [NEW]
+    - Add `POST /v5/event/cancel-all` to cancel all active Event Contract quotes for a specified symbol.
+- [JSON Market Data](../v5/sbe/sbe-basic-info#market-data-limit) [UPDATE]
+    - Tokyo Dedicated Host has the extra connection limit.
+
+## 2026-10-29
+### REST API
+- [Query Fixed-Rate Borrow Penalty Interest](../v5/spot-margin-uta/fixedborrow-interest-accrued) [NEW]
+    - Add `GET /v5/spot-margin-trade/fixedborrow-interest-accrued` to query fixed-rate borrow penalty interest records.
+- [Cancel Fixed-Rate Borrow Order](../v5/spot-margin-uta/fixedborrow-order-cancel) [NEW]
+    - Add `POST /v5/spot-margin-trade/fixedborrow-order-cancel` to request cancellation of an eligible fixed-rate borrow order.
+- [Get Corporate Actions](../v5/market/corporate-action) [NEW]
+    - Add `GET /v5/market/corporate-action` to query current corporate actions, including stock splits and dividends.
+
+## 2026-10-20
+### REST API
+- [Get Referral Commission Records](../v5/referral/referral-commission-records) [NEW]
+    - Add `POST /v5/referral/commission/records` to query referral commission records.
+- [Get Referral Campaign Rewards](../v5/referral/referral-campaign-rewards) [NEW]
+    - Add `POST /v5/referral/campaign/rewards` to query referral rules and campaign task rewards.
+- [Get Referral User Identity Profile](../v5/referral/referral-user-identity-profile) [NEW]
+    - Add `POST /v5/referral/user/identity-profile` to query the authenticated user's referral identity and available commission information.
+- [Get Referral User Invitations](../v5/referral/referral-user-invitations) [NEW]
+    - Add `POST /v5/referral/user/invitations` to query the authenticated user's invitation records.
+
+## 2026-10-14
+### REST API
+- [Get Instrument Summary](../v5/market/instrument-summary) [NEW]
+    - Add `GET /v5/market/instrument-summary` to query summary information and trading increments for linear and option instruments.
+
+## 2026-10-13
+### REST API
+- [Enum](../v5/enum#exectype) [UPDATE]
+    - `execType`: add `ForwardSplitOpen` and `ReverseSplitOpen`.
+    - For forward or reverse stock splits, `ForwardSplitSettle` and `ReverseSplitSettle` settle and close the entire existing position, followed by opening a new position.
+- [Enum](../v5/enum#typeuta-translog) [UPDATE]
+    - `type(uta-translog)`: add `FORWARD_SPLIT_OPEN` and `REVERSE_SPLIT_OPEN`.
+    - Update the descriptions of `FORWARD_SPLIT_SETTLE` and `REVERSE_SPLIT_SETTLE`.

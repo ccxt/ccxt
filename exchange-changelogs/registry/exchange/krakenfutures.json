@@ -1,0 +1,7 @@
+{
+  "id": "krakenfutures",
+  "kind": "exchange",
+  "name": "Kraken Futures",
+  "domains": ["kraken.com"],
+  "sources": []
+}

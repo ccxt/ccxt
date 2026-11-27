@@ -1,0 +1,25 @@
+{
+  "id": "bithumb",
+  "kind": "exchange",
+  "name": "Bithumb",
+  "domains": ["apidocs.bithumb.com"],
+  "sources": [
+    {
+      "id": "bithumb-changelog",
+      "type": "rss",
+      "url": "https://apidocs.bithumb.com/changelog.rss",
+      "link": "https://apidocs.bithumb.com/changelog",
+      "scope": "all (REST, websocket; Korean; feed keeps the last 10 items)",
+      "excludeFilter": "서버\\s*점검|일시\\s*순단|server\\s+maintenance",
+      "minEntries": 3
+    },
+    {
+      "id": "bithumb-docs-index",
+      "type": "hash",
+      "url": "https://apidocs.bithumb.com/llms.txt",
+      "link": "https://apidocs.bithumb.com/reference",
+      "role": "secondary",
+      "scope": "docs page index (new, removed or renamed pages)"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "limitless",
+  "kind": "prediction",
+  "name": "Limitless",
+  "domains": ["limitless.exchange"],
+  "sources": [
+    {
+      "id": "limitless-changelog",
+      "type": "md",
+      "url": "https://docs.limitless.exchange/changelog.md",
+      "link": "https://docs.limitless.exchange/changelog",
+      "scope": "all (REST, WebSocket, SDKs, platform)",
+      "split": { "heading": "^###\\s+" },
+      "minEntries": 20
+    }
+  ]
+}

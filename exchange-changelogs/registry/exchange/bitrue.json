@@ -1,0 +1,68 @@
+{
+  "id": "bitrue",
+  "kind": "exchange",
+  "name": "Bitrue",
+  "domains": ["bitrue.com", "github.com"],
+  "sources": [
+    {
+      "id": "bitrue-futures-changelog",
+      "type": "html",
+      "url": "https://www.bitrue.com/api_docs_includes_file/futures/index.html",
+      "scope": "USDT-M futures (REST, websocket)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "h2[id^=\"20\"]" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "bitrue-delivery-changelog",
+      "type": "html",
+      "url": "https://www.bitrue.com/api_docs_includes_file/delivery/index.html",
+      "scope": "COIN-M delivery futures (REST, websocket)",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "h2[id^=\"20\"]" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "bitrue-spot-changelog",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/Bitrue-exchange/Spot-official-api-docs/master/README.md",
+      "link": "https://github.com/Bitrue-exchange/Spot-official-api-docs/blob/master/README.md",
+      "scope": "spot (REST, websocket; newer than the spot changelog on bitrue.com)",
+      "slice": { "from": "^#\\s+Release Note", "to": "^#\\s+General API Information" },
+      "split": { "heading": "^#\\s+Release Note\\s+\\d{4}-\\d{2}-\\d{2}" },
+      "date": { "from": "title" },
+      "minEntries": 5
+    },
+    {
+      "id": "bitrue-copytrading-changelog",
+      "type": "html",
+      "url": "https://www.bitrue.com/api_docs_includes_file/copyTrading/index.html",
+      "role": "secondary",
+      "scope": "copy trading",
+      "slice": { "selector": ".content" },
+      "split": { "heading": "h2[id^=\"release-note-\"]" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "bitrue-spot-docs",
+      "type": "hash",
+      "url": "https://www.bitrue.com/api_docs_includes_file/spot/index.html",
+      "scope": "spot API reference",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "bitrue-futures-docs",
+      "type": "hash",
+      "url": "https://www.bitrue.com/api_docs_includes_file/futures/index.html",
+      "scope": "USDT-M futures API reference",
+      "slice": { "selector": ".content" }
+    },
+    {
+      "id": "bitrue-delivery-docs",
+      "type": "hash",
+      "url": "https://www.bitrue.com/api_docs_includes_file/delivery/index.html",
+      "scope": "COIN-M delivery API reference",
+      "slice": { "selector": ".content" }
+    }
+  ]
+}

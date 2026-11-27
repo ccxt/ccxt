@@ -1,0 +1,18 @@
+{
+  "id": "nado",
+  "kind": "exchange",
+  "name": "Nado",
+  "domains": ["nado.xyz"],
+  "sources": [
+    {
+      "id": "nado-api-changelog",
+      "type": "html",
+      "url": "https://docs.nado.xyz/developer-resources/api/api-changelog",
+      "scope": "all (gateway, archive indexer, subscriptions, trigger, v2)",
+      "slice": { "selector": "main" },
+      "split": { "item": "details" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    }
+  ]
+}

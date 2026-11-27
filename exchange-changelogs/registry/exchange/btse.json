@@ -1,0 +1,143 @@
+{
+  "id": "btse",
+  "kind": "exchange",
+  "name": "BTSE",
+  "domains": ["btse.com", "btsecom.github.io"],
+  "sources": [
+    {
+      "id": "btse-spot",
+      "type": "html",
+      "url": "https://docs.btse.com/spot/changelog/",
+      "scope": "spot REST + WebSocket (docs.btse.com)",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    },
+    {
+      "id": "btse-futures",
+      "type": "html",
+      "url": "https://docs.btse.com/futures/changelog/",
+      "scope": "futures v3 REST + WebSocket (docs.btse.com)",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-futures-v23",
+      "type": "html",
+      "url": "https://btsecom.github.io/docs/futuresV2_3/en/",
+      "scope": "futures v2.3 REST + WebSocket",
+      "slice": { "selector": "div.content" },
+      "split": { "heading": "h2" },
+      "titleFilter": "^Version\\s+\\d",
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-spot-v33",
+      "type": "html",
+      "url": "https://btsecom.github.io/docs/spotV3_3/en/",
+      "scope": "spot v3.3 REST + WebSocket",
+      "slice": { "selector": "div.content" },
+      "split": { "heading": "h2" },
+      "titleFilter": "^Version\\s+\\d",
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-wallet",
+      "type": "html",
+      "url": "https://docs.btse.com/wallet/changelog/",
+      "scope": "wallet (deposits, withdrawals, transfers)",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-fix",
+      "type": "html",
+      "url": "https://docs.btse.com/fix/changelog/",
+      "scope": "FIX API",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-otc",
+      "type": "html",
+      "url": "https://docs.btse.com/otc/changelog/",
+      "scope": "OTC API",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-earn",
+      "type": "html",
+      "url": "https://docs.btse.com/earn/changelog/",
+      "scope": "earn API",
+      "strip": ["a.hash-link"],
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btse-spot-rest-spec",
+      "type": "spec",
+      "url": "https://docs.btse.com/specs/spot-rest.openapi.yaml",
+      "link": "https://docs.btse.com/specs/",
+      "role": "secondary",
+      "scope": "spot REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "btse-futures-rest-spec",
+      "type": "spec",
+      "url": "https://docs.btse.com/specs/futures-rest.openapi.yaml",
+      "link": "https://docs.btse.com/specs/",
+      "role": "secondary",
+      "scope": "futures REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "btse-markets-rest-spec",
+      "type": "spec",
+      "url": "https://docs.btse.com/specs/markets-rest.openapi.yaml",
+      "link": "https://docs.btse.com/specs/",
+      "role": "secondary",
+      "scope": "markets REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "btse-wallet-rest-spec",
+      "type": "spec",
+      "url": "https://docs.btse.com/specs/wallet-rest.openapi.yaml",
+      "link": "https://docs.btse.com/specs/",
+      "role": "secondary",
+      "scope": "wallet REST (OpenAPI)",
+      "specFormat": "openapi"
+    },
+    {
+      "id": "btse-spot-websocket-spec",
+      "type": "spec",
+      "url": "https://docs.btse.com/specs/spot-websocket.asyncapi.yaml",
+      "link": "https://docs.btse.com/specs/",
+      "role": "secondary",
+      "scope": "spot websocket (AsyncAPI)",
+      "specFormat": "asyncapi"
+    },
+    {
+      "id": "btse-futures-websocket-spec",
+      "type": "spec",
+      "url": "https://docs.btse.com/specs/futures-websocket.asyncapi.yaml",
+      "link": "https://docs.btse.com/specs/",
+      "role": "secondary",
+      "scope": "futures websocket (AsyncAPI)",
+      "specFormat": "asyncapi"
+    }
+  ]
+}

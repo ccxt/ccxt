@@ -1,0 +1,25 @@
+{
+  "id": "btcmarkets",
+  "kind": "exchange",
+  "name": "BTC Markets",
+  "domains": ["btcmarkets.net"],
+  "sources": [
+    {
+      "id": "btcmarkets-docs-v3",
+      "type": "hash",
+      "url": "https://docs.btcmarkets.net/v3/",
+      "scope": "API v3 reference (REST + WebSocket; no changelog)",
+      "slice": { "selector": ".content" },
+      "expectBlocked": "Cloudflare challenge (403) from datacenter IPs"
+    },
+    {
+      "id": "btcmarkets-help-api",
+      "type": "json",
+      "url": "https://support.btcmarkets.net/api/v2/help_center/en-us/sections/360000329408/articles.json?sort_by=created_at&sort_order=desc&per_page=100",
+      "link": "https://support.btcmarkets.net/hc/en-us/sections/360000329408",
+      "role": "secondary",
+      "scope": "help-center API articles (new articles and edits)",
+      "mapper": "btcmarkets"
+    }
+  ]
+}

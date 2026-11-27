@@ -1,0 +1,23 @@
+{
+  "id": "revolutx",
+  "kind": "exchange",
+  "name": "Revolut X",
+  "domains": ["revolut.com", "github.com"],
+  "sources": [
+    {
+      "id": "revolutx-openapi",
+      "type": "spec",
+      "url": "https://developer.revolut.com/docs/api/revolut-x-crypto-exchange.yml",
+      "link": "https://developer.revolut.com/docs/api/revolut-x-crypto-exchange",
+      "scope": "REST API (OpenAPI; no changelog is published)"
+    },
+    {
+      "id": "revolutx-llm-docs",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/revolut-engineering/revolut-x-api/master/revolut-x-api-for-llm.md",
+      "link": "https://github.com/revolut-engineering/revolut-x-api/blob/master/revolut-x-api-for-llm.md",
+      "role": "secondary",
+      "scope": "API summary in the official tooling repo"
+    }
+  ]
+}

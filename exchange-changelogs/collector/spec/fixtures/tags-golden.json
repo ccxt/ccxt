@@ -1,0 +1,566 @@
+[
+  {
+    "n": 0,
+    "source": "derive-changelog",
+    "title": "Perp margin rates and max leverage are public again",
+    "body": "`srm_perp_margin_requirements` returns, carrying the v2 field set — `im_perp_req`, `mm_perp_req`\nand `max_leverage` — as decimal strings. `max_leverage` is `1 / im_perp_req` rounded to 2\ndecimals.\n\nIt is reported in two places, both keyed by risk universe:\n\n* `public/get_currency` and `public/get_all_currencies` — on each entry of `perp.universes[]`.\n* `public/get_instrument` and `public/get_all_instruments` — inside `perp_details`, for the\n  instrument's own risk universe.\n\nThe object is absent (or `null`) where no Standard Risk Manager in that universe prices the\ncurrency, and on option assets. A currency whose perp market has been scaled out reports\n`im_perp_req` of `\"0\"` and `max_leverage` of `\"0\"` — v2's behaviour, retained.\n\nThe v2 path is not restored: the object no longer sits at the top level of the currency\nresponse. See Migrating from V2.",
+    "sampleTags": [
+      "breaking"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": "restores data; \"no longer sits at the top level\" is relative to v2, not a removal (sample false positive)"
+  },
+  {
+    "n": 1,
+    "source": "bingx-changelog",
+    "title": "Update: Public market data APIs (Market Data)",
+    "body": "Removed API Key permission requirements from the Chinese and English public Spot, USDT-M, and Coin-M market data documentation. All public market code examples now omit API Keys and signatures, and timestamp requirements reflect verified behavior. USDT-M Trading Rules, USDT-M Query historical transaction orders, and Coin-M Contract Information still require timestamp; their examples generate the current timestamp dynamically.",
+    "sampleTags": [
+      "breaking",
+      "auth"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": "documentation drops an API key requirement: a relaxation (sample false positive)"
+  },
+  {
+    "n": 2,
+    "source": "limitless-changelog",
+    "title": "Apply your X handle and picture to your profile",
+    "body": "After connecting an X account, you can now copy its handle and profile picture onto your Limitless profile in one call.\n\n* `POST /profiles/x/connection/social-data` (authenticated) takes `{ \"username\": true, \"avatar\": true }`, each field optional, and returns `usernameApplied`, `avatarApplied`, and `usernameSkippedReason`.\n* If the handle is already taken as a Limitless username, only the username is skipped (`usernameSkippedReason: \"taken\"`). The picture still applies.\n* Disconnecting X reverts your username to a generated one when it still matches the X handle. The profile picture stays and can be changed in profile settings like any other picture.",
+    "sampleTags": [
+      "auth"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 3,
+    "source": "bybit-v5",
+    "title": "2026-11-04: Get Deposit Records (on-chain) [UPDATE]",
+    "body": "### REST API\n- Get Deposit Records (on-chain) [UPDATE]\n    - Add response field `requestId`.\n- Get Sub Deposit Records (on-chain) [UPDATE]\n    - Add response field `requestId`.",
+    "sampleTags": [
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 4,
+    "source": "delta-changelog",
+    "title": "2026-10-14: Final deprecation notice of old websocket endpoint’s l1_orderbook, l2_orderbook, l2_update channels. These will be fully deprecated on…",
+    "body": "1. Final deprecation notice of old websocket endpoint’s l1_orderbook, l2_orderbook, l2_update channels. These will be fully deprecated on 31th Oct 2026. These channels were already marked to be deprecated on 31st July 2026. If you are still using these channels, please migrate to our new ob_l1, ob_l2 and ob_updates channel on the new websocket endpoint.\n2. Final deprecation notice of older auth method for websocket. This will be fully deprecated on 31th Oct 2026. Older method was already marked to be deprecated on 31st December 2025, if you are still using it, please checkout the current websocket auth.\n3. Important Update: Discontinuation of .DE_USDT (e.g. “.DEETHUSDT”) Spot Index Data. Please be advised that support for the .DE_USDT index data series will permanently cease on 18 October 2026.\n\nAll Perpetual Futures and Options on our platform utilize .DE_USD as their underlying spot index (for example, the ETHUSD perpetual contract references “.DEETHUSD”). While we historically co-published .DE_USDT variations (such as “.DEETHUSDT”), this data stream will be turned off. This change impacts:\n\n- Websocket `spot_price`\n- Websocket `candlesticks`\n- REST `GET /history/candles` (Get historical OHLC candles)\n\nTo avoid any disruption to your trading systems or API integrations, please update your applications to reference the standard .DE_USD spot index data immediately.",
+    "sampleTags": [
+      "deprecation",
+      "websocket"
+    ],
+    "expect": {
+      "breaking": null,
+      "deprecation": true
+    },
+    "note": "final deprecation notice; whether the removal date makes it breaking is a judgment call: not scored for breaking"
+  },
+  {
+    "n": 5,
+    "source": "limitless-changelog",
+    "title": "TWAP resolution coming to 5-minute and 15-minute crypto markets",
+    "body": "Scheduled for **Wednesday, August 19**: short-cadence crypto up/down markets begin resolving on a **Chainlink time-weighted average price (TWAP)** instead of a single instantaneous price. Advance notice for builders: if you trade or quote these markets programmatically, review your assumptions about how the boundary price is determined.\n\n* **What changes:** both the Price to Beat (captured at open) and the closing value come from the same Chainlink TWAP stream — an average over a fixed window — rather than one price tick. The closing TWAP greater than or equal to the Price to Beat resolves **Up**; otherwise **Down**.\n* **Why:** an average over the window means a momentary spike at the market boundary does not decide the outcome on its own.\n* **Detection:** TWAP markets carry `streamType: \"twap\"` and `twapWindowSeconds` on `metadata.chainlinkDataStream` in market responses; existing spot-resolved markets carry `streamType: \"spot\"`. Each market's description names the exact feed, window, and tolerance.\n* **Unchanged:** market cadence, slugs, trading, order flow, and settlement. This is a resolution-source change only, applied per market. Read the market's description and `metadata.chainlinkDataStream` to see which rule applies.\n\n**Documentation:** Market resolution — Chainlink TWAP | Get Market",
+    "sampleTags": [
+      "websocket"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 6,
+    "source": "backpack-changelog",
+    "title": "2026-10-27: Add executedQuantity and executedQuoteQuantity to GET /wapi/v1/history/rfq: the quantity of the RFQ that has been filled, in the base…",
+    "body": "- Add `executedQuantity` and `executedQuoteQuantity` to `GET /wapi/v1/history/rfq`: the quantity of the RFQ that has been filled, in the base asset and in the quote asset.",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 7,
+    "source": "gate-v4",
+    "title": "v4.106.138: Add the optional integer field leverage to the TradFiOrderRequest request body of POST /tradfi/orders (createTradFiOrder) to specify the…",
+    "body": "2026-09-10\n\n- Add the optional integer field `leverage` to the `TradFiOrderRequest` request body of `POST /tradfi/orders` (`createTradFiOrder`) to specify the order leverage.",
+    "sampleTags": [
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 8,
+    "source": "aster-changelog",
+    "title": "2026-11-02: future v1 api",
+    "body": "### Removed\n   #### `future v1 api`\n   #### `prediction api`\n\n### Changed\n\n#### `GET /fapi/v3/incomePage` — Get User Income Histories by page\n#### `GET /fapi/v3/income` — Get User Income Histories\n#### `GET /api/v3/transactionHistory` — Get User Transaction Histories\n\n## incomeType\n  #### add: `DEPOSIT` `WITHDRAW`\n  #### remove: `TRANSFER_SPOT_TO_FUTURE`  `TRANSFER_FUTURE_TO_SPOT`",
+    "sampleTags": [
+      "breaking"
+    ],
+    "expect": {
+      "breaking": true,
+      "deprecation": false
+    },
+    "note": "removes the future v1 and prediction APIs"
+  },
+  {
+    "n": 9,
+    "source": "kraken-changelog",
+    "title": "20 August 2026 — Derivatives REST v1",
+    "body": "* Announced upcoming off-book risk preferences, available from 27 August 2026, 07:00 UTC\n* Added `/rfq-assignment/max-leverage` endpoints (`GET`, `PUT`, `DELETE`) to read, set and clear an account-level maximum leverage cap applied to off-book fills — liquidation assignments and RFQ offer fills. Book (maker/taker) orders are unaffected; master accounts only\n* Added `minimumProfitabilityPerAssignmentLongBps` and `minimumProfitabilityPerAssignmentShortBps` parameters to `/assignmentprogram/add` and to the assignment participant response, setting the minimum profitability per assignment in integer basis points. Participants with a lower minimum receive assignments first",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 10,
+    "source": "binance-prediction-sdk-py",
+    "title": "1.6.1 - 2026-10-09: Modified response for get_market_detail() (GET /sapi/v1/w3w/wallet/prediction/market/detail)",
+    "body": "### Changed (2)\n\n- Modified response for `get_market_detail()` (`GET /sapi/v1/w3w/wallet/prediction/market/detail`):\n  - `markets`.items.`outcomes`.items: property `winner` added\n  - `markets`.items.`outcomes`.items: item property `winner` added\n  - `markets`.items.`outcomes`.items: property `winner` added\n  - `markets`.items.`outcomes`.items: item property `winner` added\n\n- Modified response field `markets`:\n  - items.`outcomes`.items: property `winner` added\n  - items.`outcomes`.items: item property `winner` added\n  - items.`outcomes`.items: property `winner` added\n  - items.`outcomes`.items: item property `winner` added\n  - affected events:\n    - `getMarketDetailResponse`",
+    "sampleTags": [
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 11,
+    "source": "kalshi-changelog",
+    "title": "Perps price band now limits crossing orders",
+    "body": "The Perps price band changes sides. It no longer limits how far an order may rest from its own side of the book. Instead it limits how far an order may cross the other side:\n\n- A bid is rejected above the higher of twice the best ask or the best ask plus 1,000 ticks.\n- An ask is rejected below the lower of half the best bid or the best bid minus 1,000 ticks.\n\nWhen the other side of the book is empty, there is no limit. Rejected orders and amends return `invalid price`, as before. Orders that sweep the book with a far limit price, for example a bid at `1000.00` into a best ask of `10.00`, now fail and should carry a limit within the band. See Price Banding.",
+    "sampleTags": [
+      "breaking"
+    ],
+    "expect": {
+      "breaking": true,
+      "deprecation": false
+    },
+    "note": "orders that used to rest now fail (\"now fail\")"
+  },
+  {
+    "n": 12,
+    "source": "upbit-global",
+    "title": "[Important] API Path Format and Error Handling Checks",
+    "body": "Dear developers,\n\nThis is the Upbit Developer Center team.\n\nThe API Path format requirements specified in the Upbit API documentation are now in effect. Please ensure that your API requests follow the required Path format.\n\nIf you currently use `error.message` to identify or handle API errors, please update your implementation to use `error.name` instead.\n\nTo avoid disruptions to your API integration, please review your request Paths and error-handling logic and make any necessary changes.\n\n## 1.Schedule\n\n- Effective Date: October 28, 2026 (Wednesday)\n- Applicable Regions: Singapore, Indonesia, Thailand\n\n## 2.Key Details\n\n1) API Request Path Format\n\nAPI request Paths must follow the requirements below.\n\n- Path Start and Separators: Exactly one `/` at the beginning and between Path segments.\n- Path End: A trailing `/` is not allowed.\n\nValid Path\n\n`/v1/orders`\n\nInvalid Paths\n\n```\n//v1/orders\n/v1//orders\n/v1/orders//\n```\n\nRequests containing unnecessary slashes (`/`), as shown above, will result in an error.\n\n2) API Error Handling\n\nSince `error.message` may change, if you currently use it to identify or handle API errors, please use `error.name` instead.\n\n```\n{\n  \"error\": {\n    \"name\": \"ERROR_CODE\",\n    \"message\": \"ERROR_MESSAGE\" → Not recommended for error handling\n  }\n}\n```\n\n## 3.API Integration Checklist\n\nPlease review the following items in your current API integration.\n\n- Ensure there are no duplicate slashes (`//`) at the beginning or within the Path, and no trailing slash (`/`).\n- Ensure no duplicate slashes are introduced when combining `BASE_URL` and `PATH`.\n- Ensure API errors are handled based on `error.name`.\n\nFor example, the following configuration may result in a duplicate slash in the request URL.\n\n| Item | Incorrect (Duplicate Slash) | Correct |\n| BASE_URL | https://sg-api.upbit.com/ | https://sg-api.upbit.com |\n| PATH | /v1/orders | /v1/orders |\n| Request URL | https://sg-api.upbit.com//v1/orders | https://sg-api.upbit.com/v1/orders |\n\nThe same Path format requirements apply to the Singapore (`sg`), Indonesia(`id`), and Thailand(`th`) API endpoints.\n\n## 4.Important Notes\n\n- The required API Path format is in effect across all applicable regions.\n- If you operate an API-integrated service or automated system, please review and test your request Paths and error-handling logic to prevent service disruptions.\n\nPlease ensure that your API integration follows the updated requirements and make any necessary changes.\n\nIf you have any inquiries, please contact us at open-api.global@upbit.com.\n\nWe will respond as soon as possible.\n\nThank you.\n\nUpbit Developer Center",
+    "sampleTags": [],
+    "expect": {
+      "breaking": true,
+      "deprecation": false
+    },
+    "note": "sample miss: path rules now enforced, bad paths \"will result in an error\""
+  },
+  {
+    "n": 13,
+    "source": "limitless-changelog",
+    "title": "Bug fix: pack quotes ignore liquidity far above the best price",
+    "body": "Pack leg pricing swept the entire order book, so orders resting far above the best price could distort a quoted leg price. A leg with only a few dollars of real asks could quote at a badly wrong price.\n\n* `POST /parlay/quote` and pack leg pricing now only count liquidity within 10 cents of the best usable price.\n* Books that are genuinely thin near the best price now reject with an explicit thin-book reason in `ineligibleReasons` instead of quoting a distorted price.\n* Liquidity resting more than 10 cents above the best price no longer counts toward depth, so a small number of previously quotable legs now reject.\n* No action required.\n\n**Documentation:** Packs",
+    "sampleTags": [
+      "breaking"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": "bug fix, \"No action required\" (sample false positive)"
+  },
+  {
+    "n": 14,
+    "source": "binance-prediction-sdk-py",
+    "title": "1.4.0 - 2026-09-02: Updated binance-common library to version 4.4.0",
+    "body": "### Changed (2)\n\n- Updated `binance-common` library to version `4.4.0`\n- Updated code generation templates.",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 15,
+    "source": "foxbit-rest-changelog",
+    "title": "Crypto deposit and withdrawal — one Travel Rule guide and documented errors",
+    "body": "⚠ Effective November 1, 2026\nThe Travel Rule changes described here take effect on 2026-11-01. Until then, crypto withdrawals keep following the current Travel Rule flow; the deposit declaration already takes the new declaration body and the previous originator payload is no longer accepted.\n\n- One guide for both operations: How to declare the Travel Rule replaces the deposit and withdrawal guides. Its seven steps are the same for a deposit and a withdrawal, linking both calls where they differ, and it holds the variants, a table of the fields each path asks, the errors and the outcomes\n- The fields table covers the seven paths of a declaration and tells, for each field, whether it is required, optional, for company accounts only, required above USD 50,000, ignored or not part of the variant\n- `POST /rest/v3/deposits/{deposit_sn}/travel_rule` and `POST /rest/v3/withdrawals/{withdrawal_sn}/travel_rule` document the `400` and `422` body, `{ \"error\": { \"message\", \"code\", \"details\" } }`, with one example per case. `details` lists every problem at once; `code` is `400` for a body that does not fit the path, `422` for an operation that cannot take the declaration and `4001` when the declaration itself is refused (a field the account type does not take, an invalid CPF/CNPJ, a purpose the operation does not accept, or `purpose_description` missing above USD 50,000)\n- The descriptions of the declaration routes are shorter: they keep what has to be true before the call, the variants and the outcome, and point to the step of the guide that details each part\n- Deposit declaration · Withdrawal declaration",
+    "sampleTags": [
+      "breaking"
+    ],
+    "expect": {
+      "breaking": true,
+      "deprecation": false
+    },
+    "note": "previous originator payload no longer accepted"
+  },
+  {
+    "n": 16,
+    "source": "whitebit-changelog",
+    "title": "October 5, 2026: TP/SL legs can be modified over WebSocket",
+    "body": "## TP/SL legs can be modified over WebSocket\n\n`order_modify` accepts TP/SL legs; `collateral_order_tpsl_place` documented as additive\n\nLegs created by `collateral_order_tpsl_place` can be changed with `order_modify` — send the leg's `order_id` or `client_order_id` with a new `activation_price`. Earlier documentation said `order_modify` returned error `160` for a TPSL leg; that statement was incorrect and is removed.\n\nEach `collateral_order_tpsl_place` call creates a new pair of TP/SL orders. It does not replace or cancel TP/SL orders already on the position, including those created through the REST API (`takeProfit` / `stopLoss`) or by OTO orders. To change levels, modify the existing orders with `order_modify`, or cancel those orders with `order_cancel` and place new ones. When a TP/SL order triggers and closes the position, the remaining TP/SL orders for that position are cancelled automatically.",
+    "sampleTags": [
+      "breaking",
+      "websocket"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": "\"that statement was incorrect and is removed\" is a docs correction (sample false positive)"
+  },
+  {
+    "n": 17,
+    "source": "binance-spot-testnet",
+    "title": "2026-10-28: userDataStream.subscribe and userDataStream.subscribe.signature now accept an optional filter parameter controlling which events are…",
+    "body": "**Notice: The changes in this section will be gradually rolled out starting from 2026-10-29 at**\n**00:00 UTC, and will take approximately 2 days to complete.**\n\n#### New Features\n\n- `userDataStream.subscribe` and `userDataStream.subscribe.signature` now accept an optional\n  `filter` parameter controlling which events are delivered. Supports filtering by event type (`e`),\n  symbol (`s`), asset (`a`), and execution type (`x`).\n  - WebSocket API: See\n    User Data Stream Subscription Filters.\n  - Unknown symbols and assets in `filter` are rejected with\n    `-1121` and\n    `-1108` respectively. `-1108` has a new\n    message: \"Invalid asset.\"\n\n#### General Changes\n\n- The `serverShutdown` event payload now includes a `T` field indicating when the WebSocket session\n  will be shut down.\n  - WebSocket API\n  - WebSocket Streams\n  - SBE Market Data Streams\n  - In SBE sessions, the `T` field is only present in SBE schema 3:6 and later.\n- `-1015 TOO_MANY_ORDERS` message reads: \"Too many orders placed without trading; current limit is X\n  non-trading orders per Y. Unable to place new orders until trades occur or window resets.\" See\n  `-1015` and the\n  Spot Unfilled Order Count Rules\n  FAQ.\n\n#### SBE\n\n- REST and WebSocket API SBE schema spot_3_6.xml\n  - The current schema 3:5 spot_3_5.xml is deprecated and\n    will be retired in 6 months per our\n    schema deprecation policy.\n  - Changes in schema 3:6:\n    - Existing `expiryReason` enum: new variants `Exhausted` (9) and\n      `InsufficientQuoteNotionalLimit` (10)\n    - `ServerShutdownEvent`: new field `shutdownTime`\n    - `ExchangeInfoResponse` (symbols group): new fields `marketQuoteNotionalLimitAllowed`,\n      `limitQuoteNotionalLimitAllowed`, `opoAllowed`\n    - `NewOrderResultResponse`, `NewOrderFullResponse`, `OrderResponse`, `CancelOrderResponse`,\n      `OrdersResponse`, `NewOrderListResultResponse`, `NewOrderListFullResponse`,\n      `CancelOrderListResponse`, `OrderAmendKeepPriorityResponse`, `ExecutionReportEvent`: new field\n      `quoteNotionalLimit`\n    - `ExecutionReportEvent`: new field `effectiveSelfTradePreventionMode`\n    - `NewOrderFullResponse` and `NewOrderListFullResponse.orderReports` `preventedMatches` group:\n      new field `effectiveSelfTradePreventionMode`\n    - For more details on `quoteNotionalLimit` and `effectiveSelfTradePreventionMode`, see\n      New Features below.\n- FIX SBE schema spot-fixsbe-1_2.xml\n  - The current schema 1:1 spot-fixsbe-1_1.xml is\n    deprecated and will be retired in 6 months per our\n    schema deprecation policy.\n  - Changes in schema 1:2:\n    - Existing `expiryReason` enum: new variants `Exhausted` (9) and\n      `InsufficientQuoteNotionalLimit` (10)\n    - `ExecutionReport`, `OrderCancelRequestAndNewOrderSingle`, `NewOrderSingle`, `NewOrderList`\n      (`Orders` group): new field `QuoteNotionalLimit` (custom tag 25057)\n      - For more details on this field, see New Features below.\n    - `ExecutionReport`: new field `EffectiveSelfTradePreventionMode` (custom tag 25058)\n      - For more details on this field, see New Features below.\n- The SBE lifecycle files have been updated to reflect these changes:\n  - SBE lifecycle for Testnet\n  - FIX SBE lifecycle for Testnet\n\n#### FIX API\n\n- The QuickFix schema for FIX OE has been updated:\n  - `ExpiryReason` (custom tag 25056): new values `EXHAUSTED` (9) and\n    `INSUFFICIENT_QUOTE_NOTIONAL_LIMIT` (10)\n  - `ExecutionReport`, `OrderCancelRequestAndNewOrderSingle`, `NewOrderSingle`, `NewOrderList`\n    (`Orders` group): new field `QuoteNotionalLimit` (custom tag 25057)\n    - For more details on this field, see New Features below.\n  - `ExecutionReport`: new field `EffectiveSelfTradePreventionMode` (custom tag 25058)\n    - For more details on this field, see New Features below.\n\n**Notice: The following changes will be available after 2026-10-30 10:00 UTC.**\n\n#### New Features\n\n- Orders on the `BUY` side accept a new optional parameter `quoteNotionalLimit`, which limits the\n  amount of the quote asset the…",
+    "sampleTags": [
+      "deprecation",
+      "websocket",
+      "auth",
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": true
+    },
+    "note": "SBE schema 3:5 deprecated"
+  },
+  {
+    "n": 18,
+    "source": "gate-v4",
+    "title": "v4.106.123: Remove Launch APIs from the public SDK, including LaunchPool, HODLer Airdrop, and CandyDrop endpoints",
+    "body": "2026-08-13\n\n- Remove Launch APIs from the public SDK, including LaunchPool, HODLer Airdrop, and CandyDrop endpoints",
+    "sampleTags": [],
+    "expect": {
+      "breaking": true,
+      "deprecation": false
+    },
+    "note": "sample miss: \"Remove Launch APIs ... endpoints\""
+  },
+  {
+    "n": 19,
+    "source": "binanceus-changelog",
+    "title": "9/1/2026: For SIGNED endpoints you must now percent-encode the request payload before computing the signature, then append &signature=.... Requests…",
+    "body": "The following changes are now live as part of the 8/31/2026 spot exchange upgrade.\n\nREST API\n\n- For SIGNED endpoints you must now percent-encode the request payload before computing the signature, then append `&signature=...`. Requests that compute the signature before encoding are rejected with `-1022 INVALID_SIGNATURE`.\n- Please avoid SQL keywords (e.g. `SELECT`, `DROP`) in request parameter values, as they may trigger a Web Application Firewall (WAF) security block.\n- All `/api/v1/*` endpoints (`ping`, `time`, `klines`, `depth`, `aggTrades`, `historicalTrades`, `trades`, `ticker/*`, `userDataStream`) have been retired. Use the `/api/v3/*` equivalents.\n- A new optional parameter `symbolStatus` (supported values `TRADING`, `HALT`, `BREAK`) has been added to `GET /api/v3/depth`, `/api/v3/ticker/price`, `/api/v3/ticker/bookTicker`, and `/api/v3/ticker/24hr`. If a single symbol is specified and its status does not match, error `-1220 SYMBOL_DOES_NOT_MATCH_STATUS` is returned. If multiple symbols are specified, non-matching symbols are excluded from the response. Omitting the parameter returns all symbols.\n- Get Order and Cancel Order: when both `orderId` and `origClientOrderId` are sent, the order is looked up by `orderId` and `origClientOrderId` is validated against it — both must match, or the request returns `-2039`. When neither is sent, the request now returns `-1102` (Cancel Order previously returned `-1128`).\n- The weight of `GET /api/v3/exchangeInfo` has increased from 10 to 20 (REST and WebSocket API).\n- `GET /api/v3/account` response now includes a `uid` field (your User ID / account).\n- `GET /api/v3/klines` has a new optional parameter `timeZone` (default 0, UTC).\n- `GET /api/v3/avgPrice` response now includes a `closeTime` field.\n- Timestamp parameters are now rejected if they are before 2017-01-01 (`< 1483228800000`) or more than 10 seconds in the future. Out-of-range `startTime`/`endTime` values are clamped to the valid range.\n- `GET /api/v3/historicalTrades` no longer requires an API key — its security type has changed from `MARKET_DATA` to `NONE`. The `X-MBX-APIKEY` header is no longer necessary.\n- New endpoint `GET /api/v3/account/commission` returns current account commission rates (standard and tax commission, plus discount information). Weight: 20; `symbol` required.\n- New endpoint `GET /api/v3/ticker/tradingDay` returns price change statistics for a trading day. Weight: 4 per symbol, capped at 200 once more than 50 symbols are requested. Parameters: `symbol` or `symbols` (one required, max 100 symbols), `timeZone`, `type` (`FULL` or `MINI`), and `symbolStatus`.\n\nWebSocket API\n\n- The `symbolStatus` parameter (supported values `TRADING`, `HALT`, `BREAK`) has been added to the WebSocket API methods `depth`, `ticker.24hr`, `ticker.price`, `ticker.book`, and `ticker`, with the same matching behavior as the REST endpoints above.\n- The `myFilters` request has been added to the WebSocket API.\n\nWebSocket Streams\n\n- The Buyer order ID (`b`) and Seller order ID (`a`) fields have been removed from the `@trade` stream payload. To track whether your order was part of a trade, listen to the User Data Streams.\n- The steps for managing a local order book correctly have been updated (Order Book Streams → Managing a Local Order Book). Depth snapshots now reference a limit of 5000 price levels per side, and the buffering and synchronization steps have been clarified.\n\nErrors\n\n- New error codes: `-2039` (both `orderId` and `origClientOrderId` given but no matching order), `-1220 SYMBOL_DOES_NOT_MATCH_STATUS`, and `-1151` (symbol is present multiple times in the list).",
+    "sampleTags": [
+      "deprecation",
+      "breaking",
+      "new-endpoint",
+      "rate-limit",
+      "websocket",
+      "auth",
+      "param-change"
+    ],
+    "expect": {
+      "breaking": true,
+      "deprecation": true
+    },
+    "note": "/api/v1 endpoints retired; signature computation changed"
+  },
+  {
+    "n": 20,
+    "source": "kucoin-changelog",
+    "title": "2026.11.02: [Modify] UTA REST Get Orderbook API Access Adjustment",
+    "body": "[Modify] UTA REST Get Orderbook\nAPI Access Adjustment\n\nEffective Time: November 2, 2026, at 17:00 (UTC+8)\n\n1.\n\nThe endpoint will be changed from a private endpoint to a public endpoint. Authentication will no longer be required.\n\n2.\n\nOrderbook Depth Parameter Adjustment\n\nThe Orderbook depth parameter will be changed from an enumerated type to a String type, allowing users to specify a wider range of depth values, as well as FULL.\n\n3.\n\nAPI Rate Limit Weight Adjustment\n\nThe endpoint's rate limit weight will be adjusted based on the requested Orderbook depth, as follows:\n\nOrderbook Depth\n\n| Orderbook Depth | API Weight |\n| 1–20 | 5 |\n| 21–100 | 20 |\n| 101–500 | 50 |\n| 501 and above, or FULL | 250 |\n\n4.\n\nRate Limit Pool and API Channel Adjustments\n\nRate Limit Pool: Public Pool\n\nAPI Channel: Public\n\n5.\n\nImpact on Existing Users\n\nIf you have already integrated this endpoint, these changes will not affect your existing API calls, and you can continue using the endpoint as usual. Please pay attention to the updated rate limit weights and adjust your request frequency accordingly.",
+    "sampleTags": [
+      "breaking",
+      "rate-limit",
+      "websocket",
+      "auth"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": "\"Authentication will no longer be required\" relaxes; \"will not affect your existing API calls\" (sample false positive)"
+  },
+  {
+    "n": 21,
+    "source": "deribit-jsonrpc",
+    "title": "Release 11.08.2026: Estimated Liquidation Price (ELP) deprecation",
+    "body": "Estimated Liquidation Price (ELP) deprecation\n\n`estimated_liquidation_price` is being deprecated and will no longer be returned for Segregated Standard Margin (`segregated_sm`) accounts (it is currently only added for futures). ELP remains available via Position Builder and the Position Builder API. Affected methods: private/get_position and private/get_positions.\n\nUnaggregated (`.raw`) market data\n\nAll unaggregated market data subscriptions, identified by the `.raw` postfix, are now aggregated on a 1 millisecond basis due to the integration between the multicast, WebSocket and FIX market data APIs and Starbase. 1 millisecond is below the median latency of any non-Starbase market data feed, so no major degradation in performance is expected.\n\nStarbase identifiers on orders and trades\n\n- Order objects: new `starbase_client_order_id` field (client order id for orders submitted directly to Starbase via direct access; not returned for orders placed through the Deribit API). Combo legs inherit the parent combo order's client order id.\n- User trade objects: new `starbase_order_id` and `starbase_client_order_id` fields, present only for trades matched in Starbase. `starbase_client_order_id` reflects your own order (maker or taker side); for self-trades it is the taker order's client order id.\n- Combo trade legs carry the full set of Starbase fields (`starbase_match_id`, `starbase_order_id`, `starbase_client_order_id`, `starbase_timestamp`) when matched in Starbase, and `starbase_last_update_timestamp` is available on combo leg order updates.\n- private/get_transaction_log: trade entries executed in Starbase include `starbase_match_id`, `starbase_order_id` and `starbase_timestamp`.\n\nNew instrument fields\n\npublic/get_instrument and public/get_instruments now include `product_group` (product group classification of the instrument's base currency: BTC, ETH, TIER_2, TIER_3) and `index_id` (numeric identifier of the price index used by the instrument, shared by instruments with the same `price_index`).",
+    "sampleTags": [
+      "deprecation",
+      "breaking",
+      "websocket"
+    ],
+    "expect": {
+      "breaking": true,
+      "deprecation": true
+    },
+    "note": "field no longer returned"
+  },
+  {
+    "n": 22,
+    "source": "aster-changelog",
+    "title": "2026-10-22: GET /fapi/v3/incomePage — Get Income History With Pagination",
+    "body": "### Added\n\n#### `GET /fapi/v3/incomePage` — Get Income History With Pagination\n\nNew USER_DATA endpoint (weight 30) returning income history page by page, with `symbol`/`incomeType`/`startTime`/`endTime`/`page`/`limit` filters (`page` starts at 1; `limit` defaults to `100`, max `1000`; `page` × `limit` ≤ 100,000). The response is a paginated object (`total`, `page`, `limit`, `hasMore`, `rows`); each `rows[]` record has the same fields as a `GET /fapi/v3/income` record. `incomeType` accepts the same values as `GET /fapi/v3/income`. Records are sorted by `time` ascending; there is no limit on the time span, and if neither `startTime` nor `endTime` is sent the recent 7-day data is returned. Requires the V3 authentication parameters `nonce`, `signer`, and `signature`.\n\nDocumented in EN and CN, mainnet and testnet futures API references.",
+    "sampleTags": [
+      "rate-limit",
+      "auth"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 23,
+    "source": "binance-prediction",
+    "title": "2026-10-08: Documentation enhancements (no API behavior changes)",
+    "body": "- Documentation enhancements (no API behavior changes):\n  - `POST /sapi/v1/w3w/wallet/prediction/trade/get-quote`: removed the approximate 1.5 USDT `MARKET` minimum and the statement that `LIMIT` orders have no minimum. The minimum order amount is set by the server and may change, so no fixed value is documented. It is checked on `BUY` orders by amount and on `SELL` orders by share quantity, for both order types. A successful quote does not guarantee that an order is accepted or filled. Also documented that a `priceLimit` that is not on the price tick is truncated down instead of being rejected.\n  - `GET /sapi/v1/w3w/wallet/prediction/market/detail` and `GET /sapi/v1/w3w/wallet/prediction/market/list`: documented the values of `status` and `markets[].tradingStatus`, that `markets[].tradingStatus` and not `status` decides whether new orders may be attempted, the meaning of `decimalPrecision`, and the `outcomes[].winner` field that is set after resolution.\n  - `GET /sapi/v1/w3w/wallet/prediction/position/settled-history`: documented that there is no separate cancelled, invalid or refunded status and how a split payout of a resolved market is represented.",
+    "sampleTags": [
+      "breaking"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": "\"Documentation enhancements (no API behavior changes)\" (sample false positive)"
+  },
+  {
+    "n": 24,
+    "source": "htx-updates",
+    "title": "Add: /api/v6/tradingBot/grid/order (General)",
+    "body": "New feature launched: \"Create Futures Grid Bot\"",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 25,
+    "source": "polymarket-predictions",
+    "title": "Sep 4, 2026: New API: Data API v2 is live at https://data-api.polymarket.com/v2 for wallet activity, market data, and trader and builder analytics.…",
+    "body": "- New API: Data API v2 is live at `https://data-api.polymarket.com/v2` for wallet activity, market data, and trader and builder analytics. Start with the Data API overview or Migrating from v1.\n- Response contract: Every endpoint wraps its payload in `data`. Paginated reads add `pagination` with opaque cursors (no offset parameter). Each endpoint takes snake_case parameters with camelCase aliases, names on-chain ids `condition`/`condition_id`, encodes money and size as JSON numbers (bare fields are shares, `_usdc` fields are USD), and signals load with `429` plus `Retry-After`.\n- New capabilities over v1: cumulative wallet PnL series (`/v2/user-pnl`), profile stats (`/v2/user-stats`), windowed wallet volume (`/v2/user-volume`), the biggest-winners board, builder leaderboard and volume, per-holder position economics (`/v2/holders?include_pnl=true`), and resolution lifecycle reads (`/v2/resolutions`).\n- Price history moves to the data host: `GET /v2/prices-history` replaces the CLOB-hosted route, with three explicit window forms (`interval`, `start`/`end`, `as_of`), second-based `bucket_seconds`, and cursor pagination.\n- TypeScript SDK: The SDK's Data API methods now use v2. See the SDK changelog.\n- Rate limits: per-family limits are published on Rate Limits.\n- v1 status: `/v1` keeps serving unchanged but is frozen. New fields and endpoints land on v2 only. The v1 reference lives under Data API v1 (Legacy).\n- Higher taker delay: The taker delay on crypto markets is now `150ms`, up from `50ms`. The change took effect on September 4 at 14:00 UTC (10:00 AM ET).",
+    "sampleTags": [
+      "new-endpoint",
+      "rate-limit",
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 26,
+    "source": "blofin-changelog",
+    "title": "2026-11-03: GET Funding Rate History (GET /api/v1/market/funding-rate-history): added the fundingKind response field. 0 means regular funding; 1 means…",
+    "body": "- GET Funding Rate History (`GET /api/v1/market/funding-rate-history`): added the `fundingKind` response field. `0` means regular funding; `1` means stock dividend.\n- GET Funding Fee History (`GET /api/v1/account/funding-fees`): added the `fundingKind` response field. `0` means regular funding; `1` means stock dividend.",
+    "sampleTags": [
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 27,
+    "source": "gate-v4",
+    "title": "v4.106.147: Add dividend (dividend payout) to the type filter of GET /futures/{settle}/account_book and the type response enum in FuturesAccountBook.",
+    "body": "2026-10-08\n\n- Add `dividend` (dividend payout) to the `type` filter of `GET /futures/{settle}/account_book` and the `type` response enum in `FuturesAccountBook`.",
+    "sampleTags": [
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 28,
+    "source": "bitget-uta",
+    "title": "[November 4, 2026] New Affiliate, Savings, SharkFin and Broker APIs for the Unified Account",
+    "body": "**New APIs:**\n\nAffiliate (`/api/v3/affiliate/*`):\n- `GET /api/v3/affiliate/customer-list` — query the list of your direct customers\n- `GET /api/v3/affiliate/customer-asset` — query the assets of your direct customers\n- `GET /api/v3/affiliate/customer-trade-volume` — query the trading volume of your direct customers\n- `GET /api/v3/affiliate/customer-deposit` — query the deposit records of your direct customers\n- `GET /api/v3/affiliate/customer-kyc-result` — query the KYC result of your direct customers\n- `GET /api/v3/affiliate/customer-commission` — query your direct commission records\n- `GET /api/v3/affiliate/sub-customer-list` — query the list of your sub-customers\n- `GET /api/v3/affiliate/sub-affiliate-info` — query the information of your sub-affiliates\n- `GET /api/v3/affiliate/sub-affiliate-commission` — query the commissions of your sub-affiliates\n\nSavings (`/api/v3/earn/savings/*`):\n- `GET /api/v3/earn/savings/product` — query the savings product list\n- `GET /api/v3/earn/savings/account` — query the savings account information\n- `GET /api/v3/earn/savings/assets` — query savings assets\n- `GET /api/v3/earn/savings/records` — query savings records\n- `GET /api/v3/earn/savings/subscribe-info` — query the subscription details of a savings product\n- `POST /api/v3/earn/savings/subscribe` — subscribe to a savings product\n- `GET /api/v3/earn/savings/subscribe-result` — query the savings subscription result\n- `POST /api/v3/earn/savings/redeem` — redeem a savings product\n- `GET /api/v3/earn/savings/redeem-result` — query the savings redemption result\n\nSharkFin (`/api/v3/earn/sharkfin/*`):\n- `GET /api/v3/earn/sharkfin/product` — query the SharkFin product list\n- `GET /api/v3/earn/sharkfin/account` — query the SharkFin account information\n- `GET /api/v3/earn/sharkfin/assets` — query SharkFin assets\n- `GET /api/v3/earn/sharkfin/records` — query SharkFin records\n- `GET /api/v3/earn/sharkfin/subscribe-info` — query the subscription details of a SharkFin product\n- `POST /api/v3/earn/sharkfin/subscribe` — subscribe to a SharkFin product\n- `GET /api/v3/earn/sharkfin/subscribe-result` — query the SharkFin subscription result\n\nBroker (`/api/v3/broker/*`):\n- `POST /api/v3/broker/modify-subaccount-email` — bind or modify the email address of a sub-account\n- `GET /api/v3/broker/subaccount-email` — query the email address bound to a sub-account\n- `GET /api/v3/broker/trade-volume` — query the trading volume of broker sub-accounts\n- `GET /api/v3/broker/total-commission` — query total broker commission data\n- `GET /api/v3/broker/order-commission` — query broker order commission (rebate) data\n- `GET /api/v3/broker/rebate-info` — query a user's broker rebate information",
+    "sampleTags": [
+      "new-endpoint",
+      "websocket"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 29,
+    "source": "htx-updates",
+    "title": "Add: /swap-api/v1/swap_contract_info (Coin-M Swaps)",
+    "body": "add\"labels\"(Contract Section Tags)field",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 30,
+    "source": "foxbit-rest-changelog",
+    "title": "Crypto deposit and withdrawal — Travel Rule documents and review",
+    "body": "- The declaration responses (`POST /rest/v3/deposits/{deposit_sn}/travel_rule` and `POST /rest/v3/withdrawals/{withdrawal_sn}/travel_rule`) and the reads (`travel_rule` of `GET /rest/v3/deposits`, `GET /rest/v3/deposits/{deposit_sn}` and `GET /rest/v3/withdrawals/{withdrawal_sn}`) now return `travel_rule.required_documents`: the documents the operation still waits for, with `title`, `description` and `requirements`, empty when it waits for none. The operation reasons endpoints only answer before the declaration; this is where the files to send are listed after it\n- Breaking change: the declaration responses no longer return `review_required`. An operation under review reads `state` `AWAITING_TRAVEL_RULE_REVIEW`\n- Breaking change: `GET /rest/v3/deposits/{deposit_sn}/travel_rule/operation_reasons` and `GET /rest/v3/withdrawals/{withdrawal_sn}/travel_rule/operation_reasons` no longer return `requires_approval`\n- Deposit declaration · Withdrawal declaration",
+    "sampleTags": [
+      "breaking",
+      "market"
+    ],
+    "expect": {
+      "breaking": true,
+      "deprecation": false
+    },
+    "note": "\"Breaking change: ... no longer return\""
+  },
+  {
+    "n": 31,
+    "source": "htx-updates",
+    "title": "Add: market.$contract_code.full_depth.$type (USDT-M)",
+    "body": "New subscriptions include Market Depth data for RPI orders.",
+    "sampleTags": [
+      "websocket"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 32,
+    "source": "limitless-changelog",
+    "title": "Username on referral leaderboard and referral list entries",
+    "body": "Entries on `GET /referral/usdc/leaderboard` (including the pinned `me` block), `GET /referral/usdc/leaderboard/friends`, and `GET /referral/usdc/referrals` now include `username: string | null` alongside `displayName`.\n\n* For most accounts `displayName` holds a wallet address. Prefer `username` when labeling users and fall back to `displayName` when `username` is `null`.\n* Additive field. `displayName` is unchanged, so existing consumers keep working.\n\n**Documentation:** Referral leaderboard, My referrals",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 33,
+    "source": "bingx-changelog",
+    "title": "New: /openApi/agent/v1/reward/channelCommissionList (Agent)",
+    "body": "Added the channel commission details endpoint with pagination and optional subordinate UID, business type, and asset type filters. The rate limit is 10 requests per second per UID. Out-of-range pages retain the actual total number of matching records.",
+    "sampleTags": [
+      "new-endpoint",
+      "rate-limit",
+      "websocket"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 34,
+    "source": "limitless-changelog",
+    "title": "Unified event view for sports and esports match pages",
+    "body": "`GET /sports/events` returns the match-page context for a fixture in one call: the event header, head-to-head history, and recent team form, for football, tennis, and esports fixtures.\n\n* Query with `sportType` or `esportType` (a videogame slug such as `cs-go`), which are mutually exclusive, plus the provider event id carried on the market's metadata.\n* One response replaces the separate lookups clients previously stitched together for match pages.\n* No changes to market, orderbook, or trading endpoints.",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 35,
+    "source": "kraken-changelog",
+    "title": "23 October 2026 — Affiliate REST",
+    "body": "* Expanded `GET /affiliate/v1/payout-history` to include sub-affiliate commissions, approved retainers, and approved remediation payouts",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 36,
+    "source": "gemini-revisions",
+    "title": "2026-08-10: REST - Account Services",
+    "body": "- **REST** - **Account Services**\n  - Fixed `Balance._timestamp` field type from `integer` (int64) to `string` (date-time) to match the actual ISO 8601 timestamp returned by both sandbox and production environments",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 37,
+    "source": "apex-pypi-apexomni",
+    "title": "3.4.2: Python3 Apexpro omni HTTP/WebSocket API Connector",
+    "body": "Python3 Apexpro omni HTTP/WebSocket API Connector",
+    "sampleTags": [
+      "websocket"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 38,
+    "source": "limitless-changelog",
+    "title": "Filter portfolio history by market",
+    "body": "`GET /portfolio/history` now accepts an optional `market=` query parameter. When set, the response only includes activity for that market across every source: CLOB and AMM trades, splits/merges, NegRisk conversions, claims, and resolutions. Use it to verify a single market's activity without walking your full account history.\n\n* An unknown `market` slug returns `404`.\n* Cursors are market-scoped: a `nextCursor` issued for one `market` value is only valid when replayed with the same `market` value on the next page. Mixing a filtered cursor with a different or missing `market` produces incorrect pagination.\n* Requests without `market` behave exactly as before.\n\n**Documentation:** Get History",
+    "sampleTags": [],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  },
+  {
+    "n": 39,
+    "source": "bitget-uta",
+    "title": "[October 15, 2026] Added Server Time/Announcements/Coins v3 APIs; multiple REST enhancements",
+    "body": "**New APIs:**\n\n- `/api/v3/market/time` Get the current server time (migrated from `/api/v2/public/time`; the response now includes both a millisecond field `serverTime` and a new microsecond field `serverTimeMicros`)\n- `/api/v3/public/annoucements` Get announcements (migrated from `/api/v2/public/annoucements`)\n- `/api/v3/market/coins` Get coin information (migrated from `/api/v2/spot/public/coins`)\n\nInterface:\n- /api/v3/market/instruments\n- /api/v3/trade/place-order\n- /api/v3/trade/place-batch\n- /api/v3/user/set-rate-limit-quota\n- /api/v3/user/rate-limit-quota\n- /api/v3/account/max-open-available\n- /api/v3/trade/unfilled-strategy-orders\n\nChanges:\n- `Get Instruments`: added response fields `fullName`, `instrumentType` (`metal`/`energy`/`stock`/`etf`/`crypto`), `marketRegion`, and `isin` for traditional-finance-related trading pairs (stocks, ETFs, Reality/rtoken, etc.). The existing `symbolType` field is unchanged and continues to be returned alongside `instrumentType`.\n- `Place Order` / `Batch Order`: added request parameters `requestTime` and `receiveWindow` to both the single and batch order placement endpoints, allowing a validity window to be set for order placement. If an order is received by the matching engine after `requestTime + receiveWindow`, it is canceled instead of being placed into the order book.\n- `Set RateLimit Quota` / `Get RateLimit Quota`: these endpoints now also support being called directly by a sub-account using its own API Key, to set or query its own rate limit quota. The `uids`/`uid` field is not required (and is ignored) when called by a sub-account; it remains required when called by the master account. Rules are otherwise unchanged.\n- `Get Max Open Available`: added request parameter `marginMode` (`crossed`/`isolated`, defaults to `crossed`). Under isolated margin mode, the `available` calculation excludes futures trial funds.\n- `Unfilled Strategy Orders`: added response field `side`, aligning with the field already present in the WebSocket order push data.",
+    "sampleTags": [
+      "new-endpoint",
+      "rate-limit",
+      "websocket",
+      "auth",
+      "param-change"
+    ],
+    "expect": {
+      "breaking": false,
+      "deprecation": false
+    },
+    "note": ""
+  }
+]

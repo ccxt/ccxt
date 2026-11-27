@@ -1,0 +1,22 @@
+{
+  "id": "hyperliquid",
+  "kind": "prediction",
+  "name": "Hyperliquid Prediction",
+  "domains": ["hyperliquid.gitbook.io", "hyperliquid.xyz"],
+  "sources": [
+    {
+      "id": "hyperliquid-hip4-outcomes",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-4-outcome-markets.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-4-outcome-markets",
+      "scope": "HIP-4 outcome markets"
+    },
+    {
+      "id": "hyperliquid-hip4-deployer",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/hip-4-deployer-actions.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/hip-4-deployer-actions",
+      "scope": "HIP-4 deployer actions (outcome market API)"
+    }
+  ]
+}

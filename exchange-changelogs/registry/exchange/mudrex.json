@@ -1,0 +1,27 @@
+{
+  "id": "mudrex",
+  "kind": "exchange",
+  "name": "Mudrex",
+  "domains": ["mudrex.com", "github.com"],
+  "sources": [
+    {
+      "id": "mudrex-changelog",
+      "type": "md",
+      "url": "https://docs.trade.mudrex.com/docs/changelogs.md",
+      "link": "https://docs.trade.mudrex.com/docs/changelogs",
+      "scope": "futures API (REST + websocket)",
+      "split": { "heading": "^##\\s+Changelog\\s+-\\s+v\\d" },
+      "date": { "from": "body", "pattern": "\\*\\*Release Date:\\*\\*\\s*([^\\n*]+)" },
+      "minEntries": 5
+    },
+    {
+      "id": "mudrex-python-sdk",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/mudrex/mudrex-python-sdk/main/CHANGELOG.md",
+      "link": "https://github.com/mudrex/mudrex-python-sdk/blob/main/CHANGELOG.md",
+      "role": "secondary",
+      "scope": "official Python SDK (undated versions)",
+      "split": { "heading": "^##\\s+\\d+\\.\\d+" }
+    }
+  ]
+}

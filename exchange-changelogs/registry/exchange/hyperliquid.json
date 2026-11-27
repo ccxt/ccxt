@@ -1,0 +1,129 @@
+{
+  "id": "hyperliquid",
+  "kind": "exchange",
+  "name": "Hyperliquid",
+  "domains": ["hyperliquid.gitbook.io", "hyperliquid.xyz", "pypi.org"],
+  "sources": [
+    {
+      "id": "hyperliquid-info",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint",
+      "scope": "REST info endpoint"
+    },
+    {
+      "id": "hyperliquid-info-perps",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals",
+      "scope": "REST info endpoint (perpetuals)"
+    },
+    {
+      "id": "hyperliquid-info-spot",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot",
+      "scope": "REST info endpoint (spot)"
+    },
+    {
+      "id": "hyperliquid-exchange",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint",
+      "scope": "REST exchange endpoint (trading)"
+    },
+    {
+      "id": "hyperliquid-ws",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket",
+      "scope": "websocket (connection)"
+    },
+    {
+      "id": "hyperliquid-ws-subscriptions",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions",
+      "scope": "websocket subscriptions"
+    },
+    {
+      "id": "hyperliquid-ws-post",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/post-requests",
+      "scope": "websocket post requests"
+    },
+    {
+      "id": "hyperliquid-ws-heartbeats",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/timeouts-and-heartbeats.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/timeouts-and-heartbeats",
+      "scope": "websocket timeouts and heartbeats"
+    },
+    {
+      "id": "hyperliquid-errors",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/error-responses.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/error-responses",
+      "scope": "error responses"
+    },
+    {
+      "id": "hyperliquid-signing",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/signing.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/signing",
+      "scope": "signing"
+    },
+    {
+      "id": "hyperliquid-nonces",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets",
+      "scope": "nonces and API wallets"
+    },
+    {
+      "id": "hyperliquid-rate-limits",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits-and-user-limits.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits-and-user-limits",
+      "scope": "rate limits and user limits"
+    },
+    {
+      "id": "hyperliquid-asset-ids",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids",
+      "scope": "asset ids"
+    },
+    {
+      "id": "hyperliquid-tick-lot",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size",
+      "scope": "tick and lot size"
+    },
+    {
+      "id": "hyperliquid-priority-fees",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees.md",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees",
+      "scope": "priority fees"
+    },
+    {
+      "id": "hyperliquid-docs-index",
+      "type": "hash",
+      "url": "https://hyperliquid.gitbook.io/hyperliquid-docs/llms.txt",
+      "link": "https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api",
+      "role": "secondary",
+      "scope": "docs page index (new or renamed pages)"
+    },
+    {
+      "id": "hyperliquid-python-sdk",
+      "type": "rss",
+      "url": "https://pypi.org/rss/project/hyperliquid-python-sdk/releases.xml",
+      "link": "https://pypi.org/project/hyperliquid-python-sdk/",
+      "role": "secondary",
+      "scope": "official Python SDK releases"
+    }
+  ]
+}

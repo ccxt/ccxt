@@ -1,0 +1,17 @@
+{
+  "id": "deepcoin",
+  "kind": "exchange",
+  "name": "Deepcoin",
+  "domains": ["deepcoin.com"],
+  "sources": [
+    {
+      "id": "deepcoin-changelog",
+      "type": "html",
+      "url": "https://www.deepcoin.com/docs/changelog",
+      "scope": "all (REST + websocket; upcoming and released changes)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h4" },
+      "minEntries": 5
+    }
+  ]
+}

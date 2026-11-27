@@ -1,0 +1,17 @@
+{
+  "id": "htx",
+  "kind": "exchange",
+  "name": "HTX",
+  "domains": ["htx.com"],
+  "sources": [
+    {
+      "id": "htx-updates",
+      "type": "json",
+      "url": "https://www.htx.com/oplt/api/open_api/update_record?pageNum=1&pageSize=10000",
+      "link": "https://www.htx.com/en-us/opend/newApiPages/?id=record",
+      "scope": "all (spot, USDT-M, coin-M swaps and futures, wallet, sub-accounts)",
+      "headers": { "Accept-Language": "en-us" },
+      "mapper": "htx"
+    }
+  ]
+}

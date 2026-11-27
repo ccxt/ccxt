@@ -1,0 +1,35 @@
+{
+  "id": "coinbaseexchange",
+  "kind": "exchange",
+  "name": "Coinbase Exchange",
+  "domains": ["coinbase.com"],
+  "sources": [
+    {
+      "id": "coinbaseexchange-changelog",
+      "type": "md",
+      "url": "https://docs.cdp.coinbase.com/exchange/changes/changelog.md",
+      "link": "https://docs.cdp.coinbase.com/exchange/changes/changelog",
+      "scope": "all (REST, WebSocket, FIX)",
+      "split": { "heading": "^#{2,3}\\s+20\\d\\d-[A-Za-z]{3}-\\d{1,2}\\b" },
+      "date": { "from": "title" },
+      "minEntries": 20
+    },
+    {
+      "id": "coinbaseexchange-upcoming",
+      "type": "md",
+      "url": "https://docs.cdp.coinbase.com/exchange/changes/upcoming-changes.md",
+      "link": "https://docs.cdp.coinbase.com/exchange/changes/upcoming-changes",
+      "scope": "upcoming changes (announced before release)",
+      "split": { "heading": "^##\\s+" },
+      "date": { "from": "body" }
+    },
+    {
+      "id": "coinbaseexchange-openapi",
+      "type": "spec",
+      "url": "https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/exchange-spec.yaml",
+      "specFormat": "openapi",
+      "role": "secondary",
+      "scope": "REST (OpenAPI)"
+    }
+  ]
+}

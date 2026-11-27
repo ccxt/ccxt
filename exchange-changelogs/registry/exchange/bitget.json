@@ -1,0 +1,38 @@
+{
+  "id": "bitget",
+  "kind": "exchange",
+  "name": "Bitget",
+  "domains": ["bitget.com"],
+  "sources": [
+    {
+      "id": "bitget-uta",
+      "type": "md",
+      "url": "https://www.bitget.com/docs/uta/changelog/{yyyy}-{mm}.md",
+      "link": "https://www.bitget.com/docs/uta/changelog/{yyyy}-{mm}",
+      "months": 2,
+      "scope": "unified trading account (REST + WebSocket)",
+      "split": { "heading": "^##\\s+\\[" },
+      "date": { "from": "title", "pattern": "^\\[([^\\]]+)\\]" }
+    },
+    {
+      "id": "bitget-classic",
+      "type": "md",
+      "url": "https://www.bitget.com/docs/classic/changelog/{yyyy}-{mm}.md",
+      "link": "https://www.bitget.com/docs/classic/changelog/{yyyy}-{mm}",
+      "months": 2,
+      "scope": "classic account (spot, futures, margin; REST + WebSocket)",
+      "split": { "heading": "^##\\s+\\[" },
+      "date": { "from": "title", "pattern": "^\\[([^\\]]+)\\]" }
+    },
+    {
+      "id": "bitget-uta-preview",
+      "type": "md",
+      "url": "https://www.bitget.com/docs/uta/update-preview.md",
+      "link": "https://www.bitget.com/docs/uta/update-preview",
+      "scope": "unified trading account, upcoming changes",
+      "split": { "heading": "^##\\s+" },
+      "date": { "from": "body", "pattern": "(?:live date:\\W*|live trading (?:expected )?on\\s+)([^;\\n]{6,40})" },
+      "minEntries": 0
+    }
+  ]
+}

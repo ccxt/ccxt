@@ -1,0 +1,67 @@
+{
+  "id": "gate",
+  "kind": "exchange",
+  "name": "Gate",
+  "subclasses": ["gateeu"],
+  "domains": ["gate.com", "github.com"],
+  "sources": [
+    {
+      "id": "gate-v4",
+      "type": "html",
+      "url": "https://www.gate.com/docs/developers/apiv4/en/",
+      "scope": "REST (all products)",
+      "expectBlocked": "Akamai returns 403 Access Denied to datacenter IPs",
+      "split": { "heading": "#changelog ~ p:has(> strong:only-child):not(#changelog ~ h1 ~ *)" },
+      "date": { "from": "body" },
+      "titleFilter": "^v\\d+\\.\\d+\\.\\d+$"
+    },
+    {
+      "id": "gate-ws-spot",
+      "type": "html",
+      "url": "https://www.gate.com/docs/developers/apiv4/ws/en/",
+      "scope": "spot websocket",
+      "expectBlocked": "Akamai returns 403 Access Denied to datacenter IPs",
+      "split": { "heading": "#changelog ~ p:not(#changelog ~ :is(h1, h2, h3) ~ *)" },
+      "date": { "from": "title" },
+      "titleFilter": "^\\d{4}[-.]\\d{1,2}[-.]\\d{1,2}$"
+    },
+    {
+      "id": "gate-ws-futures",
+      "type": "html",
+      "url": "https://www.gate.com/docs/developers/futures/ws/en/",
+      "scope": "perpetual futures websocket",
+      "expectBlocked": "Akamai returns 403 Access Denied to datacenter IPs",
+      "split": { "heading": "#changelog ~ p:not(#changelog ~ :is(h1, h2, h3) ~ *)" },
+      "date": { "from": "title" },
+      "titleFilter": "^\\d{4}[-.]\\d{1,2}[-.]\\d{1,2}$"
+    },
+    {
+      "id": "gate-ws-delivery",
+      "type": "html",
+      "url": "https://www.gate.com/docs/developers/delivery/ws/en/",
+      "scope": "delivery futures websocket",
+      "expectBlocked": "Akamai returns 403 Access Denied to datacenter IPs",
+      "split": { "heading": "#changelog ~ p:not(#changelog ~ :is(h1, h2, h3) ~ *)" },
+      "date": { "from": "title" },
+      "titleFilter": "^\\d{4}[-.]\\d{1,2}[-.]\\d{1,2}$"
+    },
+    {
+      "id": "gate-ws-options",
+      "type": "html",
+      "url": "https://www.gate.com/docs/developers/options/ws/en/",
+      "scope": "options websocket",
+      "expectBlocked": "Akamai returns 403 Access Denied to datacenter IPs",
+      "split": { "heading": "#changelog ~ p:not(#changelog ~ :is(h1, h2, h3) ~ *)" },
+      "date": { "from": "title" },
+      "titleFilter": "^\\d{4}[-.]\\d{1,2}[-.]\\d{1,2}$"
+    },
+    {
+      "id": "gate-sdk-version",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/gate/gateapi-python/master/README.md",
+      "link": "https://github.com/gate/gateapi-python",
+      "role": "secondary",
+      "scope": "REST version tracker (generated Python SDK README: API version line and endpoint tables)"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "id": "weex",
+  "kind": "exchange",
+  "name": "WEEX",
+  "domains": ["weex.com"],
+  "sources": [
+    {
+      "id": "weex-spot-changelog",
+      "type": "html",
+      "url": "https://www.weex.com/api-doc/products/spot/changelog",
+      "scope": "spot",
+      "slice": { "selector": "h1 ~ table" },
+      "split": { "item": "tbody tr" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "minEntries": 5
+    },
+    {
+      "id": "weex-futures-changelog",
+      "type": "html",
+      "url": "https://www.weex.com/api-doc/products/futures/changelog",
+      "scope": "futures (REST and websocket V3)",
+      "slice": { "selector": "h1 ~ table" },
+      "split": { "item": "tbody tr" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "minEntries": 10
+    },
+    {
+      "id": "weex-copy-changelog",
+      "type": "html",
+      "url": "https://www.weex.com/api-doc/products/copy/changelog",
+      "role": "secondary",
+      "scope": "copy trading",
+      "slice": { "selector": "h1 ~ table" },
+      "split": { "item": "tbody tr" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "weex-broker-changelog",
+      "type": "html",
+      "url": "https://www.weex.com/api-doc/products/broker/changelog",
+      "role": "secondary",
+      "scope": "broker",
+      "slice": { "selector": "h1 ~ table" },
+      "split": { "item": "tbody tr" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    },
+    {
+      "id": "weex-partner-changelog",
+      "type": "html",
+      "url": "https://www.weex.com/api-doc/products/partner/changelog",
+      "role": "secondary",
+      "scope": "partner/affiliate",
+      "slice": { "selector": "h1 ~ table" },
+      "split": { "item": "tbody tr" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" }
+    }
+  ]
+}

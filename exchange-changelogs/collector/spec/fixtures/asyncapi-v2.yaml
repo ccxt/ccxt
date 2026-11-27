@@ -1,0 +1,41 @@
+# Hand-written AsyncAPI 2.6 document in the shape exchanges publish for websocket APIs
+asyncapi: '2.6.0'
+info:
+  title: Example exchange websocket API
+  version: '1.0.0'
+servers:
+  public:
+    url: wss://ws.example.com/v1
+    protocol: wss
+channels:
+  'spot.trades':
+    parameters:
+      symbol:
+        schema: { type: string }
+    subscribe:
+      message:
+        $ref: '#/components/messages/trade'
+  'spot.book':
+    subscribe:
+      message:
+        oneOf:
+          - $ref: '#/components/messages/bookSnapshot'
+          - $ref: '#/components/messages/bookUpdate'
+  'private.orders':
+    publish:
+      message:
+        name: placeOrder
+    subscribe:
+      message:
+        name: orderUpdate
+components:
+  messages:
+    trade:
+      name: trade
+      payload: { type: object }
+    bookSnapshot:
+      name: snapshot
+      payload: { type: object }
+    bookUpdate:
+      name: update
+      payload: { type: object }

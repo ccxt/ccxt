@@ -1,0 +1,33 @@
+{
+  "id": "bitstamp",
+  "kind": "exchange",
+  "name": "Bitstamp",
+  "domains": ["bitstamp.net"],
+  "sources": [
+    {
+      "id": "bitstamp-changelog",
+      "type": "html",
+      "url": "https://www.bitstamp.net/api/",
+      "link": "https://www.bitstamp.net/api/#section/Changelog",
+      "scope": "REST v2 (occasional websocket notes)",
+      "slice": { "selector": "[id=\"section/Changelog\"]" },
+      "split": { "heading": "h3" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    },
+    {
+      "id": "bitstamp-openapi",
+      "type": "spec",
+      "url": "https://www.bitstamp.net/api/",
+      "scope": "REST v2 (OpenAPI embedded in the Redoc page)",
+      "specFormat": "redoc"
+    },
+    {
+      "id": "bitstamp-ws-docs",
+      "type": "hash",
+      "url": "https://www.bitstamp.net/websocket/v2/",
+      "scope": "websocket v2 docs",
+      "expectBlocked": "Imperva/Incapsula JavaScript challenge (212-byte shell) from datacenter IPs"
+    }
+  ]
+}

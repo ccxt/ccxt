@@ -1,0 +1,17 @@
+{
+  "id": "bybit",
+  "kind": "exchange",
+  "name": "Bybit",
+  "subclasses": ["bybiteu", "bybitid"],
+  "domains": ["bybit.com", "bybit-exchange.github.io"],
+  "sources": [
+    {
+      "id": "bybit-v5",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/bybit-exchange/docs/master/docs/changelog/v5.mdx",
+      "link": "https://bybit-exchange.github.io/docs/changelog/v5",
+      "scope": "all (v5 REST + WebSocket)",
+      "split": { "heading": "^##\\s+\\d{4}-\\d{2}-\\d{2}" }
+    }
+  ]
+}

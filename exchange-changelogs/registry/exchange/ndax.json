@@ -1,0 +1,15 @@
+{
+  "id": "ndax",
+  "kind": "exchange",
+  "name": "NDAX",
+  "domains": ["ndax.io"],
+  "sources": [
+    {
+      "id": "ndax-apidoc",
+      "type": "hash",
+      "url": "https://apidoc.ndax.io/",
+      "scope": "API reference (REST/websocket)",
+      "slice": { "selector": ".content" }
+    }
+  ]
+}

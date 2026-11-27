@@ -1,0 +1,33 @@
+{
+  "id": "btcturk",
+  "kind": "exchange",
+  "name": "BtcTurk",
+  "domains": ["btcturk.com"],
+  "sources": [
+    {
+      "id": "btcturk-recent-changes",
+      "type": "html",
+      "url": "https://docs.btcturk.com/docs/recent-changes/",
+      "scope": "all (REST + WebSocket)",
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "split": { "heading": "details > summary" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "btcturk-public-endpoints",
+      "type": "hash",
+      "url": "https://docs.btcturk.com/docs/public-endpoints/all-public-endpoints/",
+      "scope": "public REST endpoint list",
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "minChange": 20
+    },
+    {
+      "id": "btcturk-private-endpoints",
+      "type": "hash",
+      "url": "https://docs.btcturk.com/docs/private-endpoints/all-private-endpoints/",
+      "scope": "private REST endpoint list",
+      "slice": { "selector": "article .theme-doc-markdown" },
+      "minChange": 20
+    }
+  ]
+}

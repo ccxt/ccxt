@@ -1,0 +1,33 @@
+{
+  "id": "cryptocom",
+  "kind": "exchange",
+  "name": "Crypto.com",
+  "domains": ["crypto.com"],
+  "sources": [
+    {
+      "id": "cryptocom-api",
+      "type": "html",
+      "url": "https://exchange-developer.crypto.com/exchange/v1/docs/api/rest-change-log",
+      "scope": "REST + WebSocket",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "item": "h2#change-log ~ ul > li" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "cryptocom-fix",
+      "type": "html",
+      "url": "https://exchange-developer.crypto.com/exchange/v1/docs/api/fix-change-log",
+      "scope": "FIX",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "item": "h2#change-log ~ ul > li" },
+      "date": { "from": "title" }
+    },
+    {
+      "id": "cryptocom-breaking",
+      "type": "hash",
+      "url": "https://exchange-developer.crypto.com/exchange/v1/docs/api/rest-breaking-change-schedule.md",
+      "link": "https://exchange-developer.crypto.com/exchange/v1/docs/api/rest-breaking-change-schedule",
+      "scope": "breaking-change schedule (REST + WebSocket)"
+    }
+  ]
+}

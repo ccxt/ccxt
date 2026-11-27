@@ -1,0 +1,23 @@
+{
+  "id": "foxbit",
+  "kind": "exchange",
+  "name": "Foxbit",
+  "domains": ["foxbit.com.br"],
+  "sources": [
+    {
+      "id": "foxbit-rest-changelog",
+      "type": "json",
+      "url": "https://docs.foxbit.com.br/rest/v3/changelog/",
+      "scope": "REST v3",
+      "mapper": "foxbit",
+      "minEntries": 10
+    },
+    {
+      "id": "foxbit-ws-changelog",
+      "type": "json",
+      "url": "https://docs.foxbit.com.br/ws/v3/changelog/",
+      "scope": "WebSocket v3",
+      "mapper": "foxbit"
+    }
+  ]
+}

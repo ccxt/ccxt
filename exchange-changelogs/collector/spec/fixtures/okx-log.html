@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Changelog | OKX API guide</title>
+<script>window.__nonce = "a1b2c3";</script>
+<style>.content{color:#000}</style>
+</head>
+<body>
+<nav class="toc-wrapper"><ul><li><a href="#upcoming-changes" class="toc-h1 toc-link">Upcoming Changes</a></li><li><a href="#2026-10-27">2026-10-27</a></li></ul></nav>
+<div class="page-wrapper">
+<div class="dark-box"></div>
+<div class="content">
+          <h1 id='upcoming-changes'>Upcoming Changes</h1><h2 id='upcoming-changes-websocket-port-8443-discontinuation'>WebSocket port 8443 discontinuation</h2>
+<p><strong>Last update: October 22, 2026</strong><br></p>
+
+<p>To support a network infrastructure upgrade, OKX will stop accepting WebSocket connections on port 8443, including Colo connections:</p>
+
+<ul>
+<li>Public internet: <strong>October 31, 2026</strong></li>
+<li>Colo: <strong>November 16, 2026</strong></li>
+</ul>
+
+<p>Port 443 already works on all affected domains, including Colo, and both ports remain available until these dates.</p>
+<h3 id='upcoming-changes-websocket-port-8443-discontinuation-breaking-change'>Breaking change</h3>
+<p>After these dates, connections to port 8443 will fail. Remove <code>:8443</code> from your WebSocket URLs. Only the port changes; the host and path stay the same. <code>wss://</code> uses port 443 by default, and <code>:443</code> also works. This applies to every path, including <code>/ws/v5/public</code>, <code>/ws/v5/private</code>, <code>/ws/v5/business</code> and, on the Global site, <code>/ws/v5/public-sbe</code>.</p>
+
+<ul>
+<li>Public internet, from <strong>October 31, 2026</strong>
+
+<ul>
+<li>Production
+
+<ul>
+<li>Before: <code>wss://ws.okx.com:8443/ws/v5/public</code></li>
+<li>After: <code>wss://ws.okx.com/ws/v5/public</code></li>
+</ul></li>
+<li>Demo trading
+
+<ul>
+<li>Before: <code>wss://wspap.okx.com:8443/ws/v5/public</code></li>
+<li>After: <code>wss://wspap.okx.com/ws/v5/public</code></li>
+</ul></li>
+</ul></li>
+<li>Colo, from <strong>November 16, 2026</strong>
+
+<ul>
+<li>All Colo WebSocket connections on port 8443.</li>
+</ul></li>
+</ul>
+
+<p>REST API is not affected.</p>
+<h3 id='upcoming-changes-websocket-port-8443-discontinuation-add-error-codes'>Add error codes</h3>
+<p>Until these dates, connections on port 8443 receive a <a href="/docs-v5/en/#overview-websocket-notification">notification</a> (event = <code>notice</code>) with the following code once the handshake succeeds. The connection stays open.</p>
+
+<table><thead>
+<tr>
+<th>Error code</th>
+<th>Error message</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>64010</td>
+<td>WebSocket port 8443 will be retired soon. Please migrate to port 443.</td>
+</tr>
+</tbody></table>
+<h2 id='upcoming-changes-sbe-order-entry-and-private-data'>SBE order entry and private data</h2>
+<p><strong>Last update: October 28, 2026</strong><br></p>
+
+<p>OKX plans to introduce Simple Binary Encoding (SBE) services for order entry and private order and fill updates. The services are expected to launch in the demo trading environment on <strong>November 11, 2026</strong> and in the production environment in <strong>early December 2026</strong>.</p>
+
+<p>Existing REST and JSON WebSocket APIs will remain unaffected.</p>
+<h3 id='upcoming-changes-sbe-order-entry-and-private-data-new-sbe-services'>New SBE services</h3>
+<table><thead>
+<tr>
+<th>Service</th>
+<th>Production URL</th>
+<th>Demo trading URL</th>
+<th>XML schema</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Order entry</td>
+<td><code>wss://ws.okx.com/ws/v5/trade-sbe</code></td>
+<td><code>wss://wspap.okx.com/ws/v5/trade-sbe</code></td>
+<td><a href="/docs-v5/log_en/xml/okx_sbe_trade_2_0.xml" download>okx_sbe_trade_2_0.xml</a></td>
+</tr>
+<tr>
+<td>Private data</td>
+<td><code>wss://ws.okx.com/ws/v5/private-sbe</code></td>
+<td><code>wss://wspap.okx.com/ws/v5/private-sbe</code></td>
+<td><a href="/docs-v5/log_en/xml/okx_sbe_private_1_1.xml" download>okx_sbe_private_1_1.xml</a></td>
+</tr>
+</tbody></table>
+
+<p>The login method is the same as that of the existing <a href="/docs-v5/en/#order-book-trading-sbe-market-data">SBE Market Data service</a>. Authentication is completed during the WebSocket HTTP Upgrade request by providing the API key and signature in the request headers.</p>
+
+<p>JSON control messages use text frames with opcode <code>1</code>, while SBE messages use binary frames with opcode <code>2</code>.</p>
+
+<p>Compared with the JSON services, the fields in SBE messages are streamlined. Refer to the XML schemas for the complete message layouts and field definitions.</p>
+<h3 id='upcoming-changes-sbe-order-entry-and-private-data-xml-schema-updates'>XML schema updates</h3>
+<p>The XML schemas have been updated ahead of launch. Please use the latest versions above to generate your encoders and decoders.</p>
+
+<p><strong>Order entry: <code>okx_sbe_trade_2_0.xml</code></strong></p>
+
+<ul>
+<li>Schema <code>id</code> changes from <code>1</code> to <code>2</code>; <code>version</code> remains <code>0</code>, and <code>semanticVersion</code> changes to <code>2.0.0</code>. The message layouts change; regenerate your encoders and decoders using this schema.</li>
+<li>Single and batch place-order requests add optional <code>rpiPxRound</code> (RPI price rounding) and <code>reduceOnly</code> fields. Single and batch amend-order requests add optional <code>rpiPxRound</code>.</li>
+<li>In single and batch place/amend requests, <code>expTime</code> is renamed to <code>expTimeUs</code>. In all place/amend/cancel responses, <code>ts</code> is renamed to <code>tsUs</code>. These fields continue to use microseconds.</li>
+<li>Single and batch place-order responses remove <code>instIdCode</code>; subsequent fixed fields shift forward and their field IDs change.</li>
+<li>Single place/amend/cancel responses add the variable-length UTF-8 error message <code>msg</code>.</li>
+<li>Batch place/amend/cancel responses rename the <code>data</code> group to <code>results</code>, with entries in request order (up to 20). They add the <code>sMsgDetails</code> group containing per-order error messages (<code>sMsg</code>), linked to <code>results</code> by the zero-based <code>resultIndex</code>, and a batch-level <code>msg</code>. Both <code>msg</code> and <code>sMsg</code> use <code>varString16</code>, a variable-length UTF-8 string with a <code>uint16</code> length prefix.</li>
+</ul>
+
+<p><strong>Private data: <code>okx_sbe_private_1_1.xml</code></strong></p>
+
+<ul>
+<li>Schema <code>id</code> remains <code>1</code>; <code>version</code> changes from <code>0</code> to <code>1</code>, and <code>semanticVersion</code> changes to <code>1.1.0</code>.</li>
+<li>The <code>orders</code> message adds optional <code>reduceOnly</code> (<code>booleanEnum</code>: <code>FALSE=0</code>, <code>TRUE=1</code>) and <code>avgPxMantissa</code> (average executed price mantissa, using <code>pxExponent</code>). Both fields have <code>sinceVersion=&quot;1&quot;</code>.</li>
+<li>In <code>orders</code>, <code>fillTime</code>, <code>uTime</code>, and <code>cTime</code> are renamed to <code>fillTimeUs</code>, <code>uTimeUs</code>, and <code>cTimeUs</code>. In <code>fills</code>, <code>ts</code> is renamed to <code>tsUs</code>. Their units remain microseconds, and the renamed fields retain their field IDs and types.</li>
+</ul>
+<h3 id='upcoming-changes-sbe-order-entry-and-private-data-sbe-order-entry'>SBE order entry</h3>
+<p>The order entry service will support the following operations:</p>
+
+<ul>
+<li>Place order and place multiple orders</li>
+<li>Amend order and amend multiple orders</li>
+<li>Cancel order and cancel multiple orders</li>
+</ul>
+
+<p>Batch operations will support up to 20 orders. SBE order entry will support <code>CASH</code> and <code>CROSS</code> trading modes. Clients that require another trading mode should continue to use the JSON WebSocket trading API.</p>
+<h3 id='upcoming-changes-sbe-order-entry-and-private-data-sbe-private-data'>SBE private data</h3>
+<p>The private data service will support the following channels:</p>
+
+<ul>
+<li><code>orders</code>: Publishes an update when an order is created or its state changes.</li>
+<li><code>fills</code>: Publishes order-book fill events and is available to VIP4 and above users.</li>
+</ul>
+
+<p>Neither channel will publish an initial snapshot. Subscription requests and responses will remain in JSON format, while channel data will be encoded in SBE. The <code>orders</code> channel will support filtering by <code>instType</code>; <code>instIdCode</code> is not required. For the <code>fills</code> channel, <code>instIdCode</code> is also not required.</p>
+<h2 id='upcoming-changes-signal-clone-new-api-endpoint'>Signal Clone — New API endpoint</h2>
+<p><strong>Last update: May 14, 2026</strong><br></p>
+
+<p>OKX is adding API support for the Signal Clone (Order Sharing) feature. API traders can now generate a universal sharing link programmatically by passing an order ID. The link encodes the order parameters (instrument, side, leverage, price, TP/SL, etc.) server-side. Recipients who open the link will have those parameters prefilled in the OKX App trading panel.</p>
+
+<p>This feature is scoped to USDT-margined perpetual contracts. Signal Clone must be enabled for the account.</p>
+<h3 id='upcoming-changes-signal-clone-new-api-endpoint-create-signal-link'>Create signal link</h3>
+<ul>
+<li><a href="/docs-v5/en/#order-book-trading-copy-trading-post-create-signal-link">Create signal link</a></li>
+</ul>
+
+<ol>
+<li>A new endpoint <code>POST /api/v5/copytrade/create-sgl-link</code> is added.</li>
+<li>Pass <code>orderId</code> and <code>instId</code> in the request body. The order must belong to the requesting account.</li>
+<li>Only USDT-margined perpetual contracts (<code>instId</code> ending in <code>-USDT-SWAP</code>) are supported. Other instrument types will return an error.</li>
+<li>Returns a <code>shortLink</code> — a universal OKX App link that can be shared with others to prefill the trading panel with the order parameters.</li>
+<li>Rate limit: 10 requests per second per user.</li>
+</ol>
+
+<blockquote>
+<p>Request example</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>POST /api/v5/copytrade/create-sgl-link
+body
+<span class="o">{</span>
+    <span class="s2">"orderId"</span>: <span class="s2">"3556007031710728192"</span>,
+    <span class="s2">"instId"</span>: <span class="s2">"ADA-USDT-SWAP"</span>
+<span class="o">}</span>
+</code></pre></div>
+<p><strong>Request parameters</strong></p>
+
+<table><thead>
+<tr>
+<th><strong>Parameter</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Required</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>orderId</td>
+<td>String</td>
+<td>Yes</td>
+<td>Order ID. Must belong to the requesting account.</td>
+</tr>
+<tr>
+<td>instId</td>
+<td>String</td>
+<td>Yes</td>
+<td>Instrument ID, e.g. <code>BTC-USDT-SWAP</code>. Only USDT-margined perpetuals are supported.</td>
+</tr>
+</tbody></table>
+
+<blockquote>
+<p>Response example</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"shortLink"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://www.okx.com/ul/1xJ7nV"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"msg"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p><strong>Response parameters</strong></p>
+
+<table><thead>
+<tr>
+<th><strong>Parameter</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>shortLink</td>
+<td>String</td>
+<td>Universal sharing link. Recipients can open this link in the OKX App to have the order parameters prefilled in the trading panel.</td>
+</tr>
+</tbody></table>
+<h1 id='2026-10-27'>2026-10-27</h1><h2 id='2026-10-27-new-bbo-rpi-tbt-order-book-channel-for-rpi-best-bid-and-ask'>New <code>bbo-rpi-tbt</code> order book channel for RPI best bid and ask</h2>
+<p>Added the public WebSocket channel <code>bbo-rpi-tbt</code>. It pushes the best RPI bid and ask (1 depth level) built from all resting RPI orders, including hidden RPI orders that cross the organic best bid/ask or each other and are therefore excluded from <code>books-rpi</code>. Push cadence and data format follow <code>bbo-tbt</code>: a 1 depth level snapshot on the initial push, then a snapshot every 10 ms when it changes. No login or trading fee tier is required.</p>
+
+<ul>
+<li><a href="/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel">WS / Order book channel</a></li>
+</ul>
+<h3 id='2026-10-27-new-code-bbo-rpi-tbt-code-order-book-channel-for-rpi-best-bid-and-ask-request-parameters'>Request parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>&gt; channel</td>
+<td>String</td>
+<td>Yes</td>
+<td>Channel name<br><code>bbo-rpi-tbt</code></td>
+</tr>
+</tbody></table>
+<h3 id='2026-10-27-new-code-bbo-rpi-tbt-code-order-book-channel-for-rpi-best-bid-and-ask-push-data-parameters'>Push data parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>&gt; asks</td>
+<td>Array of Arrays</td>
+<td>Order book on sell side<br>For <code>bbo-rpi-tbt</code>, only RPI orders are returned, including hidden RPI orders. Returns <code>[]</code> when there is no RPI order on the sell side.</td>
+</tr>
+<tr>
+<td>&gt; bids</td>
+<td>Array of Arrays</td>
+<td>Order book on buy side<br>For <code>bbo-rpi-tbt</code>, only RPI orders are returned, including hidden RPI orders. Returns <code>[]</code> when there is no RPI order on the buy side.</td>
+</tr>
+</tbody></table>
+<h1 id='2026-09-30'>2026-09-30</h1><h2 id='2026-09-30-instruments-channel-push-optimization'>Instruments channel push optimization</h2>
+<p>OKX has optimized the push behavior of the <a href="/docs-v5/en/#public-data-websocket-instruments-channel">Instruments channel</a>.</p>
+
+<p>In some scenarios, the channel now uses incremental pushes instead of full pushes and delivers only instruments whose data has changed.</p>
+
+<p>In the future, OKX may switch additional scenarios from full pushes to incremental pushes without further notice. Clients should update their local instrument cache by <code>instId</code> when receiving a push and should not assume that every push contains the full set of instruments.</p>
+<h2 id='2026-09-30-usd-spot-trading-pair-migration'>USD spot trading pair migration</h2>
+<p>OKX has consolidated the USD and USDC spot order books. Affected <code>Crypto-USD</code> spot instruments have been delisted, and API clients must use the corresponding <code>Crypto-USDC</code> instruments.</p>
+<h3 id='2026-09-30-usd-spot-trading-pair-migration-migration-requirements'>Migration requirements</h3>
+<ul>
+<li>Requests that previously used a <code>Crypto-USD</code> instrument ID must now use the corresponding <code>Crypto-USDC</code> instrument ID.</li>
+<li>This applies to REST APIs and WebSocket channels whose request parameters include <code>instId</code> or <code>instIdCode</code>.</li>
+<li><code>Crypto-USD</code> instrument IDs are not mapped to <code>Crypto-USDC</code> instrument IDs. Requests and subscriptions that continue to use a delisted <code>Crypto-USD</code> <code>instId</code> or <code>instIdCode</code> may fail or return no data.</li>
+<li>Responses use the actual <code>Crypto-USDC</code> instrument ID or instrument ID code. Clients should update request construction, response parsing, subscription management, instrument caches, and any logic keyed by <code>instId</code> or <code>instIdCode</code>.</li>
+</ul>
+<h3 id='2026-09-30-usd-spot-trading-pair-migration-trading-quote-currency'>Trading quote currency</h3>
+<p>The default value of <code>tradeQuoteCcy</code> is the quote currency in <code>instId</code>. Therefore, changing only <code>instId</code> from <code>Crypto-USD</code> to <code>Crypto-USDC</code> changes the default trading quote currency from <code>USD</code> to <code>USDC</code>.</p>
+
+<p>To continue trading with USD after migrating to the corresponding <code>Crypto-USDC</code> instrument, explicitly set <code>tradeQuoteCcy</code> to <code>USD</code>.</p>
+
+<table><thead>
+<tr>
+<th><strong>Scenario</strong></th>
+<th><strong>Before the migration</strong></th>
+<th><strong>After the migration</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>Continue trading with USD</td>
+<td><code>&quot;instId&quot;: &quot;Crypto-USD&quot;</code><br><code>tradeQuoteCcy</code> omitted</td>
+<td><code>&quot;instId&quot;: &quot;Crypto-USDC&quot;</code><br><code>&quot;tradeQuoteCcy&quot;: &quot;USD&quot;</code></td>
+</tr>
+<tr>
+<td>Trade with USDC</td>
+<td><code>&quot;instId&quot;: &quot;Crypto-USD&quot;</code><br><code>&quot;tradeQuoteCcy&quot;: &quot;USDC&quot;</code></td>
+<td><code>&quot;instId&quot;: &quot;Crypto-USDC&quot;</code><br><code>&quot;tradeQuoteCcy&quot;: &quot;USDC&quot;</code> or omit <code>tradeQuoteCcy</code></td>
+</tr>
+</tbody></table>
+
+<p>Before submitting an order, obtain the supported quote currencies from <code>tradeQuoteCcyList</code> through <a href="/docs-v5/en/#trading-account-rest-api-get-instruments">GET / Get instruments</a>.</p>
+<h3 id='2026-09-30-usd-spot-trading-pair-migration-activate-usdc-trading'>Activate USDC trading</h3>
+<ul>
+<li>Added <a href="/docs-v5/en/#trading-account-rest-api-activate-feature">POST / Activate feature</a>. Call this endpoint only if order placement returns error code <code>54109</code>; otherwise, you do not need to call it.</li>
+<li>Added error code <code>54109</code>. Refer to <a href="/docs-v5/en/#error-code-rest-api-public">REST API error codes</a> for details.</li>
+</ul>
+<h1 id='2026-09-29'>2026-09-29</h1><h2 id='2026-09-29-global-liquidity-program-api-v2'>Global Liquidity Program API v2</h2>
+<p>Three new REST endpoints are added under <code>/api/v5/users/glp/v2/</code> to support the Global Liquidity Program (GLP). Authenticated users can query GLP enrollment status, real-time performance metrics, and weekly assessment history. A sub-account API key retrieves the master account&#39;s GLP data.</p>
+<h3 id='2026-09-29-global-liquidity-program-api-v2-new-endpoints'>New endpoints</h3>
+<ul>
+<li><a href="/docs-v5/en/#trading-account-rest-api-get-glp-v2-overview">GET / Get GLP v2 overview</a></li>
+<li><a href="/docs-v5/en/#trading-account-rest-api-get-glp-v2-assessment-details">GET / Get GLP v2 assessment details</a></li>
+<li><a href="/docs-v5/en/#trading-account-rest-api-get-glp-v2-performance-history">GET / Get GLP v2 performance history</a></li>
+</ul>
+<h1 id='2026-09-15'>2026-09-15</h1><h2 id='2026-09-15-rpi-maker-minimum-notional-amount-thresholds'>RPI maker minimum notional amount thresholds</h2>
+<p>RPI maker orders (<code>ordType: rpi</code> or <code>elp</code>) now use separate minimum notional amount thresholds by product type. Orders below the applicable threshold are rejected with error code <code>54051</code>. Effective in production from <strong>September 15, 2026</strong>.</p>
+<h3 id='2026-09-15-rpi-maker-minimum-notional-amount-thresholds-minimum-thresholds-by-product-type'>Minimum thresholds by product type</h3>
+<table><thead>
+<tr>
+<th><strong>Product type</strong></th>
+<th><strong>Minimum notional amount</strong></th>
+</tr>
+</thead><tbody>
+<tr>
+<td>SPOT</td>
+<td>500 USD</td>
+</tr>
+<tr>
+<td>FUTURES</td>
+<td>2,000 USD</td>
+</tr>
+<tr>
+<td>SWAP</td>
+<td>5,000 USD</td>
+</tr>
+</tbody></table>
+
+<p>Applies to all REST and WebSocket trade operations:</p>
+
+<ul>
+<li><a href="/docs-v5/en/#order-book-trading-trade-post-place-order">POST / Place order</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders">POST / Place multiple orders</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-post-amend-order">POST / Amend order</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-post-amend-multiple-orders">POST / Amend multiple orders</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-ws-place-order">WS / Place order</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-ws-place-multiple-orders">WS / Place multiple orders</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-ws-amend-order">WS / Amend order</a></li>
+<li><a href="/docs-v5/en/#order-book-trading-trade-ws-amend-multiple-orders">WS / Amend multiple orders</a></li>
+</ul>
+<h1 id='2026-08-26'>2026-08-26</h1><h2 id='2026-08-26-new-endpoint-get-delta-hedge-currencies'>New endpoint: Get Delta hedge currencies</h2>
+<p>Some tokenized assets trade under a different currency name than the underlying they track, e.g. <code>XAAPL</code> and <code>AAPL</code>, or <code>BETH</code> and <code>ETH</code>. Because these pairs share one underlying asset, a position in one can hedge a position in the other. This mapping is now available programmatically.</p>
+
+<ul>
+<li>New endpoint:
+
+<ul>
+<li><a href="/docs-v5/en/#public-data-rest-api-get-delta-hedge-currencies">Get Delta hedge currencies</a></li>
+</ul></li>
+</ul>
+</div>
+</div>
+</body>
+</html>

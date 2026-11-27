@@ -1,0 +1,40 @@
+[
+    {
+        "sha": "9f2c1e0b7a6d5c4b3a291807f6e5d4c3b2a19087",
+        "commit": {
+            "author": { "name": "Docs Bot", "email": "docs@example.com", "date": "2026-11-06T09:12:44Z" },
+            "committer": { "name": "GitHub", "email": "noreply@github.com", "date": "2026-11-07T10:00:01Z" },
+            "message": "Add GET /api/v1/fundingRate/history endpoint\n\nNew endpoint returning the funding rate history.\nRate limit weight 5.\n\nSigned-off-by: Docs Bot <docs@example.com>"
+        },
+        "html_url": "https://github.com/example/api-docs/commit/9f2c1e0b7a6d5c4b3a291807f6e5d4c3b2a19087"
+    },
+    {
+        "sha": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d",
+        "commit": {
+            "author": { "name": "Docs Bot", "email": "docs@example.com", "date": "2026-11-05T08:00:00Z" },
+            "committer": { "name": "GitHub", "email": "noreply@github.com", "date": "2026-11-05T08:00:00Z" },
+            "message": "Merge pull request #412 from example/release-notes\n\nRelease notes 2026-11-05"
+        }
+    },
+    {
+        "sha": "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e",
+        "commit": {
+            "committer": { "name": "Jane", "email": "jane@example.com", "date": "2026-11-04T16:30:00Z" },
+            "message": "Fix typo in order docs"
+        }
+    },
+    {
+        "sha": "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f",
+        "commit": {
+            "committer": { "name": "Jane", "email": "jane@example.com", "date": "2026-11-03T12:00:00Z" },
+            "message": "Deprecate the v1 order cancel endpoint, removed on 2026-12-01"
+        }
+    },
+    {
+        "sha": "4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f70",
+        "commit": {
+            "committer": { "name": "Jane", "email": "jane@example.com", "date": "2026-11-02T12:00:00Z" },
+            "message": "Update README.md"
+        }
+    }
+]

@@ -1,0 +1,45 @@
+{
+  "id": "p2b",
+  "kind": "exchange",
+  "name": "p2b",
+  "domains": ["p2pb2b.com", "github.com"],
+  "sources": [
+    {
+      "id": "p2b-api-doc",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/P2B-team/p2b-api-docs/master/api-doc.md",
+      "link": "https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md",
+      "scope": "REST API reference"
+    },
+    {
+      "id": "p2b-errors",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/P2B-team/p2b-api-docs/master/errors.md",
+      "link": "https://github.com/P2B-team/p2b-api-docs/blob/master/errors.md",
+      "scope": "REST error codes"
+    },
+    {
+      "id": "p2b-wss-doc",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/P2B-team/P2B-WSS-Public/main/wss_documentation.md",
+      "link": "https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md",
+      "scope": "websocket API reference"
+    },
+    {
+      "id": "p2b-api-docs-commits",
+      "type": "gh-commits",
+      "repo": "P2B-team/p2b-api-docs",
+      "ref": "master",
+      "role": "secondary",
+      "scope": "REST docs repository commits"
+    },
+    {
+      "id": "p2b-wss-commits",
+      "type": "gh-commits",
+      "repo": "P2B-team/P2B-WSS-Public",
+      "ref": "main",
+      "role": "secondary",
+      "scope": "websocket docs repository commits"
+    }
+  ]
+}

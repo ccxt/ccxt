@@ -1,0 +1,18 @@
+{
+  "id": "aster",
+  "kind": "exchange",
+  "name": "Aster",
+  "domains": ["asterdex.com", "github.com"],
+  "sources": [
+    {
+      "id": "aster-changelog",
+      "type": "md",
+      "url": "https://raw.githubusercontent.com/asterdex/api-docs/master/CHANGELOG.md",
+      "link": "https://github.com/asterdex/api-docs/blob/master/CHANGELOG.md",
+      "scope": "all (futures v3, spot v3, builder, Aster chain)",
+      "split": { "heading": "^##\\s+\\d{4}-(\\d{2}|xx)-(\\d{2}|xx)\\s*$" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "excludeFilter": "^\\d{4}-xx-xx"
+    }
+  ]
+}

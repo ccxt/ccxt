@@ -1,0 +1,24 @@
+{
+  "id": "myriad",
+  "kind": "prediction",
+  "name": "Myriad",
+  "domains": ["myriad.markets"],
+  "sources": [
+    {
+      "id": "myriad-api-reference",
+      "type": "hash",
+      "url": "https://docs.myriad.markets/builders/myriad-api-reference",
+      "scope": "API reference (AMM and order book REST, WebSocket; its embedded changelog is undated)",
+      "slice": { "selector": "main.notion" },
+      "strip": [".notion-table-of-contents"]
+    },
+    {
+      "id": "myriad-order-book-api",
+      "type": "hash",
+      "url": "https://docs.myriad.markets/builders/myriad-order-book/order-book-api",
+      "scope": "order book API (REST, WebSocket)",
+      "slice": { "selector": "main.notion" },
+      "strip": [".notion-table-of-contents"]
+    }
+  ]
+}

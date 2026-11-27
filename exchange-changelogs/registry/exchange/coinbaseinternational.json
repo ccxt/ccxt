@@ -1,0 +1,36 @@
+{
+  "id": "coinbaseinternational",
+  "kind": "exchange",
+  "name": "Coinbase International",
+  "domains": ["coinbase.com"],
+  "sources": [
+    {
+      "id": "coinbaseinternational-changelog",
+      "type": "md",
+      "url": "https://docs.cdp.coinbase.com/international-exchange/changes/changelog.md",
+      "link": "https://docs.cdp.coinbase.com/international-exchange/changes/changelog",
+      "scope": "all (REST, WebSocket, FIX)",
+      "split": { "heading": "^###\\s+20\\d\\d-[A-Za-z]{3}-\\d{1,2}\\b" },
+      "date": { "from": "title" },
+      "minEntries": 20
+    },
+    {
+      "id": "coinbaseinternational-upcoming",
+      "type": "md",
+      "url": "https://docs.cdp.coinbase.com/international-exchange/changes/upcoming-changes.md",
+      "link": "https://docs.cdp.coinbase.com/international-exchange/changes/upcoming-changes",
+      "scope": "upcoming changes (announced before release)",
+      "split": { "heading": "^##\\s+" },
+      "date": { "from": "body" },
+      "minEntries": 0
+    },
+    {
+      "id": "coinbaseinternational-openapi",
+      "type": "spec",
+      "url": "https://docs.cdp.coinbase.com/api-reference/international-exchange-api/rest-api/intx-spec.yaml",
+      "specFormat": "openapi",
+      "role": "secondary",
+      "scope": "REST (OpenAPI)"
+    }
+  ]
+}

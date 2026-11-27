@@ -1,0 +1,8 @@
+{
+  "id": "latoken",
+  "kind": "exchange",
+  "name": "LATOKEN",
+  "domains": ["latoken.com"],
+  "sources": [],
+  "unmonitored": "API docs (api.latoken.com/doc/v2 and /doc/ws) return 404 and latoken.com/api is a client-side app; no changelog, spec or active docs repository (official python client dormant since 2021)"
+}

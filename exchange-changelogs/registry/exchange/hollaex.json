@@ -1,0 +1,32 @@
+{
+  "id": "hollaex",
+  "kind": "exchange",
+  "name": "HollaEx",
+  "domains": ["hollaex.com", "github.com"],
+  "sources": [
+    {
+      "id": "hollaex-apidoc",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/hollaex/hollaex-apidoc/master/source/index.html.md",
+      "link": "https://apidocs.hollaex.com/",
+      "scope": "API reference (REST + websocket)"
+    },
+    {
+      "id": "hollaex-apidoc-errors",
+      "type": "hash",
+      "url": "https://raw.githubusercontent.com/hollaex/hollaex-apidoc/master/source/includes/_errors.md",
+      "link": "https://apidocs.hollaex.com/#errors",
+      "role": "secondary",
+      "scope": "error codes",
+      "minChange": 10
+    },
+    {
+      "id": "hollaex-apidoc-commits",
+      "type": "gh-commits",
+      "repo": "hollaex/hollaex-apidoc",
+      "ref": "master",
+      "role": "secondary",
+      "scope": "API docs repository commits"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "bitopro",
+  "kind": "exchange",
+  "name": "BitoPro",
+  "domains": ["bitopro.com", "github.com"],
+  "sources": [
+    {
+      "id": "bitopro-changelog",
+      "type": "json",
+      "url": "https://raw.githubusercontent.com/bitoex/bitopro-offical-api-docs/master/changelog.md",
+      "link": "https://github.com/bitoex/bitopro-offical-api-docs/blob/master/changelog.md",
+      "scope": "all (REST, websocket)",
+      "mapper": "bitopro",
+      "minEntries": 20
+    }
+  ]
+}

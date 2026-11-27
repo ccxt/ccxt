@@ -1,0 +1,24 @@
+{
+  "id": "blockchaincom",
+  "kind": "exchange",
+  "name": "Blockchain.com",
+  "domains": ["blockchain.com"],
+  "sources": [
+    {
+      "id": "blockchaincom-rest-v3",
+      "type": "hash",
+      "url": "https://api.blockchain.com/v3/",
+      "scope": "Exchange REST API v3 reference (no changelog)",
+      "slice": { "selector": ".content" },
+      "strip": ["pre.tab-go", "pre.tab-java", "pre.tab-javascript", "pre.tab-php", "pre.tab-python", "pre.tab-ruby", "pre.tab-shell"]
+    },
+    {
+      "id": "blockchaincom-exchange-api",
+      "type": "hash",
+      "url": "https://exchange.blockchain.com/api/",
+      "scope": "Exchange WebSocket API reference (no changelog)",
+      "slice": { "selector": ".content" },
+      "expectBlocked": "Cloudflare may serve a 'Just a moment...' challenge (403) to datacenter IPs"
+    }
+  ]
+}

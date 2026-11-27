@@ -1,0 +1,26 @@
+{
+  "id": "lbank",
+  "kind": "exchange",
+  "name": "LBank",
+  "domains": ["lbank.com"],
+  "sources": [
+    {
+      "id": "lbank-spot-changelog",
+      "type": "html",
+      "url": "https://www.lbank.com/docs/index.html",
+      "link": "https://www.lbank.com/docs/index.html#changelog",
+      "scope": "spot REST and websocket",
+      "slice": { "selector": "h1#changelog + table" },
+      "split": { "item": "tbody tr" },
+      "date": { "from": "title", "pattern": "^(\\d{4}\\.\\d{1,2}\\.\\d{1,2})" },
+      "minEntries": 30
+    },
+    {
+      "id": "lbank-contract-api",
+      "type": "hash",
+      "url": "https://www.lbank.com/docs/contract.html",
+      "scope": "futures (contract) API reference",
+      "slice": { "selector": ".content" }
+    }
+  ]
+}

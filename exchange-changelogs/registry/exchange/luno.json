@@ -1,0 +1,27 @@
+{
+  "id": "luno",
+  "kind": "exchange",
+  "name": "Luno",
+  "domains": ["luno.com"],
+  "sources": [
+    {
+      "id": "luno-changelog",
+      "type": "html",
+      "url": "https://www.luno.com/en/developers/api",
+      "link": "https://www.luno.com/en/developers/api#tag/Changelog",
+      "scope": "all (REST, streaming)",
+      "slice": { "selector": "[data-section-id=\"tag/Changelog\"] .redoc-markdown > ul" },
+      "split": { "item": "li:has(> strong:first-child)" },
+      "date": { "from": "title" },
+      "minEntries": 10
+    },
+    {
+      "id": "luno-openapi",
+      "type": "spec",
+      "url": "https://www.luno.com/en/developers/api",
+      "role": "secondary",
+      "scope": "REST API surface (OpenAPI embedded in the Redoc page)",
+      "specFormat": "redoc"
+    }
+  ]
+}

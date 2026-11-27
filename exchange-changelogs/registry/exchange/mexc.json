@@ -1,0 +1,30 @@
+{
+  "id": "mexc",
+  "kind": "exchange",
+  "name": "MEXC",
+  "domains": ["mexc.com", "mexc.co"],
+  "sources": [
+    {
+      "id": "mexc-spot",
+      "type": "html",
+      "url": "https://www.mexc.co/api-docs/spot-v3/change-log",
+      "link": "https://www.mexc.com/api-docs/spot-v3/change-log",
+      "scope": "spot v3 (REST, websocket)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "strip": [".hash-link"]
+    },
+    {
+      "id": "mexc-futures",
+      "type": "html",
+      "url": "https://www.mexc.co/api-docs/futures/update-log",
+      "link": "https://www.mexc.com/api-docs/futures/update-log",
+      "scope": "futures (REST, websocket)",
+      "slice": { "selector": ".theme-doc-markdown" },
+      "split": { "heading": "h2" },
+      "date": { "from": "title", "pattern": "^(\\d{4}-\\d{2}-\\d{2})" },
+      "strip": [".hash-link"]
+    }
+  ]
+}

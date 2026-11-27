@@ -1,0 +1,16 @@
+{
+  "id": "deribit",
+  "kind": "exchange",
+  "name": "Deribit",
+  "domains": ["deribit.com"],
+  "sources": [
+    {
+      "id": "deribit-jsonrpc",
+      "type": "rss",
+      "url": "https://docs.deribit.com/changelogs/jsonrpc/rss.xml",
+      "link": "https://docs.deribit.com/changelogs/jsonrpc",
+      "scope": "all (JSON-RPC over HTTP + WebSocket)",
+      "minEntries": 5
+    }
+  ]
+}

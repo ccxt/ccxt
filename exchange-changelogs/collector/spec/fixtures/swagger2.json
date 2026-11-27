@@ -1,0 +1,29 @@
+{
+    "swagger": "2.0",
+    "info": { "title": "Hand-written Swagger 2.0 sample (formData and body parameters)", "version": "2.0" },
+    "basePath": "/api/2",
+    "paths": {
+        "/public/symbol/{symbol}": {
+            "parameters": [ { "$ref": "#/parameters/Symbol" } ],
+            "get": { "parameters": [] }
+        },
+        "/order": {
+            "post": {
+                "consumes": [ "application/x-www-form-urlencoded" ],
+                "parameters": [
+                    { "name": "symbol", "in": "formData", "type": "string" },
+                    { "name": "side", "in": "formData", "type": "string" },
+                    { "name": "X-Signature", "in": "header", "type": "string" }
+                ]
+            },
+            "put": {
+                "parameters": [ { "name": "body", "in": "body", "schema": { "$ref": "#/definitions/OrderRequest" } } ]
+            }
+        }
+    },
+    "parameters": { "Symbol": { "name": "symbol", "in": "path", "required": true, "type": "string" } },
+    "definitions": {
+        "Base": { "type": "object", "properties": { "clientOrderId": { "type": "string" } } },
+        "OrderRequest": { "allOf": [ { "$ref": "#/definitions/Base" }, { "type": "object", "properties": { "quantity": { "type": "string" }, "price": { "type": "string" } } } ] }
+    }
+}
