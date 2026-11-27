@@ -3010,7 +3010,7 @@ public partial class polymarket : Exchange
             { "ts", ts },
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-        string? proxyPrivateKey = this.safeString(credentials, "privateKey");
+        string? proxyPrivateKey = this.safeString(credentials, "privateKey", "");
         string signature = this.signMessage(encoded, proxyPrivateKey);
         Dictionary<string, object> envelope = new Dictionary<string, object>() {
             { "op", bodyOp },
