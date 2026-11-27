@@ -1697,9 +1697,13 @@ export class BaseExchange {
     }
 
     delay (timeout: any, method: any, ...args: any[]) {
-        setTimeout (() => {
+        const timer: any = setTimeout (() => {
             this.spawn (method, ...args);
         }, timeout);
+        // a pending delay must not keep the process alive, for example after close ()
+        if (timer && typeof timer.unref === 'function') {
+            timer.unref ();
+        }
     }
 
     // -----------------------------------------------------------------------
