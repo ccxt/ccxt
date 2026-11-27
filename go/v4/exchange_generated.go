@@ -9,6 +9,8 @@ import "strconv"
 
 import "slices"
 
+import "reflect"
+
 import "maps"
 
 import "math"
@@ -610,7 +612,7 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	// backwards-compatibility
 	if this.Proxy != nil {
 		usedProxies = append(usedProxies, "proxy")
-		if IsFunction(this.Proxy) {
+		if reflect.TypeOf(this.Proxy) != nil && reflect.TypeOf(this.Proxy).Kind() == reflect.Func {
 			proxyUrl = this.CallDynamically("proxy", url, method, headers, body)
 		} else {
 			proxyUrl = this.Proxy

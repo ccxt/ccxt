@@ -2266,8 +2266,8 @@ func (this *Htx) HandlePositions(client ccxt.ClientInterface, message map[string
 		}
 		return
 	}
-	var newPositions []any = []any{}
-	var positionsByMarginMode map[string]any = map[string]any{}
+	var crossPositions []any = []any{}
+	var isolatedPositions []any = []any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < len(rawPositions); i++ {
 		rawPositionsDict181049, _ := rawPositions[i].(map[string]any)
@@ -2289,45 +2289,35 @@ func (this *Htx) HandlePositions(client ccxt.ClientInterface, message map[string
 				this.PositionsByType[*marginMode] = cache
 			}
 		}
-		newPositions = append(newPositions, position)
-		if marginMode != nil {
-			positionsByMarginMode[*marginMode] = this.SafeList(positionsByMarginMode, marginMode, []any{})
+		if marginMode != nil && *marginMode == "cross" {
+			crossPositions = append(crossPositions, position)
+		} else {
+			isolatedPositions = append(isolatedPositions, position)
 		}
-		retRes182412 := func() any {
-			if marginMode == nil {
-				return nil
-			}
-			return positionsByMarginMode[*marginMode]
-		}()
-		ccxt.AppendToArray(&retRes182412, position)
 		cache.Append(position)
 	}
-	var marginModes []string = nil
-	if positionsByMarginMode != nil {
-		marginModes = make([]string, 0, len(positionsByMarginMode))
-		for objectKey := range positionsByMarginMode {
-			marginModes = append(marginModes, objectKey)
+	var crossLength int = len(crossPositions)
+	if crossLength > 0 {
+		this.ResolvePositionsByMarginMode(client, "cross", crossPositions)
+	}
+	var isolatedLength int = len(isolatedPositions)
+	if isolatedLength > 0 {
+		this.ResolvePositionsByMarginMode(client, "isolated", isolatedPositions)
+	}
+}
+func (this *Htx) ResolvePositionsByMarginMode(client ccxt.ClientInterface, marginMode string, marginModePositions []any) {
+	var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
+	for j := 0; j < len(messageHashes); j++ {
+		var messageHash string = messageHashes[j]
+		var parts []string = strings.Split(messageHash, "::")
+		var symbolsString *string = &parts[1]
+		var symbols []string = strings.Split(*symbolsString, ",")
+		var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
+		if !this.IsEmpty(positions) {
+			client.Resolve(positions, messageHash)
 		}
 	}
-	for i := 0; i < len(marginModes); i++ {
-		var marginMode string = marginModes[i]
-		var marginModePositions any = this.SafeList(positionsByMarginMode, marginMode, []any{})
-		var messageHashes []string = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
-		for j := 0; j < len(messageHashes); j++ {
-			var messageHash string = messageHashes[j]
-			var parts []string = strings.Split(messageHash, "::")
-			var symbolsString *string = nil
-			if 1 >= 0 && 1 < len(parts) {
-				symbolsString = &parts[1]
-			}
-			var symbols []string = strings.Split(*symbolsString, ",")
-			var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
-			if !this.IsEmpty(positions) {
-				client.Resolve(positions, messageHash)
-			}
-		}
-		client.Resolve(marginModePositions, marginMode+":positions")
-	}
+	client.Resolve(marginModePositions, marginMode+":positions")
 }
 
 /**
@@ -3482,7 +3472,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	var literal287531 map[string]any = map[string]any{
+	var literal288331 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3498,9 +3488,9 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal287531["type"] = *typeVar
+		literal288331["type"] = *typeVar
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal287531, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal288331, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)
