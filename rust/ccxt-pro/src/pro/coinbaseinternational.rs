@@ -515,9 +515,9 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < channelsLength } {
-            let __ws_arg_3 = self.safe_string(&channels, Value::Int(i), &[Value::Str("".into())]);
-            let __ws_arg_4 = self.safe_string(&unWatchMessageHashes, Value::Int(i), &[Value::Str("".into())]);
-            self.clean_unsubscription(&client.as_value(), __ws_arg_3, __ws_arg_4, &[]);
+            let channel: String = self.safe_string(&channels, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let __ws_arg_3 = self.safe_string(&unWatchMessageHashes, Value::Int(i), &[Value::Str("".into())]);
+            self.clean_unsubscription(&client.as_value(), Value::from(channel), __ws_arg_3, &[]);
         }
         }
         return Value::Bool(true);
@@ -1013,12 +1013,12 @@ impl Coinbaseinternational {
 }));
         let paramsResolved: crate::value::Dict = self.parent.handle_route_and_params("watchFundingRate", &[&params]);
         let ticker: Value = crate::types::IntoRaw::into_raw(self.watch_ticker(symbol.as_str().unwrap_or_default(), Value::Dict(paramsResolved)).await);
-        let __ws_arg_5 = self.extend(Value::Map({
+        let __ws_arg_4 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[ticker.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)]);
-        let __ws_arg_6 = self.market(symbol.as_str().unwrap_or_default());
-        return Value::Dict(self.parse_funding_rate(__ws_arg_5, Some(&(match __ws_arg_6 { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
+        let __ws_arg_5 = self.market(symbol.as_str().unwrap_or_default());
+        return Value::Dict(self.parse_funding_rate(__ws_arg_4, Some(&(match __ws_arg_5 { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
         Value::Null
         }).await?))
     }
@@ -1065,12 +1065,12 @@ impl Coinbaseinternational {
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < tickerSymbolsLength } {
             let symbol: Option<String> = tickerSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let ticker: indexmap::IndexMap<String, Value> = (match symbol.as_deref() { Some(__k) => crate::value::KeyRead::key_read(&&tickers, __k), None => Value::Null }).as_map().cloned().unwrap_or_default();
-            let __ws_arg_7 = self.extend(Value::Map({
+            let __ws_arg_6 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[ticker.get("info").cloned().unwrap_or(Value::Null)]);
-            let __ws_arg_8 = self.market(symbol.as_deref().unwrap_or_default());
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_funding_rate(__ws_arg_7, Some(&(match __ws_arg_8 { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) })))));
+            let __ws_arg_7 = self.market(symbol.as_deref().unwrap_or_default());
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_funding_rate(__ws_arg_6, Some(&(match __ws_arg_7 { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) })))));
         }
         }
         return Value::Map(result);
@@ -2438,8 +2438,8 @@ impl Coinbaseinternational {
                 m
             });
             future = Value::from(client.reusable_future(messageHash.as_str()));
-            let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsResolved]);
-            self.watch(url.as_deref(), &messageHash[..], __ws_arg_9, &messageHash[..], Value::Null).await;
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsResolved]);
+            self.watch(url.as_deref(), &messageHash[..], __ws_arg_8, &messageHash[..], Value::Null).await;
             client.add_subscription(messageHash.as_str(), future.clone());
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -2574,8 +2574,8 @@ impl Coinbaseinternational {
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
             paramsRequest = self.omit_t(paramsRequest, &["reduceOnly", "reduce_only"], &[]);
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[&__ws_arg_10, &Value::Bool(true)]).await;
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsRequest]);
+        let result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[&__ws_arg_9, &Value::Bool(true)]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&result, "order");
         std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(&result, "trades", &[Value::from(vec![])]));
         return Value::Dict(self.parse_order(Value::Dict(order), Some(&market)));
@@ -2634,8 +2634,8 @@ impl Coinbaseinternational {
             request.insert("trigger_price".into(), Value::from(triggerPrice));
         }
         let paramsRequest: crate::value::Dict = self.omit_t(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]);
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let result: Value = self.request_ws(Value::Str("private/edit".into()), &[&__ws_arg_11, &Value::Bool(true)]).await;
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsRequest]);
+        let result: Value = self.request_ws(Value::Str("private/edit".into()), &[&__ws_arg_10, &Value::Bool(true)]).await;
         let mut order: crate::value::Dict = self.safe_dict_k_t(&result, "order");
         std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(&result, "trades", &[Value::from(vec![])]));
         return Value::Dict(self.parse_order(Value::Dict(order), Some(&market)));
@@ -2675,17 +2675,17 @@ impl Coinbaseinternational {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let __ws_arg_12 = self.extend(Value::Map({
+        let __ws_arg_11 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), id);
     m
 }), &[&paramsResolved]);
-        let result: Value = self.request_ws(Value::Str("private/cancel".into()), &[&__ws_arg_12, &Value::Bool(true)]).await;
-        let __ws_arg_13 = self.extend(Value::Map({
+        let result: Value = self.request_ws(Value::Str("private/cancel".into()), &[&__ws_arg_11, &Value::Bool(true)]).await;
+        let __ws_arg_12 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[result]);
-        return Value::Dict(self.parse_order(__ws_arg_13, market.as_ref()));
+        return Value::Dict(self.parse_order(__ws_arg_12, market.as_ref()));
         Value::Null
         }).await?))
     }
@@ -2771,17 +2771,17 @@ impl Coinbaseinternational {
             }
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let __ws_arg_14 = self.extend(Value::Map({
+        let __ws_arg_13 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), id);
     m
 }), &[&paramsResolved]);
-        let result: Value = self.request_ws(Value::Str("private/get_order_state".into()), &[&__ws_arg_14, &Value::Bool(true)]).await;
-        let __ws_arg_15 = self.extend(Value::Map({
+        let result: Value = self.request_ws(Value::Str("private/get_order_state".into()), &[&__ws_arg_13, &Value::Bool(true)]).await;
+        let __ws_arg_14 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[result]);
-        return Value::Dict(self.parse_order(__ws_arg_15, market.as_ref()));
+        return Value::Dict(self.parse_order(__ws_arg_14, market.as_ref()));
         Value::Null
         }).await?))
     }
@@ -2828,8 +2828,8 @@ impl Coinbaseinternational {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsResolved]);
-        let result: Value = self.request_ws(Value::Str("private/get_open_orders_by_instrument".into()), &[&__ws_arg_16, &Value::Bool(true)]).await;
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsResolved]);
+        let result: Value = self.request_ws(Value::Str("private/get_open_orders_by_instrument".into()), &[&__ws_arg_15, &Value::Bool(true)]).await;
         return Value::Arr(self.parse_orders(result, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -2877,8 +2877,8 @@ impl Coinbaseinternational {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsResolved]);
-        let result: Value = self.request_ws(Value::Str("private/get_order_history_by_instrument".into()), &[&__ws_arg_17, &Value::Bool(true)]).await;
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsResolved]);
+        let result: Value = self.request_ws(Value::Str("private/get_order_history_by_instrument".into()), &[&__ws_arg_16, &Value::Bool(true)]).await;
         let orders: Value = self.safe_list_k(result.clone(), "orders", &[result]);
         return Value::Arr(self.parse_orders(orders, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -2974,8 +2974,8 @@ impl Coinbaseinternational {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsResolved]);
-        let result: Value = self.request_ws(Value::Str("private/get_user_trades_by_instrument".into()), &[&__ws_arg_18, &Value::Bool(true)]).await;
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsResolved]);
+        let result: Value = self.request_ws(Value::Str("private/get_user_trades_by_instrument".into()), &[&__ws_arg_17, &Value::Bool(true)]).await;
         let trades: crate::value::List = self.safe_list_k_t(&result, "trades");
         return Value::Arr(self.parse_trades(&trades, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null

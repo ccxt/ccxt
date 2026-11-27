@@ -4508,6 +4508,9 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[&Value::from(&paramsAccountIndex)]).await.as_i64();
         let leverageNum: Option<f64> = self.parse_number(leverage, &[]).as_f64();
+        if (leverageNum.is_none()) || ((leverageNum.is_some() && leverageNum <= Some(0.0))) {
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " modifyLeverageAndMarginMode() requires leverage > 0")));
+        }
         let signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));

@@ -2590,6 +2590,9 @@ impl Polymarket {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         let resolutionMs: i64 = (((fidelityMin * 60)) * 1000);
+        if resolutionMs <= 0 {
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOHLCV() invalid timeframe resolution")));
+        }
         let mut buckets: Value = Value::Map({
             let m = indexmap::IndexMap::new();
             m

@@ -3989,7 +3989,8 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_27: bool = true;
             while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < messageHashesLength } {
-            self.clean_unsubscription(&client, subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null), messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Bool(isWalletTopic)]);
+            let __ws_arg_20 = self.safe_string(&subMessageHashes, Value::Int(i), &[]);
+            self.clean_unsubscription(&client, __ws_arg_20, messageHashes.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Bool(isWalletTopic)]);
         }
         }
         self.clean_cache(subscription);
@@ -4209,8 +4210,8 @@ impl Predictfun {
                 m.insert("messageHashes".to_string(), Value::Arr(self.wallet_event_message_hashes(client.as_value(), Some(messageHash))));
             m
         });
-        let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &Value::from(messageHash), __ws_arg_20, "walletEvents", Value::Map(subscription)).await;
+        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url.as_deref(), &Value::from(messageHash), __ws_arg_21, "walletEvents", Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -4285,8 +4286,8 @@ impl Predictfun {
         });
         let messageHash: String = format!("{}{}", "unsubscribe::", Value::from(channel));
         let url: Option<String> = self.socket_url();
-        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_21, &messageHash[..], Value::Map(subscription)).await;
+        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_22, &messageHash[..], Value::Map(subscription)).await;
 
     Value::Null
 }

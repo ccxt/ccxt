@@ -4259,7 +4259,7 @@ impl Nado {
                     let weights: crate::value::List = self.safe_list_t(&byQuery, Value::from(queryName.as_deref()));
                     let baseWeight: i64 = self.safe_integer(&weights, Value::Int(0), &[Value::Int(2)]).as_i64().unwrap_or(2);
                     let rowsPerWeight: Option<i64> = self.safe_integer(&weights, Value::Int(1), &[]).as_i64();
-                    if (rowsPerWeight.is_none()) {
+                    if (rowsPerWeight.is_none()) || ((rowsPerWeight.is_some() && rowsPerWeight <= Some(0))) {
                         return Value::from(baseWeight);
                     }
                     let query: crate::value::Dict = self.safe_dict_t(&params, Value::from(queryName.as_deref()));
@@ -4278,6 +4278,9 @@ impl Nado {
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             let rowsBaseWeight: i64 = self.safe_integer(&byRows, Value::Int(0), &[Value::Int(2)]).as_i64().unwrap_or(2);
             let rowsDivisor: i64 = self.safe_integer(&byRows, Value::Int(1), &[Value::Int(50)]).as_i64().unwrap_or(50);
+            if rowsDivisor <= 0 {
+                return Value::from(rowsBaseWeight);
+            }
             let rowCount: i64 = self.safe_integer_k(params, "limit", &[Value::Int(100)]).as_i64().unwrap_or(100); // the v2 default page
             return Value::from((if let Some(__m1) = self.parse_to_int((match ((Value::from(rowCount)).as_f64(), (Value::from(rowsDivisor)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) { Some((rowsBaseWeight + __m1)) } else { None }));
         }

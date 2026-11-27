@@ -3561,7 +3561,8 @@ impl Paradex {
         let isTakeProfitOrStopLoss: bool = (isStopLossOrder || isTakeProfitOrder);
         let mut sizeString: Option<String> = Some("0".to_string());
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if !isTakeProfitOrStopLoss || ((amount.is_some()) && (amount.unwrap_or(f64::NAN) > ((0i64) as f64))) {
+        let amountStr: Option<String> = self.number_to_string(Value::from(amount));
+        if !isTakeProfitOrStopLoss || ((amountStr.is_some()) && crate::precise::Precise::stringGt(&amountStr, &Value::Str("0".into())).as_bool() == Some(true)) {
             sizeString = self.amount_to_precision(symbol, Value::from(amount));
         }
         let mut stopPrice: Option<String> = None;

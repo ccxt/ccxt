@@ -2093,7 +2093,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_transfer" => crate::types::IntoRaw::into_raw(self.fetch_transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_underlying_assets" => self.fetch_underlying_assets(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_underlying_assets" => crate::Value::Arr(self.fetch_underlying_assets(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_withdrawal" => crate::types::IntoRaw::into_raw(self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -12311,7 +12311,7 @@ impl Okx {
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
  * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
-    pub async fn fetch_underlying_assets(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_underlying_assets(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -12350,9 +12350,19 @@ impl Okx {
         //     }
         //
         let underlyings: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.to_array(self.safe_list(&underlyings, Value::Int(0), &[Value::from(vec![])]));
-
-    Value::Null
+        let first: crate::value::List = self.safe_list_t(&underlyings, Value::Int(0));
+        let mut result: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_35: bool = true;
+            while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (first.len() as i64) } {
+            let item: Option<String> = self.safe_string_opt(&first, Value::Int(i), &[]);
+            if (item.is_some()) {
+                result.push(item.map(Value::from).unwrap_or(Value::Null));
+            }
+        }
+        }
+        return std::sync::Arc::new(result);
 }
 
 /*
@@ -12423,8 +12433,8 @@ impl Okx {
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_35: bool = true;
-            while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (data.len() as i64) } {
+            let mut __for_first_36: bool = true;
+            while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "instId", &[]);
             if (entryMarketId.as_deref() == Some(marketId.as_str())) {
@@ -13089,8 +13099,8 @@ impl Okx {
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_36: bool = true;
-            while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (data.len() as i64) } {
+            let mut __for_first_37: bool = true;
+            while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let id: Option<String> = self.safe_string_k_opt(&entry, "ccy", &[]);
             let code: Option<String> = self.safe_currency_code(id.as_deref(), None);
@@ -13171,8 +13181,8 @@ impl Okx {
             let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_37: bool = true;
-                while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (data.len() as i64) } {
+                let mut __for_first_38: bool = true;
+                while { if !__for_first_38 { i += 1; } __for_first_38 = false; i < (data.len() as i64) } {
                 let error: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                 let errorCode: Option<String> = self.safe_string_k_opt(&error, "sCode", &[]);
                 let message: Option<String> = self.safe_string_k_opt(&error, "sMsg", &[]);
@@ -13466,8 +13476,8 @@ impl Okx {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_38: bool = true;
-            while { if !__for_first_38 { i += 1; } __for_first_38 = false; i < (data.len() as i64) } {
+            let mut __for_first_39: bool = true;
+            while { if !__for_first_39 { i += 1; } __for_first_39 = false; i < (data.len() as i64) } {
             let entry: crate::value::List = self.safe_list_t(&data, Value::Int(i));
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

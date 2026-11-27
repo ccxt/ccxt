@@ -2708,6 +2708,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let interval: String = (match subscription.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let timeframe: Option<String> = self.find_timeframe(Value::from(interval), &[]);
+        if (timeframe.is_none()) || (symbol.is_none()) {
+            return;
+        }
         let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);

@@ -3820,8 +3820,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         self.clean_unsubscription(client, Value::from(subMessageHash), Value::from(messageHash), &[]);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        let __ws_arg_10 = self.market_id(Some(symbol));
-        self.clean_unsubscription(client, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), __ws_arg_10).into()), Value::Null, &[]);
+        let marketId: Option<String> = self.market_id(Some(symbol)).as_str().map(str::to_owned);
+        if (marketId.is_some()) {
+            let marketSubHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), marketId.as_deref().unwrap_or("null"));
+            self.clean_unsubscription(client, Value::from(marketSubHash), Value::Null, &[]);
+        }  else {
+            self.clean_unsubscription(client, Value::Null, Value::Null, &[]);
+        }
         if (self.ohlcvs.shelf(&Value::from(symbol)).has(&timeframe)) {
             CacheShelves::forget2(&mut self.ohlcvs, &Value::from(symbol), &timeframe);
         }

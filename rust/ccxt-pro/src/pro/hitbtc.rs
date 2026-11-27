@@ -2141,8 +2141,9 @@ impl Hitbtc {
                                         let mut j: i64 = 0;
                     let mut __for_first_14: bool = true;
                     while { if !__for_first_14 { j += 1; } __for_first_14 = false; j < (subMessageHashes.len() as i64) } {
-                    let __ws_arg_5 = self.safe_string(&messageHashes, Value::Int(j), &[]);
-                    self.clean_unsubscription(client, subMessageHashes.get(j as usize).cloned().unwrap_or(Value::Null), __ws_arg_5, &[]);
+                    let __ws_arg_5 = self.safe_string(&subMessageHashes, Value::Int(j), &[]);
+                    let __ws_arg_6 = self.safe_string(&messageHashes, Value::Int(j), &[]);
+                    self.clean_unsubscription(client, __ws_arg_5, __ws_arg_6, &[]);
                 }
                 }
                 self.clean_cache(subscription);

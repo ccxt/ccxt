@@ -851,7 +851,8 @@ if _try_result.is_err() {
                         let mut j: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { j += 1; } __for_first_8 = false; j < (subMessageHashes.len() as i64) } {
-            self.clean_unsubscription(client, subMessageHashes.get(j as usize).cloned().unwrap_or(Value::Null), Value::from(unsubHash), &[Value::Bool(prefix)]);
+            let __ws_arg_4 = self.safe_string(&subMessageHashes, Value::Int(j), &[]);
+            self.clean_unsubscription(client, __ws_arg_4, Value::from(unsubHash), &[Value::Bool(prefix)]);
         }
         }
         self.clean_cache(subscription);
@@ -900,8 +901,8 @@ if _try_result.is_err() {
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
-        let __ws_arg_4 = self.deep_extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_4, &messageHash[..], Value::Map(subscription)).await;
+        let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
+        let mut trades: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit);
@@ -1634,8 +1635,8 @@ if _try_result.is_err() {
                     m.insert("messageHashes".to_string(), Value::from(vec![channel.clone()]));
                 m
             });
-            let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
-            newTicker = self.watch(url.as_deref(), &channel, __ws_arg_5, &channel, Value::Map(subscription)).await;
+            let __ws_arg_6 = self.deep_extend(Value::Map(request), &[params]);
+            newTicker = self.watch(url.as_deref(), &channel, __ws_arg_6, &channel, Value::Map(subscription)).await;
         }
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1709,7 +1710,7 @@ if _try_result.is_err() {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let mut marketIds: Vec<Value> = Vec::new();
         let mut subscribeHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        let mut subMessageHashes: Vec<Value> = Vec::new();
+        let mut subMessageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_19: bool = true;
@@ -1719,7 +1720,7 @@ if _try_result.is_err() {
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             marketIds.push(Value::from(marketId.as_str()));
             std::sync::Arc::make_mut(&mut subscribeHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId).into()));
-            subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbol).into()));
+            std::sync::Arc::make_mut(&mut subMessageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbol).into()));
         }
         }
         let tickerSymbols: Value = (if (symbolsNormalized == Value::Null) { Value::from(vec![]) } else { symbolsNormalized });
@@ -1728,7 +1729,8 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_20: bool = true;
                 while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (subMessageHashes.len() as i64) } {
-                self.clean_unsubscription(&client.as_value(), subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str(format!("{}{}", "unsubscribe:", subMessageHashes.get(i as usize).cloned().unwrap_or(Value::Null)).into()), &[]);
+                let subHash: String = self.safe_string(&subMessageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                self.clean_unsubscription(&client.as_value(), Value::from(subHash.as_str()), Value::Str(format!("{}{}", "unsubscribe:", subHash).into()), &[]);
             }
             }
             self.clean_cache(Value::Map({
@@ -1783,7 +1785,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
                 m.insert("subscribeHashes".to_string(), Value::Arr(subscribeHashes));
-                m.insert("subMessageHashes".to_string(), Value::from(subMessageHashes));
+                m.insert("subMessageHashes".to_string(), Value::Arr(subMessageHashes));
                 m.insert("symbols".to_string(), tickerSymbols);
             m
         });
@@ -1874,8 +1876,8 @@ if _try_result.is_err() {
                     m.insert("markets".to_string(), Value::from(missing));
                 m
             });
-            let __ws_arg_6 = self.subscribe_request(channel.as_str());
-            request = self.extend(Value::Dict(__ws_arg_6), &[Value::Map({
+            let __ws_arg_7 = self.subscribe_request(channel.as_str());
+            request = self.extend(Value::Dict(__ws_arg_7), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("params".to_string(), Value::Map(subscribeParams));
                 m
@@ -1890,8 +1892,8 @@ if _try_result.is_err() {
                 m.insert("messageHashes".to_string(), Value::from(missingHashes));
             m
         });
-        let __ws_arg_7 = self.deep_extend(request, &[params]);
-        return self.watch_multiple(url.as_deref(), messageHashes, __ws_arg_7, Value::from(subscribeHashes), Value::Map(subscription)).await;
+        let __ws_arg_8 = self.deep_extend(request, &[params]);
+        return self.watch_multiple(url.as_deref(), messageHashes, __ws_arg_8, Value::from(subscribeHashes), Value::Map(subscription)).await;
 
     Value::Null
 }
@@ -2149,8 +2151,8 @@ if _try_result.is_err() {
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
-        let __ws_arg_8 = self.deep_extend(Value::Map(request), &[params]);
-        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_8, channel.as_str(), Value::Map(subscription)).await;
+        let __ws_arg_9 = self.deep_extend(Value::Map(request), &[params]);
+        let mut orders: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_9, channel.as_str(), Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
@@ -2250,8 +2252,8 @@ if _try_result.is_err() {
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
-        let __ws_arg_9 = self.deep_extend(Value::Map(request), &[params]);
-        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_9, channel.as_str(), Value::Map(subscription)).await;
+        let __ws_arg_10 = self.deep_extend(Value::Map(request), &[params]);
+        let mut trades: Value = self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_10, channel.as_str(), Value::Map(subscription)).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -2359,8 +2361,8 @@ if _try_result.is_err() {
                 m.insert("messageHashes".to_string(), Value::from(messageHashes.clone()));
             m
         });
-        let __ws_arg_10 = self.deep_extend(Value::Map(request), &[params]);
-        let newPositions: Value = self.watch_multiple(url.as_deref(), Value::from(messageHashes), __ws_arg_10, Value::from(vec![Value::from(channel)]), Value::Map(subscription)).await;
+        let __ws_arg_11 = self.deep_extend(Value::Map(request), &[params]);
+        let newPositions: Value = self.watch_multiple(url.as_deref(), Value::from(messageHashes), __ws_arg_11, Value::from(vec![Value::from(channel)]), Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2414,12 +2416,12 @@ if _try_result.is_err() {
             let previousContracts: Option<String> = self.safe_string_k_opt(&previous, "contracts", &[]);
             let isOpposite: bool = (side.is_some()) && (previousSide.is_some()) && (previousSide != side);
             if isOpposite && (previousContracts.is_some()) && !(crate::precise::Precise::stringEq(&previousContracts, &Value::Str("0".into())).as_bool() == Some(true)) {
-                let __ws_arg_11 = self.parse_number(Value::Str("0".into()), &[]);
-                let __ws_arg_12 = self.safe_integer_k(&position, "lastUpdateTimestamp", &[]);
+                let __ws_arg_12 = self.parse_number(Value::Str("0".into()), &[]);
+                let __ws_arg_13 = self.safe_integer_k(&position, "lastUpdateTimestamp", &[]);
                 let flattened: Value = self.extend(previous, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("contracts".to_string(), __ws_arg_11);
-                        m.insert("lastUpdateTimestamp".to_string(), __ws_arg_12);
+                        m.insert("contracts".to_string(), __ws_arg_12);
+                        m.insert("lastUpdateTimestamp".to_string(), __ws_arg_13);
                     m
                 })]);
                 self.positions.append(flattened.clone());
@@ -2468,8 +2470,8 @@ if _try_result.is_err() {
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
-        let __ws_arg_13 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_13, channel.as_str(), Value::Map(subscription)).await;
+        let __ws_arg_14 = self.deep_extend(Value::Map(request), &[params]);
+        return self.watch(url.as_deref(), messageHash.as_str(), __ws_arg_14, channel.as_str(), Value::Map(subscription)).await;
         Value::Null
         }).await?))
     }
@@ -2707,8 +2709,8 @@ if _try_result.is_err() {
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_14 = self.deep_extend(Value::Map(request), &[params]);
-        let newFundingRates: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_14, &messageHashes, Value::Map(subscription)).await;
+        let __ws_arg_15 = self.deep_extend(Value::Map(request), &[params]);
+        let newFundingRates: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_15, &messageHashes, Value::Map(subscription)).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
