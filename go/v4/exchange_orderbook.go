@@ -172,23 +172,8 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	asks, bids := resetRows(this.Asks, snapshot)
 	snapshotMap := snapshot.(map[string]any)
 
-	for i := range *this.Asks.GetIndex() {
-		(*this.Asks.GetIndex())[i] = math.MaxFloat64
-	}
-	this.Asks.SetData([][]any{})
-	this.Asks.SetLen(0)
-	for _, ask := range asks {
-		this.Asks.StoreArray(ask)
-	}
-
-	for i := range *this.Bids.GetIndex() {
-		(*this.Bids.GetIndex())[i] = math.MaxFloat64
-	}
-	this.Bids.SetData([][]any{})
-	this.Bids.SetLen(0)
-	for _, bid := range bids {
-		this.Bids.StoreArray(bid)
-	}
+	replaceSideRows(this.Asks, asks)
+	replaceSideRows(this.Bids, bids)
 	this.Nonce = SafeInteger(snapshotMap, "nonce", nil)
 	if ts, ok := SafeInt64(snapshotMap, "timestamp", nil).(int64); ok {
 		this.Timestamp = &ts
@@ -205,6 +190,30 @@ func (this *WsOrderBook) Reset(optionalArgs ...any) any {
 	this.Market = SafeString(snapshotMap, "market", nil)
 
 	return this
+}
+
+// sideReplacer is implemented by every built-in side: the whole side is
+// swapped for the snapshot rows under the side's writer lock.
+type sideReplacer interface {
+	replaceRows(rows []any)
+}
+
+// replaceSideRows wipes a side and refills it from snapshot rows. Built-in
+// sides do it as one serialized write; a foreign IOrderBookSide falls back to
+// the step-by-step path through the public interface.
+func replaceSideRows(side IOrderBookSide, rows []any) {
+	if replacer, ok := side.(sideReplacer); ok {
+		replacer.replaceRows(rows)
+		return
+	}
+	for i := range *side.GetIndex() {
+		(*side.GetIndex())[i] = math.MaxFloat64
+	}
+	side.SetData([][]any{})
+	side.SetLen(0)
+	for _, row := range rows {
+		side.StoreArray(row)
+	}
 }
 
 // GetCache returns the buffered deltas; a cache that is not a list reads as an empty (nil) list.
