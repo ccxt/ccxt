@@ -124,8 +124,15 @@ jobs:
           # earlier deploy doesn't hit "Failed to find Server Action" after a redeploy. If the
           # secret is unset Next generates a random key per build (the bug); set it once with:
           #   openssl rand -base64 32 | gh secret set NEXT_SERVER_ACTIONS_ENCRYPTION_KEY -R ccxt/ccxt
+          # PostHog analytics for the docs (src/lib/analytics.ts): the project token is a
+          # repository *variable* (it is public by design, it only sends events); unset, the
+          # site builds with analytics off. Set it once with:
+          #   gh variable set DOCS_POSTHOG_PROJECT_TOKEN -R ccxt/ccxt --body 'phc_...'
+          # DOCS_POSTHOG_HOST is optional (default https://eu.i.posthog.com).
           build-args: |
             NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=${{ secrets.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY }}
+            NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=${{ vars.DOCS_POSTHOG_PROJECT_TOKEN }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ vars.DOCS_POSTHOG_HOST || 'https://eu.i.posthog.com' }}
           # SHA tag enables canary validation + rollback; latest is moved only after smoke passes.
           tags: |
             ${{ env.IMAGE }}:latest

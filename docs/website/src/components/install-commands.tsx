@@ -38,6 +38,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       aria-label="Copy command"
+      data-docs-copy="install"
       onClick={() => {
         const done = () => {
           setCopied(true);

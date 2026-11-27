@@ -72,3 +72,35 @@ canary smoke-test on a temp port → promote (zero-downtime).
   `Content-Security-Policy: frame-ancestors 'self' https://ccxt.com` (see `next.config.mjs`);
   the deploy job also drops nginx `X-Frame-Options: SAMEORIGIN` and keeps the same CSP on the
   box so cross-origin embeds are not blocked at the edge.
+
+## Analytics
+
+Web and product analytics go to PostHog (EU cloud) through `posthog-js`, initialised in
+`src/instrumentation-client.ts`. Everything is off unless the build sets
+`NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`: local dev, forks and CI send nothing and do not load
+`posthog-js` at all. Server mode only: the static export (`NEXT_OUTPUT=export`) has no rewrites,
+so build it without a token.
+
+- **Config:** the deploy passes the repository variable `DOCS_POSTHOG_PROJECT_TOKEN` (and the
+  optional `DOCS_POSTHOG_HOST`, default `https://eu.i.posthog.com`) as Docker build args. In
+  the PostHog project, enable **Settings > Project > Web analytics > Cookieless tracking**, or
+  PostHog discards the events.
+- **Privacy:** `cookieless_mode: 'always'` (no cookies or browser storage; unique visitors are
+  counted with a server-side hash), `person_profiles: 'never'`, Do Not Track respected, no
+  session recording. No consent banner is needed for PostHog.
+- **Relay:** requests go to `/cx-relay` on the docs' own origin, which `next.config.mjs`
+  rewrites to PostHog, so ad blockers that drop `*.posthog.com` still let them through.
+  `src/proxy.ts` leaves that path out of locale routing.
+- **Automatic:** `$pageview` and `$pageleave` on every client-side navigation, autocapture
+  of clicks, and `$web_vitals`.
+- **Explicit events** (`src/lib/analytics.ts`, sent with `track()`):
+
+| Event | Properties | Where |
+| --- | --- | --- |
+| `docs_code_copied` | `surface` (`code_block`, `install`), `page` | copy buttons on code blocks and the homepage install commands |
+| `docs_search` | `query_length`, `results`, `locale` (never the query) | search dialog, once typing settles |
+| `docs_language_changed` | `from`, `to` | language switcher |
+| `docs_cta_clicked` | `cta` (`get_started`, `read_manual`) | homepage buttons (`data-docs-cta`) |
+| `docs_outbound_clicked` | `destination` (`github`, `discord`, `telegram`), `page` | any link to those sites |
+| `docs_ai_opened` | `page` | Ask-AI button |
+| `docs_ai_question_sent` | `length`, `page` (never the question) | Ask-AI input |

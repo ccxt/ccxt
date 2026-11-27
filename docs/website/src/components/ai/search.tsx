@@ -13,6 +13,7 @@ import {
 } from 'react';
 import { Loader2, MessageCircleIcon, RefreshCw, SearchIcon, Send, X } from 'lucide-react';
 import { cn } from '../../lib/cn';
+import { track, currentPage } from '../../lib/analytics';
 import { buttonVariants } from '../ui/button';
 import { useChat, type UseChatHelpers } from '@ai-sdk/react';
 import { DefaultChatTransport, type Tool, type UIMessage, type UIToolInvocation } from 'ai';
@@ -122,6 +123,8 @@ export function AISearchInput(props: ComponentProps<'form'>) {
     e?.preventDefault();
     const message = input.trim();
     if (message.length === 0) return;
+    // analytics: that a question was asked and its length, never its text
+    track('docs_ai_question_sent', { length: message.length, page: currentPage() });
 
     void sendMessage({
       role: 'user',
@@ -348,7 +351,10 @@ export function AISearchTrigger({
         ],
         className,
       )}
-      onClick={() => setOpen(!open)}
+      onClick={() => {
+        if (!open) track('docs_ai_opened', { page: currentPage() });
+        setOpen(!open);
+      }}
       {...props}
     >
       {props.children}
