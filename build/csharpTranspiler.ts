@@ -4368,6 +4368,8 @@ class NewTranspiler {
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
         baseClass = baseClass.replace(/(object \w+) = client\.futures/gm, '$1 = (client as WebSocketClient).futures');
+        baseClass = baseClass.replace(/inOp\(client\.futures, ("[^"\\]*")\)/gm, '((WebSocketClient)client).futures.ContainsKey($1)');
+        baseClass = baseClass.replace(/\(\(IDictionary<string,object>\)client\.futures\)\.Remove\(/gm, '((WebSocketClient)client).futures.Remove(');
         baseClass = baseClass.replace(/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures');
         baseClass = baseClass.replaceAll (/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe");
         const jsDelimiter = '// ' + delimiter
