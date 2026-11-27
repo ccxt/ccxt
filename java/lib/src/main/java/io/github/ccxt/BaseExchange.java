@@ -772,7 +772,7 @@ public class BaseExchange {
                     List<String> completePaths = new ArrayList<>();
                     for (String part : pathParts) {
                         if (part.isEmpty()) continue;
-                        String normalized = part.substring(0, 1).toUpperCase() +
+                        String normalized = part.substring(0, 1).toUpperCase(Locale.ROOT) +
                                             (part.length() > 1 ? part.substring(1) : "");
                         completePaths.add(normalized);
                     }
@@ -783,12 +783,12 @@ public class BaseExchange {
                     }
                     String path = sb.toString();
                     // lowercase first letter
-                    path = path.substring(0, 1).toLowerCase() + path.substring(1);
+                    path = path.substring(0, 1).toLowerCase(Locale.ROOT) + path.substring(1);
 
                     Object apiObj = new ArrayList<>(paths);
 
                     Map<String, Object> entry = new HashMap<>();
-                    entry.put("method", key.toUpperCase());
+                    entry.put("method", key.toUpperCase(Locale.ROOT));
                     entry.put("path", endpoint);
                     entry.put("api", apiObj);
                     entry.put("cost", cost);
@@ -2751,7 +2751,7 @@ public class BaseExchange {
         }
 
         for (String key : headerKeys) {
-            if (!key.toLowerCase().equals("content-type")) {
+            if (!key.toLowerCase(Locale.ROOT).equals("content-type")) {
                 Object v = headers.get(key);
                 if (v != null) {
                     requestBuilder.header(key, v.toString());
@@ -2812,7 +2812,7 @@ public class BaseExchange {
         List<String> encHeader = response.headers().allValues("Content-Encoding");
         boolean gzip = false;
         for (String encVal : encHeader) {
-            if (encVal.toLowerCase().contains("gzip")) {
+            if (encVal.toLowerCase(Locale.ROOT).contains("gzip")) {
                 gzip = true;
                 break;
             }
@@ -4225,7 +4225,7 @@ public class BaseExchange {
 
         String name = className.trim();
 
-        name = name.substring(0, 1).toUpperCase() + name.substring(1);
+        name = name.substring(0, 1).toUpperCase(Locale.ROOT) + name.substring(1);
 
         String fqcn = (isWs ? EXCHANGES_PKG_PRO : EXCHANGES_PKG) + name;
 
