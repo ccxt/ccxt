@@ -20,6 +20,8 @@ claude plugin install ccxt --marketplace ccxt/ccxt-plugins         # hosted: pub
 claude plugin install ccxt-local --marketplace ccxt/ccxt-plugins   # local: accounts and trading
 ```
 
+`--marketplace` needs Claude Code 2.1.292 or later. On older versions, run `claude plugin marketplace add ccxt/ccxt-plugins` first, then `claude plugin install ccxt@ccxt` (or `ccxt-local@ccxt`).
+
 ## Security model (read this first)
 
 This section is about the **local** server, the only one that ever handles API keys. The [hosted server](#hosted-server-no-install) accepts no keys and has no accounts.
@@ -79,7 +81,7 @@ Install the plugin, which adds the server plus skills that teach Claude how to u
 claude plugin install ccxt --marketplace ccxt/ccxt-plugins
 ```
 
-Inside a session, `/plugin marketplace add ccxt/ccxt-plugins` then `/plugin install ccxt@ccxt` does the same. Or add only the server:
+`--marketplace` needs Claude Code 2.1.292 or later. On older versions, or inside a session, add the marketplace first: `claude plugin marketplace add ccxt/ccxt-plugins` then `claude plugin install ccxt@ccxt` (in a session: `/plugin marketplace add ccxt/ccxt-plugins`, then `/plugin install ccxt@ccxt`). Or add only the server:
 
 ```bash
 claude mcp add --transport http ccxt https://docs.ccxt.com/mcp
@@ -206,7 +208,7 @@ Install the `ccxt-local` plugin, which runs the server and adds its usage skill:
 claude plugin install ccxt-local --marketplace ccxt/ccxt-plugins
 ```
 
-Or add only the server:
+On Claude Code older than 2.1.292: `claude plugin marketplace add ccxt/ccxt-plugins`, then `claude plugin install ccxt-local@ccxt`. Or add only the server:
 
 ```bash
 claude mcp add ccxt -- npx -y ccxt-mcp

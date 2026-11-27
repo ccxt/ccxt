@@ -10,7 +10,7 @@ The server is **read-only and public**. It does not place orders, move funds or 
 
 The published copy of this plugin lives in [ccxt/ccxt-plugins](https://github.com/ccxt/ccxt-plugins), a small repository, so installing it does not clone all of ccxt.
 
-- **Claude Code:** `claude plugin install ccxt --marketplace ccxt/ccxt-plugins`. Or add the server alone, without the skill: `claude mcp add --transport http ccxt https://docs.ccxt.com/mcp`.
+- **Claude Code:** `claude plugin install ccxt --marketplace ccxt/ccxt-plugins` (Claude Code 2.1.292 or later; on older versions, `claude plugin marketplace add ccxt/ccxt-plugins` then `claude plugin install ccxt@ccxt`). Or add the server alone, without the skill: `claude mcp add --transport http ccxt https://docs.ccxt.com/mcp`.
 - **Claude (web, desktop; paid plans):** Customize > Plugins > Add > Add marketplace, `ccxt/ccxt-plugins`, add **CCXT**, then connect it on the plugin's Connectors tab. On any plan, you can instead add `https://docs.ccxt.com/mcp` as a custom connector.
 - **ChatGPT desktop app and Codex:** `codex plugin marketplace add ccxt/ccxt-plugins`, then `codex plugin add ccxt@ccxt`.
 - **ChatGPT web and other hosts:** see [Hosted server (no install)](https://docs.ccxt.com/docs/mcp#hosted-server-no-install) in the docs.

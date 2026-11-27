@@ -28,7 +28,7 @@ const FALLBACK = {
   mcpTabOther: 'Other',
   mcpClaudeSteps: 'Customize > Plugins > Add > Add marketplace, enter this, then add CCXT:',
   mcpClaudeConnector: 'Or add it as a connector (every plan)',
-  mcpClaudeCodeHint: 'Adds the server and a skill that tells Claude how to use it.',
+  mcpClaudeCodeHint: 'Adds the server and a skill that tells Claude how to use it. Needs Claude Code 2.1.292+; on older versions, run claude plugin marketplace add ccxt/ccxt-plugins, then claude plugin install ccxt@ccxt.',
   mcpChatgptSteps: 'Plugins > + > Add custom MCP server, paste this URL, choose No authentication.',
   mcpCodexHint: 'Then restart the ChatGPT desktop app.',
   mcpOtherSteps: 'Cursor, VS Code, Gemini CLI and any host that adds a remote MCP server (Streamable HTTP, no auth):',
