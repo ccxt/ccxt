@@ -4177,7 +4177,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limitVar, paramsPaginate, "cursor", "cursor", null, 1000));
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since,ccxt.BaseExchange.ToInt64Arg(limitVar), paramsPaginate, "cursor", "cursor", null, 1000));
         }
         IDictionary<string, object> market = null;
         if ((symbol != null))

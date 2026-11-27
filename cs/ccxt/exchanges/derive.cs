@@ -1881,7 +1881,7 @@ public partial class derive : Exchange
         }
         result = this.sortBy2(result, "timestamp", "id");
         string? symbol = this.safeString(market, "symbol");
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit)));
     }
 
     /**

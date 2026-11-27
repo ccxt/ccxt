@@ -1900,7 +1900,7 @@ public partial class bitfinex : Exchange
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since,ccxt.BaseExchange.ToInt64Arg(limitVar),timeframeVar, paramsPaginate, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64 limitResolved = ((limitVar == null)) ? 10000 : Math.Min(limitVar.Value, 10000);

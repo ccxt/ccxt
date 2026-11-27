@@ -1854,7 +1854,7 @@ public partial class PredictionExchange : BaseExchange
         }
         results = this.sortBy2(results, "timestamp", "id");
         string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-        return ((IList<object>)((object)(this.filterByValueSinceLimit(results, "outcome", outcomeHandle, since, limit, "timestamp", false))));
+        return ((IList<object>)((object)(this.filterByValueSinceLimit(results, "outcome", outcomeHandle, since,ccxt.BaseExchange.ToInt64Arg(limit), "timestamp", false))));
     }
 
     /**
@@ -1883,7 +1883,7 @@ public partial class PredictionExchange : BaseExchange
         }
         results = this.sortBy(results, "timestamp");
         string? outcomeHandle = this.safeString(outcomeObj, "outcome");
-        return ((IList<object>)((object)(this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit))));
+        return ((IList<object>)((object)(this.filterByOutcomeSinceLimit(results, outcomeHandle, since,ccxt.BaseExchange.ToInt64Arg(limit)))));
     }
 
     /**
@@ -1913,7 +1913,7 @@ public partial class PredictionExchange : BaseExchange
         return results;
     }
 
-    public virtual IList<object> filterByOutcomeSinceLimit(IList<object> array, object outcome = null, object since = null, object limit = null, bool? tail = null)
+    public virtual IList<object> filterByOutcomeSinceLimit(IList<object> array, object outcome = null, object since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", tail);
@@ -1923,7 +1923,7 @@ public partial class PredictionExchange : BaseExchange
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "outcome", outcomes, false));
-        return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
+        return this.filterBySinceLimit(result, since,ccxt.BaseExchange.ToInt64Arg(limit), "timestamp", tail);
     }
 
     public virtual string? amountToPredictionPrecision(string? outcome, double? amount)

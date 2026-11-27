@@ -1436,7 +1436,7 @@ public partial class kraken : ccxt.kraken
         {
             limitResolved = ((Int64?)result.getLimit(symbolResolved, limit));
         }
-        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbolResolved, since, limitResolved, true))));
+        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), true))));
     }
 
     /**

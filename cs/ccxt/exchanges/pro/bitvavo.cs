@@ -1535,7 +1535,7 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         Dictionary<string, object> request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
         object withdraws = await this.watchRequest("privateGetWithdrawalHistory", request);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(withdraws),code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(withdraws),code, since,ccxt.BaseExchange.ToInt64Arg(limit)));
     }
 
     public virtual void handleWithdraws(WebSocketClient client, Dictionary<string, object> message)
@@ -1613,7 +1613,7 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         Dictionary<string, object> request = this.fetchDepositsRequest(code, since, limit, parameters);
         object deposits = await this.watchRequest("privateGetDepositHistory", request);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(deposits),code, since, limit));
+        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(this.toArray(deposits),code, since,ccxt.BaseExchange.ToInt64Arg(limit)));
     }
 
     public virtual void handleDeposits(WebSocketClient client, Dictionary<string, object> message)

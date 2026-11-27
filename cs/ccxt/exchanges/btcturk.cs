@@ -803,10 +803,9 @@ public partial class btcturk : Exchange
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
         }
-        object limitResolved = null;
+        Int64? limitResolved = limit;
         if ((limit != null))
         {
-            limitResolved = limit;
             if (limit > 11000)
             {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
@@ -894,7 +893,7 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(rows, market,timeframeVar, since, limitResolved));
     }
 
-    public override IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
+    public override IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, Int64? limit = null, bool? tail = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";

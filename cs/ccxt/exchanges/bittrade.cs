@@ -1318,7 +1318,7 @@ public partial class bittrade : Exchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since, limitVar));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, this.safeString(market, "symbol"), since,ccxt.BaseExchange.ToInt64Arg(limitVar)));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)
@@ -1383,7 +1383,7 @@ public partial class bittrade : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since,ccxt.BaseExchange.ToInt64Arg(limitVar)));
     }
 
     /**

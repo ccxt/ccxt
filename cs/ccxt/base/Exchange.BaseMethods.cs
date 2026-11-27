@@ -878,7 +878,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual List<T> filterByLimit<T>(IList<T> array, object limit = null, object key = null, bool? fromStart = null)
+    public virtual List<T> filterByLimit<T>(IList<T> array, Int64? limit = null, object key = null, bool? fromStart = null)
     {
         // a missing key reads as undefined, so no presence test is needed
         key ??= "timestamp";
@@ -899,20 +899,20 @@ public partial class BaseExchange
                 {
                     if (ascending)
                     {
-                        object limitResolved = (isGreaterThan(limit, arrayLength)) ? arrayLength : limit;
+                        object limitResolved = (limit > arrayLength) ? arrayLength : limit;
                         return this.arraySlice(array, 0, limitResolved);
                     }
                 } else if (!ascending)
                 {
                     return this.arraySlice(array, 0, limit);
                 }
-                return this.arraySlice(array, -System.Convert.ToInt64(limit));
+                return this.arraySlice(array, (-limit));
             }
         }
         return (array == null) ? null : (array as List<T> ?? new List<T>(array));
     }
 
-    public virtual List<T> filterBySinceLimit<T>(IList<T> array, object since = null, object limit = null, object key = null, bool? tail = null)
+    public virtual List<T> filterBySinceLimit<T>(IList<T> array, object since = null, Int64? limit = null, object key = null, bool? tail = null)
     {
         key ??= "timestamp";
         tail ??= false;
@@ -938,7 +938,7 @@ public partial class BaseExchange
         }
         if (tail == true && (limit != null))
         {
-            return this.arraySlice(result, -System.Convert.ToInt64(limit));
+            return this.arraySlice(result, (-limit));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
@@ -946,7 +946,7 @@ public partial class BaseExchange
         return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
-    public virtual List<T> filterByValueSinceLimit<T>(IList<T> array, object field, object value = null, object since = null, object limit = null, object key = null, bool? tail = null)
+    public virtual List<T> filterByValueSinceLimit<T>(IList<T> array, object field, object value = null, object since = null, Int64? limit = null, object key = null, bool? tail = null)
     {
         key ??= "timestamp";
         tail ??= false;
@@ -976,7 +976,7 @@ public partial class BaseExchange
         }
         if (tail == true && (limit != null))
         {
-            return this.arraySlice(result, -System.Convert.ToInt64(limit));
+            return this.arraySlice(result, (-limit));
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
@@ -2784,7 +2784,7 @@ public partial class BaseExchange
         }
         results = this.sortBy(results, "timestamp");
         string? symbol = this.safeString(market, "symbol");
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(results, symbol, since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(results, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit)));
     }
 
     public virtual Dictionary<string, object> calculateFeeWithRate(string? symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object feeRate = null, IDictionary<string, object> parameters = null)
@@ -3917,7 +3917,7 @@ public partial class BaseExchange
         });
     }
 
-    public virtual IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
+    public virtual IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, Int64? limit = null, bool? tail = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -4489,7 +4489,7 @@ public partial class BaseExchange
         }
         result = this.sortBy2(result, "timestamp", "id");
         string? symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual List<ccxt.Trade> parseTrades(object trades, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
@@ -4516,7 +4516,7 @@ public partial class BaseExchange
         }
         result = this.sortBy(result, "timestamp");
         string? code = ((currency != null)) ? this.safeString(currency, "code") : null;
-        return this.filterByCurrencySinceLimit(result,code, since, limit);
+        return this.filterByCurrencySinceLimit(result,code, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual object parseTransfers(IList<object> transfers, IDictionary<string, object> currency = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
@@ -4531,7 +4531,7 @@ public partial class BaseExchange
         }
         result = this.sortBy(result, "timestamp");
         string? code = ((currency != null)) ? this.safeString(currency, "code") : null;
-        return this.filterByCurrencySinceLimit(result,code, since, limit);
+        return this.filterByCurrencySinceLimit(result,code, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual IList<object> parseLedger(IList<object> data, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
@@ -4546,7 +4546,7 @@ public partial class BaseExchange
         }
         result = this.sortBy(result, "timestamp");
         string? code = ((currency != null)) ? this.safeString(currency, "code") : null;
-        return this.filterByCurrencySinceLimit(result,code, since, limit);
+        return this.filterByCurrencySinceLimit(result,code, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual Int64 nonce()
@@ -4954,8 +4954,8 @@ public partial class BaseExchange
             {
                 throw new ExchangeError ((this.id + " buildOHLCVC() missing ts")) ;
             }
-            object openingTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((Math.Floor(Double.Parse((((double?)ts / ms)).ToString()))), ms); // shift to the edge of m/h/d (but not M)
-            if (isLessThan(openingTime, sinceVar))
+            Int64 openingTime = ((Int64)Math.Floor(((double)ts.Value / ms)) * ms); // shift to the edge of m/h/d (but not M)
+            if (openingTime < sinceVar.GetValueOrDefault())
             {
                 continue;
             }
@@ -4989,8 +4989,8 @@ public partial class BaseExchange
                 List<object> prevCandle = this.safeList(ohlcvs, candle);
                 double? prevHigh = this.safeNumber(prevCandle, 2);
                 double? prevLow = this.safeNumber(prevCandle, 3);
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(((prevHigh == null)) ? price : prevHigh, price);
-                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = mathMin(((prevLow == null)) ? price : prevLow, price);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = Math.Max(((prevHigh == null) ? price.Value : prevHigh.Value), price.Value);
+                ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_low)] = Math.Min(((prevLow == null) ? price.Value : prevLow.Value), price.Value);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_close)] = price;
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_volume)] = this.sum(this.safeValue(prevCandle, i_volume), (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null));
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_count)] = this.sum(this.safeValue(prevCandle, i_count), 1);
@@ -5004,7 +5004,7 @@ public partial class BaseExchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         List<object> result = this.convertTradingViewToOHLCV(ohlcvs);
-        return this.parseOHLCVs(result, market,timeframeVar, since, limit);
+        return this.parseOHLCVs(result, market,timeframeVar, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public async virtual Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
@@ -6363,13 +6363,13 @@ public partial class BaseExchange
         return ((string?)((object)((currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null))));
     }
 
-    public virtual List<T> filterBySymbolSinceLimit<T>(IList<T> array, object symbol = null, object since = null, object limit = null, bool? tail = null)
+    public virtual List<T> filterBySymbolSinceLimit<T>(IList<T> array, object symbol = null, object since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail);
     }
 
-    public virtual List<T> filterByCurrencySinceLimit<T>(IList<T> array, string code = null, object since = null, object limit = null, bool? tail = null)
+    public virtual List<T> filterByCurrencySinceLimit<T>(IList<T> array, string code = null, object since = null, Int64? limit = null, bool? tail = null)
     {
         tail ??= false;
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
@@ -6379,7 +6379,7 @@ public partial class BaseExchange
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "symbol", symbols, false));
-        return this.filterBySinceLimit(result, since, limit, "timestamp", tail);
+        return this.filterBySinceLimit(result, since,ccxt.BaseExchange.ToInt64Arg(limit), "timestamp", tail);
     }
 
     public virtual object parseLastPrices(object pricesData, IList<object> symbols = null, IDictionary<string, object> parameters = null)
@@ -6543,7 +6543,7 @@ public partial class BaseExchange
             result.Add(this.parseBorrowRate(this.safeDict(response, i)));
         }
         List<Dictionary<string, object>> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted,code, since, limit);
+        return this.filterByCurrencySinceLimit(sorted,code, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual object parseIsolatedBorrowRates(IList<object> info)
@@ -6568,7 +6568,7 @@ public partial class BaseExchange
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual string? safeSymbol(object marketId, object market = null, string? delimiter = null, object marketType = null)
@@ -6611,7 +6611,7 @@ public partial class BaseExchange
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         object symbol = ((market == null)) ? null : (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual List<object> handleTriggerPricesAndParams(object symbol, object parameters, bool? omitParams = null)
@@ -6827,7 +6827,7 @@ public partial class BaseExchange
         }
         List<object> sorted = this.sortBy(interests, "timestamp");
         string? symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public async virtual Task<ccxt.FundingRate> FetchFundingRate(string symbol, IDictionary<string, object> parameters = null)
@@ -7185,7 +7185,7 @@ public partial class BaseExchange
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         string? symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual Dictionary<string, object> getMarketFromSymbols(IList<object> symbols = null)
@@ -7296,7 +7296,7 @@ public partial class BaseExchange
         return new List<object>() {maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest};
     }
 
-    public async virtual Task<IList<object>> fetchPaginatedCallDynamic(object method, object symbol = null, Int64? since = null, object limit = null, object parameters = null, object maxEntriesPerRequest = null, bool? removeRepeated = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallDynamic(object method, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, object maxEntriesPerRequest = null, bool? removeRepeated = null)
     {
         parameters ??= new Dictionary<string, object>();
         removeRepeated ??= true;
@@ -7464,7 +7464,7 @@ public partial class BaseExchange
         return new List<object>() {};
     }
 
-    public async virtual Task<IList<object>> fetchPaginatedCallDeterministic(object method, object symbol = null, Int64? since = null, object limit = null, string timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallDeterministic(object method, object symbol = null, Int64? since = null, Int64? limit = null, string timeframe = null, object parameters = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7542,7 +7542,7 @@ public partial class BaseExchange
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    public async virtual Task<IList<object>> fetchPaginatedCallCursor(string method, object symbol = null, Int64? since = null, object limit = null, object parameters = null, string? cursorReceived = null, string? cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
+    public async virtual Task<IList<object>> fetchPaginatedCallCursor(string method, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, string? cursorReceived = null, string? cursorSent = null, object cursorIncrement = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         int maxCalls = 10;
@@ -7718,7 +7718,7 @@ public partial class BaseExchange
                 break; // go turns a break inside try into a panic that only ends the iteration
             }
         }
-        return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since, limit, ((method == "fetchOHLCV")) ? 0 : "timestamp");
+        return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since,ccxt.BaseExchange.ToInt64Arg(limit), ((method == "fetchOHLCV")) ? 0 : "timestamp");
     }
 
     public virtual IList<object> sortCursorPaginatedResult(IList<object> result)
@@ -7868,7 +7868,7 @@ public partial class BaseExchange
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         string? symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbol, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual Dictionary<string, object> parseGreeks(IDictionary<string, object> greeks, IDictionary<string, object> market = null)
@@ -8005,7 +8005,7 @@ public partial class BaseExchange
         List<object> sorted = this.sortBy(result, "timestamp");
         if ((code == null))
         {
-            return this.filterBySinceLimit(sorted, since, limit);
+            return this.filterBySinceLimit(sorted, since,ccxt.BaseExchange.ToInt64Arg(limit));
         }
         Dictionary<string, object> currency = this.safeCurrency(code);
         if ((currency == null))
@@ -8016,7 +8016,7 @@ public partial class BaseExchange
         List<object> fromConversion = this.filterBy(sorted, "fromCurrency", currencyCode);
         List<object> toConversion = this.filterBy(sorted, "toCurrency", currencyCode);
         List<object> both = this.arrayConcat(fromConversion, toConversion);
-        return this.filterBySinceLimit(both, since, limit);
+        return this.filterBySinceLimit(both, since,ccxt.BaseExchange.ToInt64Arg(limit));
     }
 
     public virtual Dictionary<string, object> parseConversion(IDictionary<string, object> conversion, IDictionary<string, object> fromCurrency = null, IDictionary<string, object> toCurrency = null)
