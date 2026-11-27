@@ -4322,7 +4322,7 @@ pub trait ExchangeBase:
         let low = get_arg(optional_args, 3, Value::Str("l".into()));
         let close = get_arg(optional_args, 4, Value::Str("c".into()));
         let volume = get_arg(optional_args, 5, Value::Str("v".into()));
-        let ms = get_arg(optional_args, 6, Value::Bool(false));
+        let mut ms = get_arg(optional_args, 6, Value::Bool(false));
         let __ohlcvs_empty = Vec::new();
         let ohlcvs = ohlcvs.as_array().unwrap_or(&__ohlcvs_empty);
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -4340,10 +4340,13 @@ pub trait ExchangeBase:
             let mut __for_first_107: bool = true;
             while { if !__for_first_107 { i += 1; } __for_first_107 = false; i < (ohlcvs.len() as i64) } {
             let ohlcv: &Value = ohlcvs.get(i as usize).unwrap_or(&Value::Null);
-            let ts: Value = (if ms.as_bool() == Some(true) { ohlcv.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::from(self.parse_to_int((match ((ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64(),
-                (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) });
+            let rawTs: Option<i64> = self.safe_integer(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_i64();
+            let mut ts: Option<i64> = rawTs;
+            if !(ms.as_bool() == Some(true)) && (rawTs.is_some()) {
+                ts = self.parse_to_int(Value::from((if let Some(__l) = rawTs { Some((__l as f64) / 1000.0) } else { None })));
+            }
             let mut resultTimestamp: Value = result.get(timestamp.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            if let Value::Arr(__a) = &mut resultTimestamp { std::sync::Arc::make_mut(__a).push(ts); };
+            if let Value::Arr(__a) = &mut resultTimestamp { std::sync::Arc::make_mut(__a).push(Value::from(ts)); };
             if let Some(__k) = timestamp.as_str() { result.insert(__k.to_string(), resultTimestamp); }
             let mut resultOpen: Value = result.get(open.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut resultOpen { std::sync::Arc::make_mut(__a).push(ohlcv.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null)); };

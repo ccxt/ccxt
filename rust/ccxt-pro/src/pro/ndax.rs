@@ -473,8 +473,7 @@ impl Ndax {
                 if (timestamp.is_none()) {
                     continue;
                 }
-                let candleTimestamp: Option<i64> = self.parse_to_int((match (&(((match ((Value::from(timestamp)).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(Value::from(duration))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
-                    Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                let candleTimestamp: Option<i64> = (if let (Some(__l), Some(__r)) = ((self.parse_to_int((match ((Value::from(timestamp)).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), duration) { Some(__l * __r) } else { None });
                 let parsed: crate::value::List = std::sync::Arc::new(vec![Value::from(candleTimestamp), self.safe_float(&ohlcv, Value::Int(3), &[]), self.safe_float(&ohlcv, Value::Int(1), &[]), self.safe_float(&ohlcv, Value::Int(2), &[]), self.safe_float(&ohlcv, Value::Int(4), &[]), self.safe_float(&ohlcv, Value::Int(5), &[])]);
                 let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
                 if (stored.is_none()) {
