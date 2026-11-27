@@ -5633,7 +5633,7 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = goGroupedTable
     [ [1], 'createLimitBuyOrder createLimitBuyOrderWs createLimitSellOrder createLimitSellOrderWs createMarketBuyOrder createMarketBuyOrderWs'
         + ' createMarketSellOrder createMarketSellOrderWs createMarketBuyOrderWithCost createMarketSellOrderWithCost withdraw withdrawWs'
         + ' transfer transferIn transferOut addMargin reduceMargin setMargin borrowCrossMargin repayCrossMargin repayMargin' ],
-    [ [3], 'createOrder createTrailingAmountOrder createTrailingAmountOrderWs createTrailingPercentOrder createTrailingPercentOrderWs createTriggerOrder'
+    [ [3], 'createTrailingAmountOrder createTrailingAmountOrderWs createTrailingPercentOrder createTrailingPercentOrderWs createTriggerOrder'
         + ' createTriggerOrderWs createStopLossOrder createStopLossOrderWs createTakeProfitOrder createTakeProfitOrderWs'
         + ' createOrderWithTakeProfitAndStopLoss createOrderWithTakeProfitAndStopLossWs createPostOnlyOrder createPostOnlyOrderWs'
         + ' createReduceOnlyOrder createReduceOnlyOrderWs createStopOrder createStopOrderWs' ],
@@ -10140,8 +10140,9 @@ class NewTranspiler {
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
                 // PredictionExchange Str params: callers pass *string or addressable string
                 "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ] },
-                // Prediction-tier only required string params (WatchTradesAsync returns []PredictionTrade, separate from BaseExchange)
+                // Prediction-tier only required string/float64 params (separate from BaseExchange)
                 "predictionUnifiedStringParams": { "watchTrades": [ 0 ] },
+                "predictionUnifiedFloat64Params": { "createOrder": [ 3 ] },
                 // the two base files declare their own stdlib imports (declareBaseFileStdlibImports); the test
                 // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
                 "baseFileStdlibImportSeamPaths": '(?:base/Exchange(?:\\.nooverloads\\.\\d+)?|base/PredictionExchange)\\.ts$',

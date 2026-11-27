@@ -28,7 +28,7 @@ type IPredictionCancelOrder interface {
 // each per-method assertion succeeds because it requires only that one method. Regular venues have
 // all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
 type ICreateOrder interface {
-	CreateOrderAsync(symbol string, typeVar string, side string, amount float64, optionalArgs ...any) <-chan AsyncResult[Order]
+	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICancelOrder interface {
 	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
