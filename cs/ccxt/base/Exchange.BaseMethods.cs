@@ -1830,7 +1830,7 @@ public partial class BaseExchange
             }
         } else
         {
-            if (!((methodsContainer != null && subType is string inOpKey2 && methodsContainer.ContainsKey(inOpKey2))))
+            if (!((methodsContainer != null && subType is string inOpKey1 && methodsContainer.ContainsKey(inOpKey1))))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
@@ -3841,7 +3841,7 @@ public partial class BaseExchange
                 {
                     throw new NotSupported ((string)((((this.id + " - ") + (networkCode)) + " network was not found for ") + (currencyCode))) ;
                 }
-                if ((indexedNetworkEntries != null && networkIdOrCode is string inOpKey3 && indexedNetworkEntries.ContainsKey(inOpKey3)))
+                if ((indexedNetworkEntries != null && networkIdOrCode is string inOpKey2 && indexedNetworkEntries.ContainsKey(inOpKey2)))
                 {
                     chosenNetworkId = networkIdOrCode;
                 } else
@@ -5057,13 +5057,13 @@ public partial class BaseExchange
         return bidAsk;
     }
 
-    public virtual Dictionary<string, object> safeCurrency(object currencyId, object currency = null)
+    public virtual Dictionary<string, object> safeCurrency(object currencyId = null, object currency = null)
     {
         if (((currencyId == null)) && ((currency != null)))
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey1 && this.currencies_by_id.ContainsKey(inOpKey1))) && (!((this.currencies_by_id != null && currencyId != null && this.currencies_by_id.ContainsKey((string)currencyId) ? this.currencies_by_id[(string)currencyId] : null) == null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && ((this.currencies_by_id != null && currencyId is string inOpKey3 && this.currencies_by_id.ContainsKey(inOpKey3))) && (!((this.currencies_by_id != null && currencyId != null && this.currencies_by_id.ContainsKey((string)currencyId) ? this.currencies_by_id[(string)currencyId] : null) == null)))
         {
             return ccxt.BaseExchange.ToDict((this.currencies_by_id != null && currencyId != null && this.currencies_by_id.ContainsKey((string)currencyId) ? this.currencies_by_id[(string)currencyId] : null));
         }
