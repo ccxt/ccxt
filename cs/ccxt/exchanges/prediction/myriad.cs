@@ -3862,7 +3862,7 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? networkId = this.safeString(info, "networkId", "");
         string? marketId = this.safeString(info, "marketId", "");
-        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeString(outcomeObj, "outcome");
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = "myTrades";
         ccxt.pro.ArrayCache trades = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
@@ -4172,12 +4172,12 @@ public partial class myriad : PredictionExchange
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeResolved);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             networkId = this.safeString(info, "networkId", networkId);
-            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString(outcomeObj, "outcome");
         }
         string channel = ((("orders:" + networkId) + ":") + trader);
         string messageHash = "orders";
         ccxt.pro.ArrayCache orders = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limit, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> data)

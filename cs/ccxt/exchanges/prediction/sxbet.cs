@@ -361,7 +361,8 @@ public partial class sxbet : PredictionExchange
         string? teamTwoName = this.safeString(raw, "teamTwoName", "");
         string? outcomeOneName = this.safeString(raw, "outcomeOneName");
         string? outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        string eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
+        string matchTitle = ((teamOneName + " ") + teamTwoName);
+        string eventSlug = this.shortenSlug(matchTitle);
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -491,7 +492,7 @@ public partial class sxbet : PredictionExchange
         int tagsLength = tags.Count;
         for (int i = 0; i < tagsLength; i++)
         {
-            queries.Add((tags != null && i < tags.Count ? tags[i] : null));
+            queries.Add(this.safeString(tags, i, ""));
         }
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
         List<object> rawMarkets = new List<object>() {};
@@ -697,7 +698,8 @@ public partial class sxbet : PredictionExchange
         if (((teamOneName != null)) && ((teamTwoName != null)))
         {
             title = ((teamOneName + " vs ") + teamTwoName);
-            eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
+            string matchTitle = ((teamOneName + " ") + teamTwoName);
+            eventSlug = this.shortenSlug(matchTitle);
         } else
         {
             eventSlug = this.shortenSlug(fixtureId);
@@ -3125,19 +3127,16 @@ public partial class sxbet : PredictionExchange
         {
             return ((bool?)((object)(null)));
         }
-        object message = this.safeValue(response, "message");
-        if ((message == null))
+        // validation failures arrive in string-array form, business errors in single-code-string form
+        List<object> messageList = this.safeList(response, "message", new List<object>() {});
+        string? messageString = this.safeString(response, "message");
+        if ((this.safeString(messageList, 0) != null))
+        {
+            messageString = String.Join(", ", messageList.ToArray());
+        }
+        if ((messageString == null))
         {
             return ((bool?)((object)(null)));
-        }
-        // validation failures arrive in string-array form, business errors in single-code-string form
-        object messageString = null;
-        if (((message is IList<object>) || (message is not null && message.GetType().IsGenericType && message.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            messageString = String.Join(", ", ((IList<object>)message).ToArray());
-        } else
-        {
-            messageString = message;
         }
         string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptionsExact, messageString, feedback);

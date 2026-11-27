@@ -2349,8 +2349,8 @@ public partial class paradex : ccxt.paradex
             // plain variables as slice bounds, php gets end - start unparenthesized
             Int64? middle = (position + 1);
             Int64? next = (position + 2);
-            int high = digits.IndexOf(((string)slice(frameHex, position, middle)), StringComparison.Ordinal);
-            int low = digits.IndexOf(((string)slice(frameHex, middle, next)), StringComparison.Ordinal);
+            int high = digits.IndexOf(((string)((frameHex == null) ? null : frameHex[(int)((position ?? -1) < 0 ? frameHex.Length + (position ?? -1) : (position ?? -1))..Math.Min((int)((middle ?? frameHex.Length) < 0 ? frameHex.Length + (middle ?? frameHex.Length) : (middle ?? frameHex.Length)), frameHex.Length)])), StringComparison.Ordinal);
+            int low = digits.IndexOf(((string)((frameHex == null) ? null : frameHex[(int)((middle ?? -1) < 0 ? frameHex.Length + (middle ?? -1) : (middle ?? -1))..Math.Min((int)((next ?? frameHex.Length) < 0 ? frameHex.Length + (next ?? frameHex.Length) : (next ?? frameHex.Length)), frameHex.Length)])), StringComparison.Ordinal);
             result = this.parseToInt(this.sum(result, ((high * factor) * 16), (low * factor)));
             factor = this.parseToInt((factor * 256));
             position = this.parseToInt(next);
@@ -2415,7 +2415,7 @@ public partial class paradex : ccxt.paradex
         Int64? size = this.parseToInt(length);
         Int64? start = (first * 2);
         Int64 end = this.sum(start, (size * 2));
-        return ((string?)((object)(this.binaryToString(this.base16ToBinary(slice(frameHex, start, end))))));
+        return ((string?)((object)(this.binaryToString(this.base16ToBinary(((frameHex == null) ? null : frameHex[(int)((start ?? -1) < 0 ? frameHex.Length + (start ?? -1) : (start ?? -1))..Math.Min((int)(end < 0 ? frameHex.Length + end : end), frameHex.Length)]))))));
     }
 
     public virtual string? sbeReadAddress(string frameHex, Int64 offset)
@@ -2424,7 +2424,7 @@ public partial class paradex : ccxt.paradex
         Int64? first = this.parseToInt(offset);
         Int64? rawStart = (first * 2);
         Int64? rawEnd = (rawStart + 64);
-        string? raw = slice(frameHex, rawStart, rawEnd);
+        string? raw = ((frameHex == null) ? null : frameHex[(int)((rawStart ?? -1) < 0 ? frameHex.Length + (rawStart ?? -1) : (rawStart ?? -1))..Math.Min((int)((rawEnd ?? frameHex.Length) < 0 ? frameHex.Length + (rawEnd ?? frameHex.Length) : (rawEnd ?? frameHex.Length)), frameHex.Length)]);
         int start = 63;
         for (int i = 0; i < 63; i++)
         {
@@ -2570,7 +2570,8 @@ public partial class paradex : ccxt.paradex
             Int64? entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             Int64? numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2), 2));
             position = (position + 4);
-            if ((((entryLength == null || entryLength < 16))) || (isGreaterThan(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
+            Int64? groupEnd = this.parseToInt(this.sum(position, (numInGroup * entryLength)));
+            if ((((entryLength == null || entryLength < 16))) || ((groupEnd != null && (frameEnd == null || groupEnd > frameEnd))))
             {
                 return ((Dictionary<string, object>)((object)(null)));
             }

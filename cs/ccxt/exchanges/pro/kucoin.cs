@@ -155,9 +155,10 @@ public partial class kucoin : ccxt.kucoin
             return result;
         } catch(Exception e)
         {
-            var future = this.safeValue((this.options != null && this.options.ContainsKey("urls") ? this.options["urls"] : null), connectId);
+            IDictionary<string, object> urls = this.safeDict(this.options, "urls", new Dictionary<string, object>() {});
+            var future = this.safeValue(urls, connectId);
             ((Future)future).reject(e);
-            ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("urls") ? this.options["urls"] : null)).Remove(connectId);
+            this.options["urls"] = this.omit(urls, connectId);
         }
         return null;
     }

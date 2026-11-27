@@ -2261,7 +2261,7 @@ public partial class opinion : PredictionExchange
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "orders";
         object orders = await this.subscribeOpinionChannel<object>(messageHash, "trade.order.update", marketId);
-        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeString(outcomeObj, "outcome");
         return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(this.toArray(orders), "outcome", sym, since, limit, "timestamp", true));
     }
 
@@ -2395,7 +2395,7 @@ public partial class opinion : PredictionExchange
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "myTrades";
         object trades = await this.subscribeOpinionChannel<object>(messageHash, "trade.record.new", marketId);
-        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeString(outcomeObj, "outcome");
         return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(this.toArray(trades), "outcome", sym, since, limit, "timestamp", true));
     }
 

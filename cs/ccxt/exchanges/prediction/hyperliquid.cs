@@ -406,7 +406,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (((name != null)) && (!(name is "")))
+        if (!(name is ""))
         {
             return ((string?)((object)(((this.shortenSlug(name) + "_") + outcomeId))));
         }

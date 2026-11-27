@@ -1229,12 +1229,15 @@ public partial class interactivebrokers : Exchange
     public virtual Int64? ibkrGatewayOnSessionLost()
     {
         this.options["gatewayAuthenticatedTimestamp"] = null;
-        Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if ((lostTimestamp == null))
+        Int64? lostTimestamp = this.milliseconds();
+        Int64? storedTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
+        if ((storedTimestamp == null))
         {
-            lostTimestamp = this.milliseconds();
             this.options["gatewaySessionLostTimestamp"] = lostTimestamp;
             this.ibkrGatewayScheduleRegain();
+        } else
+        {
+            lostTimestamp = storedTimestamp;
         }
         return lostTimestamp;
     }

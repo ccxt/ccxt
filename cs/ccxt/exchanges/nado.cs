@@ -3370,8 +3370,8 @@ public partial class nado : Exchange
         if (left == true)
         {
             string paddedLeft = (zeros + value);
-            object start = (paddedLeft.Length - (this.parseToInt(length)));
-            return slice(paddedLeft, start, paddedLeft.Length);
+            Int64 start = (paddedLeft.Length - length);
+            return ((paddedLeft == null) ? null : paddedLeft.Substring(((int)Math.Max(Math.Min((start < 0 ? ((Int64)paddedLeft.Length) + (start) : start), ((Int64)paddedLeft.Length)), 0L))));
         }
         string paddedRight = (value + zeros);
         Int64? end = this.parseToInt(length);

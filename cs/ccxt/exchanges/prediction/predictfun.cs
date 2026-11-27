@@ -1036,10 +1036,6 @@ public partial class predictfun : PredictionExchange
      */
     public virtual string? stripPriceFormatting(string? text)
     {
-        if ((text == null))
-        {
-            return null;
-        }
         string digits = "0123456789";
         List<object> chars = this.stringToCharsArray(text);
         string stripped = "";
@@ -1100,6 +1096,10 @@ public partial class predictfun : PredictionExchange
         if (((marketCount == 1)) && ((topicSlug != null)))
         {
             return ((string?)((object)(topicSlug)));
+        }
+        if ((title == null))
+        {
+            return "";
         }
         return this.stripPriceFormatting(title);
     }
@@ -1240,7 +1240,7 @@ public partial class predictfun : PredictionExchange
             object rawOutcome = (rawOutcomes != null && oi < rawOutcomes.Count ? rawOutcomes[oi] : null);
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
-            string? rawLabel = this.safeStringUpper(rawOutcome, "name");
+            string? rawLabel = this.safeStringUpper(rawOutcome, "name", "");
             string? label = this.stripPriceFormatting(rawLabel);
             string? tokenId = this.safeString(rawOutcome, "onChainId");
             string outcomeHandle = ((marketSymbol + ":") + label);
@@ -3955,7 +3955,8 @@ public partial class predictfun : PredictionExchange
         {
             eventHandle = this.shortenSlug(topicSlug);
         }
-        string? label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
+        string? rawOutcomeName = this.safeStringUpper(details, "outcomeName");
+        object label = ((rawOutcomeName != null)) ? this.stripPriceFormatting(rawOutcomeName) : null;
         return new Dictionary<string, object>() {
             { "outcome", null },
             { "outcomeId", null },

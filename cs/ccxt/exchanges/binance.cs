@@ -11566,7 +11566,8 @@ public partial class binance : Exchange
             if ((stock == true))
             {
                 // request['endTime'] holds endTime whenever endTime is defined
-                Int64? endTimeResolved = this.safeInteger(request, "endTime", this.milliseconds());
+                Int64? endTimeRequest = this.safeInteger(request, "endTime");
+                Int64? endTimeResolved = ((endTimeRequest != null)) ? endTimeRequest : this.milliseconds();
                 if ((endTime == null))
                 {
                     request["endTime"] = endTimeResolved;

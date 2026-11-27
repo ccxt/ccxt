@@ -294,7 +294,7 @@ public partial class mudrex : Exchange
 
     public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
-        if ((response == null) || !(response is IDictionary<string, object>))
+        if ((response == null))
         {
             return ((bool?)((object)(null)));
         }

@@ -285,14 +285,14 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public virtual string? normalizeTagKey(object tag)
+    public virtual string? normalizeTagKey(string tag)
     {
         // reduce a tag to lowercase alphanumeric words joined by single spaces ("Fed Rates" /
         // "fed-rates" / "FED_RATES" all become "fed rates") so label, slug and handle spellings
         // of the same tag compare equal — venues surface tags in different forms and callers
         // pass any of them. keeping the word boundary avoids cross-word false positives that
         // plain concatenation would create ("us open" vs "household")
-        string lower = ((string)tag).ToLower();
+        string lower = tag.ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         List<object> chars = this.stringToCharsArray(lower);
         string s = "";
@@ -347,18 +347,19 @@ public partial class PredictionExchange : BaseExchange
             bool matched = false;
             for (int ti = 0; ti < eventTags.Count; ti++)
             {
-                object tag = eventTags[ti];
-                object tagLabel = null;
+                object tag = (eventTags != null && ti < eventTags.Count ? eventTags[ti] : null);
+                // a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                string? tagLabel = "";
                 if ((tag is string))
                 {
-                    tagLabel = tag;
+                    tagLabel = this.safeString(eventTags, ti, "");
                 } else
                 {
-                    tagLabel = this.safeString2(tag, "slug", "title");
+                    tagLabel = this.safeString2(tag, "slug", "title", "");
                 }
-                if ((tagLabel != null))
+                string? tagKey = this.normalizeTagKey(tagLabel);
+                if (tagKey != "")
                 {
-                    string? tagKey = this.normalizeTagKey(tagLabel);
                     for (int wi = 0; wi < (wanted?.Count ?? 0); wi++)
                     {
                         if ((tagKey?.IndexOf((string)wanted[wi], StringComparison.Ordinal) ?? -1) >= 0)

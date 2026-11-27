@@ -198,23 +198,19 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            object subscription = (client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null);
-            if ((subscription is IDictionary<string, object>))
+            string? request = this.safeString((client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null), "request");
+            if (((request != null)) && request.StartsWith("smd+") && !(((request != null) && sent.ContainsKey(request))))
             {
-                string? request = this.safeString(subscription, "request");
-                if (((request != null)) && request.StartsWith("smd+") && !(((request != null) && sent.ContainsKey(request))))
+                sent[(string)request] = true;
+                try
                 {
-                    sent[(string)request] = true;
-                    try
+                    await client.send(request);
+                } catch(Exception e)
+                {
+                    // the connection is gone, the client reconnects on the next watch call
+                    if (this.verbose)
                     {
-                        await client.send(request);
-                    } catch(Exception e)
-                    {
-                        // the connection is gone, the client reconnects on the next watch call
-                        if (this.verbose)
-                        {
-                            this.log(("ibkrKeepAliveSession resubscribe failed " + (this.exceptionMessage(e))));
-                        }
+                        this.log(("ibkrKeepAliveSession resubscribe failed " + (this.exceptionMessage(e))));
                     }
                 }
             }
@@ -298,12 +294,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; i < keys.Count; i++)
         {
-            object subscription = (client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null);
-            if ((subscription is IDictionary<string, object>))
+            string? request = this.safeString((client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null), "request");
+            if (((request != null)) && request.StartsWith("smd+"))
             {
-                string? request = this.safeString(subscription, "request");
-                string? conid = this.safeString(subscription, "conid");
-                if (((request != null)) && request.StartsWith("smd+") && (isEqual(conid, marketId)))
+                string? conid = this.safeString((client.subscriptions != null && keys[i] != null && client.subscriptions.ContainsKey((string)keys[i]) ? client.subscriptions[(string)keys[i]] : null), "conid");
+                if (isEqual(conid, marketId))
                 {
                     return null;  // still in use
                 }
@@ -750,7 +745,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         for (int i = 0; i < (stored?.Count ?? 0); i++)
         {
             object candle = (stored != null && i < stored.Count ? stored[i] : null);
-            if (((lastHistoryTimestamp == null)) || (isGreaterThan(getValue(candle, 0), lastHistoryTimestamp)))
+            Int64? candleTimestamp = this.safeInteger(candle, 0, 0);
+            if (((lastHistoryTimestamp == null)) || ((candleTimestamp != null && (lastHistoryTimestamp == null || candleTimestamp > lastHistoryTimestamp))))
             {
                 bars.Add(candle);
             }
@@ -872,10 +868,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             if (length > 0)
             {
                 object lastCandle = getValue(stored, (length - 1));
-                if (isEqual(getValue(lastCandle, 0), candleTimestamp))
+                Int64? lastTimestamp = this.safeInteger(lastCandle, 0, 0);
+                if ((lastTimestamp == candleTimestamp))
                 {
                     candle = lastCandle;
-                } else if (isGreaterThan(getValue(lastCandle, 0), candleTimestamp))
+                } else if ((lastTimestamp != null && (candleTimestamp == null || lastTimestamp > candleTimestamp)))
                 {
                     continue;
                 }
