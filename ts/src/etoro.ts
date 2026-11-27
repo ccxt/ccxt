@@ -1678,7 +1678,11 @@ export default class etoro extends Exchange {
             const assets = this.safeList (order, 'asset', []);
             asset = this.safeDict (assets, 0, {});
         }
-        const instrumentId = this.safeString2 (asset, 'instrumentId', 'instrumentID', this.safeString2 (order, 'instrumentID', 'instrumentId'));
+        let instrumentId = this.safeString2 (asset, 'instrumentId', 'instrumentID', this.safeString2 (order, 'instrumentID', 'instrumentId'));
+        if (instrumentId === '0') {
+            // rejected orders can come without an instrument, e.g. {"instrumentId":0,"side":"na","settlementType":"na"}
+            instrumentId = undefined;
+        }
         const settlementType = this.safeString (asset, 'settlementType');
         const marketResolved = this.safeEtoroMarket (instrumentId, settlementType, market);
         const statusDict = this.safeDict (order, 'status');
@@ -1702,6 +1706,9 @@ export default class etoro extends Exchange {
             timeInForce = 'IOC';
         }
         let transaction = this.safeString (order, 'transaction');
+        if (transaction === 'na') {
+            transaction = undefined;
+        }
         const action = this.safeString (order, 'action');
         let reduceOnly = (action === 'close');
         if (this.safeString (order, 'orderType') === '19') {

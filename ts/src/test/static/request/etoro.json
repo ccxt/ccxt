@@ -1,0 +1,198 @@
+{
+    "exchange": "etoro",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOrder": [
+            {
+                "description": "swap limit order lookup",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/orders:lookup?orderId=1656135289",
+                "input": [
+                    "1656135289",
+                    "AAPL/USD:USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "canceled spot order",
+                "method": "fetchOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/orders:lookup?orderId=1656133143",
+                "input": [
+                    "1656133143",
+                    "AAPL/USD"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel an order",
+                "method": "cancelOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders/1656133143",
+                "input": [
+                    "1656133143",
+                    "AAPL/USD"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "swap limit short with stop loss",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "AAPL/USD:USD",
+                    "limit",
+                    "sell",
+                    0.04,
+                    362.202,
+                    {
+                        "stopLossPrice": 383.508
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"sellShort\",\"instrumentId\":1001,\"settlementType\":\"cfd\",\"limitRate\":362.202,\"orderType\":\"limitIOC\",\"units\":0.04,\"stopLossRate\":383.508}"
+            },
+            {
+                "description": "spot market buy by cost",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "AAPL/USD",
+                    "market",
+                    "buy",
+                    0.04,
+                    null,
+                    {
+                        "cost": 14
+                    }
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1001,\"settlementType\":\"real\",\"orderType\":\"mkt\",\"amount\":14,\"orderCurrency\":\"usd\"}"
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "positions history with since",
+                "method": "fetchPositionsHistory",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/history?minDate=2026-11-01",
+                "input": [
+                    null,
+                    1793491200000
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "trade history with since and limit",
+                "method": "fetchMyTrades",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/trade/history?minDate=2026-11-01&pageSize=50",
+                "input": [
+                    null,
+                    1793491200000,
+                    50
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "positions of the real account",
+                "method": "fetchPositions",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/instrument-breakdown?positionLevel=Normal&orderLevel=None",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "open orders filtered by symbol",
+                "method": "fetchOpenOrders",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/instrument-breakdown?positionLevel=None&orderLevel=Normal&instrumentIds=1001",
+                "input": [
+                    "AAPL/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "open orders of the real account",
+                "method": "fetchOpenOrders",
+                "url": "https://public-api.etoro.com/api/v2/trading/info/instrument-breakdown?positionLevel=None&orderLevel=Normal",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "real account balance",
+                "method": "fetchBalance",
+                "url": "https://public-api.etoro.com/api/v1/trading/info/real/pnl",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "candles with since use the data endpoint",
+                "method": "fetchOHLCV",
+                "url": "https://public-api.etoro.com/api/v1/data/instruments/1001/candles?interval=1h&limit=5&from=2026-11-24T00%3A00%3A00.000Z&to=2026-11-24T05%3A00%3A00.000Z",
+                "input": [
+                    "AAPL/USD",
+                    "1h",
+                    1795478400000,
+                    5
+                ],
+                "output": null
+            },
+            {
+                "description": "latest candles without since",
+                "method": "fetchOHLCV",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/100000/history/candles/desc/OneHour/5",
+                "input": [
+                    "BTC/USD",
+                    "1h",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "tickers for spot and swap markets",
+                "method": "fetchTickers",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000%2C100001%2C1",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD:USD",
+                        "EUR/USD:USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "swap crypto ticker",
+                "method": "fetchTicker",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000",
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "spot stock ticker",
+                "method": "fetchTicker",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=1001",
+                "input": [
+                    "AAPL/USD"
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}

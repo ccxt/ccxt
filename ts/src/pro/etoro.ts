@@ -406,8 +406,10 @@ export default class etoro extends etoroRest {
             const cached = orders[i];
             const cachedSymbol = this.safeString (cached, 'symbol');
             if ((this.safeString (cached, 'id') === orderId) && (cachedSymbol !== undefined)) {
-                market = this.market (cachedSymbol);
-                break;
+                market = this.safeDict (this.markets, cachedSymbol) as Market;
+                if (market !== undefined) {
+                    break;
+                }
             }
         }
         const order = this.parseWsOrder (content, market);
