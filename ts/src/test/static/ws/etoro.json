@@ -1,0 +1,1141 @@
+{
+    "exchange": "etoro",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "watchTicker handles initial Snapshot and merges partial Trading.Instrument.Rate delta",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "type": "Snapshot",
+                                "id": "2750fa60-d7c7-4b57-9d2b-fe7f499863a0",
+                                "content": "{\"InstrumentID\":\"100000\",\"Ask\":\"60724.29\",\"Bid\":\"60724.28\",\"LastExecution\":\"60724.28\",\"Date\":\"2026-11-26T14:21:09.6046673Z\",\"PriceRateID\":\"166287251399\",\"OfficialClosingPrice\":\"60072.79\"}"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "type": "Trading.Instrument.Rate",
+                                "id": "2acd1460-d07a-4da4-a448-ac8560104267",
+                                "content": "{\"Bid\":\"60730.10\",\"Ask\":\"60730.11\",\"Date\":\"2026-11-26T14:21:10.8261151Z\",\"PriceRateID\":\"166287251711\"}"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    },
+                    {
+                        "id": "00000000-0000-4000-8000-000000000002",
+                        "operation": "Subscribe",
+                        "data": {
+                            "topics": [
+                                "instrument:100000"
+                            ],
+                            "snapshot": true
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795702869604,
+                        "datetime": "2026-11-26T14:21:09.604Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 60724.28,
+                        "bidVolume": null,
+                        "ask": 60724.29,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 60724.28,
+                        "last": 60724.28,
+                        "previousClose": 60072.79,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "InstrumentID": "100000",
+                            "Ask": "60724.29",
+                            "Bid": "60724.28",
+                            "LastExecution": "60724.28",
+                            "Date": "2026-11-26T14:21:09.6046673Z",
+                            "PriceRateID": "166287251399",
+                            "OfficialClosingPrice": "60072.79"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795702870826,
+                        "datetime": "2026-11-26T14:21:10.826Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 60730.1,
+                        "bidVolume": null,
+                        "ask": 60730.11,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 60724.28,
+                        "last": 60724.28,
+                        "previousClose": 60072.79,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "InstrumentID": "100000",
+                            "Ask": "60730.11",
+                            "Bid": "60730.10",
+                            "LastExecution": "60724.28",
+                            "Date": "2026-11-26T14:21:10.8261151Z",
+                            "PriceRateID": "166287251711",
+                            "OfficialClosingPrice": "60072.79"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            }
+        ],
+        "watchTickers": [
+            {
+                "description": "watchTickers receives snapshots for BTC/USD and ETH/USD",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "type": "Snapshot",
+                                "id": "2750fa60-d7c7-4b57-9d2b-fe7f499863a0",
+                                "content": "{\"InstrumentID\":\"100000\",\"Ask\":\"60724.29\",\"Bid\":\"60724.28\",\"LastExecution\":\"60724.28\",\"Date\":\"2026-11-26T14:21:09.6046673Z\",\"PriceRateID\":\"166287251399\",\"OfficialClosingPrice\":\"60072.79\"}"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100001",
+                                "type": "Snapshot",
+                                "id": "119bcdf9-6354-4909-a30b-09f275591694",
+                                "content": "{\"InstrumentID\":\"100001\",\"Ask\":\"1700.49\",\"Bid\":\"1700.48\",\"LastExecution\":\"1700.48\",\"Date\":\"2026-11-26T14:21:09.2435006Z\",\"PriceRateID\":\"166287251382\",\"OfficialClosingPrice\":\"1680.92\"}"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    },
+                    {
+                        "id": "00000000-0000-4000-8000-000000000002",
+                        "operation": "Subscribe",
+                        "data": {
+                            "topics": [
+                                "instrument:100000",
+                                "instrument:100001"
+                            ],
+                            "snapshot": true
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1795702869604,
+                            "datetime": "2026-11-26T14:21:09.604Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 60724.28,
+                            "bidVolume": null,
+                            "ask": 60724.29,
+                            "askVolume": null,
+                            "vwap": null,
+                            "open": null,
+                            "close": 60724.28,
+                            "last": 60724.28,
+                            "previousClose": 60072.79,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "info": {
+                                "InstrumentID": "100000",
+                                "Ask": "60724.29",
+                                "Bid": "60724.28",
+                                "LastExecution": "60724.28",
+                                "Date": "2026-11-26T14:21:09.6046673Z",
+                                "PriceRateID": "166287251399",
+                                "OfficialClosingPrice": "60072.79"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1795702869243,
+                            "datetime": "2026-11-26T14:21:09.243Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 1700.48,
+                            "bidVolume": null,
+                            "ask": 1700.49,
+                            "askVolume": null,
+                            "vwap": null,
+                            "open": null,
+                            "close": 1700.48,
+                            "last": 1700.48,
+                            "previousClose": 1680.92,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "info": {
+                                "InstrumentID": "100001",
+                                "Ask": "1700.49",
+                                "Bid": "1700.48",
+                                "LastExecution": "1700.48",
+                                "Date": "2026-11-26T14:21:09.2435006Z",
+                                "PriceRateID": "166287251382",
+                                "OfficialClosingPrice": "1680.92"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchBidsAsks": [
+            {
+                "description": "watchBidsAsks receives bid/ask snapshots for BTC/USD and ETH/USD",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "ETH/USD"
+                    ]
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100000",
+                                "type": "Snapshot",
+                                "id": "2750fa60-d7c7-4b57-9d2b-fe7f499863a0",
+                                "content": "{\"InstrumentID\":\"100000\",\"Ask\":\"60724.29\",\"Bid\":\"60724.28\",\"LastExecution\":\"60724.28\",\"Date\":\"2026-11-26T14:21:09.6046673Z\",\"PriceRateID\":\"166287251399\",\"OfficialClosingPrice\":\"60072.79\"}"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "instrument:100001",
+                                "type": "Snapshot",
+                                "id": "119bcdf9-6354-4909-a30b-09f275591694",
+                                "content": "{\"InstrumentID\":\"100001\",\"Ask\":\"1700.49\",\"Bid\":\"1700.48\",\"LastExecution\":\"1700.48\",\"Date\":\"2026-11-26T14:21:09.2435006Z\",\"PriceRateID\":\"166287251382\",\"OfficialClosingPrice\":\"1680.92\"}"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    },
+                    {
+                        "id": "00000000-0000-4000-8000-000000000002",
+                        "operation": "Subscribe",
+                        "data": {
+                            "topics": [
+                                "instrument:100000",
+                                "instrument:100001"
+                            ],
+                            "snapshot": true
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USD": {
+                            "symbol": "BTC/USD",
+                            "timestamp": 1795702869604,
+                            "datetime": "2026-11-26T14:21:09.604Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 60724.28,
+                            "bidVolume": null,
+                            "ask": 60724.29,
+                            "askVolume": null,
+                            "vwap": null,
+                            "open": null,
+                            "close": 60724.28,
+                            "last": 60724.28,
+                            "previousClose": 60072.79,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "info": {
+                                "InstrumentID": "100000",
+                                "Ask": "60724.29",
+                                "Bid": "60724.28",
+                                "LastExecution": "60724.28",
+                                "Date": "2026-11-26T14:21:09.6046673Z",
+                                "PriceRateID": "166287251399",
+                                "OfficialClosingPrice": "60072.79"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "ETH/USD": {
+                            "symbol": "ETH/USD",
+                            "timestamp": 1795702869243,
+                            "datetime": "2026-11-26T14:21:09.243Z",
+                            "high": null,
+                            "low": null,
+                            "bid": 1700.48,
+                            "bidVolume": null,
+                            "ask": 1700.49,
+                            "askVolume": null,
+                            "vwap": null,
+                            "open": null,
+                            "close": 1700.48,
+                            "last": 1700.48,
+                            "previousClose": 1680.92,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "info": {
+                                "InstrumentID": "100001",
+                                "Ask": "1700.49",
+                                "Bid": "1700.48",
+                                "LastExecution": "1700.48",
+                                "Date": "2026-11-26T14:21:09.2435006Z",
+                                "PriceRateID": "166287251382",
+                                "OfficialClosingPrice": "1680.92"
+                            },
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "watchOrders tracks MIT limit order creation and preserves fields on cancellation",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private",
+                                "type": "OrderEvent",
+                                "id": "2a2e8881-1e8b-4d02-8d54-fe30fa28c004",
+                                "content": "{\"orderId\":396858463,\"accountId\":12345,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mit\",\"orderUpdateType\":\"created\",\"updateTime\":\"2026-11-26T14:21:12.6569455\",\"orderState\":\"pendingTriggeredRate\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":30362,\"requestedUnits\":0.000494,\"requestedAmount\":15,\"requestTime\":\"2026-11-26T14:21:12.6569455\",\"positionsExecutions\":[]}"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private",
+                                "type": "OrderEvent",
+                                "id": "40194975-5557-4647-91a1-7a77f74d79fa",
+                                "content": "{\"orderId\":396858463,\"accountId\":12345,\"action\":\"open\",\"transaction\":\"na\",\"orderType\":\"mit\",\"orderUpdateType\":\"canceled\",\"updateTime\":\"2026-11-26T14:21:19.1617648Z\",\"orderState\":\"canceled\",\"asset\":{\"instrumentId\":100000,\"symbol\":\"\",\"side\":\"na\",\"settlementType\":\"real\",\"leverage\":null,\"currency\":\"USD\"},\"accountCurrency\":\"USD\",\"requestedTriggerRate\":null,\"requestedUnits\":null,\"requestedAmount\":null,\"requestTime\":null,\"positionsExecutions\":[]}"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    },
+                    {
+                        "id": "00000000-0000-4000-8000-000000000002",
+                        "operation": "Subscribe",
+                        "data": {
+                            "topics": [
+                                "private"
+                            ],
+                            "snapshot": false
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "396858463",
+                            "clientOrderId": null,
+                            "timestamp": 1795702872656,
+                            "datetime": "2026-11-26T14:21:12.656Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795702872656,
+                            "status": "open",
+                            "symbol": "BTC/USD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": 30362,
+                            "triggerPrice": 30362,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "amount": 0.000494,
+                            "cost": 15,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "orderId": 396858463,
+                                "accountId": 12345,
+                                "action": "open",
+                                "transaction": "buy",
+                                "orderType": "mit",
+                                "orderUpdateType": "created",
+                                "updateTime": "2026-11-26T14:21:12.6569455",
+                                "orderState": "pendingTriggeredRate",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": 30362,
+                                "requestedUnits": 0.000494,
+                                "requestedAmount": 15,
+                                "requestTime": "2026-11-26T14:21:12.6569455",
+                                "positionsExecutions": []
+                            },
+                            "fees": [],
+                            "stopPrice": 30362
+                        }
+                    ],
+                    [
+                        {
+                            "id": "396858463",
+                            "clientOrderId": null,
+                            "timestamp": 1795702879161,
+                            "datetime": "2026-11-26T14:21:19.161Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1795702879161,
+                            "status": "canceled",
+                            "symbol": "BTC/USD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "reduceOnly": null,
+                            "side": "buy",
+                            "price": 30362,
+                            "triggerPrice": 30362,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "amount": 0.000494,
+                            "cost": 15,
+                            "average": null,
+                            "filled": null,
+                            "remaining": null,
+                            "fee": null,
+                            "trades": [],
+                            "info": {
+                                "orderId": 396858463,
+                                "accountId": 12345,
+                                "action": "open",
+                                "transaction": "na",
+                                "orderType": "mit",
+                                "orderUpdateType": "canceled",
+                                "updateTime": "2026-11-26T14:21:19.1617648Z",
+                                "orderState": "canceled",
+                                "asset": {
+                                    "instrumentId": 100000,
+                                    "symbol": "",
+                                    "side": "na",
+                                    "settlementType": "real",
+                                    "leverage": null,
+                                    "currency": "USD"
+                                },
+                                "accountCurrency": "USD",
+                                "requestedTriggerRate": null,
+                                "requestedUnits": null,
+                                "requestedAmount": null,
+                                "requestTime": null,
+                                "positionsExecutions": []
+                            },
+                            "fees": [],
+                            "stopPrice": 30362
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "watchMyTrades streams open and close trade executions on private:demo",
+                "input": [
+                    "SAP.DE/EUR",
+                    null,
+                    null,
+                    {
+                        "demo": true
+                    }
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "type": "OrderEvent",
+                                "id": "c8531844-3682-40b1-8edc-263418e59b0e",
+                                "content": "{\"orderId\":396858465,\"accountId\":12345,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-26T14:21:24.857\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"accountCurrency\":\"USD\",\"positionsExecutions\":[{\"positionId\":3650747611,\"positionUpdateType\":\"open\",\"updateTime\":\"2026-11-26T14:21:24.857\",\"positionState\":\"open\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"marginCurrency\":\"USD\",\"initialMargin\":14.98,\"margin\":14.98,\"openingData\":{\"orderId\":396858465,\"executionTime\":\"2026-11-26T14:21:24.8669768\",\"units\":0.070703,\"contracts\":0.070703,\"avgPrice\":192.9,\"fees\":1,\"openTime\":\"2026-11-26T14:21:24.8669768\"},\"closingData\":null,\"remainingUnits\":0.070703,\"remainingContracts\":0.070703}],\"totalFees\":1,\"totalCosts\":15.98}"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private:demo",
+                                "type": "OrderEvent",
+                                "id": "9409bacc-190c-4459-afc5-b7d099775485",
+                                "content": "{\"orderId\":396817574,\"accountId\":12345,\"action\":\"close\",\"transaction\":\"sell\",\"orderType\":\"mkt\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-26T14:21:33.29\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"accountCurrency\":\"USD\",\"positionsExecutions\":[{\"positionId\":3650747611,\"positionUpdateType\":\"close\",\"updateTime\":\"2026-11-26T14:21:33.29\",\"positionState\":\"closed\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"marginCurrency\":\"USD\",\"margin\":14.98,\"openingData\":null,\"closingData\":{\"orderId\":396817574,\"executionTime\":\"2026-11-26T14:21:33.2867602\",\"units\":0.070703,\"contracts\":0.070703,\"avgPrice\":193.06,\"fees\":1,\"closeTime\":\"2026-11-26T14:21:33.2867602\",\"liquidationValueAcctCcy\":14.99,\"acctCcyReturn\":0.01,\"pnl\":0.01131248},\"remainingUnits\":0,\"remainingContracts\":0}],\"totalFees\":1,\"totalProceeds\":13.99}"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    },
+                    {
+                        "id": "00000000-0000-4000-8000-000000000002",
+                        "operation": "Subscribe",
+                        "data": {
+                            "topics": [
+                                "private:demo"
+                            ],
+                            "snapshot": false
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "3650747611:open",
+                            "info": {
+                                "positionId": 3650747611,
+                                "positionUpdateType": "open",
+                                "updateTime": "2026-11-26T14:21:24.857",
+                                "positionState": "open",
+                                "asset": {
+                                    "instrumentId": 1202,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "EUR"
+                                },
+                                "marginCurrency": "USD",
+                                "initialMargin": 14.98,
+                                "margin": 14.98,
+                                "openingData": {
+                                    "orderId": 396858465,
+                                    "executionTime": "2026-11-26T14:21:24.8669768",
+                                    "units": 0.070703,
+                                    "contracts": 0.070703,
+                                    "avgPrice": 192.9,
+                                    "fees": 1,
+                                    "openTime": "2026-11-26T14:21:24.8669768"
+                                },
+                                "closingData": null,
+                                "remainingUnits": 0.070703,
+                                "remainingContracts": 0.070703
+                            },
+                            "timestamp": 1795702884866,
+                            "datetime": "2026-11-26T14:21:24.866Z",
+                            "symbol": "SAP.DE/EUR",
+                            "order": "396858465",
+                            "type": "market",
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 192.9,
+                            "amount": 0.070703,
+                            "cost": 13.6386087,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 1
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 1
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "3650747611:close",
+                            "info": {
+                                "positionId": 3650747611,
+                                "positionUpdateType": "close",
+                                "updateTime": "2026-11-26T14:21:33.29",
+                                "positionState": "closed",
+                                "asset": {
+                                    "instrumentId": 1202,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "EUR"
+                                },
+                                "marginCurrency": "USD",
+                                "margin": 14.98,
+                                "openingData": null,
+                                "closingData": {
+                                    "orderId": 396817574,
+                                    "executionTime": "2026-11-26T14:21:33.2867602",
+                                    "units": 0.070703,
+                                    "contracts": 0.070703,
+                                    "avgPrice": 193.06,
+                                    "fees": 1,
+                                    "closeTime": "2026-11-26T14:21:33.2867602",
+                                    "liquidationValueAcctCcy": 14.99,
+                                    "acctCcyReturn": 0.01,
+                                    "pnl": 0.01131248
+                                },
+                                "remainingUnits": 0,
+                                "remainingContracts": 0
+                            },
+                            "timestamp": 1795702893286,
+                            "datetime": "2026-11-26T14:21:33.286Z",
+                            "symbol": "SAP.DE/EUR",
+                            "order": "396817574",
+                            "type": "market",
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 193.06,
+                            "amount": 0.070703,
+                            "cost": 13.64992118,
+                            "fee": {
+                                "currency": "USD",
+                                "cost": 1
+                            },
+                            "fees": [
+                                {
+                                    "currency": "USD",
+                                    "cost": 1
+                                }
+                            ]
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "watchPositions returns initial REST snapshot of 2 positions",
+                "input": [],
+                "url": "wss://ws.etoro.com/ws",
+                "httpResponse": {
+                    "accountCurrency": "USD",
+                    "timestamp": "2026-11-26T14:10:00Z",
+                    "instruments": [
+                        {
+                            "instrumentId": 100000,
+                            "symbol": "BTC",
+                            "positions": [
+                                {
+                                    "positionId": 3650747955,
+                                    "symbol": "BTC",
+                                    "instrumentId": 100000,
+                                    "assetCurrency": "USD",
+                                    "settlementType": "real",
+                                    "direction": "long",
+                                    "leverage": 1,
+                                    "isSettled": true,
+                                    "openTime": "2026-11-26T14:00:00Z",
+                                    "openRate": 60800,
+                                    "openConversionRate": 1,
+                                    "totalFeesAcctCcy": 0.49,
+                                    "totalTaxesAcctCcy": 0,
+                                    "takeProfitRate": 70000,
+                                    "stopLossRate": 50000,
+                                    "stopLossType": "fixed",
+                                    "units": 0.000822,
+                                    "contracts": 0,
+                                    "marginAcctCcy": 50,
+                                    "margin": 50,
+                                    "currentRate": 60850,
+                                    "currentExposureAcctCcy": 50.04,
+                                    "acctCcyReturn": 0.04,
+                                    "acctCcyRoePercent": 0.08,
+                                    "liquidationValueAcctCcy": 50.04
+                                }
+                            ]
+                        },
+                        {
+                            "instrumentId": 1,
+                            "symbol": "EURUSD",
+                            "positions": [
+                                {
+                                    "positionId": 3650747999,
+                                    "symbol": "EURUSD",
+                                    "instrumentId": 1,
+                                    "assetCurrency": "USD",
+                                    "settlementType": "cfd",
+                                    "direction": "short",
+                                    "leverage": 5,
+                                    "isSettled": false,
+                                    "openTime": "2026-11-26T14:05:00Z",
+                                    "openRate": 1.1,
+                                    "openConversionRate": 1,
+                                    "totalFeesAcctCcy": 0,
+                                    "totalTaxesAcctCcy": 0,
+                                    "takeProfitRate": 1.05,
+                                    "stopLossRate": 1.15,
+                                    "stopLossType": "fixed",
+                                    "units": 100,
+                                    "contracts": 100,
+                                    "marginAcctCcy": 22,
+                                    "margin": 22,
+                                    "currentRate": 1.095,
+                                    "currentExposureAcctCcy": 109.5,
+                                    "acctCcyReturn": 0.5,
+                                    "acctCcyRoePercent": 2.27,
+                                    "liquidationValueAcctCcy": 22.5
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": 3650747955,
+                            "symbol": "BTC",
+                            "instrumentId": 100000,
+                            "assetCurrency": "USD",
+                            "settlementType": "real",
+                            "direction": "long",
+                            "leverage": 1,
+                            "isSettled": true,
+                            "openTime": "2026-11-26T14:00:00Z",
+                            "openRate": 60800,
+                            "openConversionRate": 1,
+                            "totalFeesAcctCcy": 0.49,
+                            "totalTaxesAcctCcy": 0,
+                            "takeProfitRate": 70000,
+                            "stopLossRate": 50000,
+                            "stopLossType": "fixed",
+                            "units": 0.000822,
+                            "contracts": 0,
+                            "marginAcctCcy": 50,
+                            "margin": 50,
+                            "currentRate": 60850,
+                            "currentExposureAcctCcy": 50.04,
+                            "acctCcyReturn": 0.04,
+                            "acctCcyRoePercent": 0.08,
+                            "liquidationValueAcctCcy": 50.04
+                        },
+                        "id": "3650747955",
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795701600000,
+                        "datetime": "2026-11-26T14:00:00.000Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 50,
+                        "initialMarginPercentage": 0.9992006394884093,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 60800,
+                        "notional": 50.04,
+                        "leverage": 1,
+                        "unrealizedPnl": 0.04,
+                        "realizedPnl": null,
+                        "contracts": 0.000822,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": 60850,
+                        "lastPrice": 60850,
+                        "collateral": 50.04,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": 0.08,
+                        "stopLossPrice": 50000,
+                        "takeProfitPrice": 70000,
+                        "hedged": true,
+                        "positionMargin": 50
+                    },
+                    {
+                        "info": {
+                            "positionId": 3650747999,
+                            "symbol": "EURUSD",
+                            "instrumentId": 1,
+                            "assetCurrency": "USD",
+                            "settlementType": "cfd",
+                            "direction": "short",
+                            "leverage": 5,
+                            "isSettled": false,
+                            "openTime": "2026-11-26T14:05:00Z",
+                            "openRate": 1.1,
+                            "openConversionRate": 1,
+                            "totalFeesAcctCcy": 0,
+                            "totalTaxesAcctCcy": 0,
+                            "takeProfitRate": 1.05,
+                            "stopLossRate": 1.15,
+                            "stopLossType": "fixed",
+                            "units": 100,
+                            "contracts": 100,
+                            "marginAcctCcy": 22,
+                            "margin": 22,
+                            "currentRate": 1.095,
+                            "currentExposureAcctCcy": 109.5,
+                            "acctCcyReturn": 0.5,
+                            "acctCcyRoePercent": 2.27,
+                            "liquidationValueAcctCcy": 22.5
+                        },
+                        "id": "3650747999",
+                        "symbol": "EUR/USD:USD",
+                        "timestamp": 1795701900000,
+                        "datetime": "2026-11-26T14:05:00.000Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 22,
+                        "initialMarginPercentage": 0.2009132420091324,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 1.1,
+                        "notional": 109.5,
+                        "leverage": 5,
+                        "unrealizedPnl": 0.5,
+                        "realizedPnl": null,
+                        "contracts": 100,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": 1.095,
+                        "lastPrice": 1.095,
+                        "collateral": 22.5,
+                        "marginMode": "isolated",
+                        "side": "short",
+                        "percentage": 2.27,
+                        "stopLossPrice": 1.15,
+                        "takeProfitPrice": 1.05,
+                        "hedged": true,
+                        "positionMargin": 22
+                    }
+                ]
+            },
+            {
+                "description": "watchPositions streams live position open and close events",
+                "input": [
+                    [
+                        "SAP.DE/EUR"
+                    ]
+                ],
+                "url": "wss://ws.etoro.com/ws",
+                "options": {
+                    "watchPositions": {
+                        "fetchPositionsSnapshot": false
+                    }
+                },
+                "messages": [
+                    {
+                        "success": true,
+                        "operation": "Authenticate"
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private",
+                                "type": "OrderEvent",
+                                "id": "c8531844-3682-40b1-8edc-263418e59b0e",
+                                "content": "{\"orderId\":396858465,\"accountId\":12345,\"action\":\"open\",\"transaction\":\"buy\",\"orderType\":\"mkt\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-26T14:21:24.857\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"accountCurrency\":\"USD\",\"positionsExecutions\":[{\"positionId\":3650747611,\"positionUpdateType\":\"open\",\"updateTime\":\"2026-11-26T14:21:24.857\",\"positionState\":\"open\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"marginCurrency\":\"USD\",\"initialMargin\":14.98,\"margin\":14.98,\"openingData\":{\"orderId\":396858465,\"executionTime\":\"2026-11-26T14:21:24.8669768\",\"units\":0.070703,\"contracts\":0.070703,\"avgPrice\":192.9,\"fees\":1,\"openTime\":\"2026-11-26T14:21:24.8669768\"},\"closingData\":null,\"remainingUnits\":0.070703,\"remainingContracts\":0.070703}],\"totalFees\":1,\"totalCosts\":15.98}"
+                            }
+                        ]
+                    },
+                    {
+                        "messages": [
+                            {
+                                "topic": "private",
+                                "type": "OrderEvent",
+                                "id": "9409bacc-190c-4459-afc5-b7d099775485",
+                                "content": "{\"orderId\":396817574,\"accountId\":12345,\"action\":\"close\",\"transaction\":\"sell\",\"orderType\":\"mkt\",\"orderUpdateType\":\"executed\",\"updateTime\":\"2026-11-26T14:21:33.29\",\"orderState\":\"filled\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"accountCurrency\":\"USD\",\"positionsExecutions\":[{\"positionId\":3650747611,\"positionUpdateType\":\"close\",\"updateTime\":\"2026-11-26T14:21:33.29\",\"positionState\":\"closed\",\"asset\":{\"instrumentId\":1202,\"symbol\":\"\",\"side\":\"long\",\"settlementType\":\"real\",\"leverage\":1,\"currency\":\"EUR\"},\"marginCurrency\":\"USD\",\"margin\":14.98,\"openingData\":null,\"closingData\":{\"orderId\":396817574,\"executionTime\":\"2026-11-26T14:21:33.2867602\",\"units\":0.070703,\"contracts\":0.070703,\"avgPrice\":193.06,\"fees\":1,\"closeTime\":\"2026-11-26T14:21:33.2867602\",\"liquidationValueAcctCcy\":14.99,\"acctCcyReturn\":0.01,\"pnl\":0.01131248},\"remainingUnits\":0,\"remainingContracts\":0}],\"totalFees\":1,\"totalProceeds\":13.99}"
+                            }
+                        ]
+                    }
+                ],
+                "sentSkipKeys": [
+                    "id"
+                ],
+                "sentMessages": [
+                    {
+                        "id": "00000000-0000-4000-8000-000000000001",
+                        "operation": "Authenticate",
+                        "data": {
+                            "userKey": "secretsecret",
+                            "apiKey": "key"
+                        }
+                    },
+                    {
+                        "id": "00000000-0000-4000-8000-000000000002",
+                        "operation": "Subscribe",
+                        "data": {
+                            "topics": [
+                                "private"
+                            ],
+                            "snapshot": false
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "positionId": 3650747611,
+                                "positionUpdateType": "open",
+                                "updateTime": "2026-11-26T14:21:24.857",
+                                "positionState": "open",
+                                "asset": {
+                                    "instrumentId": 1202,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "EUR"
+                                },
+                                "marginCurrency": "USD",
+                                "initialMargin": 14.98,
+                                "margin": 14.98,
+                                "openingData": {
+                                    "orderId": 396858465,
+                                    "executionTime": "2026-11-26T14:21:24.8669768",
+                                    "units": 0.070703,
+                                    "contracts": 0.070703,
+                                    "avgPrice": 192.9,
+                                    "fees": 1,
+                                    "openTime": "2026-11-26T14:21:24.8669768"
+                                },
+                                "closingData": null,
+                                "remainingUnits": 0.070703,
+                                "remainingContracts": 0.070703
+                            },
+                            "id": "3650747611",
+                            "symbol": "SAP.DE/EUR",
+                            "timestamp": 1795702884866,
+                            "datetime": "2026-11-26T14:21:24.866Z",
+                            "lastUpdateTimestamp": 1795702884857,
+                            "initialMargin": 14.98,
+                            "initialMarginPercentage": 1.0983525027739816,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "entryPrice": 192.9,
+                            "notional": 13.6386087,
+                            "leverage": 1,
+                            "unrealizedPnl": 0,
+                            "realizedPnl": null,
+                            "contracts": 0.070703,
+                            "contractSize": 1,
+                            "marginRatio": null,
+                            "liquidationPrice": null,
+                            "markPrice": 192.9,
+                            "lastPrice": 192.9,
+                            "collateral": 14.98,
+                            "marginMode": "isolated",
+                            "side": "long",
+                            "percentage": 0,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "hedged": true,
+                            "positionMargin": 14.98
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "positionId": 3650747611,
+                                "positionUpdateType": "close",
+                                "updateTime": "2026-11-26T14:21:33.29",
+                                "positionState": "closed",
+                                "asset": {
+                                    "instrumentId": 1202,
+                                    "symbol": "",
+                                    "side": "long",
+                                    "settlementType": "real",
+                                    "leverage": 1,
+                                    "currency": "EUR"
+                                },
+                                "marginCurrency": "USD",
+                                "margin": 14.98,
+                                "openingData": null,
+                                "closingData": {
+                                    "orderId": 396817574,
+                                    "executionTime": "2026-11-26T14:21:33.2867602",
+                                    "units": 0.070703,
+                                    "contracts": 0.070703,
+                                    "avgPrice": 193.06,
+                                    "fees": 1,
+                                    "closeTime": "2026-11-26T14:21:33.2867602",
+                                    "liquidationValueAcctCcy": 14.99,
+                                    "acctCcyReturn": 0.01,
+                                    "pnl": 0.01131248
+                                },
+                                "remainingUnits": 0,
+                                "remainingContracts": 0
+                            },
+                            "id": "3650747611",
+                            "symbol": "SAP.DE/EUR",
+                            "timestamp": 1795702884866,
+                            "datetime": "2026-11-26T14:21:24.866Z",
+                            "lastUpdateTimestamp": 1795702893290,
+                            "initialMargin": 14.98,
+                            "initialMarginPercentage": null,
+                            "maintenanceMargin": null,
+                            "maintenanceMarginPercentage": null,
+                            "entryPrice": 192.9,
+                            "notional": 0,
+                            "leverage": 1,
+                            "unrealizedPnl": 0,
+                            "realizedPnl": 0.01,
+                            "contracts": 0,
+                            "contractSize": 1,
+                            "marginRatio": null,
+                            "liquidationPrice": null,
+                            "markPrice": 193.06,
+                            "lastPrice": 193.06,
+                            "collateral": 14.99,
+                            "marginMode": "isolated",
+                            "side": "long",
+                            "percentage": 0.0667556742323097,
+                            "stopLossPrice": null,
+                            "takeProfitPrice": null,
+                            "hedged": true,
+                            "positionMargin": 14.99
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}

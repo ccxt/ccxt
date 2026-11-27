@@ -1,0 +1,68 @@
+{
+    "USD": {
+        "id": "USD",
+        "code": "USD",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "EUR": {
+        "id": "EUR",
+        "code": "EUR",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "ETH": {
+        "id": "ETH",
+        "code": "ETH",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "SAP.DE": {
+        "id": "SAP.DE",
+        "code": "SAP.DE",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "SP500": {
+        "id": "SP500",
+        "code": "SP500",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}
