@@ -6224,7 +6224,7 @@ class BaseExchange(object):
             bidAsk.append(countOrId)
         return bidAsk
 
-    def safe_currency(self, currencyId: Str, currency: Currency = None):
+    def safe_currency(self, currencyId: Str = None, currency: Currency = None):
         if (currencyId is None) and (currency is not None):
             return currency
         if (currencyId is not None) and (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):

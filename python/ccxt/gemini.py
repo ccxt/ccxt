@@ -818,13 +818,15 @@ class gemini(Exchange, ImplicitAPI):
             settleId = self.safe_string(response, 'contract_price_currency')
         else:
             # if no detailed API was called, then parse either string or array
-            if isString:
+            if isinstance(response, str):
                 marketId = response
             else:
                 marketId = self.safe_string_lower(response, 0)
                 tickSize = self.parse_number(self.parse_precision(self.safe_string(response, 1)))  # priceTickDecimalPlaces
                 amountPrecision = self.parse_number(self.parse_precision(self.safe_string(response, 2)))  # quantityTickDecimalPlaces
                 minSize = self.safe_number(response, 3)  # quantityMinimum
+            if marketId is None:
+                raise ExchangeError(self.id + ' parseMarket() missing marketId')
             marketIdUpper = marketId.upper()
             isPerp = (marketIdUpper.find('PERP') >= 0)
             marketIdWithoutPerp = marketIdUpper.replace('PERP', '')
