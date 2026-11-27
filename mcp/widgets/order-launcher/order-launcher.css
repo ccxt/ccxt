@@ -1,0 +1,56 @@
+:root {
+  font: 14px/1.5 system-ui, sans-serif;
+  --buy: #4fd08a;
+  --success: #7fd6a0;
+  --hint: #7d8696;
+  --button: #0f1c26;
+}
+body { margin: 0; padding: 12px; }
+main { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--surface); }
+header { display: flex; justify-content: space-between; align-items: start; gap: 8px; flex-wrap: wrap; }
+h1 { font-size: 18px; margin: 0; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+p { color: var(--muted); margin: 6px 0 14px; }
+a { color: var(--focus); font-size: 13px; }
+[hidden] { display: none !important; }
+
+#network { color: var(--warn); border: 1px solid var(--warn-line); border-radius: 4px; padding: 2px 7px; font-size: 12px; }
+#network[data-network=mainnet] { color: var(--down-text); background: var(--danger-surface); border-color: var(--danger-line); }
+
+dl { margin: 0 0 12px; border: 1px solid var(--line); border-radius: 8px; }
+dl:empty { display: none; }
+dl div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 7px 10px; }
+dl div + div { border-top: 1px solid var(--surface-hover); }
+dt { color: var(--muted); }
+dd { margin: 0; text-align: right; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+dd[data-field] { font-weight: 700; }
+dd[data-side=buy] { color: var(--buy); }
+dd[data-side=sell] { color: var(--down-text); }
+
+#slippage, #real-funds { color: var(--warn); font-size: 13px; }
+#real-funds { color: var(--down-text); }
+
+form { border-top: 1px solid var(--surface-hover); padding-top: 12px; margin-top: 4px; }
+label { display: block; color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+label.check { display: flex; gap: 8px; align-items: center; }
+input[type=text], input[type=password] {
+  display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 7px 9px;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--background); color: var(--text); font: inherit;
+}
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+button {
+  font: inherit; font-weight: 650; padding: 7px 12px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--button); color: var(--text); cursor: pointer;
+}
+button.primary { background: var(--focus); color: var(--background); border-color: var(--focus); }
+button:disabled { opacity: .5; cursor: default; }
+.hint { font-size: 12px; color: var(--hint); margin: 8px 0 0; }
+
+#status { min-height: 1.5em; margin: 10px 0 0; }
+#status[data-kind=error] { color: var(--down-text); }
+#status[data-kind=ok] { color: var(--success); }
+#outcome { margin-top: 12px; }
+#timing { margin-top: 10px; font-size: 12px; color: var(--muted); }
+#timing summary { cursor: pointer; }
+#timing dl { margin: 6px 0 0; }

@@ -218,7 +218,7 @@ test ('access log: every served widget html file is logged with its path on disk
     for (const entry of html) {
         assert.ok (path.isAbsolute (entry.file) && entry.file.endsWith (path.join ('widgets', 'market-data.html')), entry.file);
         assert.ok (fs.existsSync (entry.file));
-        assert.equal (entry.bytes, fs.statSync (entry.file).size);
+        assert.equal (entry.bytes, Buffer.byteLength (resource.contents[0].text));
         // tied to the request that asked for it
         assert.ok (entries.some ((other) => other.event === 'http' && other.requestId === entry.requestId));
     }

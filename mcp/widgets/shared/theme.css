@@ -1,0 +1,18 @@
+:root {
+  color-scheme: dark;
+  --background: #030e16;
+  --surface: #09131b;
+  --surface-hover: #202a34;
+  --line: #28313c;
+  --text: #ffffff;
+  --muted: #a2aab8;
+  --focus: #65c6cc;
+  --up-text: #60aa6c;
+  --down-text: #fb7477;
+  --warn: #e7bd5e;
+  --warn-line: #594a2c;
+  --danger-line: #80332f;
+  --danger-surface: #301b22;
+  background: var(--background);
+  color: var(--text);
+}

@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { run } from './tools/common.js';
@@ -7,6 +5,7 @@ import type { ErrorContext } from './errors.js';
 import { ok, type Envelope } from './format.js';
 import { log } from './logging.js';
 import { requestContext, type HtmlServedRecord } from './request-context.js';
+import { readWidgetHtml, widgetFile, widgetPath } from './widget-files.js';
 
 const widgetUri = 'ui://ccxt/market-data-v3.html';
 const previousTableUri = 'ui://ccxt/market-data-v2.html';
@@ -18,9 +17,9 @@ export const browserWidgetUri = 'ui://ccxt/browser-trading-v4.html';
 export const previousBrowserWidgetV3Uri = 'ui://ccxt/browser-trading-v3.html';
 export const previousBrowserWidgetV2Uri = 'ui://ccxt/browser-trading-v2.html';
 export const previousBrowserWidgetUri = 'ui://ccxt/browser-trading.html';
-const browserWidgetFile = new URL ('../widgets/order-launcher.html', import.meta.url);
+const browserWidgetFile = widgetFile ('order-launcher.html');
 export const widgetMimeType = 'text/html;profile=mcp-app';
-const widgetFile = new URL ('../widgets/market-data.html', import.meta.url);
+const marketWidgetFile = widgetFile ('market-data.html');
 
 function widgetToolMeta (uri: string) {
     return {
@@ -45,9 +44,9 @@ function logHtmlServed (record: HtmlServedRecord): void {
 
 export async function readWidget (uri: string, via: 'resource' | 'tool', frameOrigin?: string) {
     const browserReview = [ browserWidgetUri, previousBrowserWidgetV3Uri, previousBrowserWidgetV2Uri, previousBrowserWidgetUri ].includes (uri);
-    const file = browserReview ? browserWidgetFile : widgetFile;
-    const text = await readFile (file, 'utf8');
-    logHtmlServed ({ uri, 'file': fileURLToPath (file), 'bytes': Buffer.byteLength (text), via });
+    const file = browserReview ? browserWidgetFile : marketWidgetFile;
+    const text = await readWidgetHtml (file);
+    logHtmlServed ({ uri, 'file': widgetPath (file), 'bytes': Buffer.byteLength (text), via });
     return {
         uri,
         'mimeType': widgetMimeType,

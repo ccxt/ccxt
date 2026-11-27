@@ -2,10 +2,10 @@ import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { readWidgetPage, widgetFile, widgetPath } from './widget-files.js';
 import { browserWidgetUri, previousBrowserWidgetV3Uri, previousBrowserWidgetV2Uri, previousBrowserWidgetUri, readWidget, widgetMimeType } from './market-widget.js';
 
 export interface BrowserTradingOptions {
@@ -26,7 +26,7 @@ export const DEFAULT_FRAME_ANCESTORS = [
 ];
 
 const require = createRequire (import.meta.url);
-const reviewFile = new URL ('../widgets/order-signing.html', import.meta.url);
+const reviewFile = widgetFile ('order-signing.html');
 const exchanges = z.enum ([ 'binance', 'bybit' ]);
 const symbol = z.string ().regex (/^[A-Za-z0-9][A-Za-z0-9./:_-]{0,63}$/);
 const positive = z.number ().finite ().positive ();
@@ -241,9 +241,10 @@ export function createBrowserTradingRoute (options: BrowserTradingOptions, readB
             if (path === '/order-signing' || path === '/order-signing/ccxt.js' || path === '/order-signing/app.js') {
                 if (req.method !== 'GET') return refuse (405, 'GET required', 'method ' + String (req.method) + ' is not GET');
                 const html = path === '/order-signing';
-                const body = html ? await readFile (reviewFile) : path === '/order-signing/app.js'
-                    ? await readFile (new URL ('../widgets/order-signing.js', import.meta.url))
-                    : await (bundle ??= readFile (join (dirname (require.resolve ('ccxt')), 'ccxt.browser.min.js')));
+                const ccxtBundle = path === '/order-signing/ccxt.js';
+                const page = ccxtBundle ? undefined : await readWidgetPage (reviewFile, '/order-signing/app.js');
+                const body = page === undefined ? await (bundle ??= readFile (join (dirname (require.resolve ('ccxt')), 'ccxt.browser.min.js')))
+                    : Buffer.from (html ? page.html : page.script);
                 const directLocalPage = local && req.headers.host === origin.host &&
                     [ '127.0.0.1', '::1', '::ffff:127.0.0.1' ].includes (req.socket.remoteAddress ?? '') &&
                     req.headers['sec-fetch-mode'] === 'navigate' && req.headers['sec-fetch-dest'] === 'document' &&
@@ -275,7 +276,7 @@ export function createBrowserTradingRoute (options: BrowserTradingOptions, readB
                     'embedded': html ? (req.headers['sec-fetch-dest'] === 'iframe') : undefined,
                     // who is embedding it: the origin to add to frame-ancestors when the browser then blocks the frame
                     'embedder': (html && req.headers['sec-fetch-dest'] === 'iframe') ? embedderOf (req.headers.referer) : undefined,
-                    'file': html ? fileURLToPath (reviewFile) : (path === '/order-signing/app.js') ? fileURLToPath (new URL ('../widgets/order-signing.js', import.meta.url)) : 'ccxt.browser.min.js' });
+                    'file': ccxtBundle ? 'ccxt.browser.min.js' : widgetPath (reviewFile) });
                 return;
             }
             if (req.method !== 'POST') return refuse (403, 'Signing origin required', 'method ' + String (req.method) + ' is not POST');

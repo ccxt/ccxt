@@ -4,105 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CCXT · Review order</title>
-<style>
-:root {
-  color-scheme: dark;
-  --background: #030e16;
-  --surface: #09131b;
-  --hover: #202a34;
-  --line: #28313c;
-  --white: #fff;
-  --muted: #a2aab8;
-  --accent: #65c6cc;
-  --buy: #60aa6c;
-  --warn: #e7bd5e;
-  font: 14px/1.5 Inter, system-ui, sans-serif;
-  color: var(--white);
-  background: var(--background);
-}
-* { box-sizing: border-box; }
-body { margin: 0; }
-main { width: min(100% - 32px, 560px); margin: clamp(24px, 7vh, 68px) auto; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-header, .order, .credentials, .actions, .receipt { padding: 18px clamp(16px, 5vw, 24px); }
-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: .04em; }
-.brand svg { width: 18px; height: 18px; color: var(--accent); }
-.network-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.network-switch { display: inline-flex; align-items: center; font-weight: 600; cursor: pointer; }
-.network-switch input { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; }
-.switch-track { position: relative; width: 34px; height: 20px; border: 1px solid #65727e; border-radius: 12px; background: var(--background); }
-.switch-track::before { content: ''; position: absolute; width: 12px; height: 12px; top: 3px; left: 3px; border-radius: 50%; background: var(--muted); }
-.network-switch input:checked + .switch-track { border-color: var(--accent); background: #17353b; }
-.network-switch input:checked + .switch-track::before { transform: translateX(14px); background: var(--accent); }
-.network-switch input:focus-visible + .switch-track { outline: 2px solid var(--accent); outline-offset: 3px; }
-.network-switch input:disabled + .switch-track { opacity: .55; }
-.dialog-network { margin: 0 0 12px; }
-.environment { color: var(--warn); font-size: .82rem; border: 1px solid #594a2c; background: #261f15; border-radius: 4px; padding: 2px 8px; }
-.environment[data-network="mainnet"] { color: #fb7477; border-color: #80332f; background: #301b22; }
-.order { padding-top: 24px; padding-bottom: 24px; }
-.order-details {
-  position: relative; isolation: isolate; overflow: hidden;
-  border: 1px solid var(--line); border-radius: 10px; background: #0c1821;
-}
-.order-details:has(dl:empty) { display: none; }
-.watermark {
-  position: absolute; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(38%, 116px); height: auto; aspect-ratio: 1; color: #20303a; pointer-events: none;
-}
-.order-details dl > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); padding: 10px 14px; }
-.order-details dl > div + div { border-top: 1px solid rgb(162 170 184 / .12); }
-.order-details dd { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
-.sell { color: #fb7477; }
-#status { margin: 0; padding: 14px clamp(16px, 5vw, 24px); border-top: 1px solid var(--line); }
-#status:empty { display: none; }
-h1 { margin: 0; font-size: 1.8rem; letter-spacing: -.025em; line-height: 1.2; }
-h2 { margin: 0 0 10px; font-size: 1rem; }
-.market { margin: 5px 0 14px; color: var(--muted); }
-dl { margin: 0; }
-dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 7px 0; }
-dt { color: var(--muted); }
-dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-.buy { color: var(--buy); font-weight: 650; }
-.total { margin-top: 5px; border-top: 1px solid var(--line); font-weight: 650; }
-.total dt { color: var(--white); }
-.credentials, .actions, .receipt { border-top: 1px solid var(--line); }
-.fields { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-label { display: grid; gap: 4px; color: var(--muted); font-size: .86rem; }
-input, button { min-height: 40px; border: 1px solid var(--line); border-radius: 4px; font: inherit; }
-input { width: 100%; padding: 7px 9px; background: #000; color: var(--white); }
-.hint { margin: 10px 0 0; color: var(--muted); font-size: .86rem; }
-.actions { display: flex; justify-content: space-between; gap: 10px; }
-button { background: var(--surface); color: var(--white); padding: 7px 13px; cursor: pointer; }
-button:hover:enabled { background: var(--hover); }
-button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-button.primary { background: var(--accent); color: var(--background); border-color: var(--accent); font-weight: 650; }
-button.primary:hover:enabled { background: #91d6da; }
-button:disabled { opacity: .55; cursor: default; }
-dialog {
-  width: min(100% - 32px, 520px); max-height: calc(100% - 32px); padding: 0;
-  border: 1px solid var(--line); border-radius: 20px; background: #111b23; color: var(--white);
-  box-shadow: 0 16px 48px rgb(0 0 0 / .32);
-}
-dialog::backdrop { background: rgb(3 14 22 / .78); }
-dialog .credentials { border-top: 0; padding-top: 24px; padding-bottom: 20px; }
-dialog h2 { display: flex; gap: 8px; align-items: baseline; margin: 0; font-size: 1.3rem; line-height: 1.25; }
-.credential-intro { margin: 8px 0 18px; color: var(--muted); }
-.credential-fields { display: grid; gap: 12px; }
-.credential-fields input { min-height: 50px; padding: 10px 14px; background: var(--background); border-radius: 12px; font-size: 1rem; }
-.credential-fields input::placeholder { color: var(--muted); }
-.credential-privacy { margin: 18px 0 0; color: var(--muted); font-size: .86rem; }
-.credential-privacy strong { color: var(--accent); }
-#credential-status:empty { display: none; }
-dialog .actions { display: grid; grid-template-columns: minmax(0, 1fr); padding-top: 0; border-top: 0; gap: 8px; }
-dialog .actions button { width: 100%; min-height: 48px; border-radius: 12px; text-align: center; font-weight: 650; }
-#dismiss { color: var(--accent); border-color: var(--accent); background: transparent; }
-#dismiss:hover:enabled { background: var(--hover); }
-.slippage-warning { margin: 0; padding: 0 clamp(16px, 5vw, 24px) 16px; color: var(--warn); }
-.receipt p { margin: 0 0 10px; }
-[hidden] { display: none !important; }
-@media (max-width: 380px) { .fields { grid-template-columns: 1fr; } }
-</style>
+<link rel="stylesheet" href="shared/theme.css">
+<link rel="stylesheet" href="order-signing/order-signing.css">
 </head>
 <body>
 <svg width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -185,6 +88,12 @@ dialog .actions button { width: 100%; min-height: 48px; border-radius: 12px; tex
   <p class="hint" id="status" role="status"></p>
 </main>
 <script src="/order-signing/ccxt.js" defer></script>
-<script src="/order-signing/app.js" defer></script>
+<script src="shared/dom.js" defer></script>
+<script src="shared/format.js" defer></script>
+<script src="shared/encoding.js" defer></script>
+<script src="shared/credential-vault.js" defer></script>
+<script src="shared/signing-request.js" defer></script>
+<script src="order-signing/relay-exchange.js" defer></script>
+<script src="order-signing/main.js" defer></script>
 </body>
 </html>
