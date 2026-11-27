@@ -2039,7 +2039,7 @@ impl Krakenfutures {
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!(key.as_str(), Some(__k) if seenKeys.contains_key(__k))) && !self.in_array(key.clone(), &reserved) {
-                remove(&mut balanceObject, &key);
+                if let (Value::Dict(__d), Value::Str(__k)) = (&mut balanceObject, &key) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
             }
         }
         }

@@ -3937,7 +3937,11 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_105: bool = true;
             while { if !__for_first_105 { i += 1; } __for_first_105 = false; i < (feeValues.len() as i64) } {
-            let reducedFeeValues: Value = object_values(&feeValues.get(i as usize).cloned().unwrap_or(Value::Null));
+            let feeValue: Value = self.safe_dict(&feeValues, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+            let reducedFeeValues: Value = Value::Array(feeValue.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
             result = self.array_concat_t(Value::Arr(result), reducedFeeValues);
         }
         }
@@ -10318,7 +10322,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (clientSubscriptions.len() as i64) } {
                     let sub: Option<String> = clientSubscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     if ((if let (Some(__h), Some(__n)) = (sub.as_deref(), (subHash).as_str()) { __h.starts_with(__n) } else { false })) {
-                        remove(&mut get_value(client, &Value::Str("subscriptions".into())), &Value::from(sub.as_deref()));
+                        __ch.remove_subscription(sub.as_deref());
                     }
                 }
                 }
@@ -10404,10 +10408,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_181: bool = true;
                     while { if !__for_first_181 { i += 1; } __for_first_181 = false; i < (clients.len() as i64) } {
-                    let client: Value = clients.get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut futures: Value = get_value(&client, &Value::Str("futures".into()));
-                    if (matches!(&futures, Value::Dict(__d) if __d.contains_key("fetchPositionsSnapshot"))) {
-                        remove(&mut futures, &Value::Str("fetchPositionsSnapshot".into()));
+                    let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&clients.get(i as usize).cloned().unwrap_or(Value::Null));
+                    if (client.has_future("fetchPositionsSnapshot")) {
+                        client.remove_future("fetchPositionsSnapshot");
                     }
                 }
                 }

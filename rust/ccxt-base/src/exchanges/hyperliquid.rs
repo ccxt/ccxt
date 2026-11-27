@@ -2747,18 +2747,16 @@ impl Hyperliquid {
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[Value::Int(self.milliseconds())]).as_i64();
         let mut useTail: bool = (since.is_none());
         let originalSince: Option<i64> = since;
-        let mut startTime: Value = Value::from(since);
+        let mut startTime: Option<i64> = since;
         if (since.is_none()) {
             if (limit.is_some()) {
                 // optimization if limit is provided
                 let timeframeInMilliseconds: i64 = ((self.parse_timeframe(&timeframe)) * 1000);
-                startTime = Value::from((if let (Some(__m0), Some(__m1)) = (until, ((if let Some(__l) = ((if let Some(__r) = limit { Some(timeframeInMilliseconds * __r) } else { None })) { Some(__l * -1) } else { None }))) { Some((__m0 + __m1)) } else { None }));
-                if startTime.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
-                    startTime = Value::Int(0);
-                }
+                let calculatedStartTime: Option<i64> = (if let (Some(__l), Some(__r)) = (until, ((if let Some(__r) = limit { Some(timeframeInMilliseconds * __r) } else { None }))) { Some(__l - __r) } else { None });
+                startTime = (if ((calculatedStartTime.is_some() && calculatedStartTime < Some(0))) { Some(0) } else { calculatedStartTime });
                 useTail = false;
             }  else {
-                startTime = Value::Int(0);
+                startTime = Some(0);
             }
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["until"], &[]);
@@ -2766,7 +2764,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), Value::from((market).id.as_deref()));
                 m.insert("interval".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
-                m.insert("startTime".to_string(), startTime);
+                m.insert("startTime".to_string(), Value::from(startTime));
                 m.insert("endTime".to_string(), Value::from(until));
             m
         });

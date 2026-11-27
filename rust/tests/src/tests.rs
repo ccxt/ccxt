@@ -1125,8 +1125,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (eventQuery == Value::Null) {
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
-                    let handleParts: Vec<Value> = split(&outcomeSymbol, &Value::Str(":".into())).as_array().cloned().unwrap_or_default();
-                    let marketPart: Value = handleParts.get(0).cloned().unwrap_or(Value::Null);
+                    let handleParts: Value = split(&outcomeSymbol, &Value::Str(":".into()));
+                    let marketPart: Value = exchange.safe_string(handleParts, Value::Int(0), &[Value::Str("".into())]);
                     let lowerPart: Value = (if let Some(__s) = (marketPart).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                     let dedashed: Value = replace_all_str(&lowerPart, &Value::Str("-".into()), &Value::Str(" ".into()));
                     eventQuery = replace_all_str(&dedashed, &Value::Str("_".into()), &Value::Str(" ".into()));

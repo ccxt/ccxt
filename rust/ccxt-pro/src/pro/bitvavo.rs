@@ -1503,15 +1503,15 @@ impl Bitvavo {
                 continue;
             }
             let subscription: Value = self.safe_value(&__ch.subscriptions, Value::from(key.as_deref()), &[]);
-            let subHash: Value = (if let Some(__s) = key.as_deref() { Some(__s.replace("unsubscribe:", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
+            let subHash: Option<String> = (if let Some(__s) = key.as_deref() { Some(__s.replace("unsubscribe:", "")) } else { None });
             self.clean_cache(subscription);
-            self.clean_unsubscription(client, subHash.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]);
+            self.clean_unsubscription(client, Value::from(subHash.as_deref()), key.map(Value::from).unwrap_or(Value::Null), &[]);
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
-            if (in_op(&client.as_map().and_then(|__m| __m.get("rejections")).cloned().unwrap_or(Value::Null), &subHash)) {
-                remove(&mut __ch.rejections, &subHash);
+            if (__ch.has_rejection(subHash.as_deref())) {
+                __ch.remove_rejection(subHash.as_deref());
             }
         }
         }
