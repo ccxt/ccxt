@@ -1360,16 +1360,16 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 				}
 				if typeVar != nil && *typeVar == "linear" {
 					// 4. Drop any event where u is < lastUpdateId in the snapshot
-					if snapshotNonce != nil && (u == nil || *u < *snapshotNonce) {
+					if *u < *snapshotNonce {
 						continue
 					}
 					// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-					if (U == nil || (snapshotNonce != nil && *U <= *snapshotNonce)) && (snapshotNonce == nil || (u != nil && *u >= *snapshotNonce)) || (pu == snapshotNonce || (pu != nil && snapshotNonce != nil && *pu == *snapshotNonce)) {
+					if (*U <= *snapshotNonce) && (*u >= *snapshotNonce) || (pu == snapshotNonce || (pu != nil && snapshotNonce != nil && *pu == *snapshotNonce)) {
 						this.HandleOrderBookMessage(client, messageItem, orderbook)
 					}
 				} else {
 					// 4. Drop any event where u is <= lastUpdateId in the snapshot
-					if u == nil || (snapshotNonce != nil && *u <= *snapshotNonce) {
+					if *u <= *snapshotNonce {
 						continue
 					}
 					// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
@@ -1497,7 +1497,7 @@ func (this *Binance) HandleOrderBook(client ccxt.ClientInterface, message map[st
 				if pu == nil {
 					// spot
 					// 4. Drop any event where u is <= lastUpdateId in the snapshot
-					if u != nil && (nonce == nil || *u > *nonce) {
+					if nonce == nil || *u > *nonce {
 						var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 						var conditional bool
 						if timestamp == nil {
@@ -1523,10 +1523,10 @@ func (this *Binance) HandleOrderBook(client ccxt.ClientInterface, message map[st
 				} else {
 					// future
 					// 4. Drop any event where u is < lastUpdateId in the snapshot
-					if nonce == nil || (u != nil && *u >= *nonce) {
+					if nonce == nil || *u >= *nonce {
 						// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
 						// 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-						if (U == nil || (nonce != nil && *U <= *nonce)) || (pu == nonce || (pu != nil && nonce != nil && *pu == *nonce)) {
+						if (nonce != nil && *U <= *nonce) || (pu == nonce || (pu != nil && nonce != nil && *pu == *nonce)) {
 							this.HandleOrderBookMessage(client, message, orderbook)
 							var newNonce *int64 = this.SafeInteger(orderbook, "nonce", 0)
 							if nonce == nil || (newNonce != nil && *nonce <= *newNonce) {

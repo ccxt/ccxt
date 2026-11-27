@@ -494,7 +494,7 @@ func (this *Luno) IsOrderBookDeltaInSequence(client ccxt.ClientInterface, messag
 	if messageSequence == nil {
 		return true
 	}
-	if messageSequence == nil || (storedNonce != nil && *messageSequence <= *storedNonce) {
+	if *messageSequence <= *storedNonce {
 		// an old or replayed frame, discard it
 		return false
 	}

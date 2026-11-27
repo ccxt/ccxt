@@ -935,9 +935,8 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
-	var limitResolved *int64 = nil
+	var limitResolved *int64 = limit
 	if limit != nil {
-		limitResolved = limit
 		if *limit > 11000 {
 			limitResolvedValue := int64(11000)
 			limitResolved = &limitResolvedValue // max 11000 candles diapason can be covered
@@ -1502,16 +1501,16 @@ func (this *Btcturk) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type": "application/json",
 		}
 	}
-	var literal114315 map[string]any = map[string]any{
+	var literal114215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": privateHeaders,
 	}
 	if requestBody != nil {
-		literal114315["body"] = *requestBody
+		literal114215["body"] = *requestBody
 	}
-	return literal114315
+	return literal114215
 }
 func (this *Btcturk) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	var errorCode string = *this.SafeString(response, "code", "0")

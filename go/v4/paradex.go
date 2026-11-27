@@ -2564,7 +2564,7 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 		if cachedExpires == nil {
 			panic(ExchangeError(this.Id + " authenticateRest() missing cachedExpires"))
 		}
-		if cachedExpires != nil && now < *cachedExpires {
+		if now < *cachedExpires {
 
 			ch <- AsyncResult[*string]{Value: cachedToken}
 			return nil

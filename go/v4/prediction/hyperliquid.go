@@ -2687,7 +2687,7 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	if prec == nil {
 		panic(ccxt.ExchangeError(this.Id + " amountToPrecision() missing prec"))
 	}
-	if prec != nil && *prec > 0 {
+	if *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	retStrVal := this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
@@ -2700,7 +2700,7 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	if prec == nil {
 		panic(ccxt.ExchangeError(this.Id + " priceToPrecision() missing prec"))
 	}
-	if prec != nil && *prec > 0 {
+	if *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	retStrVal := this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)

@@ -256,7 +256,7 @@ func (this *Bitstamp) HandleOrderBook(client ccxt.ClientInterface, message map[s
 		}
 		storedOrderBook.AppendCache(delta)
 		return
-	} else if deltaNonce == nil || (nonce != nil && *nonce >= *deltaNonce) {
+	} else if nonce != nil && *nonce >= *deltaNonce {
 		return
 	}
 	this.HandleBookDelta(storedOrderBook, delta)
@@ -289,7 +289,7 @@ func (this *Bitstamp) GetCacheIndex(orderbook map[string]any, deltas []any) int6
 		return int64(-1)
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	if (nonce == nil) || (firstElementNonce != nil && (nonce == nil || *nonce < *firstElementNonce)) {
+	if (nonce == nil) || (*nonce < *firstElementNonce) {
 		return int64(-1)
 	}
 	for i := 0; i < len(deltas); i++ {

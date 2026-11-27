@@ -2658,7 +2658,7 @@ func (this *Kucoin) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 	if (nonce == nil) || (firstDeltaStart == nil) {
 		return int64(-1)
 	}
-	if *nonce < (*firstDeltaStart - 1) {
+	if *nonce < *firstDeltaStart-1 {
 		return int64(-1)
 	}
 	for i := 0; i < len(cache); i++ {
@@ -2668,7 +2668,7 @@ func (this *Kucoin) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 		if (deltaStart == nil) || (deltaEnd == nil) {
 			continue
 		}
-		if (*nonce >= (*deltaStart - 1)) && (deltaEnd != nil && (nonce == nil || *nonce < *deltaEnd)) {
+		if (*nonce >= *deltaStart-1) && (*nonce < *deltaEnd) {
 			return int64(i)
 		}
 	}

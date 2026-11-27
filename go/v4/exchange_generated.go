@@ -2555,10 +2555,10 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 					continue
 				}
 				if this.PrecisionMode == TICK_SIZE {
-					if highestPrecision != nil && (currentPrecision == nil || *highestPrecision > *currentPrecision) {
+					if *highestPrecision > *currentPrecision {
 						highestPrecisionCurrency = currentCurrency
 					}
-				} else if currentPrecision != nil && (highestPrecision == nil || *currentPrecision > *highestPrecision) {
+				} else if *currentPrecision > *highestPrecision {
 					highestPrecisionCurrency = currentCurrency
 				}
 			}
@@ -5300,7 +5300,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " buildOHLCVC() requires a price argument"))
 		}
-		if (skipZeroPrices != nil && *skipZeroPrices) && !(price != nil && *price > 0) && !(!(*price >= 0)) {
+		if (skipZeroPrices != nil && *skipZeroPrices) && !(*price > 0) && !(!(*price >= 0)) {
 			continue
 		}
 		var isNewCandle bool = (candle == -1)
@@ -8186,9 +8186,9 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan AsyncResult[any], me
 	_ = chSent
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	timeframe := GetArg(optionalArgs, 3, nil)
 	_ = timeframe
@@ -8363,7 +8363,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
@@ -8500,7 +8500,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 				if since == nil {
 					panic(ArgumentsRequired(this.Id + " fetchPaginatedCallCursor() requires a since argument"))
 				}
-				if (lastTimestamp != nil) && IsLessThan(lastTimestamp, since) {
+				if (lastTimestamp != nil) && (*lastTimestamp < *since) {
 					shouldBreak = true
 					panic("break")
 				}
@@ -8533,7 +8533,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan AsyncResult[
 	defer ReturnPanicError(ch)
 	symbol := GetArg(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit

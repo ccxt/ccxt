@@ -1845,9 +1845,9 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 			var prevLow *float64 = this.SafeNumber(candles[key], 3, pPrice)
 			var openTs *int64 = this.SafeInteger(candles[key], 0)
 			var openPrice *float64 = this.SafeNumber(candles[key], 1)
-			if (prevHigh != nil) && (pPrice != nil && *pPrice > *prevHigh) {
+			if (prevHigh != nil) && (*pPrice > *prevHigh) {
 				candles[key] = []any{openTs, openPrice, pPrice, prevLow, pPrice, 0}
-			} else if (prevLow != nil) && (pPrice == nil || *prevLow > *pPrice) {
+			} else if (prevLow != nil) && (*prevLow > *pPrice) {
 				candles[key] = []any{openTs, openPrice, prevHigh, pPrice, pPrice, 0}
 			} else {
 				candles[key] = []any{openTs, openPrice, prevHigh, prevLow, pPrice, 0}

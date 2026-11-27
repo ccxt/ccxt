@@ -364,7 +364,7 @@ func (this *Woo) HandleOrderBook(client ccxt.ClientInterface, message map[string
 					if ts == nil {
 						return
 					}
-					if ts != nil && (timestamp == nil || *ts > *timestamp) {
+					if timestamp == nil || *ts > *timestamp {
 						this.HandleOrderBookMessage(client, message, orderbook)
 						client.Resolve(orderbook, topic)
 					}
@@ -468,7 +468,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 					continue
 				}
 				var orderbookTimestamp *int64 = this.SafeInteger(orderbook, "timestamp")
-				if (orderbookTimestamp != nil) && (ts == nil || *ts < *orderbookTimestamp) {
+				if (orderbookTimestamp != nil) && (*ts < *orderbookTimestamp) {
 					continue
 				} else {
 					this.HandleOrderBookMessage(client, messageItem, orderbook)

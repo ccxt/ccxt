@@ -8252,8 +8252,14 @@ func (this *Bitget) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		}
 	} else {
 		if feeDetail != nil {
-			var parsedFeeDetail any = JsonParse(feeDetail)
-			var feeValues []any = ObjectValues(parsedFeeDetail)
+			var parsedFeeDetail, _ = JsonParse(feeDetail).(map[string]any)
+			var feeValues []any = nil
+			if parsedFeeDetail != nil {
+				feeValues = make([]any, 0, len(parsedFeeDetail))
+				for _, objectValue := range parsedFeeDetail {
+					feeValues = append(feeValues, objectValue)
+				}
+			}
 			var feeObject any = nil
 			for i := 0; i < len(feeValues); i++ {
 				var feeValue any = feeValues[i]

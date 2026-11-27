@@ -1858,7 +1858,7 @@ func (this *Backpack) GetCacheIndex(orderbook map[string]any, cache []any) int64
 	if firstDeltaStart == nil {
 		return int64(-1)
 	}
-	if *nonce < (*firstDeltaStart - 1) {
+	if *nonce < *firstDeltaStart-1 {
 		return int64(-1)
 	}
 	for i := 0; i < cacheLength; i++ {
@@ -1868,7 +1868,7 @@ func (this *Backpack) GetCacheIndex(orderbook map[string]any, cache []any) int64
 		if (deltaStart == nil) || (deltaEnd == nil) {
 			return int64(cacheLength)
 		}
-		if (*nonce >= (*deltaStart - 1)) && (deltaEnd != nil && (nonce == nil || *nonce < *deltaEnd)) {
+		if (*nonce >= *deltaStart-1) && (*nonce < *deltaEnd) {
 			return int64(i)
 		}
 	}

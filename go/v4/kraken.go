@@ -813,7 +813,7 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			if currencyPrecision == nil {
 				panic(ExchangeError(this.Id + " method() missing currencyPrecision"))
 			}
-			if currencyPrecision != nil && (precisionAmount == nil || *currencyPrecision > *precisionAmount) {
+			if precisionAmount == nil || *currencyPrecision > *precisionAmount {
 				precisionAmount = currencyPrecision
 			}
 		}

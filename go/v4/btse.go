@@ -1260,7 +1260,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	for i := 0; i < len(rates); i++ {
 		var rate any = rates[i]
 		var timestamp *int64 = this.SafeInteger(rate, "timestamp")
-		if (timestamp == nil) || (until != nil && *timestamp <= *until) {
+		if (timestamp == nil) || (*timestamp <= *until) {
 			result = append(result, rate)
 		}
 	}
@@ -2099,7 +2099,7 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	for i := 0; i < len(trades); i++ {
 		var trade any = trades[i]
 		var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-		if (timestamp == nil) || (until != nil && *timestamp <= *until) {
+		if (timestamp == nil) || (*timestamp <= *until) {
 			result = append(result, trade)
 		}
 	}

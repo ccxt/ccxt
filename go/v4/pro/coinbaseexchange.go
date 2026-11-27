@@ -1003,7 +1003,7 @@ func (this *Coinbaseexchange) HandleOrder(client ccxt.ClientInterface, message m
 			}
 			var previousInfo map[string]any = this.SafeDictMap(previousOrder, "info", map[string]any{})
 			var previousSequence *int64 = this.SafeInteger(previousInfo, "sequence")
-			if (previousSequence == nil) || (sequence != nil && (previousSequence == nil || *sequence > *previousSequence)) {
+			if (previousSequence == nil) || (*sequence > *previousSequence) {
 				if typeVar != nil && *typeVar == "match" {
 					var trade map[string]any = this.ParseWsTrade(message)
 					var previousTrades any = this.SafeList(previousOrder, "trades", []any{})

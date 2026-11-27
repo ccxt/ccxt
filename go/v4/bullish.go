@@ -2242,11 +2242,11 @@ func (this *Bullish) GetClosestLimit(limit *int64) any {
 	if limit == nil {
 		return pageSize
 	}
-	if (limit != nil && *limit > 5) && (limit == nil || *limit < 26) {
+	if (*limit > 5) && (*limit < 26) {
 		pageSize = 25
-	} else if (limit != nil && *limit > 25) && (limit == nil || *limit < 51) {
+	} else if (*limit > 25) && (*limit < 51) {
 		pageSize = 50
-	} else if limit != nil && *limit > 50 {
+	} else if *limit > 50 {
 		pageSize = 100
 	}
 	return pageSize

@@ -1088,7 +1088,7 @@ func (this *Mexc) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 		if deltaNonce == nil {
 			continue
 		}
-		if nonce == nil || (deltaNonce != nil && *deltaNonce >= *nonce) {
+		if *deltaNonce >= *nonce {
 			return int64(i)
 		}
 	}
