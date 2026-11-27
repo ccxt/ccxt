@@ -1606,7 +1606,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}))})}
 	return nil
 }
-func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees *float64, address string) any {
+func (this *Hibachi) EncodeWithdrawMessage(amount *float64, maxFees *float64, address string) any {
 	// Converting them to internal representation:
 	// - Quantity: Internal = External * (10^6)
 	// - maxFees: Internal = External * (10^6)
@@ -1675,7 +1675,7 @@ func (this *Hibachi) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	var feeConfig, _ = exchangeInfo["feeConfig"].(map[string]any)
 	var maxFees *float64 = this.SafeNumber(feeConfig, "withdrawalFees")
 	// Generate the signature
-	var message any = this.EncodeWithdrawMessage(amount, maxFees, withdrawAddress)
+	var message any = this.EncodeWithdrawMessage(&amount, maxFees, withdrawAddress)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"accountId":       this.GetAccountId(),

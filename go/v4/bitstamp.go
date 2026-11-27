@@ -1311,7 +1311,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bitstamp) ConstructCurrencyObject(id *string, code string, name *string, precision *int64, minCost any, originalPayload map[string]any) map[string]any {
+func (this *Bitstamp) ConstructCurrencyObject(id *string, code string, name *string, precision *int64, minCost *float64, originalPayload map[string]any) map[string]any {
 	var currencyType string = "crypto"
 	var description map[string]any = this.Describe()
 	var fees, _ = description["fees"].(map[string]any)
