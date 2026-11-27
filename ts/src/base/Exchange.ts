@@ -241,6 +241,8 @@ export class BaseExchange {
     options: Dict;
 
     isSandboxModeEnabled: boolean = false;
+    sandbox: boolean = false; // for backward-compatibility
+    testnet: boolean = false; // alias of sandbox
 
     api!: Dictionary<Dict>;
     certified: boolean = false;
@@ -4224,7 +4226,7 @@ export class BaseExchange {
             this.setSandboxMode (true);
         }
         // compatibility for sandbox/testnet options in userConfig
-        if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
+        if (this.safeBool (userConfig, 'sandbox', false) || this.safeBool (userConfig, 'testnet', false)) {
             this.setSandboxMode (true);
         }
     }
