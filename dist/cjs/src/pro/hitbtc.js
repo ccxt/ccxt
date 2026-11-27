@@ -1547,7 +1547,7 @@ class hitbtc extends hitbtc$1["default"] {
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
                 const messageHashes = this.safeList(subscription, 'messageHashes', []);
                 for (let j = 0; j < subMessageHashes.length; j++) {
-                    this.cleanUnsubscription(client, subMessageHashes[j], this.safeString(messageHashes, j));
+                    this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), this.safeString(messageHashes, j));
                 }
                 this.cleanCache(subscription);
                 return;

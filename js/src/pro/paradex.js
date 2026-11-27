@@ -493,7 +493,7 @@ export default class paradex extends paradexRest {
         const prefix = this.safeBool(subscription, 'prefix', false);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
         for (let j = 0; j < subMessageHashes.length; j++) {
-            this.cleanUnsubscription(client, subMessageHashes[j], unsubHash, prefix);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), unsubHash, prefix);
         }
         this.cleanCache(subscription);
         client.resolve(true, unsubHash);
@@ -1139,7 +1139,8 @@ export default class paradex extends paradexRest {
         if ((symbolsLength > 0) && (channel in client.subscriptions)) {
             // the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for (let i = 0; i < subMessageHashes.length; i++) {
-                this.cleanUnsubscription(client, subMessageHashes[i], 'unsubscribe:' + subMessageHashes[i]);
+                const subHash = this.safeString(subMessageHashes, i, '');
+                this.cleanUnsubscription(client, subHash, 'unsubscribe:' + subHash);
             }
             this.cleanCache({ 'topic': 'ticker', 'symbols': tickerSymbols });
             return true;

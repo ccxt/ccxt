@@ -2061,7 +2061,8 @@ export default class paradex extends Exchange {
         const isTakeProfitOrStopLoss = isStopLossOrder || isTakeProfitOrder;
         let sizeString = '0';
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if (!isTakeProfitOrStopLoss || ((amount !== undefined) && (amount > 0))) {
+        const amountStr = this.numberToString(amount);
+        if (!isTakeProfitOrStopLoss || ((amountStr !== undefined) && Precise.stringGt(amountStr, '0'))) {
             sizeString = this.amountToPrecision(symbol, amount);
         }
         let stopPrice = undefined;

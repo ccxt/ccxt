@@ -1907,6 +1907,9 @@ export default class hyperliquid extends hyperliquidRest {
         const symbol = this.safeSymbol(marketId);
         const interval = this.safeString(subscription, 'interval', '');
         const timeframe = this.findTimeframe(interval);
+        if ((timeframe === undefined) || (symbol === undefined)) {
+            return;
+        }
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);

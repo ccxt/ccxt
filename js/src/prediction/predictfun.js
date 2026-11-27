@@ -3072,7 +3072,7 @@ export default class predictfun extends Exchange {
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         const isWalletTopic = (this.safeString(subscription, 'topic') === 'walletEvents');
         for (let i = 0; i < messageHashesLength; i++) {
-            this.cleanUnsubscription(client, subMessageHashes[i], messageHashes[i], isWalletTopic);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i], isWalletTopic);
         }
         this.cleanCache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -

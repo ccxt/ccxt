@@ -446747,6 +446747,9 @@ class lighter extends _abstract_lighter_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const leverageNum = this.parseNumber(leverage);
+        if (leverageNum === undefined || leverageNum <= 0) {
+            throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' modifyLeverageAndMarginMode() requires leverage > 0');
+        }
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
             'initial_margin_fraction': this.parseToInt(10000 / leverageNum),
@@ -465590,7 +465593,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                     const weights = this.safeList(byQuery, queryName, []);
                     const baseWeight = this.safeInteger(weights, 0, 2);
                     const rowsPerWeight = this.safeInteger(weights, 1);
-                    if (rowsPerWeight === undefined) {
+                    if (rowsPerWeight === undefined || rowsPerWeight <= 0) {
                         return baseWeight;
                     }
                     const query = this.safeDict(params, queryName, {});
@@ -465608,6 +465611,9 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             const rowsBaseWeight = this.safeInteger(byRows, 0, 2);
             const rowsDivisor = this.safeInteger(byRows, 1, 50);
+            if (rowsDivisor <= 0) {
+                return rowsBaseWeight;
+            }
             const rowCount = this.safeInteger(params, 'limit', 100); // the v2 default page
             return this.sum(rowsBaseWeight, this.parseToInt(rowCount / rowsDivisor));
         }
@@ -478300,7 +478306,15 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const underlyings = this.safeList(response, 'data', []);
-        return this.toArray(this.safeList(underlyings, 0, []));
+        const first = this.safeList(underlyings, 0, []);
+        const result = [];
+        for(let i = 0; i < first.length; i++){
+            const item = this.safeString(first, i);
+            if (item !== undefined) {
+                result.push(item);
+            }
+        }
+        return result;
     }
     /**
      * @method
@@ -489293,7 +489307,8 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         const isTakeProfitOrStopLoss = isStopLossOrder || isTakeProfitOrder;
         let sizeString = '0';
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if (!isTakeProfitOrStopLoss || amount !== undefined && amount > 0) {
+        const amountStr = this.numberToString(amount);
+        if (!isTakeProfitOrStopLoss || amountStr !== undefined && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(amountStr, '0')) {
             sizeString = this.amountToPrecision(symbol, amount);
         }
         let stopPrice = undefined;
@@ -524536,6 +524551,9 @@ class polymarket extends _abstract_prediction_polymarket_js__rspack_import_0/* [
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         const resolutionMs = fidelityMin * 60 * 1000;
+        if (resolutionMs <= 0) {
+            throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' fetchOHLCV() invalid timeframe resolution');
+        }
         const buckets = {};
         for(let i = 0; i < history.length; i++){
             const item = this.safeDict(history, i);
@@ -530002,7 +530020,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         const isWalletTopic = this.safeString(subscription, 'topic') === 'walletEvents';
         for(let i = 0; i < messageHashesLength; i++){
-            this.cleanUnsubscription(client, subMessageHashes[i], messageHashes[i], isWalletTopic);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, i), messageHashes[i], isWalletTopic);
         }
         this.cleanCache(subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
@@ -569880,7 +569898,8 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         const client = this.client(url);
         this.watchMultiple(url, unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes);
         for(let i = 0; i < channelsLength; i++){
-            this.cleanUnsubscription(client, this.safeString(channels, i, ''), this.safeString(unWatchMessageHashes, i, ''));
+            const channel = this.safeString(channels, i, '');
+            this.cleanUnsubscription(client, channel, this.safeString(unWatchMessageHashes, i, ''));
         }
         return true;
     }
@@ -585851,7 +585870,7 @@ class hitbtc extends _hitbtc_js__rspack_import_0/* ["default"] */.A {
                 const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
                 const messageHashes = this.safeList(subscription, 'messageHashes', []);
                 for(let j = 0; j < subMessageHashes.length; j++){
-                    this.cleanUnsubscription(client, subMessageHashes[j], this.safeString(messageHashes, j));
+                    this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), this.safeString(messageHashes, j));
                 }
                 this.cleanCache(subscription);
                 return;
@@ -591602,6 +591621,9 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const symbol = this.safeSymbol(marketId);
         const interval = this.safeString(subscription, 'interval', '');
         const timeframe = this.findTimeframe(interval);
+        if (timeframe === undefined || symbol === undefined) {
+            return;
+        }
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
@@ -613602,7 +613624,13 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        this.cleanUnsubscription(client, channel + ':' + this.marketId(symbol), undefined);
+        const marketId = this.marketId(symbol);
+        if (marketId !== undefined) {
+            const marketSubHash = channel + ':' + marketId;
+            this.cleanUnsubscription(client, marketSubHash, undefined);
+        } else {
+            this.cleanUnsubscription(client, undefined, undefined);
+        }
         if (timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }
@@ -617716,7 +617744,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         const prefix = this.safeBool(subscription, 'prefix', false);
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
         for(let j = 0; j < subMessageHashes.length; j++){
-            this.cleanUnsubscription(client, subMessageHashes[j], unsubHash, prefix);
+            this.cleanUnsubscription(client, this.safeString(subMessageHashes, j), unsubHash, prefix);
         }
         this.cleanCache(subscription);
         client.resolve(true, unsubHash);
@@ -618386,7 +618414,8 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         if (symbolsLength > 0 && channel in client.subscriptions) {
             // the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for(let i = 0; i < subMessageHashes.length; i++){
-                this.cleanUnsubscription(client, subMessageHashes[i], 'unsubscribe:' + subMessageHashes[i]);
+                const subHash = this.safeString(subMessageHashes, i, '');
+                this.cleanUnsubscription(client, subHash, 'unsubscribe:' + subHash);
             }
             this.cleanCache({
                 'topic': 'ticker',

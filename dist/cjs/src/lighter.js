@@ -3168,6 +3168,9 @@ class lighter extends lighter$1["default"] {
         const market = this.market(symbol);
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const leverageNum = this.parseNumber(leverage);
+        if ((leverageNum === undefined) || (leverageNum <= 0)) {
+            throw new errors.BadRequest(this.id + ' modifyLeverageAndMarginMode() requires leverage > 0');
+        }
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
             'initial_margin_fraction': this.parseToInt(10000 / leverageNum),

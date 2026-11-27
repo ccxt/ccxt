@@ -8871,7 +8871,15 @@ class okx extends okx$1["default"] {
         //     }
         //
         const underlyings = this.safeList(response, 'data', []);
-        return this.toArray(this.safeList(underlyings, 0, []));
+        const first = this.safeList(underlyings, 0, []);
+        const result = [];
+        for (let i = 0; i < first.length; i++) {
+            const item = this.safeString(first, i);
+            if (item !== undefined) {
+                result.push(item);
+            }
+        }
+        return result;
     }
     /**
      * @method

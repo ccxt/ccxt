@@ -3223,7 +3223,7 @@ class nado extends nado$1["default"] {
                     const weights = this.safeList(byQuery, queryName, []);
                     const baseWeight = this.safeInteger(weights, 0, 2);
                     const rowsPerWeight = this.safeInteger(weights, 1);
-                    if (rowsPerWeight === undefined) {
+                    if ((rowsPerWeight === undefined) || (rowsPerWeight <= 0)) {
                         return baseWeight;
                     }
                     const query = this.safeDict(params, queryName, {});
@@ -3241,6 +3241,9 @@ class nado extends nado$1["default"] {
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             const rowsBaseWeight = this.safeInteger(byRows, 0, 2);
             const rowsDivisor = this.safeInteger(byRows, 1, 50);
+            if (rowsDivisor <= 0) {
+                return rowsBaseWeight;
+            }
             const rowCount = this.safeInteger(params, 'limit', 100); // the v2 default page
             return this.sum(rowsBaseWeight, this.parseToInt(rowCount / rowsDivisor));
         }

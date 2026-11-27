@@ -56,7 +56,7 @@ export type DeepPartial<T> = T extends Builtin ? T : T extends Long ? string | n
     [K in keyof T]?: DeepPartial<T[K]>;
 } : Partial<T>;
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P : P & {
+export type Exact<P, I extends P> = [P] extends [Builtin] ? P : P & {
     [K in keyof P]: Exact<P[K], I[K]>;
 } & Record<Exclude<keyof I, KeysOfUnion<P>>, never>;
 export interface Rpc {
