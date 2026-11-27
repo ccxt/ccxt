@@ -403,6 +403,7 @@ class bitvavo extends bitvavo$1["default"] {
                     '412': errors.InvalidAddress, // {"errorCode":412,"error":"eth_address_invalid."}
                     '413': errors.InvalidAddress, // This address violates the whitelist.
                     '414': errors.ExchangeError, // You cannot withdraw assets within 2 minutes of logging in.
+                    '431': errors.MarketClosed, // {"errorCode":431,"error":"getBook is not available for ACE-EUR in state HALTED"}
                 },
                 'broad': {
                     'start parameter is invalid': errors.BadRequest, // {"errorCode":205,"error":"start parameter is invalid."}

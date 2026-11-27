@@ -466,6 +466,7 @@ public partial class bitvavo : Exchange
                     { "412", typeof(InvalidAddress) },
                     { "413", typeof(InvalidAddress) },
                     { "414", typeof(ExchangeError) },
+                    { "431", typeof(MarketClosed) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "start parameter is invalid", typeof(BadRequest) },

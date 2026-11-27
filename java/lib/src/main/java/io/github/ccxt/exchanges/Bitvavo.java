@@ -502,6 +502,7 @@ public class Bitvavo extends BitvavoApi
                     put( "412", InvalidAddress.class );
                     put( "413", InvalidAddress.class );
                     put( "414", ExchangeError.class );
+                    put( "431", MarketClosed.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
                     put( "start parameter is invalid", BadRequest.class );

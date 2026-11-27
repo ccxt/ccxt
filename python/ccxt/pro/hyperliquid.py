@@ -25,6 +25,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'createOrdersWs': True,
                 'editOrderWs': True,
                 'watchBalance': True,
+                'watchBidsAsks': True,
                 'watchMyLiquidations': True,
                 'watchMyLiquidationsForSymbols': True,
                 'watchMyTrades': True,
@@ -37,6 +38,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'watchTradesForSymbols': False,
                 'watchPosition': False,
                 'unWatchBalance': True,
+                'unWatchBidsAsks': True,
                 'watchPositions': True,
                 'unWatchPositions': True,
                 'unWatchOrderBook': True,
@@ -328,6 +330,124 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         orderbook.reset(snapshot)
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
+
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        watches the best bid & ask of a market
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param str[] symbols: a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(self.single_bid_ask_symbol('watchBidsAsks', symbols))
+        symbol = self.safe_string(market, 'symbol', '')
+        messageHash = 'bidask:' + symbol
+        url = self.urls['api']['ws']['public']
+        request = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'bbo',
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+            },
+        }
+        message = self.extend(request, params)
+        await self.wait_for_pending_unsubscribe(url, messageHash)
+        ticker = await self.watch(url, messageHash, message, messageHash)
+        if self.newUpdates:
+            result = {}
+            result[symbol] = ticker
+            return result
+        return self.filter_by_array(self.bidsasks, 'symbol', [symbol])
+
+    async def un_watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+        unWatches the best bid & ask of a market
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+
+        :param str[] symbols: a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: the exchange response
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(self.single_bid_ask_symbol('unWatchBidsAsks', symbols))
+        symbol = self.safe_string(market, 'symbol', '')
+        subMessageHash = 'bidask:' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        url = self.urls['api']['ws']['public']
+        nonce = self.incrementing_nonce()
+        id = self.number_to_string(nonce)
+        request = {
+            'id': id,
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'bbo',
+                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+            },
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
+    def single_bid_ask_symbol(self, methodName: str, symbols: Strings = None) -> str:
+        """
+ @ignore
+        the bbo stream is subscribed per market, returns the only symbol of the list or throws
+        :param str methodName: the name of the calling method
+        :param str[] symbols: a list with a single unified symbol
+        :returns str: the symbol
+        """
+        symbolsLength = 0
+        if symbols is not None:
+            symbolsLength = len(symbols)
+        if symbolsLength != 1:
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol')
+        return self.safe_string(symbols, 0, '')
+
+    def handle_bid_ask(self, client: Client, message: dict):
+        #
+        #     {
+        #         "channel": "bbo",
+        #         "data": {
+        #             "coin": "BTC",
+        #             "time": 1795692679488,
+        #             "bbo": [
+        #                 { "px": "60612.0", "sz": "12.46853", "n": 39 },
+        #                 { "px": "60613.0", "sz": "1.43894", "n": 8 }
+        #             ]
+        #         }
+        #     }
+        #
+        entry = self.safe_dict(message, 'data', {})
+        ticker = self.parse_ws_bid_ask(entry)
+        symbol = self.safe_string(ticker, 'symbol', '')
+        self.bidsasks[symbol] = ticker
+        messageHash = 'bidask:' + symbol
+        client.resolve(ticker, messageHash)
+
+    def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
+        coin = self.safe_string(ticker, 'coin')
+        marketId = self.coinToMarketId(coin)
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'time')
+        # either side is null when the book has no orders on it
+        levels = self.safe_list(ticker, 'bbo', [])
+        bid = self.safe_dict(levels, 0, {})
+        ask = self.safe_dict(levels, 1, {})
+        return self.safe_ticker({
+            'symbol': self.safe_string(marketResolved, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'bid': self.safe_string(bid, 'px'),
+            'bidVolume': self.safe_string(bid, 'sz'),
+            'ask': self.safe_string(ask, 'px'),
+            'askVolume': self.safe_string(ask, 'sz'),
+            'info': ticker,
+        }, marketResolved)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1626,6 +1746,22 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         for i in range(0, len(symbols)):
             del self.tickers[symbols[i]]
 
+    def handle_bid_ask_unsubscription(self, client: Client, subscription: dict):
+        #
+        #        "subscription":{
+        #           "type":"bbo",
+        #           "coin":"BTC"
+        #        }
+        #
+        coin = self.safe_string(subscription, 'coin')
+        marketId = self.coinToMarketId(coin)
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = 'bidask:' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.bidsasks:
+            del self.bidsasks[symbol]
+
     def handle_ticker_unsubscription(self, client: Client, subscription: dict):
         #
         coin = self.safe_string(subscription, 'coin')
@@ -1739,6 +1875,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         type = self.safe_string(subscription, 'type')
         if type == 'l2Book':
             self.handle_order_book_unsubscription(client, subscription)
+        elif type == 'bbo':
+            self.handle_bid_ask_unsubscription(client, subscription)
         elif type == 'trades':
             self.handle_trades_unsubscription(client, subscription)
         elif type == 'candle':
@@ -1778,6 +1916,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'pong': self.handle_pong,
             'trades': self.handle_trades,
             'l2Book': self.handle_order_book,
+            'bbo': self.handle_bid_ask,
             'candle': self.handle_ohlcv,
             'orderUpdates': self.handle_order,
             'userFills': self.handle_my_trades,

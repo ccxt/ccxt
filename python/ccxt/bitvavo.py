@@ -14,6 +14,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import MarketClosed
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -416,6 +417,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     '412': InvalidAddress,  # {"errorCode":412,"error":"eth_address_invalid."}
                     '413': InvalidAddress,  # This address violates the whitelist.
                     '414': ExchangeError,  # You cannot withdraw assets within 2 minutes of logging in.
+                    '431': MarketClosed,  # {"errorCode":431,"error":"getBook is not available for ACE-EUR in state HALTED"}
                 },
                 'broad': {
                     'start parameter is invalid': BadRequest,  # {"errorCode":205,"error":"start parameter is invalid."}

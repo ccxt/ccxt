@@ -105,6 +105,38 @@ export default class hyperliquid extends hyperliquidRest {
     handleOrderBook(client: Client, message: Dict): void;
     /**
      * @method
+     * @name hyperliquid#watchBidsAsks
+     * @description watches the best bid & ask of a market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchBidsAsks
+     * @description unWatches the best bid & ask of a market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#singleBidAskSymbol
+     * @description the bbo stream is subscribed per market, returns the only symbol of the list or throws
+     * @param {string} methodName the name of the calling method
+     * @param {string[]} symbols a list with a single unified symbol
+     * @returns {string} the symbol
+     */
+    singleBidAskSymbol(methodName: string, symbols?: Strings): string;
+    handleBidAsk(client: Client, message: Dict): void;
+    parseWsBidAsk(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
      * @name hyperliquid#watchTicker
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -335,6 +367,7 @@ export default class hyperliquid extends hyperliquidRest {
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
+    handleBidAskUnsubscription(client: Client, subscription: Dict): void;
     handleTickerUnsubscription(client: Client, subscription: Dict): void;
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
     handleOrderUnsubscription(client: Client, subscription: Dict): void;

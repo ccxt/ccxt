@@ -6321,6 +6321,18 @@ func WithCancelTwapOrderParams(params map[string]any) CancelTwapOrderOptions {
 	}
 }
 
+type FetchVaultDetailsOptionsStruct struct {
+	Params *map[string]any
+}
+
+type FetchVaultDetailsOptions func(opts *FetchVaultDetailsOptionsStruct)
+
+func WithFetchVaultDetailsParams(params map[string]any) FetchVaultDetailsOptions {
+	return func(opts *FetchVaultDetailsOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type CreateTestOrderOptionsStruct struct {
 	Price  *float64
 	Params *map[string]any

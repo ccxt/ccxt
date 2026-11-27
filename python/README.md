@@ -24,6 +24,8 @@ Current feature list:
 - ideal for AI agents, LLMs and vibe coding
 - works in Node 18+, Python 3, PHP 8.1+, netstandard2.0/2.1, Go 1.20+, Java 21+ and web browsers
 
+## Sponsored Promotion
+
 [![Bithumb](https://github.com/user-attachments/assets/c1440b76-27c7-4578-a7f8-a05868fe7479)](https://feed.bithumb.com/notice/1653746)
 
 [![Bithumb](https://github.com/user-attachments/assets/4127d4b3-284c-41bc-906f-adaef5cf180a)](https://feed.bithumb.com/notice/1653910)

@@ -18,6 +18,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "createOrdersWs", true },
                 { "editOrderWs", true },
                 { "watchBalance", true },
+                { "watchBidsAsks", true },
                 { "watchMyLiquidations", true },
                 { "watchMyLiquidationsForSymbols", true },
                 { "watchMyTrades", true },
@@ -30,6 +31,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "watchTradesForSymbols", false },
                 { "watchPosition", false },
                 { "unWatchBalance", true },
+                { "unWatchBidsAsks", true },
                 { "watchPositions", true },
                 { "unWatchPositions", true },
                 { "unWatchOrderBook", true },
@@ -369,6 +371,148 @@ public partial class hyperliquid : ccxt.hyperliquid
         (orderbook as IOrderBook).reset(ccxt.BaseExchange.FromOrderBook(snapshot));
         string messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#watchBidsAsks
+     * @description watches the best bid & ask of a market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(this.singleBidAskSymbol("watchBidsAsks", symbols));
+        string? symbol = this.safeString(market, "symbol", "");
+        string messageHash = ("bidask:" + symbol);
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "subscription", new Dictionary<string, object>() {
+                { "type", "bbo" },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+            } },
+        };
+        Dictionary<string, object> message = this.extend(request, parameters);
+        await this.waitForPendingUnsubscribe(url, messageHash);
+        object ticker = await this.watch(url, messageHash, message, messageHash);
+        if (this.newUpdates)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>() {};
+            result[(string)symbol] = ticker;
+            return ccxt.BaseExchange.ToTickers(result);
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", new List<object>() {symbol}));
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchBidsAsks
+     * @description unWatches the best bid & ask of a market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string[]} symbols a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the exchange response
+     */
+    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(this.singleBidAskSymbol("unWatchBidsAsks", symbols));
+        string? symbol = this.safeString(market, "symbol", "");
+        string subMessageHash = ("bidask:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
+        string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
+        Int64? nonce = this.incrementingNonce();
+        string? id = this.numberToString(nonce);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "id", id },
+            { "method", "unsubscribe" },
+            { "subscription", new Dictionary<string, object>() {
+                { "type", "bbo" },
+                { "coin", (this.safeBool(market, "swap", false) == true) ? (market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
+            } },
+        };
+        Dictionary<string, object> message = this.extend(request, parameters);
+        return await this.watch(url, messageHash, message, messageHash);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#singleBidAskSymbol
+     * @description the bbo stream is subscribed per market, returns the only symbol of the list or throws
+     * @param {string} methodName the name of the calling method
+     * @param {string[]} symbols a list with a single unified symbol
+     * @returns {string} the symbol
+     */
+    public virtual string? singleBidAskSymbol(object methodName, object symbols = null)
+    {
+        int symbolsLength = 0;
+        if ((symbols != null))
+        {
+            symbolsLength = getArrayLength(symbols);
+        }
+        if ((symbolsLength != 1))
+        {
+            throw new ArgumentsRequired ((((this.id + " ") + (methodName)) + "() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol")) ;
+        }
+        return this.safeString(symbols, 0, "");
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
+    {
+        //
+        //     {
+        //         "channel": "bbo",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "time": 1795692679488,
+        //             "bbo": [
+        //                 { "px": "60612.0", "sz": "12.46853", "n": 39 },
+        //                 { "px": "60613.0", "sz": "1.43894", "n": 8 }
+        //             ]
+        //         }
+        //     }
+        //
+        IDictionary<string, object> entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        Dictionary<string, object> ticker = this.parseWsBidAsk(entry);
+        string? symbol = this.safeString(ticker, "symbol", "");
+        this.bidsasks[(string)symbol] = ticker;
+        string messageHash = ("bidask:" + symbol);
+        client.resolve(ticker, messageHash);
+    }
+
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
+    {
+        string? coin = this.safeString(ticker, "coin");
+        string? marketId = this.coinToMarketId(coin);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
+        Int64? timestamp = this.safeInteger(ticker, "time");
+        // either side is null when the book has no orders on it
+        List<object> levels = this.safeList(ticker, "bbo", new List<object>() {});
+        IDictionary<string, object> bid = this.safeDict(levels, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> ask = this.safeDict(levels, 1, new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", this.safeString(marketResolved, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "bid", this.safeString(bid, "px") },
+            { "bidVolume", this.safeString(bid, "sz") },
+            { "ask", this.safeString(ask, "px") },
+            { "askVolume", this.safeString(ask, "sz") },
+            { "info", ticker },
+        }, marketResolved));
     }
 
     /**
@@ -2008,6 +2152,26 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
+    public virtual void handleBidAskUnsubscription(WebSocketClient client, object subscription)
+    {
+        //
+        //        "subscription":{
+        //           "type":"bbo",
+        //           "coin":"BTC"
+        //        }
+        //
+        string? coin = this.safeString(subscription, "coin");
+        string? marketId = this.coinToMarketId(coin);
+        string? symbol = this.safeSymbol(marketId);
+        string subMessageHash = ("bidask:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (((symbol != null) && (this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol))))
+        {
+            this.bidsasks.Remove(symbol);
+        }
+    }
+
     public virtual void handleTickerUnsubscription(WebSocketClient client, object subscription)
     {
         //
@@ -2157,6 +2321,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (type == "l2Book")
         {
             this.handleOrderBookUnsubscription(client, subscription);
+        } else if (type == "bbo")
+        {
+            this.handleBidAskUnsubscription(client, subscription);
         } else if (type == "trades")
         {
             this.handleTradesUnsubscription(client, subscription);
@@ -2209,6 +2376,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "pong", this.handlePong },
             { "trades", this.handleTrades },
             { "l2Book", this.handleOrderBook },
+            { "bbo", this.handleBidAsk },
             { "candle", this.handleOHLCV },
             { "orderUpdates", this.handleOrder },
             { "userFills", this.handleMyTrades },

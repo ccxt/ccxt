@@ -475,6 +475,7 @@ func (this *Bitvavo) Describe() map[string]any {
 				"412": InvalidAddress,
 				"413": InvalidAddress,
 				"414": ExchangeError,
+				"431": MarketClosed,
 			},
 			"broad": map[string]any{
 				"start parameter is invalid":   BadRequest,
@@ -1030,11 +1031,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes84119 []any = r1.Value
-		if retRes84119 == nil {
+		var retRes84219 []any = r1.Value
+		if retRes84219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes84119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes84219)}
 		}
 		return nil
 	}
@@ -1476,11 +1477,11 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes117319 []any = r1.Value
-		if retRes117319 == nil {
+		var retRes117419 []any = r1.Value
+		if retRes117419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes117319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes117419)}
 		}
 		return nil
 	}
@@ -2593,11 +2594,11 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes194319 []any = r1.Value
-		if retRes194319 == nil {
+		var retRes194419 []any = r1.Value
+		if retRes194419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes194319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes194419)}
 		}
 		return nil
 	}
@@ -2930,11 +2931,11 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes221419 []any = r1.Value
-		if retRes221419 == nil {
+		var retRes221519 []any = r1.Value
+		if retRes221519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes221419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes221519)}
 		}
 		return nil
 	}

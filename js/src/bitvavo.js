@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitvavo.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
+import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance, MarketClosed } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 // ----------------------------------------------------------------------------
@@ -404,6 +404,7 @@ export default class bitvavo extends Exchange {
                     '412': InvalidAddress, // {"errorCode":412,"error":"eth_address_invalid."}
                     '413': InvalidAddress, // This address violates the whitelist.
                     '414': ExchangeError, // You cannot withdraw assets within 2 minutes of logging in.
+                    '431': MarketClosed, // {"errorCode":431,"error":"getBook is not available for ACE-EUR in state HALTED"}
                 },
                 'broad': {
                     'start parameter is invalid': BadRequest, // {"errorCode":205,"error":"start parameter is invalid."}
