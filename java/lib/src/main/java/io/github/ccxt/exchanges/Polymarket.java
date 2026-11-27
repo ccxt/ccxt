@@ -3156,7 +3156,7 @@ public class Polymarket extends PolymarketApi
 
     public String signHash(String hash, String privateKey)
     {
-        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (((String)privateKey) == null ? null : ((String)((String)privateKey)).substring(Math.max(((String)((String)privateKey)).length() - 64, 0))), secp256k1(), null);
+        Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         String r = this.safeString(signature, "r", "");
         String sVal = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
@@ -3335,7 +3335,7 @@ public class Polymarket extends PolymarketApi
             put( "ts", ts );
         }};
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
-        String proxyPrivateKey = this.safeString(credentials, "privateKey");
+        String proxyPrivateKey = this.safeString(credentials, "privateKey", "");
         String signature = this.signMessage(encoded, proxyPrivateKey);
         Map<String, Object> envelope = new HashMap<String, Object>() {{
             put( "op", bodyOp );
