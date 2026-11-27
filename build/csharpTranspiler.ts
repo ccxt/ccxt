@@ -1352,9 +1352,11 @@ const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price', 
 VENUE_NUMERIC_ARG_NAMES.push ('value');
 // buildOutcomeSymbol (side: number): the body compares it with integer literals; no caller
 VENUE_NUMERIC_ARG_NAMES.push ('side');
+VENUE_NUMERIC_ARG_NAMES.push ('timeout');
 // Venue-helper `object` parameters typed `IList<object>`: the ts annotation is an array, the venue class declares the method once and no file calls it by that venue's binding.
 const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'amountToPredictionPrecision': { 1: 'double?' },
+    'waitForTransactionReceipt': { 2: 'Int64?' },
     'borrowMargin': { 1: 'double?' },
     'buildClobOrderBody': { 3: 'double?' },
     'buildOrderbookOrder': { 3: 'double?', 4: 'double?' },

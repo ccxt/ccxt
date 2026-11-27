@@ -1161,34 +1161,6 @@ func IsBool(v any) bool {
 	return ok
 }
 
-// IsDictionary checks if the input is a map (dictionary in Python)
-func IsDictionary(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	switch v.(type) {
-	case map[string]any:
-		return true
-	case Dict:
-		return true
-	case map[any]any:
-		return true
-	case OrderBookInterface:
-		// live ws orderbooks are dictionaries in every other runtime — js
-		// objects, python dicts, java WsOrderBook extends AbstractMap
-		// (https://github.com/ccxt/ccxt/pull/29594), C# OrderBook implements
-		// IDictionary — and the shared structure test asserts
-		// isDictionary(entry) on them; the native go check introduced in
-		// https://github.com/ccxt/ccxt/pull/29704 must agree or every ws
-		// orderbook live test fails with "entry is not a dict"
-		return true
-	default:
-		return false
-	}
-	// return reflect.TypeOf(v).Kind() == reflect.Map
-}
-
 // IsString checks if the input is a string
 func IsString(v any) bool {
 	v = derefScalar(v)
@@ -1278,17 +1250,6 @@ func EndsWith(v any, suffix any) bool {
 	if str, ok := v.(string); ok {
 		suffixStr := ToString(suffix)
 		return strings.HasSuffix(str, suffixStr)
-	}
-	return false
-}
-
-// Contains checks if the string contains the specified substring
-func Contains(v any, substr any) bool {
-	v = derefScalar(v)
-	substr = derefScalar(substr)
-	if str, ok := v.(string); ok {
-		substrStr := ToString(substr)
-		return strings.Contains(str, substrStr)
 	}
 	return false
 }
@@ -2636,9 +2597,18 @@ func Capitalize(s string) string {
 	return firstLetter + s[1:]
 }
 
-// delegates to the package-level predicate, which returns a bool
+// IsDictionary checks if the input is a map or live ws orderbook.
 func (this *BaseExchange) IsDictionary(value any) bool {
-	return IsDictionary(value)
+	v := derefScalar(value)
+	if v == nil {
+		return false
+	}
+	switch v.(type) {
+	case map[string]any, Dict, map[any]any, OrderBookInterface:
+		return true
+	default:
+		return false
+	}
 }
 
 func SetDefaults(p any) {

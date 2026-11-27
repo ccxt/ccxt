@@ -206,10 +206,6 @@ func IsBool(v interface{}) bool {
 	return ccxt.IsBool(v)
 }
 
-func IsDictionary(v interface{}) bool {
-	return ccxt.IsDictionary(v)
-}
-
 func IsString(v interface{}) bool {
 	return ccxt.IsString(v)
 }
@@ -251,7 +247,17 @@ func EndsWith(v interface{}, suffix interface{}) bool {
 }
 
 func Contains(v interface{}, substr interface{}) bool {
-	return ccxt.Contains(v, substr)
+	s, ok := v.(string)
+	if !ok {
+		if p, pok := v.(*string); pok && p != nil {
+			s = *p
+			ok = true
+		}
+	}
+	if !ok {
+		return false
+	}
+	return strings.Contains(s, ccxt.ToString(substr))
 }
 
 func StringArg(v interface{}) string {

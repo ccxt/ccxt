@@ -61,6 +61,7 @@ export const CORE_NUMERIC_ARGS = {
     'createStopMarketOrderWs': { 2: 'double' },
     'findNearestCeiling': { 1: 'Int64' },
     'isRoundNumber': { 0: 'double?' },
+    'waitForTransactionReceipt': { 2: 'Int64?' },
     'createStopOrderWs': { 3: 'double', 4: 'double?' },
     'createTakeProfitOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },

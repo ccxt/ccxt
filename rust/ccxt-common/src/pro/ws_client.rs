@@ -1219,6 +1219,12 @@ impl ClientHandle {
     pub fn subscription_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions)).as_array().cloned().unwrap_or_default()
     }
+    /// `Object.values(client.subscriptions)` (internal tags filtered), read live.
+    pub fn subscription_values(&self) -> Vec<Value> {
+        let live = self.field("subscriptions");
+        let src = live.as_ref().unwrap_or(&self.subscriptions);
+        src.as_map().map(|m| m.iter().filter(|(k, _)| k.as_str() != "__ws_subs_url" && k.as_str() != "__ws_sub_ref").map(|(_, v)| v.to_owned()).collect()).unwrap_or_default()
+    }
     /// `key in client.futures`, read from the handle's snapshot.
     pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("futures").as_ref().unwrap_or(&self.futures), key.into()) }
     /// `client.futures[key]` (Null when absent).
