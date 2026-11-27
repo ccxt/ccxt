@@ -873,13 +873,16 @@ class gemini extends Exchange {
             $settleId = $this->safe_string($response, 'contract_price_currency');
         } else {
             // if no detailed API was called, then parse either string or array
-            if ($isString) {
+            if (gettype($response) === 'string') {
                 $marketId = $response;
             } else {
                 $marketId = $this->safe_string_lower($response, 0);
                 $tickSize = $this->parse_number($this->parse_precision($this->safe_string($response, 1))); // priceTickDecimalPlaces
                 $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($response, 2))); // quantityTickDecimalPlaces
                 $minSize = $this->safe_number($response, 3); // quantityMinimum
+            }
+            if ($marketId === null) {
+                throw new ExchangeError($this->id . ' parseMarket() missing marketId');
             }
             $marketIdUpper = strtoupper($marketId);
             $isPerp = (mb_strpos($marketIdUpper, 'PERP') !== false);

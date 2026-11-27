@@ -4594,7 +4594,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $bidAsk;
     }
 
-    public function safe_currency(?string $currencyId, ?array $currency = null) {
+    public function safe_currency(?string $currencyId = null, ?array $currency = null) {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
