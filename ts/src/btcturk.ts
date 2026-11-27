@@ -740,9 +740,8 @@ export default class btcturk extends Exchange {
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
         }
-        let limitResolved: Int = undefined;
+        let limitResolved: Int = limit;
         if (limit !== undefined) {
-            limitResolved = limit;
             if (limit > 11000) {
                 limitResolved = 11000; // max 11000 candles diapason can be covered
             }

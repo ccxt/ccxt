@@ -1463,24 +1463,6 @@ func ObjectKeys(v any) []string {
 	// return strKeys
 }
 
-// ObjectValues returns the values of a map as a slice of any
-func ObjectValues(v any) []any {
-	v = derefScalar(v)
-	if v == nil {
-		return nil
-	}
-	// return values
-	if mapObject, ok := v.(map[string]any); ok {
-		values := make([]any, 0, len(mapObject))
-		for _, value := range mapObject {
-			values = append(values, value)
-		}
-		return values
-	}
-	return nil
-	// val := ref
-}
-
 func JsonParse(jsonStr2 any) any {
 	jsonStr2 = derefScalar(jsonStr2)
 	jsonStr := derefScalar(jsonStr2).(string)
@@ -2751,7 +2733,7 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 					arg = args[k]
 				}
 				in = append(in, reflect.ValueOf(Float64Arg(arg)).Convert(paramType))
-			} else if k < len(args) && args[k] != nil {
+			} else if k < len(args) && args[k] != nil && derefScalar(args[k]) != nil {
 				argValue := reflect.ValueOf(args[k])
 				if paramType.Kind() == reflect.Slice && argValue.Kind() == reflect.Slice && argValue.Type() != paramType && argValue.Type().Elem().Kind() == reflect.Interface {
 					// decoded JSON lists arrive as []any: rebuild them as the typed slice the method declares
@@ -2773,7 +2755,7 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 		if isVariadic && len(args) >= numIn-1 {
 			variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
 			for k := numIn - 1; k < len(args); k++ {
-				if args[k] == nil {
+				if args[k] == nil || derefScalar(args[k]) == nil {
 					in = append(in, reflect.Zero(variadicType))
 				} else {
 					in = append(in, reflect.ValueOf(args[k]))

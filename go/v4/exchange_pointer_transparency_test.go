@@ -144,7 +144,6 @@ func unaryShims() []unaryShim {
 		{"JsonStringify", func(v any) any { return JsonStringify(v) }},
 		{"JsonParse", func(v any) any { return JsonParse(v) }},
 		{"IsFunction", func(v any) any { return IsFunction(v) }},
-		{"ObjectValues", func(v any) any { return ObjectValues(v) }},
 		{"ObjectKeys", func(v any) any { return ObjectKeys(v) }},
 		{"IsTrue", func(v any) any { return IsTrue(v) }},
 		{"IsInteger", func(v any) any { return IsInteger(v) }},

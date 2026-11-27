@@ -415,15 +415,6 @@ pub fn object_keys(v: &Value) -> Value {
     }
 }
 
-pub fn object_values(v: &Value) -> Value {
-    match v {
-        Value::Dict(m) => Value::Array(
-            m.iter().filter(|(k, _)| !is_ws_internal_tag(k))
-                .map(|(_, val)| val.clone()).collect()),
-        _ => Value::Array(vec![]),
-    }
-}
-
 pub fn get_array_length(v: &Value) -> Value {
     // Cache / order-book markers expose their rolling buffer via
     // `_data` / `_entries` — `cache.length` in TS refers to the
@@ -510,10 +501,6 @@ pub fn json_stringify(v: impl JsonOperand) -> Value {
 }
 
 // ── misc ────────────────────────────────────────────────────────────────────
-
-pub fn println_val(v: &Value) {
-    println!("{v}");
-}
 
 /// Async equivalent of Promise.all — awaits all futures and collects results.
 /// Currently a stub: takes the already-awaited `Value::Arr` and answers its list (empty for a non-list).
@@ -1216,31 +1203,6 @@ pub fn jwt(request: impl Into<Value>, secret: impl Into<Value>, algorithm: Value
     let sig_url = sig_std.replace('+', "-").replace('/', "_")
         .trim_end_matches('=').to_string();
     format!("{token}.{sig_url}")
-}
-
-/// `replace_str(s, old, new)` — string replacement (first occurrence, as TS String.replace).
-pub fn replace_str(s: &Value, old: &Value, new_val: &Value) -> Value {
-    match (s, old, new_val) {
-        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_ref(), n.as_ref()).into()),
-        _ => s.clone(),
-    }
-}
-
-/// `replace_all_str(s, old, new)` — replace every occurrence (TS String.replaceAll).
-pub fn replace_all_str(s: &Value, old: &Value, new_val: &Value) -> Value {
-    let (Value::Str(sv), Value::Str(ov), Value::Str(nv)) = (s, old, new_val) else {
-        return s.clone();
-    };
-    Value::Str(sv.replace(ov.as_ref(), nv.as_ref()).into())
-}
-
-/// `Date.now()` — current Unix time in milliseconds.
-pub fn date_now() -> Value {
-    let ms = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as i64)
-        .unwrap_or(0);
-    Value::Int(ms)
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────

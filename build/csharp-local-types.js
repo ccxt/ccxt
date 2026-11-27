@@ -190,7 +190,16 @@ export const CORE_NUMERIC_ARGS = {
     'watchTradesForSymbols': { 1: 'Int64?', 2: 'Int64?' },
     'withdraw': { 1: 'double' },
     'buildOHLCVC': { 2: 'Int64?', 3: 'Int64?' },
-    'fetchPaginatedCallCursor': { 2: 'Int64?' },
+    'fetchPaginatedCallCursor': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPaginatedCallDeterministic': { 3: 'Int64?' },
+    'fetchPaginatedCallDynamic': { 3: 'Int64?' },
+    'filterByLimit': { 1: 'Int64?' },
+    'filterBySinceLimit': { 2: 'Int64?' },
+    'filterByValueSinceLimit': { 4: 'Int64?' },
+    'filterBySymbolSinceLimit': { 3: 'Int64?' },
+    'filterByCurrencySinceLimit': { 3: 'Int64?' },
+    'filterByOutcomeSinceLimit': { 3: 'Int64?' },
+    'parseOHLCVs': { 4: 'Int64?' },
 };
 // retype-cs-divide-arith: numeric parameters used in divide(p, N)/divide(N, p) take the C# twin of their TS annotation so the call prints native. Name-keyed, so base and overrides...
 export const RETYPE_CS_DIVIDE_NUMERIC_ARGS = { 'safeDeterministicCall': { 2: 'Int64?', 3: 'Int64?' }, 'fetchPaginatedCallDeterministic': { 2: 'Int64?' }, 'createTwapOrder': { 3: 'double' }, 'fetchPaginatedCallDynamic': { 2: 'Int64?' }, };
@@ -2436,6 +2445,19 @@ function csharpArithmeticExpressionKind (csharp, node, context) {
     }
     // `*`: multiply(Int64, Int64) for two int-like operands, multiply(Int64?, Int64?) for a null-holding pair; a double operand stays unproven (no multiply(double, double) twin — an i...
     if (bothSmallInt) { return 'Int64'; }
+    // `Math.floor (a / b) * c` where a is integral/Int64?, b & c are int-like -> printed `((Int64)Math.Floor(((double)a / b)) * c)`
+    const floorLeft = stripParens (node.left);
+    if (floorLeft?.kind === ts.SyntaxKind.CallExpression && (floorLeft.arguments ?? []).length === 1
+        && floorLeft.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && floorLeft.expression.expression?.kind === ts.SyntaxKind.Identifier && floorLeft.expression.expression.text === 'Math'
+        && floorLeft.expression.name?.text === 'floor' && ARITHMETIC_SMALL_INT.includes (right)) {
+        const div = stripParens (floorLeft.arguments[0]);
+        if (div?.kind === ts.SyntaxKind.BinaryExpression && div.operatorToken?.kind === ts.SyntaxKind.SlashToken
+            && (nullableIntegerOperand (csharp, div.left, context) !== undefined)
+            && ARITHMETIC_SMALL_INT.includes (csharpArithmeticOperandKind (csharp, div.right, context))) {
+            return 'Int64';
+        }
+    }
     return hasDouble ? undefined : nullableIntegerArithmeticKind (csharp, node, context);
 }
 // the arithmetic kind of one operand of a printed `-` / `*` / `/`, or undefined when the C# static type cannot be proven. Mirrors what the C# compiler sees: literals by their lite...

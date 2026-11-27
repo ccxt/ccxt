@@ -1874,12 +1874,43 @@ function stringElementReadLocalType (printer, initializer) {
     if (!proven) { return undefined; }
     return { type: 'String', cast: '(String)', valuePrefixes: [ ...ELEMENT_READ_PREFIXES, ...declaredMapReadPrefixes (printer, initializer) ], strictPlus: true };
 }
+function jsonParseMapLocalType (printer, declaration, initializer) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) { return undefined; }
+    if ((declaration.parent.flags & ts.NodeFlags.Const) === 0) { return undefined; }
+    if (!ts.isCallExpression (initializer) || (initializer.arguments ?? []).length !== 1 || !ts.isPropertyAccessExpression (initializer.expression)) { return undefined; }
+    if (!ts.isIdentifier (initializer.expression.expression) || initializer.expression.expression.text !== 'JSON' || initializer.expression.name?.text !== 'parse') { return undefined; }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) { return undefined; }
+    let symbol;
+    try { symbol = printer.getChecker ().getSymbolAtLocation (declaration.name); } catch (e) { return undefined; }
+    if (symbol === undefined) { return undefined; }
+    let uses = 0;
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        if (n === declaration.name) { continue; }
+        let sym;
+        try { sym = printer.getChecker ().getSymbolAtLocation (n); } catch (e) { return undefined; }
+        if (sym !== symbol) { continue; }
+        let use = n;
+        while (use.parent !== undefined && ts.isParenthesizedExpression (use.parent)) { use = use.parent; }
+        const p = use.parent;
+        const isObjCall = p !== undefined && ts.isCallExpression (p) && (p.arguments ?? []).length === 1 && p.arguments[0] === use
+            && ts.isPropertyAccessExpression (p.expression) && ts.isIdentifier (p.expression.expression) && p.expression.expression.text === 'Object'
+            && (p.expression.name?.text === 'values' || p.expression.name?.text === 'keys');
+        if (!isObjCall) { return undefined; }
+        uses++;
+    }
+    if (uses === 0) { return undefined; }
+    return { type: JAVA_STRUCTURE_TYPE, cast: '(java.util.Map<String, Object>)', valuePrefix: 'Helpers.parseJson(', anyValueShape: true };
+}
 function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) { return undefined; }
     // list producers: `x.split(sep)` / `Object.keys(x)` hand back a list on every path
     const listProducer = javaListProducerLocalType (initializer);
     if (listProducer !== undefined) { return listProducer; }
+    // `const x = JSON.parse (s)` whose every use is Object.values(x) / Object.keys(x) -> Map<String, Object>
+    const jsonParseMap = jsonParseMapLocalType (printer, declaration, initializer);
+    if (jsonParseMap !== undefined) { return jsonParseMap; }
     // string-element access: `const x = parts[0]` where `parts` is provably a list of String instances — printed `Helpers.GetValue(parts, 0)`, the cast is exact
     if (elementAccessHasStringElements (initializer)) { return { type: 'String', cast: '(String)', valuePrefix: 'Helpers.GetValue(', strictPlus: true }; }
     // structure-key read: `market['id']` on a row a structure producer built — the DTO field names the Java box, emitted with its checkcast

@@ -285,7 +285,14 @@ func ObjectKeys(v interface{}) []string {
 }
 
 func ObjectValues(v interface{}) []interface{} {
-	return ccxt.ObjectValues(v)
+	if mapObject, ok := v.(map[string]interface{}); ok {
+		values := make([]interface{}, 0, len(mapObject))
+		for _, value := range mapObject {
+			values = append(values, value)
+		}
+		return values
+	}
+	return nil
 }
 
 func JsonParse(jsonStr2 interface{}) interface{} {

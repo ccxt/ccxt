@@ -682,3 +682,39 @@ impl ExchangeOps for Value {
     }
     async fn sleep(&self, _ms: Value) -> Value { Value::Null }
 }
+
+// Test-only Value helpers moved out of ccxt-common/src/runtime.rs (0 library call sites).
+pub fn object_values(v: &Value) -> Value {
+    match v {
+        Value::Dict(m) => Value::Array(
+            m.iter().filter(|(k, _)| k.as_str() != "__ws_subs_url" && k.as_str() != "__ws_sub_ref")
+                .map(|(_, val)| val.clone()).collect()),
+        _ => Value::Array(vec![]),
+    }
+}
+
+pub fn println_val(v: &Value) {
+    println!("{v}");
+}
+
+pub fn replace_str(s: &Value, old: &Value, new_val: &Value) -> Value {
+    match (s, old, new_val) {
+        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_ref(), n.as_ref()).into()),
+        _ => s.clone(),
+    }
+}
+
+pub fn replace_all_str(s: &Value, old: &Value, new_val: &Value) -> Value {
+    let (Value::Str(sv), Value::Str(ov), Value::Str(nv)) = (s, old, new_val) else {
+        return s.clone();
+    };
+    Value::Str(sv.replace(ov.as_ref(), nv.as_ref()).into())
+}
+
+pub fn date_now() -> Value {
+    let ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis() as i64)
+        .unwrap_or(0);
+    Value::Int(ms)
+}
