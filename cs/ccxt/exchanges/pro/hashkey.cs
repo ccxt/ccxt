@@ -807,9 +807,8 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         string type = "spot";
-        IList<object> typeMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
-        string typeMarketType = (string)typeMarketTypeVariable[0];
-        string messageHash = ("balance:" + typeMarketType);
+        string? typeMarketType = (string?)this.handleMarketTypeAndParams("watchBalance", null, parameters, type)[0];
+        string messageHash = ("balance:" + (typeMarketType));
         string? url = this.getPrivateUrl(listenKey);
         var client = this.client(url);
         this.setBalanceCache(client, typeMarketType, messageHash);
@@ -819,12 +818,12 @@ public partial class hashkey : ccxt.hashkey
         bool? awaitBalanceSnapshot = awaitBalanceSnapshotVariable.Item1;
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future((typeMarketType + ":fetchBalanceSnapshot"));
+            await client.future(((object)(typeMarketType == null ? null : typeMarketType + ":fetchBalanceSnapshot")));
         }
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, string type, string subscribeHash)
+    public virtual void setBalanceCache(WebSocketClient client, string? type, string subscribeHash)
     {
         if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
         {
@@ -834,8 +833,8 @@ public partial class hashkey : ccxt.hashkey
         bool? snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
         if ((snapshot == true))
         {
-            string messageHash = (type + ":fetchBalanceSnapshot");
-            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
+            string? messageHash = ((string)((type + ":fetchBalanceSnapshot")));
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
