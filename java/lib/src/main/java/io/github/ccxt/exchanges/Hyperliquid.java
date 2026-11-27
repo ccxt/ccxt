@@ -7,12 +7,18 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
+import io.github.ccxt.types.Account;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.BorrowInterest;
+import io.github.ccxt.types.CrossBorrowRate;
+import io.github.ccxt.types.CrossBorrowRates;
 import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LedgerEntry;
+import io.github.ccxt.types.Leverage;
+import io.github.ccxt.types.LeverageTiers;
 import io.github.ccxt.types.Liquidation;
 import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.MarketInterface;
@@ -87,16 +93,16 @@ public class Hyperliquid extends HyperliquidApi
                 put( "createTriggerOrder", true );
                 put( "editOrder", true );
                 put( "editOrders", true );
-                put( "fetchAccounts", false );
+                put( "fetchAccounts", true );
                 put( "fetchBalance", true );
-                put( "fetchBorrowInterest", false );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchCanceledAndClosedOrders", true );
                 put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrders", true );
-                put( "fetchCrossBorrowRate", false );
-                put( "fetchCrossBorrowRates", false );
+                put( "fetchCrossBorrowRate", true );
+                put( "fetchCrossBorrowRates", true );
                 put( "fetchCurrencies", true );
                 put( "fetchDepositAddress", false );
                 put( "fetchDepositAddresses", false );
@@ -111,11 +117,11 @@ public class Hyperliquid extends HyperliquidApi
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchLedger", true );
-                put( "fetchLeverage", false );
-                put( "fetchLeverageTiers", false );
+                put( "fetchLeverage", true );
+                put( "fetchLeverageTiers", true );
                 put( "fetchLiquidations", false );
                 put( "fetchMarginMode", null );
-                put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarketLeverageTiers", "emulated" );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyLiquidations", true );
@@ -1561,7 +1567,9 @@ public class Hyperliquid extends HyperliquidApi
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+     * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
      * @returns {object[]} an array of objects representing market data
      */
     public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
@@ -1577,6 +1585,45 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        String method = this.safeString(this.handleOptionAndParams(parameters, "fetchFundingRates", "method", "metaAndAssetCtxs"), 0);
+        Map<String, Object> paramsMethod = this.safeDict(this.handleOptionAndParams(parameters, "fetchFundingRates", "method", "metaAndAssetCtxs"), 1, new HashMap<String, Object>() {{}});
+        if (java.util.Objects.equals(method, "predictedFundings"))
+        {
+            Object predictedResponse = (this.publicPostInfo(this.extend(new HashMap<String, Object>() {{
+                put( "type", "predictedFundings" );
+            }}, paramsMethod))).join();
+            //
+            //     [
+            //         [
+            //             "BTC",
+            //             [
+            //                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+            //                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+            //                 [ "BybitPerp", null ]
+            //             ]
+            //         ]
+            //     ]
+            //
+            List<Object> predictedRows = this.infoList(predictedResponse);
+            List<Object> predicted = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < predictedRows.size(); i++)
+            {
+                List<Object> coinEntry = this.safeList(predictedRows, i, new ArrayList<Object>(Arrays.asList()));
+                List<Object> venues = this.safeList(coinEntry, 1, new ArrayList<Object>(Arrays.asList()));
+                Map<String, Object> venuesByName = new HashMap<String, Object>() {{}};
+                for (var j = 0; j < venues.size(); j++)
+                {
+                    List<Object> venue = this.safeList(venues, j, new ArrayList<Object>(Arrays.asList()));
+                    String venueName = this.safeString(venue, 0, "");
+                    venuesByName.put(venueName, this.safeDict(venue, 1, null));
+                }
+                predicted.add(new HashMap<String, Object>() {{
+                    put( "name", Hyperliquid.this.safeString(coinEntry, 0) );
+                    put( "predictedFundings", venuesByName );
+                }});
+            }
+            return this.parseFundingRates(predicted, symbolsNormalized);
+        }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "type", "metaAndAssetCtxs" );
         }};
@@ -1585,7 +1632,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             request.put("dex", dexName);
         }
-        Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+        Object response = (this.publicPostInfo(this.extend(request, paramsMethod))).join();
         //
         //     [
         //         {
@@ -1655,6 +1702,45 @@ public class Hyperliquid extends HyperliquidApi
         String base = this.safeString(info, "name");
         String marketId = this.coinToMarketId(base);
         String symbol = this.safeSymbol(marketId, market, null, null);
+        Map<String, Object> predictedFundings = this.safeDict(info, "predictedFundings", null);
+        if (!java.util.Objects.equals(predictedFundings, null))
+        {
+            //
+            //     {
+            //         "name": "BTC",
+            //         "predictedFundings": {
+            //             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+            //             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+            //             "BybitPerp": null
+            //         }
+            //     }
+            //
+            Map<String, Object> predictedFunding = this.safeDict(predictedFundings, "HlPerp", new HashMap<String, Object>() {{}});
+            Long nextFundingTimestamp = this.safeInteger(predictedFunding, "nextFundingTime");
+            String intervalHours = this.safeString(predictedFunding, "fundingIntervalHours", "1");
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", info);
+                h2kMap1.put("symbol", symbol);
+                h2kMap1.put("markPrice", null);
+                h2kMap1.put("indexPrice", null);
+                h2kMap1.put("interestRate", null);
+                h2kMap1.put("estimatedSettlePrice", null);
+                h2kMap1.put("timestamp", null);
+                h2kMap1.put("datetime", null);
+                h2kMap1.put("fundingRate", null);
+                h2kMap1.put("fundingTimestamp", null);
+                h2kMap1.put("fundingDatetime", null);
+                h2kMap1.put("nextFundingRate", this.safeNumber(predictedFunding, "fundingRate", null));
+                h2kMap1.put("nextFundingTimestamp", nextFundingTimestamp);
+                h2kMap1.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+                h2kMap1.put("previousFundingRate", null);
+                h2kMap1.put("previousFundingTimestamp", null);
+                h2kMap1.put("previousFundingDatetime", null);
+                h2kMap1.put("interval", (intervalHours + "h"));
+                return h2kMap1;
+            }
+        }
         Double funding = this.safeNumber(info, "funding", null);
         Double markPx = this.safeNumber(info, "markPx", null);
         Double oraclePx = this.safeNumber(info, "oraclePx", null);
@@ -2871,6 +2957,10 @@ public class Hyperliquid extends HyperliquidApi
             defaultTimeInForce = "alo";
         }
         String timeInForceLower = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        if (java.util.Objects.equals(timeInForceLower, "po"))
+        {
+            timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+        }
         String timeInForce = this.capitalize(timeInForceLower);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -3586,6 +3676,10 @@ public class Hyperliquid extends HyperliquidApi
                 defaultTimeInForce = "alo";
             }
             String timeInForceLower = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
+            if (java.util.Objects.equals(timeInForceLower, "po"))
+            {
+                timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+            }
             String timeInForce = this.capitalize(timeInForceLower);
             String clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
@@ -4501,12 +4595,14 @@ public class Hyperliquid extends HyperliquidApi
      * @description fetch all trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -4532,7 +4628,13 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "user", userAddress );
         }};
-        if (!java.util.Objects.equals(since, null))
+        Boolean twap = this.safeBool(paramsPublicAddress, "twap", false);
+        Long until = this.safeInteger(paramsPublicAddress, "until");
+        Map<String, Object> paramsOmitted = this.omit(paramsPublicAddress, new ArrayList<Object>(Arrays.asList("until", "twap")));
+        if (Boolean.TRUE.equals(twap))
+        {
+            request.put("type", "userTwapSliceFills");
+        } else if (!java.util.Objects.equals(since, null))
         {
             request.put("type", "userFillsByTime");
             request.put("startTime", since);
@@ -4540,9 +4642,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             request.put("type", "userFills");
         }
-        Long until = this.safeInteger(paramsPublicAddress, "until");
-        Map<String, Object> paramsOmitted = this.omit(paramsPublicAddress, "until");
-        if (!java.util.Objects.equals(until, null))
+        if ((!java.util.Objects.equals(until, null)) && !Boolean.TRUE.equals(twap))
         {
             request.put("endTime", until);
         }
@@ -4569,6 +4669,42 @@ public class Hyperliquid extends HyperliquidApi
         //         }
         //     ]
         //
+        if (Boolean.TRUE.equals(twap))
+        {
+            //
+            //     [
+            //         {
+            //             "fill": {
+            //                 "closedPnl": "0.0",
+            //                 "coin": "AVAX",
+            //                 "crossed": true,
+            //                 "dir": "Open Long",
+            //                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //                 "oid": 90542681,
+            //                 "px": "18.435",
+            //                 "side": "B",
+            //                 "startPosition": "26.86",
+            //                 "sz": "93.53",
+            //                 "time": 1681222254710,
+            //                 "fee": "0.01",
+            //                 "feeToken": "USDC",
+            //                 "tid": 118906512037719
+            //             },
+            //             "twapId": 3156
+            //         }
+            //     ]
+            //
+            List<Object> twapFills = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < myFills.size(); i++)
+            {
+                Map<String, Object> twapFill = this.safeDict(myFills, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> fill = this.safeDict(twapFill, "fill", new HashMap<String, Object>() {{}});
+                twapFills.add(this.extend(fill, new HashMap<String, Object>() {{
+                    put( "twapId", Hyperliquid.this.safeString(twapFill, "twapId") );
+                }}));
+            }
+            return this.parseTrades(twapFills, market, since, limit, new HashMap<String, Object>() {{}});
+        }
         return this.parseTrades(myFills, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
@@ -5071,6 +5207,218 @@ public class Hyperliquid extends HyperliquidApi
         //
         return response;
 
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+     * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchLeverageTiersCore(symbols, parameters)).thenApply(LeverageTiers::new);
+    }
+
+    private Object fetchLeverageTiersCore(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> symbolsNormalized = this.marketSymbols(symbols, null, true, false, false);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "meta" );
+        }};
+        String dexName = this.getDexFromSymbols("fetchLeverageTiers", symbolsNormalized);
+        if (!java.util.Objects.equals(dexName, null))
+        {
+            request.put("dex", dexName);
+        }
+        Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "universe": [
+        //             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+        //             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+        //         ],
+        //         "marginTables": [
+        //             [
+        //                 54,
+        //                 {
+        //                     "description": "tiered 20x (2)",
+        //                     "marginTiers": [
+        //                         { "lowerBound": "0.0", "maxLeverage": 20 },
+        //                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //                     ]
+        //                 }
+        //             ]
+        //         ],
+        //         "collateralToken": 0
+        //     }
+        //
+        List<Object> universe = this.safeList(response, "universe", new ArrayList<Object>(Arrays.asList()));
+        List<Object> marginTables = this.safeList(response, "marginTables", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> tablesById = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < marginTables.size(); i++)
+        {
+            List<Object> marginTable = this.safeList(marginTables, i, new ArrayList<Object>(Arrays.asList()));
+            String tableId = this.safeString(marginTable, 0, "");
+            tablesById.put(tableId, this.safeDict(marginTable, 1, new HashMap<String, Object>() {{}}));
+        }
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        Map<String, Object> tiers = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < universe.size(); i++)
+        {
+            Map<String, Object> asset = this.safeDict(universe, i, new HashMap<String, Object>() {{}});
+            // the coin name resolves to the unified symbol, delisted assets have no market
+            String symbol = this.coinToMarketId(this.safeString(asset, "name"));
+            Map<String, Object> market = this.safeDict(this.markets, symbol, null);
+            if (java.util.Objects.equals(market, null))
+            {
+                continue;
+            }
+            if (((symbolsLength != null && symbolsLength > 0)) && !this.inArray(symbol, symbolsNormalized))
+            {
+                continue;
+            }
+            Map<String, Object> assetTable = this.safeDict(tablesById, this.safeString(asset, "marginTableId"), new HashMap<String, Object>() {{}});
+            List<Object> marginTiers = this.safeList(assetTable, "marginTiers", null);
+            if (java.util.Objects.equals(marginTiers, null))
+            {
+                // margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+                marginTiers = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "lowerBound", "0.0" );
+    put( "maxLeverage", Hyperliquid.this.safeInteger(asset, "maxLeverage") );
+}}));
+            }
+            HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+            mapLiteral11.put("marginTiers", marginTiers);
+            tiers.put(symbol, this.parseMarketLeverageTiers(this.extend(asset, mapLiteral11), market));
+        }
+        return tiers;
+
+    }
+
+    public List<Object> parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "szDecimals": 2,
+        //         "name": "SOL",
+        //         "maxLeverage": 20,
+        //         "marginTableId": 54,
+        //         "marginTiers": [
+        //             { "lowerBound": "0.0", "maxLeverage": 20 },
+        //             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //         ]
+        //     }
+        //
+        List<Object> marginTiers = this.safeList(info, "marginTiers", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tiers = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < marginTiers.size(); i++)
+        {
+            Map<String, Object> tier = this.safeDict(marginTiers, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> nextTier = this.safeDict(marginTiers, (((long) i) + 1L), new HashMap<String, Object>() {{}});
+            String maxLeverage = this.safeString(tier, "maxLeverage");
+            // the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+            String maintenanceMarginRate = Precise.stringDiv("1", Precise.stringMul("2", maxLeverage));
+            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+            mapLiteral12.put("tier", (((long) i) + 1L));
+            mapLiteral12.put("symbol", this.safeString(market, "symbol"));
+            mapLiteral12.put("currency", this.safeString(market, "settle"));
+            mapLiteral12.put("minNotional", this.safeNumber(tier, "lowerBound", null));
+            mapLiteral12.put("maxNotional", this.safeNumber(nextTier, "lowerBound", null));
+            mapLiteral12.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
+            mapLiteral12.put("maxLeverage", this.parseNumber(maxLeverage));
+            mapLiteral12.put("info", tier);
+            tiers.add(mapLiteral12);
+        }
+        return tiers;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverage
+     * @description fetch the set leverage and margin mode for a swap market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    public CompletableFuture<Leverage> fetchLeverage(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchLeverageCore(symbol, parameters)).thenApply(Leverage::new);
+    }
+
+    private Object fetchLeverageCore(String symbol, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(market.get("swap")))
+        {
+            throw new NotSupported((this.id + " fetchLeverage() supports swap markets only")) ;
+        }
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchLeverage", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "activeAssetData" );
+            put( "user", userAddress );
+            put( "coin", Hyperliquid.this.safeString(market, "baseName") );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     {
+        //         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        //         "coin": "SOL",
+        //         "leverage": {
+        //             "type": "cross", // or "isolated", which also carries "rawUsd"
+        //             "value": 20
+        //         },
+        //         "maxTradeSzs": [ "13.63", "13.63" ],
+        //         "availableToTrade": [ "48.103059", "48.103059" ],
+        //         "markPx": "70.58"
+        //     }
+        //
+        return this.parseLeverage(this.extend(new HashMap<String, Object>() {{}}, response), market);
+
+    }
+
+    public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    {
+        Map<String, Object> leverageInfo = this.safeDict(leverage, "leverage", new HashMap<String, Object>() {{}});
+        Long leverageValue = this.safeInteger(leverageInfo, "value");
+        String coin = this.safeString(leverage, "coin");
+        String marketId = null;
+        if (!java.util.Objects.equals(coin, null))
+        {
+            marketId = this.coinToMarketId(coin);
+        }
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", leverage);
+            h2kMap2.put("symbol", this.safeSymbol(marketId, market, null, null));
+            h2kMap2.put("marginMode", this.safeStringLower(leverageInfo, "type"));
+            h2kMap2.put("longLeverage", leverageValue);
+            h2kMap2.put("shortLeverage", leverageValue);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -5600,28 +5948,28 @@ public class Hyperliquid extends HyperliquidApi
             intern = (java.util.Objects.equals(type, "internalTransfer"));
         }
         {
-            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
-            h2kMap1.put("info", transaction);
-            h2kMap1.put("id", null);
-            h2kMap1.put("txid", this.safeString(transaction, "hash"));
-            h2kMap1.put("timestamp", timestamp);
-            h2kMap1.put("datetime", this.iso8601(timestamp));
-            h2kMap1.put("network", null);
-            h2kMap1.put("address", null);
-            h2kMap1.put("addressTo", this.safeString(delta, "destination"));
-            h2kMap1.put("addressFrom", this.safeString(delta, "user"));
-            h2kMap1.put("tag", null);
-            h2kMap1.put("tagTo", null);
-            h2kMap1.put("tagFrom", null);
-            h2kMap1.put("type", null);
-            h2kMap1.put("amount", this.safeNumber(delta, "usdc", null));
-            h2kMap1.put("currency", null);
-            h2kMap1.put("status", this.safeString(transaction, "status"));
-            h2kMap1.put("updated", null);
-            h2kMap1.put("comment", null);
-            h2kMap1.put("internal", intern);
-            h2kMap1.put("fee", fee);
-            return h2kMap1;
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", null);
+            h2kMap3.put("txid", this.safeString(transaction, "hash"));
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("network", null);
+            h2kMap3.put("address", null);
+            h2kMap3.put("addressTo", this.safeString(delta, "destination"));
+            h2kMap3.put("addressFrom", this.safeString(delta, "user"));
+            h2kMap3.put("tag", null);
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("type", null);
+            h2kMap3.put("amount", this.safeNumber(delta, "usdc", null));
+            h2kMap3.put("currency", null);
+            h2kMap3.put("status", this.safeString(transaction, "status"));
+            h2kMap3.put("updated", null);
+            h2kMap3.put("comment", null);
+            h2kMap3.put("internal", intern);
+            h2kMap3.put("fee", fee);
+            return h2kMap3;
         }
     }
 
@@ -5836,23 +6184,23 @@ public class Hyperliquid extends HyperliquidApi
         }
         String type = this.safeString(delta, "type");
         String amount = this.safeString(delta, "usdc");
-        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("info", item);
-        mapLiteral11.put("id", this.safeString(item, "hash"));
-        mapLiteral11.put("direction", null);
-        mapLiteral11.put("account", null);
-        mapLiteral11.put("referenceAccount", this.safeString(delta, "user"));
-        mapLiteral11.put("referenceId", this.safeString(item, "hash"));
-        mapLiteral11.put("type", this.parseLedgerEntryType(type));
-        mapLiteral11.put("currency", null);
-        mapLiteral11.put("amount", this.parseNumber(amount));
-        mapLiteral11.put("timestamp", timestamp);
-        mapLiteral11.put("datetime", this.iso8601(timestamp));
-        mapLiteral11.put("before", null);
-        mapLiteral11.put("after", null);
-        mapLiteral11.put("status", null);
-        mapLiteral11.put("fee", fee);
-        return this.safeLedgerEntry(mapLiteral11, currency);
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", item);
+        mapLiteral13.put("id", this.safeString(item, "hash"));
+        mapLiteral13.put("direction", null);
+        mapLiteral13.put("account", null);
+        mapLiteral13.put("referenceAccount", this.safeString(delta, "user"));
+        mapLiteral13.put("referenceId", this.safeString(item, "hash"));
+        mapLiteral13.put("type", this.parseLedgerEntryType(type));
+        mapLiteral13.put("currency", null);
+        mapLiteral13.put("amount", this.parseNumber(amount));
+        mapLiteral13.put("timestamp", timestamp);
+        mapLiteral13.put("datetime", this.iso8601(timestamp));
+        mapLiteral13.put("before", null);
+        mapLiteral13.put("after", null);
+        mapLiteral13.put("status", null);
+        mapLiteral13.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral13, currency);
     }
 
     public String parseLedgerEntryType(String type)
@@ -6125,14 +6473,14 @@ public class Hyperliquid extends HyperliquidApi
         {
             marketId = this.coinToMarketId(coin);
         }
-        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-        mapLiteral12.put("symbol", this.safeSymbol(marketId, null, null, null));
-        mapLiteral12.put("openInterestAmount", this.safeNumber(interestValue, "openInterest", null));
-        mapLiteral12.put("openInterestValue", null);
-        mapLiteral12.put("timestamp", null);
-        mapLiteral12.put("datetime", null);
-        mapLiteral12.put("info", interestValue);
-        return this.safeOpenInterest(mapLiteral12, market);
+        HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+        mapLiteral14.put("symbol", this.safeSymbol(marketId, null, null, null));
+        mapLiteral14.put("openInterestAmount", this.safeNumber(interestValue, "openInterest", null));
+        mapLiteral14.put("openInterestValue", null);
+        mapLiteral14.put("timestamp", null);
+        mapLiteral14.put("datetime", null);
+        mapLiteral14.put("info", interestValue);
+        return this.safeOpenInterest(mapLiteral14, market);
     }
 
     /**
@@ -6273,6 +6621,1023 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
         return response;
 
+    }
+
+    public Map<String, Object> buildApproveAgentSig(Map<String, Object> message)
+    {
+        Map<String, Object> messageTypes = new HashMap<String, Object>() {{
+            put( "HyperliquidTransaction:ApproveAgent", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "agentAddress" );
+    put( "type", "address" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "agentName" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}})) );
+        }};
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveAgent
+     * @description approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+     * @param {string} agentAddress the address of the API wallet to approve
+     * @param {string} [agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> approveAgent(String agentAddress, String agentName, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.approveAgentCore(agentAddress, agentName, parameters));
+    }
+
+    private Map<String, Object> approveAgentCore(String agentAddress, String agentName, Map<String, Object> parameters)
+    {
+
+        Long nonce = this.incrementingNonce();
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        String hyperliquidChain = ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet";
+        // the name is always part of the signed message, it is empty for the unnamed API wallet
+        Map<String, Object> payload = new HashMap<String, Object>();
+        payload.put("hyperliquidChain", hyperliquidChain);
+        payload.put("agentAddress", agentAddress);
+        payload.put("agentName", (((java.util.Objects.equals(agentName, null)))) ? "" : agentName);
+        payload.put("nonce", nonce);
+        Map<String, Object> sig = this.buildApproveAgentSig(payload);
+        Map<String, Object> action = new HashMap<String, Object>() {{
+            put( "hyperliquidChain", hyperliquidChain );
+            put( "signatureChainId", "0x66eee" );
+            put( "agentAddress", agentAddress );
+            put( "nonce", nonce );
+            put( "type", "approveAgent" );
+        }};
+        if (!java.util.Objects.equals(agentName, null))
+        {
+            action.put("agentName", agentName);
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "action", action );
+            put( "nonce", nonce );
+            put( "signature", sig );
+        }};
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        Object response = (this.privatePostExchange(this.extend(request, parameters))).join();
+        return (Map<String, Object>) response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#noop
+     * @description sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+     * @param {int} [nonce] the nonce to mark as used, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> noop(Long nonce, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.noopCore(nonce, parameters));
+    }
+
+    private Map<String, Object> noopCore(Long nonce, Map<String, Object> parameters)
+    {
+
+        Map<String, Object> action = new HashMap<String, Object>() {{
+            put( "type", "noop" );
+        }};
+        return (this.postL1Action(action, nonce, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#claimRewards
+     * @description claims the rewards earned by the account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> claimRewards(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.claimRewardsCore(parameters));
+    }
+
+    private Map<String, Object> claimRewardsCore(Map<String, Object> parameters)
+    {
+
+        Map<String, Object> action = new HashMap<String, Object>() {{
+            put( "type", "claimRewards" );
+        }};
+        return (this.postL1Action(action, null, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postL1Action
+     * @description signs an L1 action that has no market or order data and posts it to the exchange endpoint
+     * @param {object} action the action to sign and send
+     * @param {int} [nonce] the nonce to sign with, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> postL1Action(Map<String, Object> action, Long nonce, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.postL1ActionCore(action, nonce, parameters));
+    }
+
+    private Map<String, Object> postL1ActionCore(Map<String, Object> action, Long nonce, Map<String, Object> parameters)
+    {
+
+        Long requestNonce = (((java.util.Objects.equals(nonce, null)))) ? this.incrementingNonce() : nonce;
+        Pair<String, Map<String, Object>> vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress", null);
+        String vaultAddressOption = vaultAddressOptionparamsVaultVariable.first();
+        Map<String, Object> paramsVault = vaultAddressOptionparamsVaultVariable.second();
+        String vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        Map<String, Object> signature = this.signL1Action(action, requestNonce, vaultAddress, null);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "action", action );
+            put( "nonce", requestNonce );
+            put( "signature", signature );
+        }};
+        if (!java.util.Objects.equals(vaultAddress, null))
+        {
+            request.put("vaultAddress", vaultAddress);
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        Object response = (this.privatePostExchange(this.extend(request, paramsVault))).join();
+        return (Map<String, Object>) response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#usdSend
+     * @description sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+     * @param {float} amount the amount of USDC to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> usdSend(Object amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.usdSendCore(amount, address, parameters));
+    }
+
+    private Map<String, Object> usdSendCore(Object amount, String address, Map<String, Object> parameters)
+    {
+
+        this.checkAddress(address, null, null);
+        Long nonce = this.incrementingNonce();
+        List<Object> messageTypes = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "destination" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "amount" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "time" );
+    put( "type", "uint64" );
+}}));
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "hyperliquidChain", Hyperliquid.this.hyperliquidChainName() );
+            put( "destination", address );
+            put( "amount", Hyperliquid.this.numberToString(amount) );
+            put( "time", nonce );
+        }};
+        return (this.postUserSignedAction("usdSend", "HyperliquidTransaction:UsdSend", messageTypes, message, nonce, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#spotSend
+     * @description sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+     * @param {string} code unified currency code of the asset to send
+     * @param {float} amount the amount to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> spotSend(String code, Object amount, String address, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.spotSendCore(code, amount, address, parameters));
+    }
+
+    private Map<String, Object> spotSendCore(String code, Object amount, String address, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        this.checkAddress(address, null, null);
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> currencyInfo = this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
+        Long nonce = this.incrementingNonce();
+        List<Object> messageTypes = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "destination" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "token" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "amount" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "time" );
+    put( "type", "uint64" );
+}}));
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "hyperliquidChain", Hyperliquid.this.hyperliquidChainName() );
+            put( "destination", address );
+            put( "token", ((Hyperliquid.this.safeString(currencyInfo, "name", "") + ":") + Hyperliquid.this.safeString(currencyInfo, "tokenId", "")) );
+            put( "amount", Hyperliquid.this.numberToString(amount) );
+            put( "time", nonce );
+        }};
+        return (this.postUserSignedAction("spotSend", "HyperliquidTransaction:SpotSend", messageTypes, message, nonce, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingDeposit
+     * @description moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+     * @param {float} amount the amount of HYPE to move into staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> stakingDeposit(Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.stakingDepositCore(amount, parameters));
+    }
+
+    private Map<String, Object> stakingDepositCore(Double amount, Map<String, Object> parameters)
+    {
+
+        Long nonce = this.incrementingNonce();
+        List<Object> messageTypes = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "wei" );
+    put( "type", "uint64" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}}));
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "hyperliquidChain", Hyperliquid.this.hyperliquidChainName() );
+            put( "wei", Hyperliquid.this.hypeToWei(amount) );
+            put( "nonce", nonce );
+        }};
+        return (this.postUserSignedAction("cDeposit", "HyperliquidTransaction:CDeposit", messageTypes, message, nonce, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingWithdraw
+     * @description moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+     * @param {float} amount the amount of HYPE to move out of staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> stakingWithdraw(Double amount, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.stakingWithdrawCore(amount, parameters));
+    }
+
+    private Map<String, Object> stakingWithdrawCore(Double amount, Map<String, Object> parameters)
+    {
+
+        Long nonce = this.incrementingNonce();
+        List<Object> messageTypes = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "wei" );
+    put( "type", "uint64" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}}));
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "hyperliquidChain", Hyperliquid.this.hyperliquidChainName() );
+            put( "wei", Hyperliquid.this.hypeToWei(amount) );
+            put( "nonce", nonce );
+        }};
+        return (this.postUserSignedAction("cWithdraw", "HyperliquidTransaction:CWithdraw", messageTypes, message, nonce, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#tokenDelegate
+     * @description delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+     * @param {string} validator the address of the validator
+     * @param {float} amount the amount of HYPE to delegate or undelegate
+     * @param {boolean} [isUndelegate] true to undelegate, false (default) to delegate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> tokenDelegate(String validator, Object amount, Object isUndelegate, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.tokenDelegateCore(validator, amount, isUndelegate, parameters));
+    }
+
+    private Map<String, Object> tokenDelegateCore(String validator, Object amount, Object isUndelegate, Map<String, Object> parameters)
+    {
+
+        this.checkAddress(validator, null, null);
+        Long nonce = this.incrementingNonce();
+        List<Object> messageTypes = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "validator" );
+    put( "type", "address" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "wei" );
+    put( "type", "uint64" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "isUndelegate" );
+    put( "type", "bool" );
+}}, new HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}}));
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "hyperliquidChain", Hyperliquid.this.hyperliquidChainName() );
+            put( "validator", validator );
+            put( "wei", Hyperliquid.this.hypeToWei(amount) );
+            put( "isUndelegate", java.util.Objects.requireNonNullElse(isUndelegate, false) );
+            put( "nonce", nonce );
+        }};
+        return (this.postUserSignedAction("tokenDelegate", "HyperliquidTransaction:TokenDelegate", messageTypes, message, nonce, parameters)).join();
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hyperliquidChainName
+     * @description the chain name that user-signed actions are signed for
+     * @returns {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+     */
+    public String hyperliquidChainName()
+    {
+        Boolean isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        return ((Boolean.TRUE.equals(isSandboxMode))) ? "Testnet" : "Mainnet";
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hypeToWei
+     * @description converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+     * @param {float} amount the amount of HYPE
+     * @returns {int} the amount in wei
+     */
+    public Long hypeToWei(Object amount)
+    {
+        return this.parseToInt(Precise.stringMul(this.numberToString(amount), "100000000"));
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postUserSignedAction
+     * @description signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+     * @param {string} actionType the type of the action
+     * @param {string} primaryType the EIP-712 primary type of the message
+     * @param {object[]} messageTypes the EIP-712 fields of the message
+     * @param {object} message the message to sign, its fields are sent as the action
+     * @param {int} nonce the nonce of the request
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public CompletableFuture<Map<String, Object>> postUserSignedAction(String actionType, String primaryType, List<Object> messageTypes, Map<String, Object> message, Object nonce, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.postUserSignedActionCore(actionType, primaryType, messageTypes, message, nonce, parameters));
+    }
+
+    private Map<String, Object> postUserSignedActionCore(String actionType, String primaryType, List<Object> messageTypes, Map<String, Object> message, Object nonce, Map<String, Object> parameters)
+    {
+
+        Map<String, Object> types = new HashMap<String, Object>() {{}};
+        types.put(primaryType, messageTypes);
+        Map<String, Object> signature = this.signUserSignedAction(types, message);
+        Map<String, Object> action = this.extend(message, new HashMap<String, Object>() {{
+            put( "signatureChainId", "0x66eee" );
+            put( "type", actionType );
+        }});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "action", action );
+            put( "nonce", nonce );
+            put( "signature", signature );
+        }};
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        Object response = (this.privatePostExchange(this.extend(request, parameters))).join();
+        return (Map<String, Object>) response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchApprovedBuilders
+     * @description fetch the addresses of the builders the user approved a builder fee for
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {string[]} a list of builder addresses
+     */
+    public CompletableFuture<Object> fetchApprovedBuilders(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchApprovedBuildersCore(parameters));
+    }
+
+    private Object fetchApprovedBuildersCore(Map<String, Object> parameters)
+    {
+
+        String userAddress = this.safeString(this.handlePublicAddress("fetchApprovedBuilders", parameters), 0);
+        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchApprovedBuilders", parameters), 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "approvedBuilders" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+        //
+        return response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchVaultDetails
+     * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+     * @param {string} vaultAddress the address of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+     * @returns {object} the vault details as returned by the exchange
+     */
+    public CompletableFuture<Map<String, Object>> fetchVaultDetails(String vaultAddress, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchVaultDetailsCore(vaultAddress, parameters));
+    }
+
+    private Map<String, Object> fetchVaultDetailsCore(String vaultAddress, Map<String, Object> parameters)
+    {
+
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "vaultDetails" );
+            put( "vaultAddress", vaultAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "name": "Test",
+        //         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+        //         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+        //         "description": "This community-owned vault provides liquidity to Hyperliquid",
+        //         "portfolio": [
+        //             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+        //         ],
+        //         "apr": 0.36387129259090006,
+        //         "followerState": null,
+        //         "leaderFraction": 0.0007904828725729887,
+        //         "leaderCommission": 0,
+        //         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+        //         "maxDistributable": 94856870.164485,
+        //         "maxWithdrawable": 742557.680863,
+        //         "isClosed": false,
+        //         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+        //         "allowDeposits": true,
+        //         "alwaysCloseOnWithdraw": false
+        //     }
+        //
+        return (Map<String, Object>) response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingDelegations
+     * @description fetch the amounts of HYPE the user delegated to each validator
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of delegations as returned by the exchange
+     */
+    public CompletableFuture<Object> fetchStakingDelegations(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchStakingDelegationsCore(parameters));
+    }
+
+    private Object fetchStakingDelegationsCore(Map<String, Object> parameters)
+    {
+
+        String userAddress = this.safeString(this.handlePublicAddress("fetchStakingDelegations", parameters), 0);
+        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingDelegations", parameters), 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "delegations" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     [
+        //         {
+        //             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //             "amount": "12060.16529862",
+        //             "lockedUntilTimestamp": 1735466781353
+        //         }
+        //     ]
+        //
+        return response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingSummary
+     * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} the staking summary as returned by the exchange
+     */
+    public CompletableFuture<Map<String, Object>> fetchStakingSummary(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchStakingSummaryCore(parameters));
+    }
+
+    private Map<String, Object> fetchStakingSummaryCore(Map<String, Object> parameters)
+    {
+
+        String userAddress = this.safeString(this.handlePublicAddress("fetchStakingSummary", parameters), 0);
+        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingSummary", parameters), 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "delegatorSummary" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     {
+        //         "delegated": "12060.16529862",
+        //         "undelegated": "0.0",
+        //         "totalPendingWithdrawal": "0.0",
+        //         "nPendingWithdrawals": 0
+        //     }
+        //
+        return (Map<String, Object>) response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingHistory
+     * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking events as returned by the exchange
+     */
+    public CompletableFuture<Object> fetchStakingHistory(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchStakingHistoryCore(parameters));
+    }
+
+    private Object fetchStakingHistoryCore(Map<String, Object> parameters)
+    {
+
+        String userAddress = this.safeString(this.handlePublicAddress("fetchStakingHistory", parameters), 0);
+        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingHistory", parameters), 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "delegatorHistory" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     [
+        //         {
+        //             "time": 1735380381353,
+        //             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+        //             "delta": {
+        //                 "delegate": {
+        //                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //                     "amount": "10000.0",
+        //                     "isUndelegate": false
+        //                 }
+        //             }
+        //         }
+        //     ]
+        //
+        return response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingRewards
+     * @description fetch the staking rewards earned by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking rewards as returned by the exchange
+     */
+    public CompletableFuture<Object> fetchStakingRewards(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchStakingRewardsCore(parameters));
+    }
+
+    private Object fetchStakingRewardsCore(Map<String, Object> parameters)
+    {
+
+        String userAddress = this.safeString(this.handlePublicAddress("fetchStakingRewards", parameters), 0);
+        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingRewards", parameters), 1, new HashMap<String, Object>() {{}});
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "delegatorRewards" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     [
+        //         {
+        //             "time": 1736726400073,
+        //             "source": "delegation",
+        //             "totalAmount": "0.73117184"
+        //         }
+        //     ]
+        //
+        return response;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchAccounts
+     * @description fetch the sub-accounts of a master account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchAccountsCore(parameters)).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchAccountsCore(Map<String, Object> parameters)
+    {
+
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchAccounts", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "subAccounts" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     [
+        //         {
+        //             "name": "Test",
+        //             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+        //             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+        //             "clearinghouseState": {
+        //                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMaintenanceMarginUsed": "0.0",
+        //                 "withdrawable": "29.78001",
+        //                 "assetPositions": [],
+        //                 "time": 1733968369395
+        //             },
+        //             "spotState": {
+        //                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+        //             }
+        //         }
+        //     ]
+        //
+        // the response is null when the account has no sub-accounts
+        List<Object> rows = this.infoList(response);
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < rows.size(); i++)
+        {
+            result.add(this.parseAccount(this.safeDict(rows, i, new HashMap<String, Object>() {{}})));
+        }
+        return result;
+
+    }
+
+    public Map<String, Object> parseAccount(Map<String, Object> account)
+    {
+        return new HashMap<String, Object>() {{
+            put( "id", Hyperliquid.this.safeString(account, "subAccountUser") );
+            put( "type", "subaccount" );
+            put( "name", Hyperliquid.this.safeString(account, "name") );
+            put( "code", null );
+            put( "info", account );
+        }};
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRates(Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCrossBorrowRatesCore(parameters)).thenApply(CrossBorrowRates::new);
+    }
+
+    private Object fetchCrossBorrowRatesCore(Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "allBorrowLendReserveStates" );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+        //
+        //     [
+        //         [
+        //             0,
+        //             {
+        //                 "borrowYearlyRate": "0.05",
+        //                 "supplyYearlyRate": "0.0249808267",
+        //                 "balance": "284714721.5832400322",
+        //                 "utilization": "0.5551294814",
+        //                 "oraclePx": "1.0",
+        //                 "ltv": "0.0",
+        //                 "totalSupplied": "639994288.7804760933",
+        //                 "totalBorrowed": "355279697.6056296229"
+        //             }
+        //         ]
+        //     ]
+        //
+        List<Object> rows = this.infoList(response);
+        Map<String, Object> rates = new HashMap<String, Object>() {{}};
+        for (var i = 0; i < rows.size(); i++)
+        {
+            List<Object> reserve = this.safeList(rows, i, new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> reserveState = this.safeDict(reserve, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> rate = (Map<String, Object>) this.parseBorrowRate(this.extend(reserveState, new HashMap<String, Object>() {{
+                put( "token", Hyperliquid.this.safeString(reserve, 0) );
+            }}), null);
+            String code = this.safeString(rate, "currency", "");
+            rates.put(code, rate);
+        }
+        return rates;
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRate
+     * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchCrossBorrowRateCore(code, parameters)).thenApply(CrossBorrowRate::new);
+    }
+
+    private Object fetchCrossBorrowRateCore(String code, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> currency = this.currency(code);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "borrowLendReserveState" );
+            put( "token", Hyperliquid.this.parseToInt(currency.get("id")) );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0008245002",
+        //         "balance": "3245939.4732256099",
+        //         "utilization": "0.018322226",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "3306509.7335290499",
+        //         "totalBorrowed": "60582.61869494"
+        //     }
+        //
+        return this.parseBorrowRate(this.extend(response, new HashMap<String, Object>() {{
+            put( "token", currency.get("id") );
+        }}), currency);
+
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#tokenIndexToCurrencyCode
+     * @description resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+     * @param {string} tokenIndex the index of the token
+     * @returns {string} the unified currency code
+     */
+    public String tokenIndexToCurrencyCode(String tokenIndex)
+    {
+        Map<String, Object> cachedCurrencies = this.safeDict(this.options, "cachedCurrenciesById", new HashMap<String, Object>() {{}});
+        String tokenName = this.safeString(cachedCurrencies, tokenIndex);
+        if (!java.util.Objects.equals(tokenName, null))
+        {
+            return this.safeCurrencyCode(tokenName, null);
+        }
+        // the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
+        Map<String, Object> currencies = this.currencies;
+        List<String> codes = new ArrayList<String>(currencies.keySet());
+        for (var i = 0; i < codes.size(); i++)
+        {
+            String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            Map<String, Object> currency = this.safeDict(currencies, code, new HashMap<String, Object>() {{}});
+            Map<String, Object> currencyInfo = this.safeDict(currency, "info", new HashMap<String, Object>() {{}});
+            if (java.util.Objects.equals(this.safeString(currencyInfo, "index"), tokenIndex))
+            {
+                return code;
+            }
+        }
+        return this.safeCurrencyCode(tokenIndex, null);
+    }
+
+    public Map<String, Object> parseBorrowRate(Object info, Map<String, Object> currency)
+    {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0249808267",
+        //         "balance": "284714721.5832400322",
+        //         "utilization": "0.5551294814",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "639994288.7804760933",
+        //         "totalBorrowed": "355279697.6056296229"
+        //     }
+        //
+        return new HashMap<String, Object>() {{
+            put( "currency", Hyperliquid.this.tokenIndexToCurrencyCode(Hyperliquid.this.safeString(info, "token")) );
+            put( "rate", Hyperliquid.this.safeNumber(info, "borrowYearlyRate", null) );
+            put( "period", 31536000000L );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "info", info );
+        }};
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchBorrowInterest
+     * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+     * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowInterestCore(code, symbol, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+    }
+
+    private Object fetchBorrowInterestCore(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchBorrowInterest", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "type", "borrowLendUserState" );
+            put( "user", userAddress );
+        }};
+        Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
+        //
+        //     {
+        //         "tokenToState": [
+        //             [
+        //                 0,
+        //                 {
+        //                     "borrow": { "basis": "100.0", "value": "100.25" },
+        //                     "supply": { "basis": "0.0", "value": "0.0" }
+        //                 }
+        //             ]
+        //         ],
+        //         "health": "healthy",
+        //         "healthFactor": null
+        //     }
+        //
+        List<Object> tokenToState = this.safeList(response, "tokenToState", new ArrayList<Object>(Arrays.asList()));
+        List<Object> interests = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < tokenToState.size(); i++)
+        {
+            List<Object> tokenState = this.safeList(tokenToState, i, new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> state = this.safeDict(tokenState, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> borrow = this.safeDict(state, "borrow", new HashMap<String, Object>() {{}});
+            // tokens that are only supplied have nothing borrowed
+            if (Precise.stringGt(this.safeString(borrow, "value", "0"), "0"))
+            {
+                interests.add(this.extend(state, new HashMap<String, Object>() {{
+                    put( "token", Hyperliquid.this.safeString(tokenState, 0) );
+                }}));
+            }
+        }
+        List<Object> parsed = this.parseBorrowInterests(interests, null);
+        return this.filterByCurrencySinceLimit(parsed, code, null, limit, false);
+
+    }
+
+    public Map<String, Object> parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrow": { "basis": "100.0", "value": "100.25" },
+        //         "supply": { "basis": "0.0", "value": "0.0" }
+        //     }
+        //
+        Map<String, Object> borrow = this.safeDict(info, "borrow", new HashMap<String, Object>() {{}});
+        String borrowed = this.safeString(borrow, "value");
+        // the basis is the amount borrowed, the value includes the interest accrued since
+        String interest = Precise.stringSub(borrowed, this.safeString(borrow, "basis"));
+        return new HashMap<String, Object>() {{
+            put( "info", info );
+            put( "symbol", null );
+            put( "currency", Hyperliquid.this.tokenIndexToCurrencyCode(Hyperliquid.this.safeString(info, "token")) );
+            put( "interest", Hyperliquid.this.parseNumber(interest) );
+            put( "interestRate", null );
+            put( "amountBorrowed", Hyperliquid.this.parseNumber(borrowed) );
+            put( "marginMode", "cross" );
+            put( "timestamp", null );
+            put( "datetime", null );
+        }};
     }
 
     /**
@@ -6475,12 +7840,12 @@ public class Hyperliquid extends HyperliquidApi
             requestBody = this.json(parameters);
         }
         {
-            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("url", url);
-            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", requestBody);
-            h2kMap2.put("headers", requestHeaders);
-            return h2kMap2;
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", requestBody);
+            h2kMap4.put("headers", requestHeaders);
+            return h2kMap4;
         }
     }
 
