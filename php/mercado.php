@@ -792,7 +792,7 @@ class mercado extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            'quantity' => sprintf('%.10f', $amount),
+            'quantity' => $this->decimal_to_precision($amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address' => $address,
         );
         if ($code === 'BRL') {

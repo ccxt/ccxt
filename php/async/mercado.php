@@ -14,7 +14,10 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\ROUND;
+use const ccxt\DECIMAL_PLACES;
 use const ccxt\TICK_SIZE;
+use const ccxt\PAD_WITH_ZERO;
 
 class mercado extends Exchange {
     public function describe(): array {
@@ -836,7 +839,7 @@ class mercado extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
-            'quantity' => sprintf('%.10f', $amount),
+            'quantity' => $this->decimal_to_precision($amount, ROUND, 10, DECIMAL_PLACES, PAD_WITH_ZERO),
             'address' => $address,
         );
         if ($code === 'BRL') {

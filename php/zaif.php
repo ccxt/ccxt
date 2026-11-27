@@ -843,8 +843,7 @@ class zaif extends Exchange {
     }
 
     public function custom_nonce(): string {
-        $nonce = $this->milliseconds() / 1000;
-        return sprintf('%.8f', $nonce);
+        return $this->decimal_to_precision($this->milliseconds() / 1000, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {

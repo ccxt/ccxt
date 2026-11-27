@@ -1861,8 +1861,8 @@ class htx extends \ccxt\async\htx {
             }
             return;
         }
-        $newPositions = array();
-        $positionsByMarginMode = array();
+        $crossPositions = array();
+        $isolatedPositions = array();
         $timestamp = $this->safe_integer($message, 'ts');
         for ($i = 0; $i < count($rawPositions); $i++) {
             $position = $this->parse_position($this->safe_dict($rawPositions, $i, array()));
@@ -1877,28 +1877,36 @@ class htx extends \ccxt\async\htx {
                 $cache = new ArrayCacheBySymbolBySide();
                 $this->positionsByType[$marginMode] = $cache;
             }
-            $newPositions[] = $position;
-            $positionsByMarginMode[$marginMode] = $this->safe_list($positionsByMarginMode, $marginMode, array());
-            $positionsByMarginMode[$marginMode][] = $position;
+            if ($marginMode === 'cross') {
+                $crossPositions[] = $position;
+            } else {
+                $isolatedPositions[] = $position;
+            }
             $cache->append($position);
         }
-        $marginModes = is_array($positionsByMarginMode) ? array_keys($positionsByMarginMode) : array();
-        for ($i = 0; $i < count($marginModes); $i++) {
-            $marginMode = $marginModes[$i];
-            $marginModePositions = $this->safe_list($positionsByMarginMode, $marginMode, array());
-            $messageHashes = $this->find_message_hashes($client, $marginMode . ':positions::');
-            for ($j = 0; $j < count($messageHashes); $j++) {
-                $messageHash = $messageHashes[$j];
-                $parts = explode('::', $messageHash);
-                $symbolsString = $parts[1];
-                $symbols = explode(',', $symbolsString);
-                $positions = $this->filter_by_array($marginModePositions, 'symbol', $symbols, false);
-                if (!$this->is_empty($positions)) {
-                    $client->resolve($positions, $messageHash);
-                }
-            }
-            $client->resolve($marginModePositions, $marginMode . ':positions');
+        $crossLength = count($crossPositions);
+        if ($crossLength > 0) {
+            $this->resolve_positions_by_margin_mode($client, 'cross', $crossPositions);
         }
+        $isolatedLength = count($isolatedPositions);
+        if ($isolatedLength > 0) {
+            $this->resolve_positions_by_margin_mode($client, 'isolated', $isolatedPositions);
+        }
+    }
+
+    public function resolve_positions_by_margin_mode(Client $client, string $marginMode, array $marginModePositions): void {
+        $messageHashes = $this->find_message_hashes($client, $marginMode . ':positions::');
+        for ($j = 0; $j < count($messageHashes); $j++) {
+            $messageHash = $messageHashes[$j];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $symbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($marginModePositions, 'symbol', $symbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve($positions, $messageHash);
+            }
+        }
+        $client->resolve($marginModePositions, $marginMode . ':positions');
     }
 
     public function watch_balance($params = array()): PromiseInterface {
