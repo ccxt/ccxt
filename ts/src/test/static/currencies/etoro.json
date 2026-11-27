@@ -53,5 +53,16 @@
             "deposit": {},
             "withdraw": {}
         }
+    },
+    "SP500": {
+        "id": "SP500",
+        "code": "SP500",
+        "precision": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
     }
 }

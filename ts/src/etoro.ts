@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/etoro.js';
-import { ExchangeError, AuthenticationError, PermissionDenied, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, OrderNotFound, RateLimitExceeded, ExchangeNotAvailable, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
+import { ExchangeError, AuthenticationError, PermissionDenied, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, ExchangeNotAvailable, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Currency, Dict, Endpoint, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import type { Account, Balances, Currency, Dict, Endpoint, Int, LedgerEntry, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ export default class etoro extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -349,8 +349,9 @@ export default class etoro extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': this.parseNumber ('0.01'),
-                    'taker': this.parseNumber ('0.01'),
+                    // stocks, etfs, cfds and futures are commission-free (cost is in the spread); crypto has a 1% fee per side
+                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0'),
                 },
             },
             'requiredCredentials': {
@@ -423,7 +424,9 @@ export default class etoro extends Exchange {
                     'inverse': undefined,
                 },
                 'future': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
             },
@@ -431,9 +434,24 @@ export default class etoro extends Exchange {
                 'enableDemoTrading': false,
                 'sandboxMode': false,
                 'defaultOrderCurrency': 'usd',
+                'spotInstrumentTypes': [ 5, 6, 10 ],
+                'futuresExchangeId': 40,
+                'futuresTemplateIds': [ 998, 999 ],
+                'pricePrecision': {
+                    '1': '0.00001',
+                    '10': '0.00000001',
+                    'default': '0.0001',
+                },
+                'amountPrecision': {
+                    'future': '1',
+                    'default': '0.000001',
+                },
                 'fetchMarkets': {
                     'includeInternal': false,
                     'instrumentTypeIds': undefined,
+                    'types': [ 1, 2, 3, 4, 5, 6, 10 ],
+                    'futures': true,
+                    'fetchSearchData': true,
                     'exchangeCurrencies': {
                         '1': 'USD', // FX
                         '2': 'USD', // Commodity
@@ -441,7 +459,7 @@ export default class etoro extends Exchange {
                         '4': 'USD', // Nasdaq
                         '5': 'USD', // NYSE
                         '6': 'EUR', // FRA
-                        '7': 'GBP', // LSE
+                        '7': 'GBX', // LSE
                         '8': 'USD', // Digital Currency
                         '9': 'EUR', // Euronext Paris
                         '10': 'EUR', // Bolsa De Madrid
@@ -471,9 +489,9 @@ export default class etoro extends Exchange {
                         '39': 'AED', // Dubai Financial Market
                         '40': 'USD', // CME
                         '41': 'AED', // Abu Dhabi
-                        '42': 'GBP', // LSE_AIM
-                        '43': 'GBP', // LSE AIM Auction
-                        '44': 'GBP', // LSE Auction
+                        '42': 'GBX', // LSE_AIM
+                        '43': 'GBX', // LSE AIM Auction
+                        '44': 'GBX', // LSE Auction
                         '45': 'CNY', // Shenzhen Stock Exchange
                         '46': 'CNY', // Shanghai Stock Exchange
                         '47': 'INR', // National Stock Exchange of India
@@ -585,9 +603,13 @@ export default class etoro extends Exchange {
                     'VALIDATION_ERROR': BadRequest,
                     'ValidationFailed': BadRequest,
                     'RequestBodyIsRequired': BadRequest,
+                    'RequestIdRequired': BadRequest,
                     'InvalidAmountInUsd': InvalidOrder,
                     'InvalidDirection': BadRequest,
                     'NoChangesDetected': BadRequest,
+                    '720': InvalidOrder,
+                    '741': InvalidOrder,
+                    '759': PermissionDenied,
                     'DEPENDENCY_UNAVAILABLE': ExchangeNotAvailable,
                     'UnhandledException': ExchangeError,
                     'DATA_INTEGRITY_ERROR': ExchangeError,
@@ -596,12 +618,14 @@ export default class etoro extends Exchange {
                 'broad': {
                     'insufficient funds': InsufficientFunds,
                     'insufficient balance': InsufficientFunds,
+                    'insufficient': InsufficientFunds,
                     'not enough available': InsufficientFunds,
                     'exceeds available': InsufficientFunds,
                     'market is closed': MarketClosed,
                     'market closed': MarketClosed,
                     'order not found': OrderNotFound,
                     'no order found': OrderNotFound,
+                    'order category for': OrderNotFound,
                     'instrument not found': BadSymbol,
                     'unknown instrument': BadSymbol,
                     'no instrument found': BadSymbol,
@@ -616,12 +640,14 @@ export default class etoro extends Exchange {
                     'forbidden': PermissionDenied,
                     'not allowed': OperationRejected,
                     'not eligible': OperationRejected,
+                    'exactly one of amount, units, or contracts': InvalidOrder,
                     'stop loss': InvalidOrder,
                     'stoploss': InvalidOrder,
                     'take profit': InvalidOrder,
                     'takeprofit': InvalidOrder,
                     'minimum': InvalidOrder,
                     'leverage': InvalidOrder,
+                    'one or more validation errors occurred': BadRequest,
                     'invalid': BadRequest,
                 },
             },
@@ -699,23 +725,38 @@ export default class etoro extends Exchange {
      * @name etoro#fetchMarkets
      * @description retrieves data on all markets for etoro
      * @see https://api-portal.etoro.com/api-reference/market-data/get-instrument-display-data
+     * @see https://api-portal.etoro.com/api-reference/market-data/search-for-instruments
+     * @see https://api-portal.etoro.com/api-reference/market-data/search-for-securities-instruments-by-id-or-symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instrumentTypeIds] comma-separated instrument type IDs to filter by (1=Forex, 2=Commodity, 4=Indices, 5=Stocks, 6=ETF, 10=Crypto)
      * @param {string} [params.exchangeIds] comma-separated exchange IDs to filter by
      * @param {string} [params.instrumentIds] comma-separated instrument IDs to filter by
      * @param {boolean} [params.includeInternal] whether to include restricted internal instruments (default false)
+     * @param {boolean} [params.futures] whether to include CME futures instruments (default true)
+     * @param {boolean} [params.fetchSearchData] whether to enrich markets with search conversion rates and listing status (default true)
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const includeInternal = this.safeBool (params, 'includeInternal', this.safeBool (options, 'includeInternal', false));
+        const fetchFutures = this.safeBool (params, 'futures', this.safeBool (options, 'futures', true));
+        const fetchSearchData = this.safeBool (params, 'fetchSearchData', this.safeBool (options, 'fetchSearchData', true));
         const request: Dict = {};
         const defaultTypeIds = this.safeString (options, 'instrumentTypeIds');
         if (defaultTypeIds !== undefined) {
             request['instrumentTypeIds'] = defaultTypeIds;
         }
-        const query = this.omit (params, 'includeInternal');
-        const response = await this.publicGetApiV1MarketDataInstruments (this.extend (request, query));
+        const query = this.omit (params, [ 'includeInternal', 'futures', 'fetchSearchData' ]);
+        const promises: Promise<any>[] = [
+            this.publicGetApiV1MarketDataInstruments (this.extend (request, query)),
+        ];
+        if (fetchSearchData) {
+            promises.push (this.fetchInstrumentsSearchData ());
+        }
+        if (fetchFutures) {
+            promises.push (this.fetchFuturesInstruments ());
+        }
+        const results = await Promise.all (promises);
         //
         //     {
         //         "instrumentDisplayDatas": [
@@ -735,8 +776,24 @@ export default class etoro extends Exchange {
         //         ]
         //     }
         //
-        const instruments = this.safeList (response, 'instrumentDisplayDatas', []);
-        const filtered: List = [];
+        const instrumentsResponse = this.safeDict (results, 0, {});
+        const instruments = this.safeList (instrumentsResponse, 'instrumentDisplayDatas', []);
+        let searchById: Dict = {};
+        let futuresById: Dict = {};
+        let nextIndex = 1;
+        if (fetchSearchData) {
+            searchById = this.safeDict (results, nextIndex, {});
+            nextIndex += 1;
+        }
+        if (fetchFutures) {
+            futuresById = this.safeDict (results, nextIndex, {});
+        }
+        const allowedTypes = this.safeList (options, 'types', [ 1, 2, 3, 4, 5, 6, 10 ]);
+        const futuresExchangeId = this.safeString (this.options, 'futuresExchangeId', '40');
+        const templateIds = this.safeList (this.options, 'futuresTemplateIds', [ 998, 999 ]);
+        const spotTypes = this.safeList (this.options, 'spotInstrumentTypes', [ 5, 6, 10 ]);
+        const hasSearchData = Object.keys (searchById).length > 0;
+        const publicInstruments: List = [];
         for (let i = 0; i < instruments.length; i++) {
             const item = instruments[i];
             const symbolFull = this.safeString (item, 'symbolFull');
@@ -744,15 +801,330 @@ export default class etoro extends Exchange {
                 continue;
             }
             const isInternal = this.safeBool (item, 'isInternalInstrument', false);
-            if (isInternal && !includeInternal) {
+            const instrumentIdInt = this.safeInteger (item, 'instrumentID');
+            if ((isInternal && !includeInternal) || this.inArray (instrumentIdInt, templateIds)) {
                 continue;
             }
-            filtered.push (item);
+            publicInstruments.push (item);
         }
-        return this.parseMarkets (filtered);
+        const rates = this.getConversionReferenceRates (publicInstruments, searchById);
+        const cryptoSymbols: Dict = {};
+        for (let i = 0; i < publicInstruments.length; i++) {
+            const item = publicInstruments[i];
+            if (this.safeInteger (item, 'instrumentTypeID') === 10) {
+                const sym = this.safeString (item, 'symbolFull', '');
+                cryptoSymbols[sym.toUpperCase ()] = true;
+            }
+        }
+        const result: Market[] = [];
+        for (let i = 0; i < publicInstruments.length; i++) {
+            const instrument = publicInstruments[i];
+            const instrumentId = this.safeString (instrument, 'instrumentID');
+            const typeId = this.safeInteger (instrument, 'instrumentTypeID');
+            const exchangeId = this.safeString (instrument, 'exchangeID');
+            const searchEntry = this.safeDict (searchById, instrumentId);
+            const extended = (searchEntry !== undefined) ? this.extend (instrument, { 'search': searchEntry }) : instrument;
+            if (exchangeId === futuresExchangeId) {
+                if (fetchFutures) {
+                    const futureMarket = this.parseFutureMarket (extended, this.safeDict (futuresById, instrumentId, {}), hasSearchData);
+                    if (futureMarket !== undefined) {
+                        result.push (futureMarket);
+                    }
+                }
+                continue;
+            }
+            if (!this.inArray (typeId, allowedTypes)) {
+                continue;
+            }
+            const baseAndQuote = this.getMarketBaseAndQuote (extended, rates, cryptoSymbols);
+            if (this.inArray (typeId, spotTypes)) {
+                result.push (this.parseEtoroMarket (extended, baseAndQuote, 'spot', hasSearchData));
+            }
+            result.push (this.parseEtoroMarket (extended, baseAndQuote, 'swap', hasSearchData));
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name etoro#fetchInstrumentsSearchData
+     * @description fetches conversion rates and listing status of all instruments, indexed by instrument id
+     * @see https://api-portal.etoro.com/api-reference/market-data/search-for-instruments
+     * @returns {object} a dictionary of search entries indexed by instrument id
+     */
+    async fetchInstrumentsSearchData (): Promise<Dict> {
+        const pageSize = 5000;
+        const maxPages = 10;
+        const result: Dict = {};
+        for (let page = 1; page <= maxPages; page++) {
+            const request: Dict = {
+                'fields': 'instrumentId,cvtBid,currentRate,isDelisted,isCurrentlyTradable',
+                'pageSize': pageSize,
+                'page': page,
+            };
+            const response = await this.publicGetApiV1MarketDataSearch (request);
+            //
+            //     {
+            //         "page": 1,
+            //         "pageSize": 5000,
+            //         "totalItems": 13465,
+            //         "items": [
+            //             {
+            //                 "instrumentId": 1001,
+            //                 "cvtBid": 1,
+            //                 "currentRate": 230.1,
+            //                 "isDelisted": false,
+            //                 "isCurrentlyTradable": true
+            //             }
+            //         ]
+            //     }
+            //
+            const items = this.safeList (response, 'items', []);
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const id = this.safeString (item, 'instrumentId', '');
+                if (id !== '') {
+                    result[id] = item;
+                }
+            }
+            const itemsLength = items.length;
+            if (itemsLength < pageSize) {
+                break;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name etoro#fetchFuturesInstruments
+     * @description fetches the expiry and multiplier of CME futures instruments, indexed by instrument id
+     * @see https://api-portal.etoro.com/api-reference/market-data/search-for-securities-instruments-by-id-or-symbol
+     * @returns {object} a dictionary of futures instruments indexed by instrument id
+     */
+    async fetchFuturesInstruments (): Promise<Dict> {
+        const result: Dict = {};
+        let pageToken: Str = undefined;
+        const maxPages = 10;
+        for (let i = 0; i < maxPages; i++) {
+            const request: Dict = {
+                'exchangeId': this.safeInteger (this.options, 'futuresExchangeId', 40),
+                'pageSize': 1000,
+            };
+            if (pageToken !== undefined) {
+                request['pageToken'] = pageToken;
+            }
+            const response = await this.publicGetApiV2MarketDataInstruments (request);
+            //
+            //     {
+            //         "results": [
+            //             {
+            //                 "instrumentId": 100123,
+            //                 "displayName": "S&P 500 Futures",
+            //                 "type": "Indices",
+            //                 "symbol": "SP500.MAR28",
+            //                 "exchangeId": 40,
+            //                 "multiplier": 50,
+            //                 "lastTradingDateTime": "2221-12-31T23:00:00Z",
+            //                 "expirationDateTime": "2221-12-31T23:00:00Z"
+            //             }
+            //         ],
+            //         "pagination": { "pageSize": 1000, "nextPageToken": "ODM4", "hasNext": false }
+            //     }
+            //
+            const items = this.safeList (response, 'results', []);
+            for (let j = 0; j < items.length; j++) {
+                const item = items[j];
+                const id = this.safeString (item, 'instrumentId', '');
+                if (id !== '') {
+                    result[id] = item;
+                }
+            }
+            const pagination = this.safeDict (response, 'pagination', {});
+            const hasNext = this.safeBool (pagination, 'hasNext', false);
+            pageToken = this.safeString (pagination, 'nextPageToken');
+            if (!hasNext || (pageToken === undefined)) {
+                break;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name etoro#getConversionReferenceRates
+     * @description builds the USD conversion rate of each currency from the forex pairs
+     * @param {object[]} instruments the instrument display data
+     * @param {object} searchById the search entries indexed by instrument id
+     * @returns {object} a dictionary of conversion rates indexed by currency code
+     */
+    getConversionReferenceRates (instruments: List, searchById: Dict): Dict {
+        const rates: Dict = {
+            'USD': '1',
+        };
+        for (let i = 0; i < instruments.length; i++) {
+            const instrument = instruments[i];
+            const symbolFull = this.safeString (instrument, 'symbolFull', '');
+            const typeId = this.safeInteger (instrument, 'instrumentTypeID');
+            if ((typeId !== 1) || (symbolFull.length !== 6)) {
+                continue;
+            }
+            const entry = this.safeDict (searchById, this.safeString (instrument, 'instrumentID'), {});
+            const baseId = symbolFull.slice (0, 3);
+            const quoteId = symbolFull.slice (3, 6);
+            const cvtBid = this.safeString (entry, 'cvtBid');
+            if ((cvtBid !== undefined) && Precise.stringGt (cvtBid, '0') && !(quoteId in rates)) {
+                rates[quoteId] = cvtBid;
+            }
+            const currentRate = this.safeString (entry, 'currentRate');
+            if ((quoteId === 'USD') && (currentRate !== undefined) && Precise.stringGt (currentRate, '0') && !(baseId in rates)) {
+                rates[baseId] = currentRate;
+            }
+        }
+        if ('GBP' in rates) {
+            rates['GBX'] = Precise.stringDiv (rates['GBP'], '100');
+        }
+        return rates;
+    }
+
+    isCloseConversionRate (a: Str, b: Str): boolean {
+        if ((a === undefined) || (b === undefined) || Precise.stringEq (b, '0')) {
+            return false;
+        }
+        const ratio = Precise.stringDiv (a, b, 10);
+        const diff = Precise.stringAbs (Precise.stringSub (ratio, '1'));
+        return Precise.stringLt (diff, '0.02');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name etoro#getMarketBaseAndQuote
+     * @description resolves the base and quote currency ids of an instrument
+     * @param {object} instrument the instrument display data extended with its search entry
+     * @param {object} rates the USD conversion rates indexed by currency code
+     * @param {object} cryptoSymbols the crypto symbols indexed by uppercase symbol
+     * @returns {string[]} the base and quote currency ids
+     */
+    getMarketBaseAndQuote (instrument: Dict, rates: Dict, cryptoSymbols: Dict): string[] {
+        const symbolFull = this.safeString2 (instrument, 'symbolFull', 'symbol', '');
+        const displayName = this.safeString2 (instrument, 'instrumentDisplayName', 'displayName', '');
+        const typeId = this.safeInteger (instrument, 'instrumentTypeID');
+        const options = this.safeDict (this.options, 'fetchMarkets', {});
+        if ((typeId === 1) && (symbolFull.indexOf ('.') === -1) && (symbolFull.length === 6)) {
+            return [ symbolFull.slice (0, 3), symbolFull.slice (3, 6) ];
+        }
+        if (typeId === 10) {
+            if (displayName.indexOf ('/') !== -1) {
+                const upperSymbol = symbolFull.toUpperCase ();
+                const suffixes = this.safeList (options, 'cryptoQuoteSuffixes', []);
+                for (let i = 0; i < suffixes.length; i++) {
+                    const suffix = suffixes[i];
+                    if (suffix === 'USD') {
+                        continue;
+                    }
+                    const suffixLength = suffix.length;
+                    const symbolLength = upperSymbol.length;
+                    if ((symbolLength > suffixLength) && upperSymbol.endsWith (suffix)) {
+                        const baseId = upperSymbol.slice (0, symbolLength - suffixLength);
+                        if ((baseId in cryptoSymbols) || (baseId === 'GOLD')) {
+                            return [ baseId, suffix ];
+                        }
+                    }
+                }
+            }
+            return [ symbolFull, 'USD' ];
+        }
+        const exchangeCurrencies = this.safeDict (options, 'exchangeCurrencies', {});
+        const exchangeId = this.safeString2 (instrument, 'exchangeID', 'exchangeId');
+        const defaultQuote = this.safeString (exchangeCurrencies, exchangeId, 'USD');
+        let quoteId = defaultQuote;
+        const searchEntry = this.safeDict (instrument, 'search', {});
+        const cvtBid = this.safeString (searchEntry, 'cvtBid');
+        if ((cvtBid !== undefined) && Precise.stringGt (cvtBid, '0')) {
+            const defaultRate = this.safeString (rates, defaultQuote);
+            if (!this.isCloseConversionRate (cvtBid, defaultRate)) {
+                const codes = Object.keys (rates);
+                const found: string[] = [];
+                for (let i = 0; i < codes.length; i++) {
+                    const code = codes[i];
+                    if (this.isCloseConversionRate (cvtBid, rates[code])) {
+                        found.push (code);
+                    }
+                }
+                const foundLength = found.length;
+                if (foundLength === 1) {
+                    quoteId = found[0];
+                }
+            }
+        }
+        return [ symbolFull, quoteId ];
+    }
+
+    safeEtoroCurrencyCode (currencyId: Str): Str {
+        if (currencyId === undefined) {
+            return undefined;
+        }
+        let code = currencyId.toUpperCase ();
+        code = code.split ('/').join ('-');
+        code = code.split (' ').join ('-');
+        return this.safeCurrencyCode (code);
+    }
+
+    safeEtoroMarket (instrumentId: Str, settlementType: Str = undefined, market: Market = undefined): MarketInterface {
+        if ((settlementType === undefined) && (market !== undefined)) {
+            return market;
+        }
+        let marketType: Str = undefined;
+        if (settlementType !== undefined) {
+            const lower = settlementType.toLowerCase ();
+            if (lower === 'real') {
+                marketType = 'spot';
+            } else if (lower === 'realfutures') {
+                marketType = 'future';
+            } else if ((lower === 'cfd') || (lower === 'margintrade')) {
+                marketType = 'swap';
+            }
+        }
+        if ((marketType === undefined) && (market !== undefined)) {
+            return market;
+        }
+        if (marketType === undefined) {
+            marketType = 'swap';
+        }
+        return this.safeMarket (instrumentId, market, undefined, marketType);
+    }
+
+    getSettlementType (market: MarketInterface): string {
+        if (market['spot']) {
+            return 'real';
+        } else if (market['future']) {
+            return 'realFutures';
+        }
+        return 'cfd';
     }
 
     override parseMarket (market: Dict): Market {
+        const typeId = this.safeInteger (market, 'instrumentTypeID');
+        const exchangeId = this.safeString2 (market, 'exchangeID', 'exchangeId');
+        const futuresExchangeId = this.safeString (this.options, 'futuresExchangeId', '40');
+        if (exchangeId === futuresExchangeId) {
+            const futureInfo = this.safeDict (market, 'future', {});
+            const parsedFuture = this.parseFutureMarket (market, futureInfo, false);
+            if (parsedFuture !== undefined) {
+                return parsedFuture;
+            }
+        }
+        const spotTypes = this.safeList (this.options, 'spotInstrumentTypes', [ 5, 6, 10 ]);
+        const baseAndQuote = this.getMarketBaseAndQuote (market, {}, {});
+        const marketType = this.inArray (typeId, spotTypes) ? 'spot' : 'swap';
+        return this.parseEtoroMarket (market, baseAndQuote, marketType, false);
+    }
+
+    parseEtoroMarket (instrument: Dict, baseAndQuote: string[], marketType: string, hasSearchData: boolean = false): Market {
         //
         //     {
         //         "instrumentID": 100000,
@@ -763,91 +1135,61 @@ export default class etoro extends Exchange {
         //         "priceSource": "eToro",
         //         "hasExpirationDate": false,
         //         "isInternalInstrument": false,
-        //         "distributionType": 5
+        //         "distributionType": 5,
+        //         "search": { "instrumentId": 100000, "cvtBid": 1, "currentRate": 60473.23, "isDelisted": false, "isCurrentlyTradable": true }
         //     }
         //
-        const id = this.safeString2 (market, 'instrumentID', 'instrumentId');
-        const symbolFull = this.safeString2 (market, 'symbolFull', 'symbol') as string;
-        const displayName = this.safeString2 (market, 'instrumentDisplayName', 'displayName', '');
-        const instrumentTypeId = this.safeInteger (market, 'instrumentTypeID');
-        const exchangeId = this.safeString2 (market, 'exchangeID', 'exchangeId');
-        const isInternal = this.safeBool (market, 'isInternalInstrument', false);
-        const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const exchangeCurrencies = this.safeDict (options, 'exchangeCurrencies', {});
-        const isCrypto = (instrumentTypeId === 10);
-        const isForex = (instrumentTypeId === 1);
-        const isStock = (instrumentTypeId === 5);
-        const isEtf = (instrumentTypeId === 6);
-        const isCme = (exchangeId === '40');
-        // Crypto on Digital Currency exchange (8), Stocks (5), ETFs (6) can be held as real spot assets
-        // Forex (1), Commodity (2), CFD (3), Indices (4), and CME contracts (exchangeID 40) are linear contracts settled in USD
-        const isSpot = (isCrypto && !isCme) || isStock || isEtf;
-        const isSwap = !isSpot;
-        const isContract = isSwap;
-        let baseId: Str = symbolFull;
-        let quoteId: Str = this.safeString (exchangeCurrencies, exchangeId, 'USD');
-        if (isForex && !isCme && (symbolFull.indexOf ('.') === -1) && (symbolFull.length === 6)) {
-            baseId = symbolFull.slice (0, 3);
-            quoteId = symbolFull.slice (3, 6);
-        } else if (isCrypto && !isCme && (displayName.indexOf ('/') !== -1)) {
-            const suffixes = this.safeList (options, 'cryptoQuoteSuffixes', []);
-            for (let i = 0; i < suffixes.length; i++) {
-                const suffix = suffixes[i];
-                if (symbolFull.endsWith (suffix) && (symbolFull.length > suffix.length)) {
-                    baseId = symbolFull.slice (0, symbolFull.length - suffix.length);
-                    quoteId = suffix;
-                    break;
-                }
-            }
-        }
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        let settleId: Str = undefined;
-        let settle: Str = undefined;
+        const id = this.safeString2 (instrument, 'instrumentID', 'instrumentId');
+        const typeId = this.safeString (instrument, 'instrumentTypeID');
+        const isInternal = this.safeBool (instrument, 'isInternalInstrument', false);
+        const base = this.safeEtoroCurrencyCode (baseAndQuote[0]);
+        const quote = this.safeEtoroCurrencyCode (baseAndQuote[1]);
+        const isSpot = (marketType === 'spot');
         let symbol = base + '/' + quote;
-        let marketType = 'spot';
-        let subType: Str = undefined;
-        let linear: boolean | undefined = undefined;
-        let inverse: boolean | undefined = undefined;
-        let contractSize: Num = undefined;
-        if (isContract) {
-            marketType = 'swap';
-            subType = 'linear';
-            linear = true;
-            inverse = false;
-            settleId = 'USD';
-            settle = this.safeCurrencyCode (settleId);
-            contractSize = this.parseNumber ('1');
+        let settle: Str = undefined;
+        if (!isSpot) {
+            settle = this.safeCurrencyCode ('USD');
             symbol = symbol + ':' + settle;
         }
+        const pricePrecisions = this.safeDict (this.options, 'pricePrecision', {});
+        const amountPrecisions = this.safeDict (this.options, 'amountPrecision', {});
+        const searchEntry = this.safeDict (instrument, 'search');
+        let active = !isInternal;
+        if (searchEntry !== undefined) {
+            active = !this.safeBool (searchEntry, 'isDelisted', false) && !isInternal;
+        } else if (hasSearchData) {
+            active = false;
+        }
+        // crypto is charged a 1% fee per side; stocks, ETFs, and CFDs are commission-free
+        const fee = (typeId === '10') ? this.parseNumber ('0.01') : this.parseNumber ('0');
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
             'settle': settle,
-            'baseId': baseId,
-            'quoteId': quoteId,
-            'settleId': settleId,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
             'type': marketType,
-            'subType': subType,
+            'subType': isSpot ? undefined : 'linear',
             'spot': isSpot,
             'margin': false,
-            'swap': isSwap,
+            'swap': !isSpot,
             'future': false,
             'option': false,
-            'active': !isInternal,
-            'contract': isContract,
-            'linear': linear,
-            'inverse': inverse,
-            'contractSize': contractSize,
+            'active': active,
+            'contract': !isSpot,
+            'linear': isSpot ? undefined : true,
+            'inverse': isSpot ? undefined : false,
+            'contractSize': isSpot ? undefined : this.parseNumber ('1'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': this.parseNumber (this.safeString (amountPrecisions, 'default')),
+                'price': this.parseNumber (this.safeString2 (pricePrecisions, typeId, 'default')),
             },
             'limits': {
                 'leverage': {
@@ -867,8 +1209,154 @@ export default class etoro extends Exchange {
                     'max': undefined,
                 },
             },
+            'taker': fee,
+            'maker': fee,
             'created': undefined,
-            'info': market,
+            'info': instrument,
+        });
+    }
+
+    parseFutureMarket (instrument: Dict, futureInfo: Dict, hasSearchData: boolean = false): Market {
+        //
+        // instrument: v1 display data extended with search entry
+        //
+        //     {
+        //         "instrumentID": 100123,
+        //         "instrumentTypeID": 4,
+        //         "exchangeID": 40,
+        //         "symbolFull": "SP500.MAR28",
+        //         ...
+        //     }
+        //
+        // futureInfo: v2/market-data/instruments entry
+        //
+        //     {
+        //         "instrumentId": 100123,
+        //         "symbol": "SP500.MAR28",
+        //         "exchangeId": 40,
+        //         "multiplier": 50,
+        //         "lastTradingDateTime": "2221-12-31T23:00:00Z",
+        //         "expirationDateTime": "2221-12-31T23:00:00Z"
+        //     }
+        //
+        const id = this.safeString2 (instrument, 'instrumentID', 'instrumentId');
+        const symbolFull = this.safeString2 (instrument, 'symbolFull', 'symbol', '');
+        const typeId = this.safeInteger (instrument, 'instrumentTypeID');
+        const isInternal = this.safeBool (instrument, 'isInternalInstrument', false);
+        const parts = symbolFull.split ('.');
+        const partsLength = parts.length;
+        if (partsLength < 2) {
+            return undefined;
+        }
+        const suffix = parts[partsLength - 1].toUpperCase ();
+        const baseParts: string[] = [];
+        for (let i = 0; i < partsLength - 1; i++) {
+            baseParts.push (parts[i]);
+        }
+        let baseId = baseParts.join ('.');
+        let quoteId = 'USD';
+        if ((typeId === 1) && (baseId.length === 6)) {
+            quoteId = baseId.slice (3, 6);
+            baseId = baseId.slice (0, 3);
+        }
+        let expiry: Int = undefined;
+        const expirationDateTime = this.safeString (futureInfo, 'expirationDateTime');
+        // placeholder expiries (year 2221/2222) are resolved from the symbol suffix, e.g. SP500.MAR28
+        if ((expirationDateTime !== undefined) && !expirationDateTime.startsWith ('22')) {
+            expiry = this.parseUtcIsoTimestamp (expirationDateTime);
+        } else {
+            const months: Dict = {
+                'JAN': '01',
+                'FEB': '02',
+                'MAR': '03',
+                'APR': '04',
+                'MAY': '05',
+                'JUN': '06',
+                'JUL': '07',
+                'AUG': '08',
+                'SEP': '09',
+                'OCT': '10',
+                'NOV': '11',
+                'DEC': '12',
+            };
+            const month = this.safeString (months, suffix.slice (0, 3));
+            const year = suffix.slice (3);
+            const digits = '0123456789';
+            const isYear = (year.length === 2) && (digits.indexOf (year.slice (0, 1)) !== -1) && (digits.indexOf (year.slice (1, 2)) !== -1);
+            if ((month !== undefined) && isYear) {
+                expiry = this.parse8601 ('20' + year + '-' + month + '-01T00:00:00Z');
+            }
+        }
+        if (expiry === undefined) {
+            return undefined;
+        }
+        const base = this.safeEtoroCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode ('USD');
+        const symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
+        const searchEntry = this.safeDict (instrument, 'search');
+        let active = !isInternal && (expiry > this.milliseconds ());
+        if (searchEntry !== undefined) {
+            active = !this.safeBool (searchEntry, 'isDelisted', false) && !isInternal && (expiry > this.milliseconds ());
+        } else if (hasSearchData) {
+            active = false;
+        }
+        const pricePrecisions = this.safeDict (this.options, 'pricePrecision', {});
+        const amountPrecisions = this.safeDict (this.options, 'amountPrecision', {});
+        const typeIdStr = (typeId !== undefined) ? this.numberToString (typeId) : 'default';
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': base,
+            'quoteId': quote,
+            'settleId': settle,
+            'type': 'future',
+            'subType': 'linear',
+            'spot': false,
+            'margin': false,
+            'swap': false,
+            'future': true,
+            'option': false,
+            'active': active,
+            'contract': true,
+            'linear': true,
+            'inverse': false,
+            'contractSize': this.safeNumber (futureInfo, 'multiplier', this.parseNumber ('1')),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (this.safeString (amountPrecisions, 'future')),
+                'price': this.parseNumber (this.safeString2 (pricePrecisions, typeIdStr, 'default')),
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.parseNumber ('10'),
+                    'max': undefined,
+                },
+            },
+            'taker': this.parseNumber ('0'),
+            'maker': this.parseNumber ('0'),
+            'created': undefined,
+            'info': this.extend (instrument, {
+                'future': futureInfo,
+            }),
         });
     }
 
@@ -930,8 +1418,15 @@ export default class etoro extends Exchange {
         const normalizedSymbols = this.marketSymbols (symbols);
         const request: Dict = {};
         if (normalizedSymbols !== undefined) {
-            const marketIds = this.marketIds (normalizedSymbols);
-            request['instrumentIds'] = marketIds.join (',');
+            const rawMarketIds = this.marketIds (normalizedSymbols);
+            const uniqueIds: string[] = [];
+            for (let i = 0; i < rawMarketIds.length; i++) {
+                const rawId = rawMarketIds[i];
+                if (!this.inArray (rawId, uniqueIds)) {
+                    uniqueIds.push (rawId);
+                }
+            }
+            request['instrumentIds'] = uniqueIds.join (',');
         }
         const response = await this.publicGetApiV1MarketDataInstrumentsRates (this.extend (request, params));
         //
@@ -955,14 +1450,30 @@ export default class etoro extends Exchange {
         for (let i = 0; i < rates.length; i++) {
             const rate = rates[i];
             const marketId = this.safeString2 (rate, 'instrumentID', 'instrumentId');
-            if ((marketId === undefined) || ((normalizedSymbols === undefined) && (this.markets_by_id !== undefined) && !(marketId in this.markets_by_id))) {
+            if (marketId === undefined) {
                 continue;
             }
-            const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (rate, market);
-            const symbol = ticker['symbol'];
-            if (symbol !== undefined) {
-                result[symbol] = ticker;
+            const marketsForId = this.safeList (this.markets_by_id, marketId, []);
+            const marketsLength = marketsForId.length;
+            if (marketsLength === 0) {
+                if (normalizedSymbols === undefined) {
+                    continue;
+                }
+                const fallbackMarket = this.safeMarket (marketId);
+                const ticker = this.parseTicker (rate, fallbackMarket);
+                const symbol = ticker['symbol'];
+                if (symbol !== undefined) {
+                    result[symbol] = ticker;
+                }
+                continue;
+            }
+            for (let j = 0; j < marketsLength; j++) {
+                const market = marketsForId[j];
+                const ticker = this.parseTicker (rate, market);
+                const symbol = ticker['symbol'];
+                if (symbol !== undefined) {
+                    result[symbol] = ticker;
+                }
             }
         }
         return this.filterByArrayTickers (result, 'symbol', normalizedSymbols);
@@ -1020,7 +1531,7 @@ export default class etoro extends Exchange {
         //     }
         //
         const marketId = this.safeStringN (ticker, [ 'instrumentID', 'instrumentId', 'InstrumentID' ]);
-        const resolvedMarket = this.safeMarket (marketId, market);
+        const resolvedMarket = this.safeEtoroMarket (marketId, undefined, market);
         const dateStr = this.safeString2 (ticker, 'date', 'Date');
         const timestamp = this.parseUtcIsoTimestamp (dateStr);
         const bid = this.omitZero (this.safeString2 (ticker, 'bid', 'Bid'));
@@ -1586,7 +2097,8 @@ export default class etoro extends Exchange {
             ? await this.privateGetApiV1TradingInfoTradeDemoHistory (this.extend (request, query))
             : await this.privateGetApiV1TradingInfoTradeHistory (this.extend (request, query));
         const parsed = this.parsePositions (response, normalizedSymbols);
-        return this.filterBySinceLimit (parsed, since, limit, 'timestamp') as Position[];
+        const sorted = this.sortBy (parsed, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit, 'timestamp') as Position[];
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -1666,7 +2178,13 @@ export default class etoro extends Exchange {
         //     }
         //
         const marketId = this.safeStringN (position, [ 'instrumentId', 'instrumentID', 'InstrumentID' ]);
-        const resolvedMarket = this.safeMarket (marketId, market);
+        const settlementType = this.safeString (position, 'settlementType');
+        let resolvedMarket: Market = undefined;
+        if ((settlementType === undefined) && (market === undefined)) {
+            resolvedMarket = this.marketFromHistoryEntry (position);
+        } else {
+            resolvedMarket = this.safeEtoroMarket (marketId, settlementType, market);
+        }
         const id = this.safeStringN (position, [ 'positionId', 'positionID', 'PositionID' ]);
         const openTimeStr = this.safeStringN (position, [ 'openTime', 'openDateTime', 'openTimestamp', 'OpenDateTime', 'CloseDateTime' ]);
         const timestamp = this.parseUtcIsoTimestamp (openTimeStr);
@@ -1679,7 +2197,12 @@ export default class etoro extends Exchange {
         }
         const units = this.omitZero (this.safeString2 (position, 'units', 'Units'));
         const rawContracts = this.omitZero (this.safeString (position, 'contracts'));
-        const contracts = (rawContracts !== undefined) ? rawContracts : units;
+        let contracts: Str = undefined;
+        if (resolvedMarket['future']) {
+            contracts = (rawContracts !== undefined) ? rawContracts : units;
+        } else {
+            contracts = (units !== undefined) ? units : rawContracts;
+        }
         const entryPrice = this.omitZero (this.safeString2 (position, 'openRate', 'OpenRate'));
         const pnlObj = this.safeDict (position, 'unrealizedPnL');
         let markPrice = this.omitZero (this.safeStringN (position, [ 'currentRate', 'closeRate', 'CloseRate', 'EndRate' ]));
@@ -1687,6 +2210,10 @@ export default class etoro extends Exchange {
             markPrice = this.omitZero (this.safeString (pnlObj, 'closeRate'));
         }
         const leverage = this.omitZero (this.safeString2 (position, 'leverage', 'Leverage'));
+        let initialMarginPercentage: Str = undefined;
+        if ((leverage !== undefined) && Precise.stringGt (leverage, '0')) {
+            initialMarginPercentage = Precise.stringDiv ('1', leverage);
+        }
         let margin = this.omitZero (this.safeStringN (position, [ 'marginAcctCcy', 'margin', 'amount', 'Amount', 'PositionAmount', 'investment', 'initialInvestment' ]));
         if ((margin === undefined) && (pnlObj !== undefined)) {
             margin = this.omitZero (this.safeString2 (pnlObj, 'marginInAccountCurrency', 'marginInAssetCurrency'));
@@ -1730,8 +2257,8 @@ export default class etoro extends Exchange {
         }
         const isNoStopLoss = this.safeBool2 (position, 'isNoStopLoss', 'IsNoStopLoss', false);
         const isNoTakeProfit = this.safeBool2 (position, 'isNoTakeProfit', 'IsNoTakeProfit', false);
-        const stopLossPrice = (isNoStopLoss) ? undefined : this.omitZero (this.safeString2 (position, 'stopLossRate', 'StopLossRate'));
-        const takeProfitPrice = (isNoTakeProfit) ? undefined : this.omitZero (this.safeString2 (position, 'takeProfitRate', 'TakeProfitRate'));
+        const stopLossPrice = (isNoStopLoss) ? undefined : this.parseProtectionRate (this.safeString2 (position, 'stopLossRate', 'StopLossRate'));
+        const takeProfitPrice = (isNoTakeProfit) ? undefined : this.parseProtectionRate (this.safeString2 (position, 'takeProfitRate', 'TakeProfitRate'));
         let lastUpdateStr = this.safeStringN (position, [ 'rateTimestamp', 'closeTimestamp', 'CloseDateTime', 'OccurredAt' ]);
         if ((lastUpdateStr === undefined) && (pnlObj !== undefined)) {
             lastUpdateStr = this.safeString (pnlObj, 'timestamp');
@@ -1744,7 +2271,7 @@ export default class etoro extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': this.parseUtcIsoTimestamp (lastUpdateStr),
             'initialMargin': this.parseNumber (margin),
-            'initialMarginPercentage': undefined,
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'entryPrice': this.parseNumber (entryPrice),
@@ -1821,7 +2348,15 @@ export default class etoro extends Exchange {
                 rawOrders.push (rawOrder);
             }
         }
-        return this.parseOrders (rawOrders, market, since, limit);
+        const parsed = this.parseOrders (rawOrders, undefined, since, limit);
+        const result: Order[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const order = parsed[i];
+            if ((order['status'] === 'open') && ((market === undefined) || (order['symbol'] === market['symbol']))) {
+                result.push (order);
+            }
+        }
+        return result;
     }
 
     /**
@@ -1881,8 +2416,8 @@ export default class etoro extends Exchange {
      * @see https://api-portal.etoro.com/api-reference/trading--real/submit-an-order-for-asynchronous-processing
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' (mapped to 'mkt', 'mit', or 'limitIOC' when timeInForce is 'IOC')
-     * @param {string} side 'buy' (opens long) or 'sell' (opens short via sellShort, or closes position when positionId/reduceOnly is set)
-     * @param {float} amount how much of currency you want to trade in units of base currency (or quote currency cost when createMarketBuyOrderRequiresPrice is false / cost param is set)
+     * @param {string} side 'buy' (opens long) or 'sell' (opens short on swap/future markets via sellShort, or closes position when positionId/reduceOnly is set)
+     * @param {float} amount how much of currency you want to trade in units of base currency (contracts for futures, or quote currency cost when createMarketBuyOrderRequiresPrice is false / cost param is set)
      * @param {float} [price] the trigger rate for MIT limit orders, or limitRate for limitIOC orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.demo] true to place order on the demo account, false for real
@@ -1890,9 +2425,12 @@ export default class etoro extends Exchange {
      * @param {int} [params.leverage] leverage multiplier (default 1; leverage > 1 requires stopLossPrice)
      * @param {float} [params.stopLossPrice] stop-loss trigger rate (required when leverage > 1, side is sell/sellShort, or trailing is true)
      * @param {float} [params.takeProfitPrice] take-profit trigger rate
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing triggerPrice or price
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing triggerPrice or price
      * @param {boolean} [params.trailing] true to enable trailing stop-loss (sets stopLossType to 'trailing')
      * @param {string} [params.settlementType] 'real', 'cfd', 'realFutures', or 'marginTrade'
      * @param {string} [params.timeInForce] set to 'IOC' with type 'limit' to submit a limitIOC order
+     * @param {string} [params.clientOrderId] UUID sent as the x-request-id header, usable as referenceId in fetchOrder
      * @param {string} [params.positionId] if provided with reduceOnly or closing action, delegates to closePosition
      * @param {boolean} [params.reduceOnly] if true, closes an existing open position for this symbol
      * @param {string} [params.version] API version: 'v2' (default) or 'v3'
@@ -1916,91 +2454,17 @@ export default class etoro extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         const orderTypeLower = type.toLowerCase ();
         const sideLower = side.toLowerCase ();
-        const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        let etoroOrderType = 'mkt';
-        if (orderTypeLower === 'limit') {
-            etoroOrderType = (timeInForce === 'IOC') ? 'limitIOC' : 'mit';
-        } else if (orderTypeLower === 'market') {
-            etoroOrderType = 'mkt';
-        } else {
-            etoroOrderType = type;
-        }
-        const transaction = (sideLower === 'buy') ? 'buy' : 'sellShort';
-        const request: Dict = {
-            'action': 'open',
-            'transaction': transaction,
-            'instrumentId': this.parseToInt (market['id']),
-            'orderType': etoroOrderType,
-        };
-        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'triggerRate' ]);
-        if (etoroOrderType === 'mit') {
-            const triggerRate = (triggerPrice !== undefined) ? triggerPrice : price;
-            if (triggerRate === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price or triggerPrice argument for limit (mit) orders');
-            }
-            request['triggerRate'] = triggerRate;
-        } else if (etoroOrderType === 'limitIOC') {
-            if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limitIOC orders');
-            }
-            request['limitRate'] = price;
-        }
         const quoteAmount = this.safeNumber (params, 'cost');
-        const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', true);
-        const contractsParam = this.safeNumber (params, 'contracts');
-        if (quoteAmount !== undefined) {
-            request['amount'] = quoteAmount;
-            request['orderCurrency'] = this.safeString (this.options, 'defaultOrderCurrency', 'usd');
-        } else if ((orderTypeLower === 'market') && (sideLower === 'buy') && !createMarketBuyOrderRequiresPrice) {
-            request['amount'] = amount;
-            request['orderCurrency'] = this.safeString (this.options, 'defaultOrderCurrency', 'usd');
-        } else if (contractsParam !== undefined) {
-            request['contracts'] = contractsParam;
-        } else if (amount !== undefined) {
-            request['units'] = amount;
-        }
-        const leverage = this.safeInteger (params, 'leverage');
-        if (leverage !== undefined) {
-            request['leverage'] = leverage;
-        }
-        const stopLoss = this.safeDict (params, 'stopLoss');
-        const takeProfit = this.safeDict (params, 'takeProfit');
-        const stopLossPrice = this.safeNumber2 (params, 'stopLossPrice', 'stopLossRate', this.safeNumber (stopLoss, 'triggerPrice'));
-        const takeProfitPrice = this.safeNumber2 (params, 'takeProfitPrice', 'takeProfitRate', this.safeNumber (takeProfit, 'triggerPrice'));
-        if (stopLossPrice !== undefined) {
-            request['stopLossRate'] = stopLossPrice;
-        }
-        if (takeProfitPrice !== undefined) {
-            request['takeProfitRate'] = takeProfitPrice;
-        }
-        const isTrailing = this.safeBool (params, 'trailing', false);
-        const stopLossType = this.safeString (params, 'stopLossType');
-        if (stopLossType !== undefined) {
-            request['stopLossType'] = stopLossType;
-        } else if (isTrailing) {
-            request['stopLossType'] = 'trailing';
-        }
-        const settlementType = this.safeString (params, 'settlementType');
-        if (settlementType !== undefined) {
-            request['settlementType'] = settlementType;
-        } else if (market['spot'] && (transaction === 'buy') && ((leverage === undefined) || (leverage === 1)) && (etoroOrderType !== 'mit')) {
-            request['settlementType'] = 'real';
-        }
-        const query = this.omit (params, [
-            'demo', 'version', 'timeInForce', 'triggerPrice', 'stopPrice', 'triggerRate',
-            'cost', 'contracts', 'leverage', 'stopLoss', 'takeProfit',
-            'stopLossPrice', 'stopLossRate', 'takeProfitPrice', 'takeProfitRate',
-            'trailing', 'stopLossType', 'settlementType', 'reduceOnly', 'positionId',
-        ]);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response: NullableDict = undefined;
         if (version === 'v3') {
             response = (isDemo)
-                ? await this.privatePostApiV3TradingExecutionDemoOrders (this.extend (request, query))
-                : await this.privatePostApiV3TradingExecutionOrders (this.extend (request, query));
+                ? await this.privatePostApiV3TradingExecutionDemoOrders (request)
+                : await this.privatePostApiV3TradingExecutionOrders (request);
         } else {
             response = (isDemo)
-                ? await this.privatePostApiV2TradingExecutionDemoOrders (this.extend (request, query))
-                : await this.privatePostApiV2TradingExecutionOrders (this.extend (request, query));
+                ? await this.privatePostApiV2TradingExecutionDemoOrders (request)
+                : await this.privatePostApiV2TradingExecutionOrders (request);
         }
         //
         //     {
@@ -2022,6 +2486,122 @@ export default class etoro extends Exchange {
             order['price'] = price;
         }
         return order;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name etoro#createOrderRequest
+     * @description helper function to build the request of createOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the base currency or contracts to trade
+     * @param {float} [price] the price for a limit order
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} request to be sent to the exchange
+     */
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
+        const market = this.market (symbol);
+        const orderTypeLower = type.toLowerCase ();
+        const sideLower = side.toLowerCase ();
+        let transaction = 'buy';
+        if (sideLower === 'sell') {
+            if (market['spot']) {
+                throw new NotSupported (this.id + ' createOrder() does not support selling spot markets, use closePosition() instead');
+            }
+            transaction = 'sellShort';
+        }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerRate' ]);
+        let etoroOrderType = 'mkt';
+        if (triggerPrice !== undefined) {
+            etoroOrderType = 'mit';
+        } else if (orderTypeLower === 'limit') {
+            etoroOrderType = (timeInForce === 'IOC') ? 'limitIOC' : 'mit';
+        } else if (orderTypeLower === 'market') {
+            etoroOrderType = 'mkt';
+        } else {
+            etoroOrderType = type;
+        }
+        const request: Dict = {
+            'action': 'open',
+            'transaction': transaction,
+            'instrumentId': this.parseToInt (market['id']),
+            'orderType': etoroOrderType,
+            'settlementType': this.safeString (params, 'settlementType', this.getSettlementType (market)),
+        };
+        if (etoroOrderType === 'mit') {
+            let triggerRate = triggerPrice;
+            if ((triggerRate === undefined) && (price !== undefined)) {
+                triggerRate = this.numberToString (price);
+            }
+            if (triggerRate === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price or triggerPrice argument for limit (mit) orders');
+            }
+            request['triggerRate'] = this.parseToNumeric (this.priceToPrecision (symbol, triggerRate));
+        } else if (etoroOrderType === 'limitIOC') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limitIOC orders');
+            }
+            request['limitRate'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
+        }
+        const quoteAmount = this.safeString (params, 'cost');
+        const createMarketBuyOrderRequiresPrice = this.safeBool (this.options, 'createMarketBuyOrderRequiresPrice', true);
+        const contractsParam = this.safeString (params, 'contracts');
+        if (quoteAmount !== undefined) {
+            request['amount'] = this.parseToNumeric (quoteAmount);
+            request['orderCurrency'] = this.safeString (this.options, 'defaultOrderCurrency', 'usd');
+        } else if ((orderTypeLower === 'market') && (sideLower === 'buy') && !createMarketBuyOrderRequiresPrice) {
+            request['amount'] = amount;
+            request['orderCurrency'] = this.safeString (this.options, 'defaultOrderCurrency', 'usd');
+        } else if (contractsParam !== undefined) {
+            request['contracts'] = this.parseToNumeric (this.amountToPrecision (symbol, contractsParam));
+        } else if (market['future']) {
+            if (amount !== undefined) {
+                request['contracts'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+            }
+        } else if (amount !== undefined) {
+            request['units'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
+        }
+        const leverage = this.safeInteger (params, 'leverage');
+        if (leverage !== undefined) {
+            request['leverage'] = leverage;
+        }
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        let stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stopLossRate');
+        if ((stopLossPrice === undefined) && (stopLoss !== undefined)) {
+            stopLossPrice = this.safeString2 (stopLoss, 'triggerPrice', 'price');
+        }
+        let takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'takeProfitRate');
+        if ((takeProfitPrice === undefined) && (takeProfit !== undefined)) {
+            takeProfitPrice = this.safeString2 (takeProfit, 'triggerPrice', 'price');
+        }
+        if (stopLossPrice !== undefined) {
+            request['stopLossRate'] = this.parseToNumeric (this.priceToPrecision (symbol, stopLossPrice));
+        }
+        if (takeProfitPrice !== undefined) {
+            request['takeProfitRate'] = this.parseToNumeric (this.priceToPrecision (symbol, takeProfitPrice));
+        }
+        const isTrailing = this.safeBool (params, 'trailing', false);
+        const stopLossType = this.safeString (params, 'stopLossType');
+        if (stopLossType !== undefined) {
+            request['stopLossType'] = stopLossType;
+        } else if (isTrailing) {
+            request['stopLossType'] = 'trailing';
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['x-request-id'] = clientOrderId;
+        }
+        const query = this.omit (params, [
+            'demo', 'version', 'timeInForce', 'triggerPrice', 'stopPrice', 'triggerRate',
+            'cost', 'contracts', 'leverage', 'stopLoss', 'takeProfit',
+            'stopLossPrice', 'stopLossRate', 'takeProfitPrice', 'takeProfitRate',
+            'trailing', 'stopLossType', 'settlementType', 'reduceOnly', 'positionId', 'clientOrderId',
+        ]);
+        return this.extend (request, query);
     }
 
     /**
@@ -2100,25 +2680,50 @@ export default class etoro extends Exchange {
         const market = this.market (symbol);
         const isDemo = this.isDemoMode (params);
         let positionId = this.safeString2 (params, 'positionId', 'positionID');
-        const unitsToDeduct = this.safeNumberN (params, [ 'units', 'UnitsToDeduct', 'amount' ]);
+        const unitsToDeduct = this.safeStringN (params, [ 'units', 'UnitsToDeduct', 'amount' ]);
         const query = this.omit (params, [ 'demo', 'positionId', 'positionID', 'units', 'UnitsToDeduct', 'amount' ]);
+        let closeOrderSide: Str = undefined;
+        let targetSide: Str = undefined;
+        if (side !== undefined) {
+            const sideLower = side.toLowerCase ();
+            if (sideLower === 'buy') {
+                targetSide = 'short';
+                closeOrderSide = 'buy';
+            } else if (sideLower === 'sell') {
+                targetSide = 'long';
+                closeOrderSide = 'sell';
+            } else if (sideLower === 'long') {
+                targetSide = 'long';
+                closeOrderSide = 'sell';
+            } else if (sideLower === 'short') {
+                targetSide = 'short';
+                closeOrderSide = 'buy';
+            }
+        }
         if (positionId === undefined) {
             const positions = await this.fetchPositions ([ market['symbol'] ], { 'demo': isDemo });
-            let targetSide: Str = undefined;
-            if (side === 'buy') {
-                targetSide = 'short';
-            } else if (side === 'sell') {
-                targetSide = 'long';
-            }
+            const matching: Position[] = [];
             for (let i = 0; i < positions.length; i++) {
                 const pos = positions[i];
                 if ((targetSide === undefined) || (pos['side'] === targetSide)) {
-                    positionId = this.safeString (pos, 'id');
-                    break;
+                    matching.push (pos);
                 }
             }
-            if (positionId === undefined) {
+            const matchingLength = matching.length;
+            if (matchingLength === 0) {
                 throw new InvalidOrder (this.id + ' closePosition() could not find an open position for ' + symbol);
+            }
+            if (matchingLength > 1) {
+                throw new ArgumentsRequired (this.id + ' closePosition() requires a positionId parameter, there is more than one open position for ' + symbol);
+            }
+            positionId = this.safeString (matching[0], 'id');
+            if (closeOrderSide === undefined) {
+                const posSide = this.safeString (matching[0], 'side');
+                if (posSide === 'long') {
+                    closeOrderSide = 'sell';
+                } else if (posSide === 'short') {
+                    closeOrderSide = 'buy';
+                }
             }
         }
         const instrumentIdInt = this.parseToInt (market['id']);
@@ -2131,7 +2736,7 @@ export default class etoro extends Exchange {
             request['InstrumentId'] = instrumentIdInt;
         }
         if (unitsToDeduct !== undefined) {
-            request['UnitsToDeduct'] = unitsToDeduct;
+            request['UnitsToDeduct'] = this.parseToNumeric (this.amountToPrecision (symbol, unitsToDeduct));
         }
         const response = (isDemo)
             ? await this.privatePostApiV1TradingExecutionDemoMarketCloseOrdersPositionsPositionId (this.extend (request, query))
@@ -2143,7 +2748,7 @@ export default class etoro extends Exchange {
         //             "instrumentID": 100000,
         //             "unitsToDeduct": 0.000822,
         //             "orderID": 13902600,
-        //             "orderType": 2,
+        //             "orderType": 19,
         //             "statusID": 1,
         //             "CID": 34374239,
         //             "openDateTime": "2026-11-26T14:05:00Z",
@@ -2158,7 +2763,70 @@ export default class etoro extends Exchange {
         if (order['reduceOnly'] === undefined) {
             order['reduceOnly'] = true;
         }
+        if (order['type'] === undefined) {
+            order['type'] = 'market';
+        }
+        if ((order['side'] === undefined) && (closeOrderSide !== undefined)) {
+            order['side'] = closeOrderSide;
+        }
         return order;
+    }
+
+    /**
+     * @method
+     * @name etoro#editPosition
+     * @description modifies stop-loss and take-profit settings on an open position
+     * @see https://api-portal.etoro.com/api-reference/trading--real/modify-stop-loss-and-take-profit-settings-on-an-open-position
+     * @see https://api-portal.etoro.com/api-reference/trading--demo/modify-stop-loss-and-take-profit-settings-on-an-open-position
+     * @param {string} positionId the id of the open position
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.demo] true to modify a demo position, false for real
+     * @param {float} [params.stopLossPrice] the new stop-loss price
+     * @param {float} [params.takeProfitPrice] the new take-profit price
+     * @param {boolean} [params.trailing] true to enable trailing stop-loss, false for fixed
+     * @param {string} [params.stopLossType] explicit stop-loss type: 'fixed' or 'trailing'
+     * @returns {object} the exchange response dictionary
+     */
+    async editPosition (positionId: string, params: Dict = {}): Promise<Dict> {
+        const isDemo = this.isDemoMode (params);
+        const request: Dict = {
+            'positionId': positionId,
+        };
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'stopLossRate');
+        if (stopLossPrice !== undefined) {
+            request['stopLossRate'] = this.parseToNumeric (stopLossPrice);
+        }
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'takeProfitRate');
+        if (takeProfitPrice !== undefined) {
+            request['takeProfitRate'] = this.parseToNumeric (takeProfitPrice);
+        }
+        const stopLossType = this.safeString (params, 'stopLossType');
+        const trailing = this.safeBool (params, 'trailing');
+        if (stopLossType !== undefined) {
+            request['stopLossType'] = stopLossType;
+        } else if (trailing !== undefined) {
+            request['stopLossType'] = trailing ? 'trailing' : 'fixed';
+        }
+        const query = this.omit (params, [ 'demo', 'stopLossPrice', 'stopLossRate', 'takeProfitPrice', 'takeProfitRate', 'trailing', 'stopLossType' ]);
+        const response = (isDemo)
+            ? await this.privatePatchApiV2TradingDemoPositionsPositionId (this.extend (request, query))
+            : await this.privatePatchApiV2TradingPositionsPositionId (this.extend (request, query));
+        //
+        //     {
+        //         "operationId": "...",
+        //         "positionId": 3650745937,
+        //         "referenceId": "..."
+        //     }
+        //
+        return response;
+    }
+
+    parseProtectionRate (rate: Str): Str {
+        // eToro uses 0, 0.0001, and 0.01 as placeholders when stop-loss or take-profit is unset
+        if ((rate === undefined) || Precise.stringLe (rate, '0.01')) {
+            return undefined;
+        }
+        return rate;
     }
 
     /**
@@ -2252,12 +2920,20 @@ export default class etoro extends Exchange {
         //         "positions": [ { "positionID": 2980225895, "occurred": "...", "rate": 60750, "units": 0.000822, "amount": 50 } ]
         //     }
         //
-        const asset = this.safeDict (order, 'asset', {});
+        let asset = this.safeDict (order, 'asset');
+        if (asset === undefined) {
+            const assets = this.safeList (order, 'asset', []);
+            asset = this.safeDict (assets, 0, {});
+        }
         let marketId = this.safeStringN (order, [ 'instrumentId', 'instrumentID', 'InstrumentID' ]);
         if (marketId === undefined) {
             marketId = this.safeString2 (asset, 'instrumentId', 'instrumentID');
         }
-        const resolvedMarket = this.safeMarket (marketId, market);
+        if (marketId === '0') {
+            marketId = undefined;
+        }
+        const settlementType = this.safeString (asset, 'settlementType');
+        const resolvedMarket = this.safeEtoroMarket (marketId, settlementType, market);
         const id = this.safeStringN (order, [ 'orderId', 'orderID', 'OrderID' ]);
         const clientOrderId = this.safeStringN (order, [ 'referenceId', 'referenceID', 'RequestGuid', 'RequestToken', 'token' ]);
         const timestampStr = this.safeStringN (order, [ 'requestTime', 'openDateTime', 'OpenDateTime', 'requestOccurred', 'RequestOccurred' ]);
@@ -2270,8 +2946,14 @@ export default class etoro extends Exchange {
         // Status can be a nested object (orders:lookup), a string (instrument-breakdown / WS OrderEvent), or an integer statusID (v1/WS)
         const statusObj = this.safeDict (order, 'status');
         let rawStatus: Str = undefined;
+        let rejectReason: Str = undefined;
         if (statusObj !== undefined) {
             rawStatus = this.safeString2 (statusObj, 'id', 'name');
+            const errorCode = this.safeString (statusObj, 'errorCode');
+            if ((errorCode !== undefined) && (errorCode !== '0')) {
+                const errMsg = this.safeString (statusObj, 'errorMessage', '');
+                rejectReason = (errMsg !== '') ? (errorCode + ' ' + errMsg) : errorCode;
+            }
         } else {
             rawStatus = this.safeStringN (order, [ 'status', 'orderState', 'statusId', 'statusID', 'StatusID', 'StatusId' ]);
         }
@@ -2289,7 +2971,10 @@ export default class etoro extends Exchange {
             timeInForce = 'IOC';
         }
         // Side
-        const transaction = this.safeStringLower (order, 'transaction');
+        let transaction = this.safeStringLower (order, 'transaction');
+        if (transaction === 'na') {
+            transaction = undefined;
+        }
         let side: Str = undefined;
         if ((transaction === 'buy') || (transaction === 'buytocover')) {
             side = 'buy';
@@ -2309,13 +2994,19 @@ export default class etoro extends Exchange {
             }
         }
         const action = this.safeStringLower (order, 'action');
-        const reduceOnly = (action === 'close') ? true : undefined;
+        let reduceOnly: boolean | undefined = (action === 'close') ? true : undefined;
+        if (this.safeString (order, 'orderType') === '19') {
+            reduceOnly = true;
+        }
         const triggerPrice = this.omitZero (this.safeStringN (order, [ 'requestedTriggerRate', 'rate', 'Rate' ]));
         const isNoStopLoss = this.safeBool2 (order, 'isNoStopLoss', 'IsNoStopLoss', false);
         const isNoTakeProfit = this.safeBool2 (order, 'isNoTakeProfit', 'IsNoTakeProfit', false);
-        const stopLossPrice = (isNoStopLoss) ? undefined : this.omitZero (this.safeStringN (order, [ 'openStopLossRate', 'stopLossRate', 'StopLossRate' ]));
-        const takeProfitPrice = (isNoTakeProfit) ? undefined : this.omitZero (this.safeStringN (order, [ 'openTakeProfitRate', 'takeProfitRate', 'TakeProfitRate' ]));
-        let amount = this.omitZero (this.safeStringN (order, [ 'requestedUnits', 'RequestedUnits', 'units', 'Units', 'amountInUnits', 'AmountInUnits', 'unitsToDeduct', 'UnitsToDeduct', 'requestedContracts' ]));
+        const stopLossPrice = (isNoStopLoss) ? undefined : this.parseProtectionRate (this.safeStringN (order, [ 'openStopLossRate', 'stopLossRate', 'StopLossRate' ]));
+        const takeProfitPrice = (isNoTakeProfit) ? undefined : this.parseProtectionRate (this.safeStringN (order, [ 'openTakeProfitRate', 'takeProfitRate', 'TakeProfitRate' ]));
+        const isFuture = (resolvedMarket !== undefined) && resolvedMarket['future'];
+        let amount = isFuture
+            ? this.omitZero (this.safeStringN (order, [ 'requestedContracts', 'requestedUnits', 'RequestedUnits', 'units', 'Units', 'amountInUnits', 'AmountInUnits', 'unitsToDeduct', 'UnitsToDeduct' ]))
+            : this.omitZero (this.safeStringN (order, [ 'requestedUnits', 'RequestedUnits', 'units', 'Units', 'amountInUnits', 'AmountInUnits', 'unitsToDeduct', 'UnitsToDeduct', 'requestedContracts' ]));
         let cost = this.omitZero (this.safeStringN (order, [ 'requestedAmount', 'requestedAmountAcctCcy', 'amount', 'Amount', 'proceeds', 'totalProceeds' ]));
         let filled = this.omitZero (this.safeString2 (order, 'ExecutedUnits', 'FilledAmountUnits'));
         let average = this.omitZero (this.safeString (order, 'EndRate'));
@@ -2332,7 +3023,9 @@ export default class etoro extends Exchange {
             for (let i = 0; i < executions.length; i++) {
                 const exec = executions[i];
                 const execData = this.safeDict2 (exec, 'openingData', 'closingData', {});
-                const execUnits = this.safeString2 (execData, 'units', 'contracts');
+                const execUnits = isFuture
+                    ? this.safeString2 (execData, 'contracts', 'units')
+                    : this.safeString2 (execData, 'units', 'contracts');
                 const execPrice = this.safeString (execData, 'avgPrice');
                 const execInvested = this.safeStringN (exec, [ 'initialExposureAssetCurrency', 'initialExposureAccountCurrency', 'marginAssetCurrency', 'marginAccountCurrency' ]);
                 const execFees = this.safeString (execData, 'fees');
@@ -2411,7 +3104,7 @@ export default class etoro extends Exchange {
                 'currency': orderCurrency,
             };
         }
-        return this.safeOrder ({
+        const parsedOrder: Dict = {
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
@@ -2419,7 +3112,7 @@ export default class etoro extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': status,
-            'symbol': resolvedMarket['symbol'],
+            'symbol': this.safeString (resolvedMarket, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': undefined,
@@ -2437,7 +3130,11 @@ export default class etoro extends Exchange {
             'fee': fee,
             'trades': undefined,
             'info': order,
-        }, resolvedMarket);
+        };
+        if (rejectReason !== undefined) {
+            parsedOrder['rejectReason'] = rejectReason;
+        }
+        return this.safeOrder (parsedOrder, resolvedMarket);
     }
 
     /**
@@ -2498,7 +3195,37 @@ export default class etoro extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades (response, market, since, limit);
+        const expanded: List = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            expanded.push (this.extend (entry, { 'tradeSide': 'open' }));
+            expanded.push (this.extend (entry, { 'tradeSide': 'close' }));
+        }
+        const parsed = this.parseTrades (expanded, undefined, undefined, undefined);
+        const sorted = this.sortBy (parsed, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, (market === undefined) ? undefined : market['symbol'], since, limit);
+    }
+
+    marketFromHistoryEntry (entry: Dict, market: Market = undefined): MarketInterface {
+        if (market !== undefined) {
+            return market;
+        }
+        const instrumentId = this.safeStringN (entry, [ 'instrumentId', 'instrumentID', 'InstrumentID' ]);
+        const futureMarket = this.safeMarket (instrumentId, undefined, undefined, 'future');
+        if (futureMarket['future']) {
+            return futureMarket;
+        }
+        // trade/history and v1/pnl do not include settlementType; unleveraged long stocks, ETFs, and crypto are real spot assets
+        const isBuy = this.safeBool2 (entry, 'isBuy', 'IsBuy');
+        const leverage = this.safeString2 (entry, 'leverage', 'Leverage');
+        let settlementType = 'cfd';
+        if (isBuy && (leverage === '1')) {
+            const spotMarket = this.safeMarket (instrumentId, undefined, undefined, 'spot');
+            if (spotMarket['spot']) {
+                settlementType = 'real';
+            }
+        }
+        return this.safeEtoroMarket (instrumentId, settlementType);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -2517,33 +3244,56 @@ export default class etoro extends Exchange {
         //         "investment": 50,
         //         "initialInvestment": 50,
         //         "fees": 0.49,
-        //         "units": 0.000822
+        //         "units": 0.000822,
+        //         "tradeSide": "open" // or "close"
         //     }
         //
-        const marketId = this.safeString2 (trade, 'instrumentId', 'instrumentID');
-        const resolvedMarket = this.safeMarket (marketId, market);
-        const id = this.safeString2 (trade, 'positionId', 'positionID');
-        const orderId = this.safeString2 (trade, 'orderId', 'orderID');
-        const timestampStr = this.safeString2 (trade, 'closeTimestamp', 'openTimestamp');
-        const timestamp = this.parseUtcIsoTimestamp (timestampStr);
+        const resolvedMarket = this.marketFromHistoryEntry (trade, market);
+        const tradeSide = this.safeString (trade, 'tradeSide');
+        const isOpen = (tradeSide === 'open');
+        const isClose = (tradeSide === 'close');
+        const positionId = this.safeString2 (trade, 'positionId', 'positionID');
+        let id = positionId;
+        if ((positionId !== undefined) && (tradeSide !== undefined)) {
+            id = positionId + '-' + tradeSide;
+        }
+        const orderId = isClose ? undefined : this.safeString2 (trade, 'orderId', 'orderID');
         const isBuy = this.safeBool (trade, 'isBuy');
         let side: Str = undefined;
-        if (isBuy !== undefined) {
-            side = (isBuy) ? 'buy' : 'sell';
+        let price: Str = undefined;
+        let timestampStr: Str = undefined;
+        if (isOpen) {
+            if (isBuy !== undefined) {
+                side = isBuy ? 'buy' : 'sell';
+            }
+            price = this.safeString (trade, 'openRate');
+            timestampStr = this.safeString (trade, 'openTimestamp');
+        } else {
+            if (isBuy !== undefined) {
+                if (isClose) {
+                    side = isBuy ? 'sell' : 'buy';
+                } else {
+                    side = isBuy ? 'buy' : 'sell';
+                }
+            }
+            price = this.safeString2 (trade, 'closeRate', 'openRate');
+            timestampStr = this.safeString2 (trade, 'closeTimestamp', 'openTimestamp');
         }
-        const price = this.safeString2 (trade, 'closeRate', 'openRate');
+        const timestamp = this.parseUtcIsoTimestamp (timestampStr);
         const amount = this.safeString (trade, 'units');
         let cost: Str = undefined;
         if ((price === undefined) || (amount === undefined)) {
             cost = this.safeString2 (trade, 'investment', 'initialInvestment');
         }
-        const feeCost = this.safeString (trade, 'fees');
         let fee: NullableDict = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': this.parseNumber (Precise.stringAbs (feeCost)),
-                'currency': 'USD',
-            };
+        if (!isOpen) {
+            const feeCost = this.safeString (trade, 'fees');
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': this.parseNumber (Precise.stringAbs (feeCost)),
+                    'currency': 'USD',
+                };
+            }
         }
         return this.safeTrade ({
             'id': id,
@@ -2552,9 +3302,9 @@ export default class etoro extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': resolvedMarket['symbol'],
             'order': orderId,
-            'type': undefined,
+            'type': 'market',
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': 'taker',
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -2817,12 +3567,17 @@ export default class etoro extends Exchange {
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined): Dict {
         const endpoint = this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        let query = this.omit (params, this.extractParams (path));
         const apiType = Array.isArray (api) ? api[0] : api;
         let url = this.urls['api'][apiType] + '/' + endpoint;
         const reqHeaders: Dict = (headers !== undefined) ? this.extend ({}, headers) : {};
         let reqBody: any = body;
-        if (!('x-request-id' in reqHeaders)) {
+        // x-request-id doubles as the clientOrderId (referenceId) for created orders
+        const requestId = this.safeString (query, 'x-request-id');
+        if (requestId !== undefined) {
+            reqHeaders['x-request-id'] = requestId;
+            query = this.omit (query, 'x-request-id');
+        } else if (!('x-request-id' in reqHeaders)) {
             reqHeaders['x-request-id'] = this.uuid ();
         }
         // eToro Core API requires authentication on every request (either OAuth Bearer token OR x-api-key + x-user-key pair)
@@ -2856,46 +3611,58 @@ export default class etoro extends Exchange {
         // Format 4: { "error": "Amount must not be zero" }
         // Format 5: RFC 7807 ProblemDetails { "title": "...", "status": 400, "detail": "..." }
         //
-        if (code >= 400) {
-            const feedback = this.id + ' ' + body;
-            let errorCode: Str = undefined;
-            let errorMessage: Str = undefined;
-            if (this.isDictionary (response)) {
-                errorCode = this.safeString2 (response, 'errorCode', 'code');
-                errorMessage = this.safeStringN (response, [ 'errorMessage', 'message', 'detail', 'title' ]);
-                const nestedError = this.safeDict (response, 'error');
-                if (nestedError !== undefined) {
-                    errorCode = this.safeString2 (nestedError, 'code', 'errorCode', errorCode);
-                    errorMessage = this.safeString2 (nestedError, 'message', 'details', errorMessage);
-                } else {
-                    const stringError = this.safeString (response, 'error');
-                    if ((stringError !== undefined) && (errorMessage === undefined)) {
-                        errorMessage = stringError;
-                    }
+        if (code < 400) {
+            if (!this.isDictionary (response)) {
+                return undefined;
+            }
+            const success = this.safeBool (response, 'success');
+            if (success !== false) {
+                return undefined;
+            }
+        }
+        const feedback = this.id + ' ' + body;
+        let errorCode: Str = undefined;
+        let errorMessage: Str = undefined;
+        if (this.isDictionary (response)) {
+            errorCode = this.safeString2 (response, 'errorCode', 'code');
+            errorMessage = this.safeStringN (response, [ 'errorMessage', 'message', 'detail', 'title' ]);
+            const nestedError = this.safeDict (response, 'error');
+            if (nestedError !== undefined) {
+                errorCode = this.safeString2 (nestedError, 'code', 'errorCode', errorCode);
+                errorMessage = this.safeString2 (nestedError, 'message', 'details', errorMessage);
+            } else {
+                const stringError = this.safeString (response, 'error');
+                if ((stringError !== undefined) && (errorMessage === undefined)) {
+                    errorMessage = stringError;
                 }
             }
-            if (errorCode !== undefined) {
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            }
-            if (errorMessage !== undefined) {
-                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage.toLowerCase (), feedback);
-            }
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body.toLowerCase (), feedback);
-            if (code === 401) {
-                throw new AuthenticationError (feedback);
-            }
-            if (code === 403) {
-                throw new PermissionDenied (feedback);
-            }
-            if (code === 429) {
-                throw new RateLimitExceeded (feedback);
-            }
-            if (code >= 500) {
-                throw new ExchangeNotAvailable (feedback);
-            }
-            throw new ExchangeError (feedback);
         }
-        return undefined;
+        if (errorCode !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        }
+        if (errorMessage !== undefined) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage.toLowerCase (), feedback);
+        }
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body.toLowerCase (), feedback);
+        if (code === 401) {
+            throw new AuthenticationError (feedback);
+        }
+        if (code === 403) {
+            throw new PermissionDenied (feedback);
+        }
+        if (code === 404) {
+            if (url.indexOf ('orders') !== -1) {
+                throw new OrderNotFound (feedback);
+            }
+            throw new BadRequest (feedback);
+        }
+        if (code === 429) {
+            throw new RateLimitExceeded (feedback);
+        }
+        if (code >= 500) {
+            throw new ExchangeNotAvailable (feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 }
 

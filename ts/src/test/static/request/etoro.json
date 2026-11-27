@@ -5,10 +5,15 @@
     "methods": {
         "fetchMarkets": [
             {
-                "description": "fetch all markets",
+                "description": "fetch all markets display data",
                 "method": "fetchMarkets",
                 "url": "https://public-api.etoro.com/api/v1/market-data/instruments",
-                "input": [],
+                "input": [
+                    {
+                        "fetchSearchData": false,
+                        "futures": false
+                    }
+                ],
                 "headers": {
                     "x-api-key": "key",
                     "x-user-key": "secretsecret"
@@ -20,7 +25,9 @@
                 "url": "https://public-api.etoro.com/api/v1/market-data/instruments?instrumentTypeIds=10",
                 "input": [
                     {
-                        "instrumentTypeIds": "10"
+                        "instrumentTypeIds": "10",
+                        "fetchSearchData": false,
+                        "futures": false
                     }
                 ]
             }
@@ -32,6 +39,14 @@
                 "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000",
                 "input": [
                     "BTC/USD"
+                ]
+            },
+            {
+                "description": "fetch swap BTC/USD:USD ticker",
+                "method": "fetchTicker",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000",
+                "input": [
+                    "BTC/USD:USD"
                 ]
             },
             {
@@ -58,6 +73,17 @@
                     [
                         "BTC/USD",
                         "EUR/USD:USD"
+                    ]
+                ]
+            },
+            {
+                "description": "fetch tickers deduplicates shared spot and swap instrument id",
+                "method": "fetchTickers",
+                "url": "https://public-api.etoro.com/api/v1/market-data/instruments/rates?instrumentIds=100000",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "BTC/USD:USD"
                     ]
                 ]
             }
@@ -349,7 +375,7 @@
         ],
         "createOrder": [
             {
-                "description": "spot market buy order with USD cost",
+                "description": "spot market buy order with USD cost and clientOrderId",
                 "method": "createOrder",
                 "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
                 "input": [
@@ -359,13 +385,15 @@
                     0,
                     null,
                     {
-                        "cost": 15
+                        "cost": 15,
+                        "clientOrderId": "1c94300c-90aa-4303-9d00-dec376d74efb"
                     }
                 ],
-                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"mkt\",\"amount\":15,\"orderCurrency\":\"usd\",\"settlementType\":\"real\"}",
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"mkt\",\"settlementType\":\"real\",\"amount\":15,\"orderCurrency\":\"usd\"}",
                 "headers": {
                     "x-api-key": "key",
-                    "x-user-key": "secretsecret"
+                    "x-user-key": "secretsecret",
+                    "x-request-id": "1c94300c-90aa-4303-9d00-dec376d74efb"
                 }
             },
             {
@@ -384,7 +412,21 @@
                         "takeProfitPrice": 1.15
                     }
                 ],
-                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1,\"orderType\":\"mkt\",\"units\":100,\"leverage\":5,\"stopLossRate\":1.05,\"takeProfitRate\":1.15}"
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1,\"orderType\":\"mkt\",\"settlementType\":\"cfd\",\"units\":100,\"leverage\":5,\"stopLossRate\":1.05,\"takeProfitRate\":1.15}"
+            },
+            {
+                "description": "future market buy order with contracts and realFutures settlement",
+                "method": "createOrder",
+                "url": "https://public-api.etoro.com/api/v2/trading/execution/orders",
+                "input": [
+                    "SP500/USD:USD-280301",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {}
+                ],
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100123,\"orderType\":\"mkt\",\"settlementType\":\"realFutures\",\"contracts\":2}"
             },
             {
                 "description": "spot limit MIT buy order with cost",
@@ -400,7 +442,7 @@
                         "cost": 15
                     }
                 ],
-                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"mit\",\"triggerRate\":50000,\"amount\":15,\"orderCurrency\":\"usd\"}"
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"mit\",\"settlementType\":\"real\",\"triggerRate\":50000,\"amount\":15,\"orderCurrency\":\"usd\"}"
             },
             {
                 "description": "spot limit IOC buy order",
@@ -416,7 +458,7 @@
                         "timeInForce": "IOC"
                     }
                 ],
-                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"limitIOC\",\"limitRate\":61000,\"units\":0.001,\"settlementType\":\"real\"}"
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":100000,\"orderType\":\"limitIOC\",\"settlementType\":\"real\",\"limitRate\":61000,\"units\":0.001}"
             },
             {
                 "description": "swap market sellShort order with trailing stopLoss",
@@ -434,7 +476,7 @@
                         "trailing": true
                     }
                 ],
-                "output": "{\"action\":\"open\",\"transaction\":\"sellShort\",\"instrumentId\":1,\"orderType\":\"mkt\",\"units\":50,\"leverage\":2,\"stopLossRate\":1.12,\"stopLossType\":\"trailing\"}"
+                "output": "{\"action\":\"open\",\"transaction\":\"sellShort\",\"instrumentId\":1,\"orderType\":\"mkt\",\"settlementType\":\"cfd\",\"units\":50,\"leverage\":2,\"stopLossRate\":1.12,\"stopLossType\":\"trailing\"}"
             },
             {
                 "description": "demo v3 market buy order with cost",
@@ -452,7 +494,7 @@
                         "demo": true
                     }
                 ],
-                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1202,\"orderType\":\"mkt\",\"amount\":15,\"orderCurrency\":\"usd\",\"settlementType\":\"real\"}"
+                "output": "{\"action\":\"open\",\"transaction\":\"buy\",\"instrumentId\":1202,\"orderType\":\"mkt\",\"settlementType\":\"real\",\"amount\":15,\"orderCurrency\":\"usd\"}"
             },
             {
                 "description": "reduceOnly createOrder delegates to closePosition",
@@ -537,6 +579,37 @@
                     }
                 ],
                 "output": "{\"InstrumentID\":1202,\"UnitsToDeduct\":0.03}"
+            }
+        ],
+        "editPosition": [
+            {
+                "description": "modify real position stopLoss and takeProfit",
+                "method": "editPosition",
+                "url": "https://public-api.etoro.com/api/v2/trading/positions/3650747955",
+                "input": [
+                    "3650747955",
+                    {
+                        "stopLossPrice": 55000,
+                        "takeProfitPrice": 72000,
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"stopLossRate\":55000,\"takeProfitRate\":72000,\"stopLossType\":\"trailing\"}"
+            },
+            {
+                "description": "modify demo position stopLoss and takeProfit",
+                "method": "editPosition",
+                "url": "https://public-api.etoro.com/api/v2/trading/demo/positions/3650747955",
+                "input": [
+                    "3650747955",
+                    {
+                        "stopLossPrice": 55000,
+                        "takeProfitPrice": 72000,
+                        "trailing": false,
+                        "demo": true
+                    }
+                ],
+                "output": "{\"stopLossRate\":55000,\"takeProfitRate\":72000,\"stopLossType\":\"fixed\"}"
             }
         ],
         "fetchMyTrades": [

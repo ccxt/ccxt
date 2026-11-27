@@ -29,8 +29,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.000001,
+            "price": 1e-8
         },
         "limits": {
             "leverage": {
@@ -66,7 +66,14 @@
             "priceSource": "eToro",
             "hasExpirationDate": false,
             "isInternalInstrument": false,
-            "distributionType": 5
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100000,
+                "cvtBid": 1,
+                "currentRate": 60777.72,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
         },
         "tierBased": false,
         "percentage": true
@@ -101,8 +108,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.000001,
+            "price": 1e-8
         },
         "limits": {
             "leverage": {
@@ -138,7 +145,14 @@
             "priceSource": "eToro",
             "hasExpirationDate": false,
             "isInternalInstrument": false,
-            "distributionType": 5
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100001,
+                "cvtBid": 1,
+                "currentRate": 1700.48,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
         },
         "tierBased": false,
         "percentage": true
@@ -165,16 +179,16 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.01,
-        "maker": 0.01,
+        "taker": 0,
+        "maker": 0,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.000001,
+            "price": 0.0001
         },
         "limits": {
             "leverage": {
@@ -210,7 +224,251 @@
             "priceSource": "Xetra",
             "hasExpirationDate": false,
             "isInternalInstrument": false,
-            "distributionType": 1
+            "distributionType": 1,
+            "search": {
+                "instrumentId": 1202,
+                "cvtBid": 1.098,
+                "currentRate": 193.42,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "BTC/USD:USD": {
+        "id": "100000",
+        "lowercaseId": null,
+        "symbol": "BTC/USD:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.01,
+        "maker": 0.01,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instrumentID": 100000,
+            "instrumentDisplayName": "Bitcoin",
+            "instrumentTypeID": 10,
+            "exchangeID": 8,
+            "images": [],
+            "symbolFull": "BTC",
+            "instrumentTypeSubCategoryID": 1001,
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100000,
+                "cvtBid": 1,
+                "currentRate": 60777.72,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "ETH/USD:USD": {
+        "id": "100001",
+        "lowercaseId": null,
+        "symbol": "ETH/USD:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.01,
+        "maker": 0.01,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.000001,
+            "price": 1e-8
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instrumentID": 100001,
+            "instrumentDisplayName": "Ethereum",
+            "instrumentTypeID": 10,
+            "exchangeID": 8,
+            "images": [],
+            "symbolFull": "ETH",
+            "instrumentTypeSubCategoryID": 1001,
+            "priceSource": "eToro",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 5,
+            "search": {
+                "instrumentId": 100001,
+                "cvtBid": 1,
+                "currentRate": 1700.48,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "SAP.DE/EUR:USD": {
+        "id": "1202",
+        "lowercaseId": null,
+        "symbol": "SAP.DE/EUR:USD",
+        "base": "SAP.DE",
+        "quote": "EUR",
+        "settle": "USD",
+        "baseId": "SAP.DE",
+        "quoteId": "EUR",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.000001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instrumentID": 1202,
+            "instrumentDisplayName": "SAP SE",
+            "instrumentTypeID": 5,
+            "exchangeID": 6,
+            "images": [],
+            "symbolFull": "SAP.DE",
+            "instrumentTypeSubCategoryID": 501,
+            "priceSource": "Xetra",
+            "hasExpirationDate": false,
+            "isInternalInstrument": false,
+            "distributionType": 1,
+            "search": {
+                "instrumentId": 1202,
+                "cvtBid": 1.098,
+                "currentRate": 193.42,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
         },
         "tierBased": false,
         "percentage": true
@@ -237,16 +495,16 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.01,
-        "maker": 0.01,
+        "taker": 0,
+        "maker": 0,
         "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
-            "price": null
+            "amount": 0.000001,
+            "price": 0.00001
         },
         "limits": {
             "leverage": {
@@ -282,7 +540,103 @@
             "priceSource": "FX",
             "hasExpirationDate": false,
             "isInternalInstrument": false,
-            "distributionType": 1
+            "distributionType": 1,
+            "search": {
+                "instrumentId": 1,
+                "cvtBid": 1,
+                "currentRate": 1.09787,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            }
+        },
+        "tierBased": false,
+        "percentage": true
+    },
+    "SP500/USD:USD-280301": {
+        "id": "100123",
+        "lowercaseId": null,
+        "symbol": "SP500/USD:USD-280301",
+        "base": "SP500",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "SP500",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "future",
+        "spot": false,
+        "margin": false,
+        "swap": false,
+        "future": true,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0,
+        "maker": 0,
+        "contractSize": 50,
+        "expiry": 1835481600000,
+        "expiryDatetime": "2028-03-01T00:00:00.000Z",
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "instrumentID": 100123,
+            "instrumentDisplayName": "S&P 500 Futures",
+            "instrumentTypeID": 4,
+            "exchangeID": 40,
+            "images": [],
+            "symbolFull": "SP500.MAR28",
+            "instrumentTypeSubCategoryID": 401,
+            "priceSource": "CME",
+            "hasExpirationDate": true,
+            "isInternalInstrument": false,
+            "distributionType": 1,
+            "search": {
+                "instrumentId": 100123,
+                "cvtBid": 1,
+                "currentRate": 6100,
+                "isDelisted": false,
+                "isCurrentlyTradable": true
+            },
+            "future": {
+                "instrumentId": 100123,
+                "displayName": "S&P 500 Futures",
+                "type": "Indices",
+                "symbol": "SP500.MAR28",
+                "exchangeId": 40,
+                "multiplier": 50,
+                "lastTradingDateTime": "2221-12-31T23:00:00Z",
+                "expirationDateTime": "2221-12-31T23:00:00Z"
+            }
         },
         "tierBased": false,
         "percentage": true

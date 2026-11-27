@@ -4,25 +4,138 @@
     "methods": {
         "fetchMarkets": [
             {
-                "description": "fetchMarkets parses spot crypto and linear forex swap instruments",
+                "description": "fetchMarkets parses linear forex swap and CME future instruments with search and v2 enrichment",
                 "method": "fetchMarkets",
                 "input": [],
-                "httpResponse": {
-                    "instrumentDisplayDatas": [
-                        {
-                            "instrumentID": 100000,
-                            "instrumentDisplayName": "Bitcoin",
-                            "instrumentTypeID": 10,
-                            "exchangeID": 8,
-                            "images": [],
-                            "symbolFull": "BTC",
-                            "instrumentTypeSubCategoryID": 1001,
-                            "priceSource": "eToro",
-                            "hasExpirationDate": false,
-                            "isInternalInstrument": false,
-                            "distributionType": 5
+                "httpResponseByUrl": {
+                    "/api/v1/market-data/instruments": {
+                        "instrumentDisplayDatas": [
+                            {
+                                "instrumentID": 1,
+                                "instrumentDisplayName": "EUR/USD",
+                                "instrumentTypeID": 1,
+                                "exchangeID": 1,
+                                "images": [],
+                                "symbolFull": "EURUSD",
+                                "instrumentTypeSubCategoryID": 101,
+                                "priceSource": "FX",
+                                "hasExpirationDate": false,
+                                "isInternalInstrument": false,
+                                "distributionType": 1
+                            },
+                            {
+                                "instrumentID": 100123,
+                                "instrumentDisplayName": "S&P 500 Futures",
+                                "instrumentTypeID": 4,
+                                "exchangeID": 40,
+                                "images": [],
+                                "symbolFull": "SP500.MAR28",
+                                "instrumentTypeSubCategoryID": 401,
+                                "priceSource": "CME",
+                                "hasExpirationDate": true,
+                                "isInternalInstrument": false,
+                                "distributionType": 1
+                            }
+                        ]
+                    },
+                    "/api/v1/market-data/search": {
+                        "page": 1,
+                        "pageSize": 5000,
+                        "totalItems": 2,
+                        "items": [
+                            {
+                                "instrumentId": 1,
+                                "cvtBid": 1,
+                                "currentRate": 1.09787,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            },
+                            {
+                                "instrumentId": 100123,
+                                "cvtBid": 1,
+                                "currentRate": 6100,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            }
+                        ]
+                    },
+                    "/api/v2/market-data/instruments": {
+                        "results": [
+                            {
+                                "instrumentId": 100123,
+                                "displayName": "S&P 500 Futures",
+                                "type": "Indices",
+                                "symbol": "SP500.MAR28",
+                                "exchangeId": 40,
+                                "multiplier": 50,
+                                "lastTradingDateTime": "2221-12-31T23:00:00Z",
+                                "expirationDateTime": "2221-12-31T23:00:00Z"
+                            }
+                        ],
+                        "pagination": {
+                            "pageSize": 1000,
+                            "hasNext": false
+                        }
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1",
+                        "lowercaseId": null,
+                        "symbol": "EUR/USD:USD",
+                        "base": "EUR",
+                        "quote": "USD",
+                        "settle": "USD",
+                        "baseId": "EUR",
+                        "quoteId": "USD",
+                        "settleId": "USD",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": "linear",
+                        "taker": 0,
+                        "maker": 0,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.000001,
+                            "price": 0.00001
                         },
-                        {
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
                             "instrumentID": 1,
                             "instrumentDisplayName": "EUR/USD",
                             "instrumentTypeID": 1,
@@ -33,9 +146,145 @@
                             "priceSource": "FX",
                             "hasExpirationDate": false,
                             "isInternalInstrument": false,
-                            "distributionType": 1
+                            "distributionType": 1,
+                            "search": {
+                                "instrumentId": 1,
+                                "cvtBid": 1,
+                                "currentRate": 1.09787,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            }
                         }
-                    ]
+                    },
+                    {
+                        "id": "100123",
+                        "lowercaseId": null,
+                        "symbol": "SP500/USD:USD-280301",
+                        "base": "SP500",
+                        "quote": "USD",
+                        "settle": "USD",
+                        "baseId": "SP500",
+                        "quoteId": "USD",
+                        "settleId": "USD",
+                        "type": "future",
+                        "spot": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": true,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": "linear",
+                        "taker": 0,
+                        "maker": 0,
+                        "contractSize": 50,
+                        "expiry": 1835481600000,
+                        "expiryDatetime": "2028-03-01T00:00:00.000Z",
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "instrumentID": 100123,
+                            "instrumentDisplayName": "S&P 500 Futures",
+                            "instrumentTypeID": 4,
+                            "exchangeID": 40,
+                            "images": [],
+                            "symbolFull": "SP500.MAR28",
+                            "instrumentTypeSubCategoryID": 401,
+                            "priceSource": "CME",
+                            "hasExpirationDate": true,
+                            "isInternalInstrument": false,
+                            "distributionType": 1,
+                            "search": {
+                                "instrumentId": 100123,
+                                "cvtBid": 1,
+                                "currentRate": 6100,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            },
+                            "future": {
+                                "instrumentId": 100123,
+                                "displayName": "S&P 500 Futures",
+                                "type": "Indices",
+                                "symbol": "SP500.MAR28",
+                                "exchangeId": 40,
+                                "multiplier": 50,
+                                "lastTradingDateTime": "2221-12-31T23:00:00Z",
+                                "expirationDateTime": "2221-12-31T23:00:00Z"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "fetchMarkets emits both spot and swap markets for crypto instrument with 1% fee",
+                "method": "fetchMarkets",
+                "input": [
+                    {
+                        "futures": false
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "/api/v1/market-data/instruments": {
+                        "instrumentDisplayDatas": [
+                            {
+                                "instrumentID": 100000,
+                                "instrumentDisplayName": "Bitcoin",
+                                "instrumentTypeID": 10,
+                                "exchangeID": 8,
+                                "images": [],
+                                "symbolFull": "BTC",
+                                "instrumentTypeSubCategoryID": 1001,
+                                "priceSource": "eToro",
+                                "hasExpirationDate": false,
+                                "isInternalInstrument": false,
+                                "distributionType": 5
+                            }
+                        ]
+                    },
+                    "/api/v1/market-data/search": {
+                        "page": 1,
+                        "pageSize": 5000,
+                        "totalItems": 1,
+                        "items": [
+                            {
+                                "instrumentId": 100000,
+                                "cvtBid": 1,
+                                "currentRate": 60777.72,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            }
+                        ]
+                    }
                 },
                 "parsedResponse": [
                     {
@@ -60,16 +309,16 @@
                         "linear": null,
                         "inverse": null,
                         "subType": null,
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.01,
+                        "maker": 0.01,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": null,
-                            "price": null
+                            "amount": 0.000001,
+                            "price": 1e-8
                         },
                         "limits": {
                             "leverage": {
@@ -105,17 +354,24 @@
                             "priceSource": "eToro",
                             "hasExpirationDate": false,
                             "isInternalInstrument": false,
-                            "distributionType": 5
+                            "distributionType": 5,
+                            "search": {
+                                "instrumentId": 100000,
+                                "cvtBid": 1,
+                                "currentRate": 60777.72,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            }
                         }
                     },
                     {
-                        "id": "1",
+                        "id": "100000",
                         "lowercaseId": null,
-                        "symbol": "EUR/USD:USD",
-                        "base": "EUR",
+                        "symbol": "BTC/USD:USD",
+                        "base": "BTC",
                         "quote": "USD",
                         "settle": "USD",
-                        "baseId": "EUR",
+                        "baseId": "BTC",
                         "quoteId": "USD",
                         "settleId": "USD",
                         "type": "swap",
@@ -130,16 +386,16 @@
                         "linear": true,
                         "inverse": false,
                         "subType": "linear",
-                        "taker": null,
-                        "maker": null,
+                        "taker": 0.01,
+                        "maker": 0.01,
                         "contractSize": 1,
                         "expiry": null,
                         "expiryDatetime": null,
                         "strike": null,
                         "optionType": null,
                         "precision": {
-                            "amount": null,
-                            "price": null
+                            "amount": 0.000001,
+                            "price": 1e-8
                         },
                         "limits": {
                             "leverage": {
@@ -165,17 +421,24 @@
                         },
                         "created": null,
                         "info": {
-                            "instrumentID": 1,
-                            "instrumentDisplayName": "EUR/USD",
-                            "instrumentTypeID": 1,
-                            "exchangeID": 1,
+                            "instrumentID": 100000,
+                            "instrumentDisplayName": "Bitcoin",
+                            "instrumentTypeID": 10,
+                            "exchangeID": 8,
                             "images": [],
-                            "symbolFull": "EURUSD",
-                            "instrumentTypeSubCategoryID": 101,
-                            "priceSource": "FX",
+                            "symbolFull": "BTC",
+                            "instrumentTypeSubCategoryID": 1001,
+                            "priceSource": "eToro",
                             "hasExpirationDate": false,
                             "isInternalInstrument": false,
-                            "distributionType": 1
+                            "distributionType": 5,
+                            "search": {
+                                "instrumentId": 100000,
+                                "cvtBid": 1,
+                                "currentRate": 60777.72,
+                                "isDelisted": false,
+                                "isCurrentlyTradable": true
+                            }
                         }
                     }
                 ]
@@ -352,6 +615,107 @@
                             "unitMarginAsk": 1.09788,
                             "unitMarginBid": 1.09787,
                             "priceRateID": 166283436999
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            },
+            {
+                "description": "fetchTickers populates both spot and swap tickers sharing one instrument id",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "BTC/USD:USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "rates": [
+                        {
+                            "instrumentID": 100000,
+                            "ask": 60777.73,
+                            "bid": 60777.72,
+                            "lastExecution": 60777.72,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T13:40:46.7817672Z",
+                            "unitMargin": 60777.72,
+                            "unitMarginAsk": 60777.73,
+                            "unitMarginBid": 60777.72,
+                            "priceRateID": 166283436918
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD": {
+                        "symbol": "BTC/USD",
+                        "timestamp": 1795700446781,
+                        "datetime": "2026-11-26T13:40:46.781Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 60777.72,
+                        "bidVolume": null,
+                        "ask": 60777.73,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 60777.72,
+                        "last": 60777.72,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "instrumentID": 100000,
+                            "ask": 60777.73,
+                            "bid": 60777.72,
+                            "lastExecution": 60777.72,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T13:40:46.7817672Z",
+                            "unitMargin": 60777.72,
+                            "unitMarginAsk": 60777.73,
+                            "unitMarginBid": 60777.72,
+                            "priceRateID": 166283436918
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    "BTC/USD:USD": {
+                        "symbol": "BTC/USD:USD",
+                        "timestamp": 1795700446781,
+                        "datetime": "2026-11-26T13:40:46.781Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 60777.72,
+                        "bidVolume": null,
+                        "ask": 60777.73,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": null,
+                        "close": 60777.72,
+                        "last": 60777.72,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "instrumentID": 100000,
+                            "ask": 60777.73,
+                            "bid": 60777.72,
+                            "lastExecution": 60777.72,
+                            "conversionRateAsk": 1,
+                            "conversionRateBid": 1,
+                            "date": "2026-11-26T13:40:46.7817672Z",
+                            "unitMargin": 60777.72,
+                            "unitMarginAsk": 60777.73,
+                            "unitMarginBid": 60777.72,
+                            "priceRateID": 166283436918
                         },
                         "indexPrice": null,
                         "markPrice": null
@@ -949,7 +1313,7 @@
                         "datetime": "2026-11-26T14:00:00.000Z",
                         "lastUpdateTimestamp": null,
                         "initialMargin": 50,
-                        "initialMarginPercentage": 0.9992006394884093,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 60800,
@@ -1006,7 +1370,7 @@
                         "datetime": "2026-11-26T14:05:00.000Z",
                         "lastUpdateTimestamp": null,
                         "initialMargin": 22,
-                        "initialMarginPercentage": 0.2009132420091324,
+                        "initialMarginPercentage": 0.2,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 1.1,
@@ -1125,7 +1489,7 @@
                         "datetime": "2026-11-26T14:11:57.997Z",
                         "lastUpdateTimestamp": 1795702321854,
                         "initialMargin": 15,
-                        "initialMarginPercentage": 0.9900990099009901,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 193.42,
@@ -1176,7 +1540,7 @@
                         "datetime": "2026-11-26T14:05:00.000Z",
                         "lastUpdateTimestamp": 1795702321854,
                         "initialMargin": 22,
-                        "initialMarginPercentage": 0.2009132420091324,
+                        "initialMarginPercentage": 0.2,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 1.1,
@@ -1285,7 +1649,7 @@
                     "datetime": "2026-11-26T14:00:00.000Z",
                     "lastUpdateTimestamp": null,
                     "initialMargin": 50,
-                    "initialMarginPercentage": 0.9992006394884093,
+                    "initialMarginPercentage": 1,
                     "maintenanceMargin": null,
                     "maintenanceMarginPercentage": null,
                     "entryPrice": 60800,
@@ -1366,57 +1730,6 @@
                 "parsedResponse": [
                     {
                         "info": {
-                            "netProfit": 0.05,
-                            "closeRate": 193.45,
-                            "closeTimestamp": "2026-11-26T14:27:10.000Z",
-                            "positionId": 3650747955,
-                            "instrumentId": 1202,
-                            "isBuy": true,
-                            "leverage": 1,
-                            "openRate": 193.42,
-                            "openTimestamp": "2026-11-26T14:26:50.000Z",
-                            "stopLossRate": 0.01,
-                            "takeProfitRate": 0,
-                            "trailingStopLoss": false,
-                            "orderId": 396858488,
-                            "socialTradeId": 0,
-                            "parentPositionId": 0,
-                            "investment": 15,
-                            "initialInvestment": 15,
-                            "fees": 1,
-                            "units": 0.07058
-                        },
-                        "id": "3650747955",
-                        "symbol": "SAP.DE/EUR",
-                        "timestamp": 1795703210000,
-                        "datetime": "2026-11-26T14:26:50.000Z",
-                        "lastUpdateTimestamp": 1795703230000,
-                        "initialMargin": 15,
-                        "initialMarginPercentage": 1.098603228531224,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "entryPrice": 193.42,
-                        "notional": 13.653701,
-                        "leverage": 1,
-                        "unrealizedPnl": 0.0021174,
-                        "realizedPnl": 0.05,
-                        "contracts": 0.07058,
-                        "contractSize": 1,
-                        "marginRatio": null,
-                        "liquidationPrice": null,
-                        "markPrice": 193.45,
-                        "lastPrice": 193.45,
-                        "collateral": 15.05,
-                        "marginMode": "isolated",
-                        "side": "long",
-                        "percentage": 0.3333333333333333,
-                        "stopLossPrice": 0.01,
-                        "takeProfitPrice": null,
-                        "hedged": true,
-                        "positionMargin": 15.05
-                    },
-                    {
-                        "info": {
                             "netProfit": -0.25,
                             "closeRate": 60750,
                             "closeTimestamp": "2026-11-26T14:05:00.000Z",
@@ -1443,7 +1756,7 @@
                         "datetime": "2026-11-26T14:00:00.000Z",
                         "lastUpdateTimestamp": 1795701900000,
                         "initialMargin": 50,
-                        "initialMarginPercentage": 1.0012716149509877,
+                        "initialMarginPercentage": 1,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 60800,
@@ -1465,6 +1778,57 @@
                         "takeProfitPrice": 70000,
                         "hedged": true,
                         "positionMargin": 49.75
+                    },
+                    {
+                        "info": {
+                            "netProfit": 0.05,
+                            "closeRate": 193.45,
+                            "closeTimestamp": "2026-11-26T14:27:10.000Z",
+                            "positionId": 3650747955,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.42,
+                            "openTimestamp": "2026-11-26T14:26:50.000Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858488,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 1,
+                            "units": 0.07058
+                        },
+                        "id": "3650747955",
+                        "symbol": "SAP.DE/EUR",
+                        "timestamp": 1795703210000,
+                        "datetime": "2026-11-26T14:26:50.000Z",
+                        "lastUpdateTimestamp": 1795703230000,
+                        "initialMargin": 15,
+                        "initialMarginPercentage": 1,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 193.42,
+                        "notional": 13.653701,
+                        "leverage": 1,
+                        "unrealizedPnl": 0.0021174,
+                        "realizedPnl": 0.05,
+                        "contracts": 0.07058,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": 193.45,
+                        "lastPrice": 193.45,
+                        "collateral": 15.05,
+                        "marginMode": "isolated",
+                        "side": "long",
+                        "percentage": 0.3333333333333333,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": true,
+                        "positionMargin": 15.05
                     }
                 ]
             }
@@ -1495,7 +1859,8 @@
                                     "asset": {
                                         "instrumentId": 100000,
                                         "symbol": "BTC",
-                                        "direction": "long"
+                                        "direction": "long",
+                                        "settlementType": "real"
                                     }
                                 }
                             ]
@@ -1519,7 +1884,8 @@
                                     "asset": {
                                         "instrumentId": 1,
                                         "symbol": "EURUSD",
-                                        "direction": "short"
+                                        "direction": "short",
+                                        "settlementType": "cfd"
                                     }
                                 }
                             ]
@@ -1566,7 +1932,8 @@
                             "asset": {
                                 "instrumentId": 100000,
                                 "symbol": "BTC",
-                                "direction": "long"
+                                "direction": "long",
+                                "settlementType": "real"
                             }
                         },
                         "fees": [],
@@ -1613,7 +1980,8 @@
                             "asset": {
                                 "instrumentId": 1,
                                 "symbol": "EURUSD",
-                                "direction": "short"
+                                "direction": "short",
+                                "settlementType": "cfd"
                             }
                         },
                         "fees": [],
@@ -1929,6 +2297,103 @@
                     "fees": [],
                     "stopPrice": null
                 }
+            },
+            {
+                "description": "fetchOrder parses rejected order with rejectReason and ignores placeholder protection rates",
+                "method": "fetchOrder",
+                "input": [
+                    "396858999",
+                    null
+                ],
+                "httpResponse": {
+                    "accountId": 12345,
+                    "orderId": 396858999,
+                    "referenceId": "00000000-0000-4000-8000-000000000999",
+                    "action": "open",
+                    "transaction": "na",
+                    "type": "mkt",
+                    "status": {
+                        "id": 4,
+                        "name": "Rejected",
+                        "errorCode": 720,
+                        "errorMessage": "Minimum position amount"
+                    },
+                    "asset": {
+                        "symbol": "",
+                        "instrumentId": 0,
+                        "currency": "USD",
+                        "settlementType": "na",
+                        "leverage": 1,
+                        "side": "na"
+                    },
+                    "orderCurrency": "USD",
+                    "requestedAmount": 5,
+                    "requestedUnits": null,
+                    "openStopLossRate": 0.01,
+                    "openTakeProfitRate": 0,
+                    "positionExecutions": [],
+                    "requestTime": "2026-11-26T14:27:00Z",
+                    "lastUpdate": "2026-11-26T14:27:00Z"
+                },
+                "parsedResponse": {
+                    "id": "396858999",
+                    "clientOrderId": "00000000-0000-4000-8000-000000000999",
+                    "timestamp": 1795703220000,
+                    "datetime": "2026-11-26T14:27:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1795703220000,
+                    "status": "rejected",
+                    "symbol": null,
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": 5,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "accountId": 12345,
+                        "orderId": 396858999,
+                        "referenceId": "00000000-0000-4000-8000-000000000999",
+                        "action": "open",
+                        "transaction": "na",
+                        "type": "mkt",
+                        "status": {
+                            "id": 4,
+                            "name": "Rejected",
+                            "errorCode": 720,
+                            "errorMessage": "Minimum position amount"
+                        },
+                        "asset": {
+                            "symbol": "",
+                            "instrumentId": 0,
+                            "currency": "USD",
+                            "settlementType": "na",
+                            "leverage": 1,
+                            "side": "na"
+                        },
+                        "orderCurrency": "USD",
+                        "requestedAmount": 5,
+                        "requestedUnits": null,
+                        "openStopLossRate": 0.01,
+                        "openTakeProfitRate": 0,
+                        "positionExecutions": [],
+                        "requestTime": "2026-11-26T14:27:00Z",
+                        "lastUpdate": "2026-11-26T14:27:00Z"
+                    },
+                    "rejectReason": "720 Minimum position amount",
+                    "fees": [],
+                    "stopPrice": null
+                }
             }
         ],
         "createOrder": [
@@ -2063,7 +2528,7 @@
                     "lastUpdateTimestamp": 1795703225000,
                     "status": "open",
                     "symbol": "SAP.DE/EUR",
-                    "type": null,
+                    "type": "market",
                     "timeInForce": null,
                     "postOnly": null,
                     "reduceOnly": true,
@@ -2098,9 +2563,34 @@
                 }
             }
         ],
+        "editPosition": [
+            {
+                "description": "editPosition modifies stop-loss and take-profit settings on an open position",
+                "method": "editPosition",
+                "input": [
+                    "3650747955",
+                    {
+                        "stopLossPrice": 55000,
+                        "takeProfitPrice": 72000,
+                        "trailing": true,
+                        "demo": true
+                    }
+                ],
+                "httpResponse": {
+                    "operationId": "op-123456",
+                    "positionId": 3650747955,
+                    "referenceId": "3f1c2e4a-8b90-4a12-9cde-1234567890ab"
+                },
+                "parsedResponse": {
+                    "operationId": "op-123456",
+                    "positionId": 3650747955,
+                    "referenceId": "3f1c2e4a-8b90-4a12-9cde-1234567890ab"
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
-                "description": "fetchMyTrades parses 2 closed trades",
+                "description": "fetchMyTrades expands a closed position into 2 opening and closing trade fills",
                 "method": "fetchMyTrades",
                 "input": [
                     null,
@@ -2128,76 +2618,11 @@
                         "initialInvestment": 15,
                         "fees": 1,
                         "units": 0.07058
-                    },
-                    {
-                        "netProfit": -0.25,
-                        "closeRate": 60750,
-                        "closeTimestamp": "2026-11-26T14:05:00.000Z",
-                        "positionId": 3650747200,
-                        "instrumentId": 100000,
-                        "isBuy": true,
-                        "leverage": 1,
-                        "openRate": 60800,
-                        "openTimestamp": "2026-11-26T14:00:00.000Z",
-                        "stopLossRate": 50000,
-                        "takeProfitRate": 70000,
-                        "trailingStopLoss": false,
-                        "orderId": 396858100,
-                        "socialTradeId": 0,
-                        "parentPositionId": 0,
-                        "investment": 50,
-                        "initialInvestment": 50,
-                        "fees": 0.49,
-                        "units": 0.000822
                     }
                 ],
                 "parsedResponse": [
                     {
-                        "id": "3650747200",
-                        "info": {
-                            "netProfit": -0.25,
-                            "closeRate": 60750,
-                            "closeTimestamp": "2026-11-26T14:05:00.000Z",
-                            "positionId": 3650747200,
-                            "instrumentId": 100000,
-                            "isBuy": true,
-                            "leverage": 1,
-                            "openRate": 60800,
-                            "openTimestamp": "2026-11-26T14:00:00.000Z",
-                            "stopLossRate": 50000,
-                            "takeProfitRate": 70000,
-                            "trailingStopLoss": false,
-                            "orderId": 396858100,
-                            "socialTradeId": 0,
-                            "parentPositionId": 0,
-                            "investment": 50,
-                            "initialInvestment": 50,
-                            "fees": 0.49,
-                            "units": 0.000822
-                        },
-                        "timestamp": 1795701900000,
-                        "datetime": "2026-11-26T14:05:00.000Z",
-                        "symbol": "BTC/USD",
-                        "order": "396858100",
-                        "type": null,
-                        "side": "buy",
-                        "takerOrMaker": null,
-                        "price": 60750,
-                        "amount": 0.000822,
-                        "cost": 49.9365,
-                        "fee": {
-                            "currency": "USD",
-                            "cost": 0.49
-                        },
-                        "fees": [
-                            {
-                                "currency": "USD",
-                                "cost": 0.49
-                            }
-                        ]
-                    },
-                    {
-                        "id": "3650747955",
+                        "id": "3650747955-open",
                         "info": {
                             "netProfit": 0.05,
                             "closeRate": 193.45,
@@ -2217,15 +2642,56 @@
                             "investment": 15,
                             "initialInvestment": 15,
                             "fees": 1,
-                            "units": 0.07058
+                            "units": 0.07058,
+                            "tradeSide": "open"
+                        },
+                        "timestamp": 1795703210000,
+                        "datetime": "2026-11-26T14:26:50.000Z",
+                        "symbol": "SAP.DE/EUR",
+                        "order": "396858488",
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 193.42,
+                        "amount": 0.07058,
+                        "cost": 13.6515836,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "3650747955-close",
+                        "info": {
+                            "netProfit": 0.05,
+                            "closeRate": 193.45,
+                            "closeTimestamp": "2026-11-26T14:27:10.000Z",
+                            "positionId": 3650747955,
+                            "instrumentId": 1202,
+                            "isBuy": true,
+                            "leverage": 1,
+                            "openRate": 193.42,
+                            "openTimestamp": "2026-11-26T14:26:50.000Z",
+                            "stopLossRate": 0.01,
+                            "takeProfitRate": 0,
+                            "trailingStopLoss": false,
+                            "orderId": 396858488,
+                            "socialTradeId": 0,
+                            "parentPositionId": 0,
+                            "investment": 15,
+                            "initialInvestment": 15,
+                            "fees": 1,
+                            "units": 0.07058,
+                            "tradeSide": "close"
                         },
                         "timestamp": 1795703230000,
                         "datetime": "2026-11-26T14:27:10.000Z",
                         "symbol": "SAP.DE/EUR",
-                        "order": "396858488",
-                        "type": null,
-                        "side": "buy",
-                        "takerOrMaker": null,
+                        "order": null,
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
                         "price": 193.45,
                         "amount": 0.07058,
                         "cost": 13.653701,
