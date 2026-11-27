@@ -1080,8 +1080,8 @@ public partial class testMainClass
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
                     List<object> handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-                    string? marketPart = ((string)(handleParts != null && 0 < handleParts.Count ? handleParts[0] : null));
-                    string lowerPart = marketPart.ToLower();
+                    object marketPart = exchange.safeString(handleParts, 0, "");
+                    string lowerPart = ((string)marketPart).ToLower();
                     string dedashed = lowerPart.Replace((string)"-", (string)" ");
                     eventQuery = dedashed.Replace((string)"_", (string)" ");
                 }

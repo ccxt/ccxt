@@ -845,7 +845,7 @@ public partial class BaseExchange
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         List<object> uniqChars = (this.unique(this.stringToCharsArray(address)));
         int length = (uniqChars?.Count ?? 0); // py transpiler trick
-        if ((length == 1) || isLessThan(((string)address).Length, this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
+        if ((length == 1) || (((string)address).Length < this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
         {
             throw new InvalidAddress ((((((this.id + " address is invalid or has less than ") + ((object)this.minFundingAddressLength).ToString()) + " characters: \"") + ((object)address).ToString()) + "\"")) ;
         }
@@ -3157,7 +3157,8 @@ public partial class BaseExchange
         List<object> feeValues = new List<object>(reduced.Values);
         for (int i = 0; i < feeValues.Count; i++)
         {
-            List<object> reducedFeeValues = new List<object>(((IDictionary<string,object>)feeValues[i]).Values);
+            IDictionary<string, object> feeValue = this.safeDict(feeValues, i, new Dictionary<string, object>() {});
+            List<object> reducedFeeValues = new List<object>(feeValue.Values);
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -3451,7 +3452,7 @@ public partial class BaseExchange
                     break;
                 } catch(Exception e)
                 {
-                    if (((retry + 1L) >= maxRetries))
+                    if ((retry + 1L) >= maxRetries.GetValueOrDefault())
                     {
                         throw e;
                     }
@@ -4971,7 +4972,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328615 && i_timestamp < ohlcvsSlot328615.Count ? ohlcvsSlot328615[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328666 && i_timestamp < ohlcvsSlot328666.Count ? ohlcvsSlot328666[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -8336,10 +8337,9 @@ public partial class BaseExchange
                 for (int i = 0; i < clients.Count; i++)
                 {
                     object client = clients[i];
-                    IDictionary<string, Future> futures = (client as WebSocketClient).futures;
-                    if ((futures != null && futures.ContainsKey("fetchPositionsSnapshot")))
+                    if (((WebSocketClient)client).futures.ContainsKey("fetchPositionsSnapshot"))
                     {
-                        ((IDictionary<string,object>)futures).Remove("fetchPositionsSnapshot");
+                        ((WebSocketClient)client).futures.Remove("fetchPositionsSnapshot");
                     }
                 }
             } else if ((topic == "ticker" || topic == "markPrice") && ((this.tickers != null)))

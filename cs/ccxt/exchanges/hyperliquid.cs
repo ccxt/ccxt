@@ -1629,11 +1629,8 @@ public partial class hyperliquid : Exchange
             {
                 // optimization if limit is provided
                 Int64 timeframeInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
-                startTime = this.sum(until, ((timeframeInMilliseconds * limit) * -1));
-                if (((startTime == null || startTime < 0)))
-                {
-                    startTime = 0;
-                }
+                Int64? calculatedStartTime = (until - ((timeframeInMilliseconds * limit)));
+                startTime = (((calculatedStartTime == null || calculatedStartTime < 0))) ? 0 : calculatedStartTime;
                 useTail = false;
             } else
             {

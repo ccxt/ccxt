@@ -1992,7 +1992,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return "80";
         }
-        if (((byteLength == 1)) && (isLessThan(hex, "80")))
+        if (((byteLength == 1)) && ((string.CompareOrdinal(hex, "80") < 0)))
         {
             return ((string?)((object)(hex)));
         }

@@ -246,9 +246,9 @@ public partial class binance : ccxt.binance
                 this.options["numSubscriptionsByStream"] = this.createSafeDictionary();
             }
             Int64? subscriptionsByStream = this.safeInteger((this.options != null && this.options.ContainsKey("numSubscriptionsByStream") ? this.options["numSubscriptionsByStream"] : null), stream, 0);
-            object newNumSubscriptions = (subscriptionsByStream.GetValueOrDefault() + numSubscriptions.GetValueOrDefault());
+            Int64 newNumSubscriptions = (subscriptionsByStream.GetValueOrDefault() + numSubscriptions.GetValueOrDefault());
             Int64? subscriptionLimitByStream = this.safeInteger((this.options != null && this.options.ContainsKey("subscriptionLimitByStream") ? this.options["subscriptionLimitByStream"] : null), type, 200);
-            if (isGreaterThan(newNumSubscriptions, subscriptionLimitByStream))
+            if (newNumSubscriptions > subscriptionLimitByStream.GetValueOrDefault())
             {
                 throw new BadRequest ((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }
