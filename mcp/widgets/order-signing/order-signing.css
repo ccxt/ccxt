@@ -32,7 +32,7 @@ header { display: flex; flex-wrap: wrap; align-items: center; justify-content: s
 .order-details:has(dl:empty) { display: none; }
 .watermark {
   position: absolute; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: min(38%, 116px); height: auto; aspect-ratio: 1; color: #20303a; pointer-events: none;
+  width: min(38%, 116px); height: auto; aspect-ratio: 1; color: #20303a; opacity: var(--watermark-opacity); pointer-events: none;
 }
 .order-details dl > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); padding: 10px 14px; }
 .order-details dl > div + div { border-top: 1px solid rgb(162 170 184 / .12); }

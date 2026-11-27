@@ -54,6 +54,7 @@ input::placeholder { color: var(--muted); opacity: 1; }
   height: auto;
   transform: translate(-50%, -50%);
   color: var(--watermark);
+  opacity: var(--watermark-opacity);
   pointer-events: none;
 }
 .chart-frame > .ccxt-watermark { top: 42%; left: calc((100% - 86px) / 2); }

@@ -13,6 +13,7 @@
   --warn-line: #594a2c;
   --danger-line: #80332f;
   --danger-surface: #301b22;
+  --watermark-opacity: 0.8;
   background: var(--background);
   color: var(--text);
 }
