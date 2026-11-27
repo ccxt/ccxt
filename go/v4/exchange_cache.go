@@ -13,12 +13,15 @@ package ccxt
 // are required for those flows: Append() and ToArray().  Everything else can be
 // added later if/when the need arises.
 //
-// Ownership: every cache starts one owner goroutine in NewBaseCache and every
-// operation below is posted to it, so only that goroutine touches the fields
-// and a call site needs no lock.
+// Serialization: every exported cache operation runs its body through
+// BaseCache.submit, which holds the cache's private mutex for the whole
+// operation, so a call site needs no lock. The *Owned / *Locked helpers assume
+// that lock is already held and must never call an exported cache method or
+// submit (sync.Mutex is not reentrant: doing so deadlocks the cache).
 
 import (
 	"fmt"
+	"sync"
 )
 
 // ArrayCacheInterface is the value a ws list stream resolves: one of the caches, or a plain list.
@@ -58,53 +61,39 @@ type CacheType interface {
 	Append(any)
 }
 
-// cacheOp is one unit of work for a cache owner: apply runs on the owner
-// goroutine, close(done) releases the caller that posted it.
-type cacheOp struct {
-	apply func()
-	done  chan struct{}
-}
-
 type BaseCache struct {
-	MaxSize         int          `json:"-"`
-	Data            []any        `json:"data"`
-	allNewUpdates   int          `json:"-"`
-	clearAllUpdates bool         `json:"-"`
-	ops             chan cacheOp `json:"-"`
+	MaxSize         int        `json:"-"`
+	Data            []any      `json:"data"`
+	allNewUpdates   int        `json:"-"`
+	clearAllUpdates bool       `json:"-"`
+	mu              sync.Mutex `json:"-"`
 }
 
 func NewBaseCache(MaxSize int) *BaseCache {
-	c := &BaseCache{MaxSize: MaxSize, Data: make([]any, 0), ops: make(chan cacheOp)}
-	go c.run()
-	return c
+	return &BaseCache{MaxSize: MaxSize, Data: make([]any, 0)}
 }
 
-// run is the cache owner: it is the only goroutine that touches the cache state.
-func (c *BaseCache) run() {
-	for op := range c.ops {
-		op.apply()
-		close(op.done)
-	}
-}
-
-// submit hands one operation to the owner and waits for it to land, so a caller
-// only observes state the owner already finished with. A cache built without a
-// constructor has no owner and runs the operation inline.
+// submit runs one cache operation under the cache mutex. The lock is released
+// by defer, so a panic in fn propagates to the caller (where the generated
+// exchange code recovers it into an error) without leaving the cache locked.
+// Using a mutex rather than a per-cache owner goroutine means a discarded cache
+// is simply garbage-collected; an owner goroutine blocked on its channel is a
+// GC root and leaked once per cache (resubscribe, snapshot reload, Close).
+// fn must not call submit or any exported cache method: the mutex is not
+// reentrant. A panic mid-operation leaves whatever fn had already written
+// (e.g. an index entry without its row); the cache stays usable, but callers
+// that recover should treat its contents for that key as suspect.
 func (c *BaseCache) submit(fn func()) {
-	if c.ops == nil {
-		fn()
-		return
-	}
-	done := make(chan struct{})
-	c.ops <- cacheOp{apply: fn, done: done}
-	<-done
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	fn()
 }
 
 func (c *BaseCache) Clear() {
 	c.submit(c.clearOwned)
 }
 
-// clearOwned empties the array on the owner.
+// clearOwned empties the array under the cache lock.
 func (c *BaseCache) clearOwned() {
 	c.Data = c.Data[:0]
 }
@@ -148,7 +137,7 @@ func cacheTimestampOf(item any) (int64, bool) {
 	return 0, false
 }
 
-// AppendInternal is the raw append ArrayCache's owner calls; it is never posted.
+// AppendInternal is the raw append ArrayCache's appendOwned calls; it never takes the lock itself.
 func (c *BaseCache) AppendInternal(item any) {
 	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
 		// drop the oldest element (behaviour identical to JS shift())
@@ -200,7 +189,7 @@ func NewArrayCache(MaxSize any) *ArrayCache {
 	}
 }
 
-// resetUpdateTrackersLocked clears the getLimit counters. Runs on the cache owner.
+// resetUpdateTrackersLocked clears the getLimit counters. Runs under the cache lock.
 func (c *ArrayCache) resetUpdateTrackersLocked() {
 	c.clearUpdatesBySymbol = make(map[string]bool)
 	c.allNewUpdates = 0
@@ -212,7 +201,7 @@ func (c *ArrayCache) resetUpdateTrackersLocked() {
 // trackAppendLocked records one append against the getLimit counters.
 // When nestedNewUpdatesBySymbol is set (ById / BySide), distinctId is stored in
 // seenUpdatesBySymbol and newUpdatesBySymbol gets the set size — same as Cache.ts.
-// Plain ArrayCache just increments the int. Runs on the cache owner.
+// Plain ArrayCache just increments the int. Runs under the cache lock.
 func (c *ArrayCache) trackAppendLocked(key string, distinctId string) {
 	if c.clearAllUpdates {
 		c.clearAllUpdates = false
@@ -260,7 +249,7 @@ func (c *ArrayCache) Append(item any) {
 	})
 }
 
-// appendOwned is Append's body, on the cache owner goroutine.
+// appendOwned is Append's body, run under the cache lock.
 func (c *ArrayCache) appendOwned(item any) {
 	// We expect the incoming item to at least expose a "symbol" field; try to
 	// extract it when it is a map[string]any – if not present we still
@@ -375,7 +364,7 @@ func (c *ArrayCache) Clear() {
 	c.submit(c.clearOwned)
 }
 
-// clearOwned empties the array, the by-id index and both poll scopes on the owner.
+// clearOwned empties the array, the by-id index and both poll scopes under the cache lock.
 func (c *ArrayCache) clearOwned() {
 	c.Data = c.Data[:0]
 	c.Hashmap = make(map[string]map[string]any)
@@ -396,7 +385,7 @@ func (c *ArrayCache) ToArray() []any {
 	return out
 }
 
-// toArrayOwned returns a shallow copy on the owner, so a caller cannot mutate the array.
+// toArrayOwned returns a shallow copy under the cache lock, so a caller cannot mutate the array.
 func (c *ArrayCache) toArrayOwned() []any {
 	out := make([]any, len(c.Data))
 	copy(out, c.Data)
@@ -412,7 +401,7 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) *int64 {
 	return out
 }
 
-// getLimitOwned answers one poll on the owner: it reads the count and flags the deferred reset.
+// getLimitOwned answers one poll under the cache lock: it reads the count and flags the deferred reset.
 func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
 	var newUpdatesValue any = nil
 
@@ -447,7 +436,7 @@ func (c *ArrayCache) Remove(symbol string) {
 	})
 }
 
-// removeOwned drops every row of the symbol on the owner.
+// removeOwned drops every row of the symbol under the cache lock.
 func (c *ArrayCache) removeOwned(symbol string) {
 	// Remove from hashmap
 	delete(c.Hashmap, symbol)
@@ -503,7 +492,7 @@ func (c *ArrayCacheByTimestamp) Append(item any) {
 	})
 }
 
-// appendOwned is Append's body, on the cache owner goroutine.
+// appendOwned is Append's body, run under the cache lock.
 func (c *ArrayCacheByTimestamp) appendOwned(item any) {
 	// a genuine timestamp of 0 is a valid key, so the presence flag is carried
 	// separately instead of being inferred from `ts != 0`
@@ -550,13 +539,13 @@ func (c *ArrayCacheByTimestamp) appendOwned(item any) {
 // The previous implementation iterated the OLD row's indices and read the NEW
 // one, so appending [100,9,9] onto [100,1,2,3,4,5] indexed arr[3] and panicked
 // with index out of range; when the lengths happened to line up it still left a
-// stale tail behind ([100,9,9,3,4,5]). Runs on the cache owner.
+// stale tail behind ([100,9,9,3,4,5]). Runs under the cache lock.
 func (c *ArrayCacheByTimestamp) mergeRow(ts int64, existing any, item any) {
 	oldArr, okOld := existing.([]any)
 	newArr, okNew := item.([]any)
 	if okOld && okNew && len(oldArr) == len(newArr) {
 		// same shape: publish a fresh row instead of writing through the one
-		// ToArray already handed out, so a reader never shares storage with the owner
+		// ToArray already handed out, so a reader never shares storage with the cache
 		row := make([]any, len(newArr))
 		copy(row, newArr)
 		c.Hashmap[ts] = row
@@ -595,7 +584,7 @@ func (c *ArrayCacheByTimestamp) Clear() {
 	c.submit(c.clearOwned)
 }
 
-// clearOwned resets the timestamp index and the array on the owner.
+// clearOwned resets the timestamp index and the array under the cache lock.
 func (c *ArrayCacheByTimestamp) clearOwned() {
 	c.Data = c.Data[:0]
 	c.Hashmap = make(map[int64]any)
@@ -623,7 +612,7 @@ func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) *int64 {
 	return out
 }
 
-// getLimitOwned answers the poll on the owner and flags the deferred reset.
+// getLimitOwned answers the poll under the cache lock and flags the deferred reset.
 func (c *ArrayCacheByTimestamp) getLimitOwned(symbol any, limit any) *int64 {
 	c.clearUpdates = true
 	if derefScalar(limit) == nil {
@@ -639,7 +628,7 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	})
 }
 
-// removeOwned filters the symbol out on the owner.
+// removeOwned filters the symbol out under the cache lock.
 func (c *ArrayCacheByTimestamp) removeOwned(symbol string) {
 	// Filter out items with this symbol from Data
 	filteredData := make([]any, 0, len(c.Data))
@@ -713,7 +702,7 @@ func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	})
 }
 
-// appendBySideOwned is Append's body, on the cache owner goroutine.
+// appendBySideOwned is Append's body, run under the cache lock.
 func (c *ArrayCacheBySymbolBySide) appendBySideOwned(item any) {
 	var symbol, side string
 	if m, ok := item.(map[string]any); ok {
