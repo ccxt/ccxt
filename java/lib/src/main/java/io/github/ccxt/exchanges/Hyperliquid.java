@@ -1753,11 +1753,8 @@ public class Hyperliquid extends HyperliquidApi
             {
                 // optimization if limit is provided
                 Long timeframeInMilliseconds = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                startTime = this.sum(until, ((timeframeInMilliseconds * limit) * -1L));
-                if ((startTime == null || (!(((Number) startTime).doubleValue() >= 0))))
-                {
-                    startTime = 0;
-                }
+                Long calculatedStartTime = (until - ((timeframeInMilliseconds * limit)));
+                startTime = (((((calculatedStartTime == null || calculatedStartTime < 0))))) ? 0 : calculatedStartTime;
                 useTail = false;
             } else
             {

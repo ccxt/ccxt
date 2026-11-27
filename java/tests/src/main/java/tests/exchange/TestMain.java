@@ -1140,7 +1140,7 @@ public class TestMain extends BaseTest
                         // derive one from the selected outcome handle (the market words with
                         // separators as spaces) so the scoped contract holds even without a pin
                         List<Object> handleParts = (List<Object>) Helpers.split(outcomeSymbol, ":");
-                        String marketPart = (String) Helpers.GetValue(handleParts, 0);
+                        String marketPart = exchange.safeString(handleParts, 0, "");
                         String lowerPart = marketPart.toLowerCase();
                         String dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
                         eventQuery = (dedashed == null ? null : ((String)dedashed).replace("_", " "));

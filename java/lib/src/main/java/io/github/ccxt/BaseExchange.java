@@ -7729,7 +7729,8 @@ public Map<String, Object> describe()
         List<Object> feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < feeValues.size(); i++)
         {
-            List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= feeValues.size() ? null : feeValues.get(i)));
+            Map<String, Object> feeValue = this.safeDict(feeValues, i, new HashMap<String, Object>() {{}});
+            List<Object> reducedFeeValues = new ArrayList<Object>(feeValue.values());
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -12858,10 +12859,9 @@ public Map<String, Object> describe()
                 for (var i = 0; i < clients.size(); i++)
                 {
                     Client client = (Client)(clients == null || i < 0 || i >= clients.size() ? null : clients.get(i));
-                    Map<String, io.github.ccxt.ws.Future> futures = client.futures;
-                    if (futures.containsKey("fetchPositionsSnapshot"))
+                    if (client.futures.containsKey("fetchPositionsSnapshot"))
                     {
-                        futures.remove("fetchPositionsSnapshot");
+                        client.futures.remove("fetchPositionsSnapshot");
                     }
                 }
             } else if ((java.util.Objects.equals(topic, "ticker") || java.util.Objects.equals(topic, "markPrice")) && (!java.util.Objects.equals(this.tickers, null)))
