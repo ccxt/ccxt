@@ -8721,7 +8721,7 @@ class okx extends Exchange {
         $paramsOmitted = $this->omit($params, 'until');
         $end = null;
         if ($until !== null) {
-            $end = $this->sum($until, 1);
+            $end = $this->parse_to_int($this->sum($until, 1));
         }
         if ($since !== null) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -8739,8 +8739,8 @@ class okx extends Exchange {
             } else {
                 $windowDuration = $effectiveLimit * $this->parse_timeframe(strtolower($unitPeriod)) * 1000;
             }
-            $windowEnd = $this->sum($since, $windowDuration);
-            $end = ($end === null) ? $windowEnd : min($end, $windowEnd);
+            $windowEnd = $this->parse_to_int($this->sum($since, $windowDuration));
+            $end = ($end === null) ? $windowEnd : $this->parse_to_int(min($end, $windowEnd));
         }
         if ($end !== null) {
             $request['end'] = $end;

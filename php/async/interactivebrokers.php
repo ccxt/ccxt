@@ -1166,7 +1166,7 @@ class interactivebrokers extends Exchange {
         return $this->parse_balance($balanceResponse);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //     {
         //         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },

@@ -775,7 +775,7 @@ class hyperliquid extends Exchange {
          * @param {int} $maxDecimals the $maxDecimals to use in the calculation
          * @return {int} The calculated $price precision
          */
-        $pricePrecision = 0;
+        $pricePrecision = $this->parse_to_int(0);
         $priceStr = $this->number_to_string($price);
         if ($priceStr === null) {
             return 0;
@@ -787,7 +787,7 @@ class hyperliquid extends Exchange {
         if (Precise::string_eq($priceStr, '0')) {
             // Significant digits is always 5 in this case
             // and integer digits is always 0 (0 doesn't count), so the precision is capped at 5 - 0
-            $pricePrecision = 5;
+            $pricePrecision = $this->parse_to_int(5);
         } elseif (Precise::string_gt($priceStr, '0') && Precise::string_lt($priceStr, '1')) {
             // Significant digits, always 5 in this case
             $significantDigits = 5;
@@ -809,11 +809,10 @@ class hyperliquid extends Exchange {
             if (strlen($integerPart) <= 5) {
                 $digitsLeft = 5 - (strlen($integerPart));
             }
-            $pricePrecision = $digitsLeft;
+            $pricePrecision = $this->parse_to_int($digitsLeft);
         }
         // cap by maxDecimals - szDecimals
-        $pricePrecision = min($decimalsLeft, $pricePrecision);
-        return $this->parse_to_int($pricePrecision);
+        return $this->parse_to_int(min($decimalsLeft, $pricePrecision));
     }
 
     public function fetch_spot_markets($params = array()): array {

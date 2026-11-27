@@ -9380,9 +9380,8 @@ class binance extends Exchange {
             $oneWeek = 604800000; // 7 * 24 * 60 * 60 * 1000
             if (($currentTimestamp - $since) >= $oneWeek) {
                 if (($endTime === null) && ($this->safe_bool($market, 'linear', false))) {
-                    $endTime = $this->sum($startTime, $oneWeek);
-                    $endTimeValue = ($endTime === null) ? 0 : $endTime;
-                    $endTime = min($endTimeValue, $currentTimestamp);
+                    $endTimeValue = $this->parse_to_int($this->sum($startTime, $oneWeek));
+                    $endTime = $this->parse_to_int(min($endTimeValue, $currentTimestamp));
                 }
             }
         }

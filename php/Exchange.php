@@ -4747,7 +4747,7 @@ class BaseExchange {
                 return $methodDict[$parentKey];
             }
             // throw an exception for unsupported subKey
-            if (!(is_array($methodDict[$parentKey]) && array_key_exists($subKey ?? '', $methodDict[$parentKey]))) {
+            if (!(is_array($dictionary) && array_key_exists($subKey ?? '', $dictionary))) {
                 return $defaultValue; // unsupported subKey, check "exchange.features" for details
             }
             return $this->safe_value($dictionary, $subKey);
