@@ -11,7 +11,7 @@ CCXT ships an official **MCP (Model Context Protocol) server** so AI agents — 
 
 - npm package: [`ccxt-mcp`](https://www.npmjs.com/package/ccxt-mcp)
 - Source: [github.com/ccxt/ccxt/tree/master/mcp](https://github.com/ccxt/ccxt/tree/master/mcp) (hosted server: [`mcp/hosted`](https://github.com/ccxt/ccxt/tree/master/mcp/hosted))
-- Plugins for Claude, ChatGPT and Codex: [github.com/ccxt/ccxt-plugins](https://github.com/ccxt/ccxt-plugins). A plugin adds the server plus a skill that tells the assistant how to use it.
+- Plugins for Claude, ChatGPT and Codex: [github.com/ccxt/ccxt-plugins](https://github.com/ccxt/ccxt-plugins). A plugin adds the server plus skills: how to use the server and, in the `ccxt` plugin, how to write code with the CCXT library in each language.
 
 In Claude Code, for example, pick one:
 
@@ -53,7 +53,7 @@ Install the CCXT plugin, or add that URL to your assistant, and ask for prices, 
 
 There are two ways to add it. Both connect to the same server.
 
-**Plugin (paid plans).** The CCXT plugin adds the connector plus a skill that tells Claude how to use it. Go to **Customize > Plugins**, select **Add**, then **Add marketplace**, and enter `ccxt/ccxt-plugins`. Add **CCXT**, then connect it on the plugin's **Connectors** tab. On Team and Enterprise, an Owner can add the marketplace for everyone under **Organization settings > Plugins & skills > Add > Sync from GitHub**.
+**Plugin (paid plans).** The CCXT plugin adds the connector plus skills that tell Claude how to use it and how to write CCXT code. Go to **Customize > Plugins**, select **Add**, then **Add marketplace**, and enter `ccxt/ccxt-plugins`. Add **CCXT**, then connect it on the plugin's **Connectors** tab. On Team and Enterprise, an Owner can add the marketplace for everyone under **Organization settings > Plugins & skills > Add > Sync from GitHub**.
 
 **Connector (every plan, including Free).**
 
@@ -73,7 +73,7 @@ A connector added on the web or desktop is available in your conversations on mo
 
 #### Claude Code (hosted)
 
-Install the plugin, which adds the server plus a skill that teaches Claude how to use it:
+Install the plugin, which adds the server plus skills that teach Claude how to use it and how to write code with the CCXT library:
 
 ```bash
 claude plugin install ccxt --marketplace ccxt/ccxt-plugins
