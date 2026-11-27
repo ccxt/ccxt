@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -20,7 +21,7 @@ public class TestTrade extends BaseTest {
     {
         // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
         // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );
@@ -53,7 +54,7 @@ public class TestTrade extends BaseTest {
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
         //
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "side", new ArrayList<Object>(Arrays.asList("buy", "sell")));
-        if (Helpers.isTrue(isPublicTrade))
+        if (TestHelpers.isTrue(isPublicTrade))
         {
             // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new ArrayList<Object>(Arrays.asList("taker", null)));
@@ -63,12 +64,12 @@ public class TestTrade extends BaseTest {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "takerOrMaker", new ArrayList<Object>(Arrays.asList("taker", "maker", null)));
         }
         TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, entry, "fee");
-        if (!(Helpers.inOp(skippedProperties, "fees")))
+        if (!(TestHelpers.inOp(skippedProperties, "fees")))
         {
             // todo: remove undefined check and probably non-empty array check later
             if (!java.util.Objects.equals(((Map<String, Object>)entry).get("fees"), null))
             {
-                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("fees")); i++)
+                for (var i = 0; i < TestHelpers.getArrayLength(((Map<String, Object>)entry).get("fees")); i++)
                 {
                     TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, ((Map<String, Object>)entry).get("fees"), i);
                 }

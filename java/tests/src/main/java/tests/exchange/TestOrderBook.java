@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -20,7 +21,7 @@ public class TestOrderBook extends BaseTest {
     public static void testOrderBook(BaseExchange exchange, Object skippedProperties, String method, Object orderbook, Object symbol)
     {
         // prediction-market structures are keyed by an outcome handle, not a `symbol`
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );
@@ -45,16 +46,16 @@ public class TestOrderBook extends BaseTest {
         for (var i = 0; (bidsLength != null && i < bidsLength); i++)
         {
             String currentBidString = exchange.safeString((bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0);
-            if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
+            if (!(TestHelpers.inOp(skippedProperties, "compareToNextItem")))
             {
                 Object nextI = (((long) i) + 1L);
-                if (Helpers.isGreaterThan(bidsLength, nextI))
+                if (TestHelpers.isGreaterThan(bidsLength, nextI))
                 {
                     String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
-                    Assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + logText));
+                    Assert(Precise.stringGt(currentBidString, nextBidString), TestHelpers.add(((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString), logText));
                 }
             }
-            if (!(Helpers.inOp(skippedProperties, "compareToZero")))
+            if (!(TestHelpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (bids == null || i < 0 || i >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(i)), 0, "0");
@@ -66,23 +67,23 @@ public class TestOrderBook extends BaseTest {
         for (var i = 0; (asksLength != null && i < asksLength); i++)
         {
             String currentAskString = exchange.safeString((asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0);
-            if (!(Helpers.inOp(skippedProperties, "compareToNextItem")))
+            if (!(TestHelpers.inOp(skippedProperties, "compareToNextItem")))
             {
                 Object nextI = (((long) i) + 1L);
-                if (Helpers.isGreaterThan(asksLength, nextI))
+                if (TestHelpers.isGreaterThan(asksLength, nextI))
                 {
                     String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
-                    Assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + logText));
+                    Assert(Precise.stringLt(currentAskString, nextAskString), TestHelpers.add(((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString), logText));
                 }
             }
-            if (!(Helpers.inOp(skippedProperties, "compareToZero")))
+            if (!(TestHelpers.inOp(skippedProperties, "compareToZero")))
             {
                 // compare price & volume to zero
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 0, "0");
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, (asks == null || i < 0 || i >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(i)), 1, "0");
             }
         }
-        if (!(Helpers.inOp(skippedProperties, "spread")))
+        if (!(TestHelpers.inOp(skippedProperties, "spread")))
         {
             if (((bidsLength != null && bidsLength > 0)) && ((asksLength != null && asksLength > 0)))
             {

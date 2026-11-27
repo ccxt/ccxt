@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -25,7 +26,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         String method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
         List<String> skippedExchanges = new ArrayList<String>(Arrays.asList());
-        if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
+        if (TestHelpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
             String m1 = ((((exchange.id + " ") + method) + "() test skipped"));
             System.out.println(m1);
@@ -39,8 +40,8 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         }
         Object response = null;
         Object now = System.currentTimeMillis();
-        Object ends = Helpers.add(now, 10000);
-        while (Helpers.isLessThan(now, ends))
+        Object ends = TestHelpers.add(now, 10000);
+        while (TestHelpers.isLessThan(now, ends))
         {
             try
             {
@@ -48,7 +49,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
                 now = System.currentTimeMillis();
                 Boolean isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");
-                String m3 = ((((((exchange.id + " ") + method) + "() returned ") + ((List<?>)response).size()) + " liquidations"));
+                String m3 = ((TestHelpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
                 System.out.println(m3);
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)

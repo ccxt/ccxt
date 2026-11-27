@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -23,13 +24,13 @@ public class TestOHLCV extends BaseTest {
         Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         //
         Assert(((List<?>)entry).size() >= 6, ("ohlcv array length should be >= 6;" + logText));
-        if (!(Helpers.inOp(skippedProperties, "roundTimestamp")))
+        if (!(TestHelpers.inOp(skippedProperties, "roundTimestamp")))
         {
             TestSharedMethods.AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
         }
         String high = exchange.safeString(entry, 2);
         String low = exchange.safeString(entry, 3);
-        if (Helpers.inOp(skippedProperties, "compareOHLCV"))
+        if (TestHelpers.inOp(skippedProperties, "compareOHLCV"))
         {
             return;
         }

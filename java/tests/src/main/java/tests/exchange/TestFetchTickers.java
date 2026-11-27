@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -25,7 +26,7 @@ public class TestFetchTickers extends BaseTest {
         // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
         // is impractical and the "every active market has a ticker" check doesn't apply — test
         // fetchTickers by the outcome handle instead
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             Object predictionResult = (fetchTickersHelperTest(exchange, skippedProperties, new ArrayList<Object>(Arrays.asList(symbol)))).join();
             return new ArrayList<Object>(Arrays.asList(predictionResult));
@@ -45,9 +46,9 @@ public class TestFetchTickers extends BaseTest {
             Object argSymbols = argSymbols3;
         Object argParams = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String method = "fetchTickers";
-        Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{Helpers.toStringListArg(argSymbols), Helpers.toMapArg(argParams)})).join();
+        Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{TestHelpers.toStringListArg(argSymbols), TestHelpers.toMapArg(argParams)})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
-        List<Object> values = Helpers.objectValues(response);
+        List<Object> values = TestHelpers.objectValues(response);
         Object checkedSymbol = null;
         if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
         {
@@ -65,7 +66,7 @@ public class TestFetchTickers extends BaseTest {
             {
                 Object ohlcv = null;
                 String tickerSymbol = (String) ((Map<String, Object>)ticker).get("symbol");
-                if ((!java.util.Objects.equals(tickerSymbol, null)) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
+                if ((!java.util.Objects.equals(tickerSymbol, null)) && TestHelpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
                 {
                     ohlcv = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", (Long) null, 5L, new HashMap<String, Object>() {{}}})).join();
                 }
@@ -78,17 +79,17 @@ public class TestFetchTickers extends BaseTest {
     }
     public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)
     {
-        List<Object> tickersValues = Helpers.objectValues(tickers);
-        if (!(Helpers.inOp(skippedProperties, "checkActiveSymbols")))
+        List<Object> tickersValues = TestHelpers.objectValues(tickers);
+        if (!(TestHelpers.inOp(skippedProperties, "checkActiveSymbols")))
         {
             //
             // ensure all "active" symbols have tickers
             //
             Object nonInactiveMarkets = TestSharedMethods.getActiveMarkets(exchange);
-            Integer notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
+            Integer notInactiveSymbolsLength = TestHelpers.getArrayLength(nonInactiveMarkets);
             Integer obtainedTickersLength = tickersValues.size();
             Double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-            Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), (((((((exchange.id + " ") + "fetchTickers") + " must return tickers for all active markets. but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(notInactiveSymbolsLength)) + " active markets"));
+            Assert(TestHelpers.isGreaterThanOrEqual(obtainedTickersLength, TestHelpers.multiply(notInactiveSymbolsLength, minRatio)), (((((((exchange.id + " ") + "fetchTickers") + " must return tickers for all active markets. but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(notInactiveSymbolsLength)) + " active markets"));
             //
             // ensure tickers length is less than markets length
             //

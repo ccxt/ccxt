@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -19,7 +20,7 @@ public class TestTradingFee extends BaseTest {
     public static void testTradingFee(BaseExchange exchange, Object skippedProperties, String method, String symbol, Object entry)
     {
         // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );

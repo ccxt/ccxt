@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -22,7 +23,7 @@ public class TestPosition extends BaseTest {
         // a prediction position is a simple outcome-share holding keyed by an outcome handle (not a
         // `symbol`), with no opened-at timestamp and none of the derivatives semantics — skip the
         // leverage / margin / mark-price / liquidation / pnl fields that don't apply
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );
@@ -149,7 +150,7 @@ public class TestPosition extends BaseTest {
                 {
                     market = exchange.market(symbolForMarket);
                 }
-                Boolean isInverse = (!java.util.Objects.equals(market, null)) && Helpers.isTrue(exchange.safeBool(market, "inverse", false));
+                Boolean isInverse = (!java.util.Objects.equals(market, null)) && TestHelpers.isTrue(exchange.safeBool(market, "inverse", false));
                 String priceDiff = null;
                 if (Boolean.TRUE.equals(isInverse))
                 {

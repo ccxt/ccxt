@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -53,11 +54,11 @@ public class TestCurrency extends BaseTest {
             format.put("type", "crypto"); // crypto, fiat, leverage, other
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("fiat", "crypto", "leveraged", "other", null))); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-            if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "depositForNonCrypto")))
+            if (!java.util.Objects.equals(currencyType, "crypto") && (TestHelpers.inOp(skippedProperties, "depositForNonCrypto")))
             {
                 emptyAllowedFor.add("deposit");
             }
-            if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "withdrawForNonCrypto")))
+            if (!java.util.Objects.equals(currencyType, "crypto") && (TestHelpers.inOp(skippedProperties, "withdrawForNonCrypto")))
             {
                 emptyAllowedFor.add("withdraw");
             }
@@ -76,7 +77,7 @@ public class TestCurrency extends BaseTest {
         {
             TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, method, entry, (String) ((networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))));
         }
-        if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
+        if (java.util.Objects.equals(networkKeysLength, 0) && (TestHelpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
             return;
         }
@@ -100,7 +101,7 @@ public class TestCurrency extends BaseTest {
         //
         TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");
-        if (!(Helpers.inOp(skippedProperties, "limits")))
+        if (!(TestHelpers.inOp(skippedProperties, "limits")))
         {
             Object limits = exchange.safeValue(entry, "limits", new HashMap<String, Object>() {{}});
             Object withdrawLimits = exchange.safeValue(limits, "withdraw", new HashMap<String, Object>() {{}});

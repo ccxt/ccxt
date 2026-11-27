@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -137,8 +138,8 @@ public class TestFeatures extends BaseTest {
                 put( "limit", 0 );
             }} );
         }};
-        List<Object> featureKeys = Helpers.objectKeys(featureObj);
-        List<Object> allMethods = Helpers.objectKeys(exchange.has);
+        List<Object> featureKeys = TestHelpers.objectKeys(featureObj);
+        List<Object> allMethods = TestHelpers.objectKeys(exchange.has);
         for (var i = 0; i < featureKeys.size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);

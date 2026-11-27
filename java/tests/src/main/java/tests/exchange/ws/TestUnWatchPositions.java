@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -47,7 +48,7 @@ public class TestUnWatchPositions extends BaseTest {
             positionsSubscription = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         } catch(Exception e)
         {
-            if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+            if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
@@ -73,7 +74,7 @@ public class TestUnWatchPositions extends BaseTest {
             responseAll = (exchange.unWatchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
         } catch(Exception e)
         {
-            if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+            if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
@@ -90,7 +91,7 @@ public class TestUnWatchPositions extends BaseTest {
             resubscribeResponse = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{(List<String>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         } catch(Exception e)
         {
-            if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+            if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
             {
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }

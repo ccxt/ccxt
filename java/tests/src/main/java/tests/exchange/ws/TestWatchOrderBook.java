@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -27,9 +28,9 @@ public class TestWatchOrderBook extends BaseTest {
         // keep arriving quickly and stop once the book goes quiet.
         Integer maxIdleTime = 5000;
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
+        Object ends = TestHelpers.add(now, 15000);
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
+        while ((TestHelpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean success = true;
@@ -39,7 +40,7 @@ public class TestWatchOrderBook extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrderBook", new Object[]{symbol, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !(Helpers.isInstance(e, InvalidNonce.class)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -51,8 +52,8 @@ public class TestWatchOrderBook extends BaseTest {
             if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, symbol);
-                Object elapsed = Helpers.subtract(now, startTime);
-                if (Helpers.isGreaterThan(elapsed, maxIdleTime))
+                Object elapsed = TestHelpers.subtract(now, startTime);
+                if (TestHelpers.isGreaterThan(elapsed, maxIdleTime))
                 {
                     // this market updates slower than the remaining test window, so
                     // awaiting another delta would only end in a harness timeout

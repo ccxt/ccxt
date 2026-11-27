@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -34,14 +35,14 @@ public class TestFetchLastPrices extends BaseTest {
             checkedSymbol = symbol;
         }
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, checkedSymbol);
-        List<Object> values = Helpers.objectValues(response);
+        List<Object> values = TestHelpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Boolean atLeastOnePassed = false;
         for (var i = 0; i < values.size(); i++)
         {
             // todo: symbol check here
             TestLastPrice.testLastPrice(exchange, skippedProperties, method, (values == null || i < 0 || i >= values.size() ? null : values.get(i)), (String) (((String)checkedSymbol)));
-            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (Helpers.isGreaterThan(exchange.safeNumber((values == null || i < 0 || i >= values.size() ? null : values.get(i)), "price", (Object) null), 0));
+            atLeastOnePassed = Boolean.TRUE.equals(atLeastOnePassed) || (TestHelpers.isGreaterThan(exchange.safeNumber((values == null || i < 0 || i >= values.size() ? null : values.get(i)), "price", (Object) null), 0));
         }
         Assert(atLeastOnePassed, (((((exchange.id + " ") + method) + " ") + checkedSymbol) + " at least one symbol should pass the test"));
         return true;

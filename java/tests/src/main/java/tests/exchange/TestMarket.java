@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -86,11 +87,11 @@ public class TestMarket extends BaseTest {
         boolean future = Boolean.TRUE.equals(market.get("future"));
         boolean option = Boolean.TRUE.equals(market.get("option"));
         Object index = exchange.safeBool(market, "index", (Object) null); // todo: unify
-        Boolean isIndex = (!java.util.Objects.equals(index, null)) && Helpers.isTrue(index);
+        Boolean isIndex = (!java.util.Objects.equals(index, null)) && TestHelpers.isTrue(index);
         Object linear = market.get("linear");
         Object inverse = market.get("inverse");
         Object quanto = exchange.safeBool(market, "quanto", (Object) null); // todo: unify
-        Boolean isQuanto = (!java.util.Objects.equals(quanto, null)) && Helpers.isTrue(quanto);
+        Boolean isQuanto = (!java.util.Objects.equals(quanto, null)) && TestHelpers.isTrue(quanto);
         Boolean isInactiveMarket = java.util.Objects.equals(market.get("active"), false);
         //
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("margin"));
@@ -211,11 +212,11 @@ public class TestMarket extends BaseTest {
                 Assert(!java.util.Objects.equals(linear, inverse), ("linear and inverse must not be the same" + logText));
             }
             // contract size should be defined
-            Assert(((Helpers.inOp(skippedProperties, "contractSize")) || !java.util.Objects.equals(contractSize, null)), ("\"contractSize\" must be defined when \"contract\" is true" + logText));
+            Assert(((TestHelpers.inOp(skippedProperties, "contractSize")) || !java.util.Objects.equals(contractSize, null)), ("\"contractSize\" must be defined when \"contract\" is true" + logText));
             // contract size should be above zero
-            Assert((Helpers.inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + logText));
+            Assert((TestHelpers.inOp(skippedProperties, "contractSize")) || Precise.stringGt(contractSize, "0"), ("\"contractSize\" must be > 0 when \"contract\" is true" + logText));
             // settle should be defined
-            Assert((Helpers.inOp(skippedProperties, "settle")) || (!java.util.Objects.equals(market.get("settle"), null) && !java.util.Objects.equals(market.get("settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + logText));
+            Assert((TestHelpers.inOp(skippedProperties, "settle")) || (!java.util.Objects.equals(market.get("settle"), null) && !java.util.Objects.equals(market.get("settleId"), null)), ("\"settle\" & \"settleId\" must be defined when \"contract\" is true" + logText));
         } else if (!contract)
         {
             // linear & inverse needs to be undefined
@@ -249,10 +250,10 @@ public class TestMarket extends BaseTest {
             if (option)
             {
                 // strike should be defined
-                Assert(((Helpers.inOp(skippedProperties, "strike")) || !java.util.Objects.equals(market.get("strike"), null)), ("\"strike\" must be defined when \"option\" is true" + logText));
+                Assert(((TestHelpers.inOp(skippedProperties, "strike")) || !java.util.Objects.equals(market.get("strike"), null)), ("\"strike\" must be defined when \"option\" is true" + logText));
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "strike", "0");
                 // optionType should be defined
-                Assert(((Helpers.inOp(skippedProperties, "optionType")) || !java.util.Objects.equals(market.get("optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + logText));
+                Assert(((TestHelpers.inOp(skippedProperties, "optionType")) || !java.util.Objects.equals(market.get("optionType"), null)), ("\"optionType\" must be defined when \"option\" is true" + logText));
                 TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "optionType", new ArrayList<Object>(Arrays.asList("put", "call")));
             } else
             {
@@ -281,7 +282,7 @@ public class TestMarket extends BaseTest {
             {
                 continue;
             }
-            if (!(Helpers.inOp(skippedProperties, "precision")))
+            if (!(TestHelpers.inOp(skippedProperties, "precision")))
             {
                 TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, market.get("precision"), priceOrAmountKey);
             }
@@ -298,7 +299,7 @@ public class TestMarket extends BaseTest {
             {
                 continue;
             } // check limits
-            if (!(Helpers.inOp(skippedProperties, "limits")))
+            if (!(TestHelpers.inOp(skippedProperties, "limits")))
             {
                 // min >= 0
                 TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "min", "0");
@@ -323,7 +324,7 @@ public class TestMarket extends BaseTest {
         // check ts
         TestSharedMethods.AssertTimestamp(exchange, skippedProperties, method, market, null, "created");
         // margin modes
-        if (!(Helpers.inOp(skippedProperties, "marginModes")))
+        if (!(TestHelpers.inOp(skippedProperties, "marginModes")))
         {
             Object marginModes = exchange.safeDict(market, "marginModes", new HashMap<String, Object>() {{}}); // in future, remove safeDict
             Assert(((Map<?, ?>)marginModes).containsKey("cross"), ("marginModes should have \"cross\" key" + logText));

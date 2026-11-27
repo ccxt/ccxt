@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -37,7 +38,7 @@ public class TestFetchTrades extends BaseTest {
         // test if both sides are being returned
         //
         Integer minTradesForBothSidesCheck = 99;
-        if (!(Helpers.inOp(skippedProperties, "requireBothSides")) && ((minTradesForBothSidesCheck == null || ((List<?>)trades).size() > minTradesForBothSidesCheck)))
+        if (!(TestHelpers.inOp(skippedProperties, "requireBothSides")) && ((minTradesForBothSidesCheck == null || ((List<?>)trades).size() > minTradesForBothSidesCheck)))
         {
             //
             //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
@@ -48,11 +49,11 @@ public class TestFetchTrades extends BaseTest {
             Assert((((Map<?, ?>)grouped).containsKey("buy")), msg);
             Assert((((Map<?, ?>)grouped).containsKey("sell")), msg);
         }
-        if (!(Helpers.inOp(skippedProperties, "timestampSort")))
+        if (!(TestHelpers.inOp(skippedProperties, "timestampSort")))
         {
             TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
         }
-        if (!(Helpers.inOp(skippedProperties, "side")) && !(Helpers.inOp(skippedProperties, "sideSequence")))
+        if (!(TestHelpers.inOp(skippedProperties, "side")) && !(TestHelpers.inOp(skippedProperties, "sideSequence")))
         {
             (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
         }
@@ -95,7 +96,7 @@ public class TestFetchTrades extends BaseTest {
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if (Boolean.TRUE.equals(isSameTs) && Boolean.TRUE.equals(isSameSide) && !Boolean.TRUE.equals(isSamePrice))
             {
-                Map<String, Object> pair = Helpers.newMap(
+                Map<String, Object> pair = TestHelpers.newMap(
                     "previous", lastTrade,
                     "current", trade
                 );

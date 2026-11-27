@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -26,9 +27,9 @@ public class TestBalance extends BaseTest {
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
         Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
         //
-        List<Object> codesTotal = Helpers.objectKeys(((Map<String, Object>)entry).get("total"));
-        List<Object> codesFree = Helpers.objectKeys(((Map<String, Object>)entry).get("free"));
-        List<Object> codesUsed = Helpers.objectKeys(((Map<String, Object>)entry).get("used"));
+        List<Object> codesTotal = TestHelpers.objectKeys(((Map<String, Object>)entry).get("total"));
+        List<Object> codesFree = TestHelpers.objectKeys(((Map<String, Object>)entry).get("free"));
+        List<Object> codesUsed = TestHelpers.objectKeys(((Map<String, Object>)entry).get("used"));
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
@@ -42,9 +43,9 @@ public class TestBalance extends BaseTest {
         {
             Object code = (allCodes == null || i < 0 || i >= ((List<?>)allCodes).size() ? null : ((List<?>)allCodes).get(i));
             // TestSharedMethods.AssertCurrencyCode (exchange, skippedProperties, method, entry, code);
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("total"), code), ((("code " + code) + " not in total") + logText));
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("free"), code), ((("code " + code) + " not in free") + logText));
-            Assert(Helpers.inOp(((Map<String, Object>)entry).get("used"), code), ((("code " + code) + " not in used") + logText));
+            Assert(TestHelpers.inOp(((Map<String, Object>)entry).get("total"), code), ((TestHelpers.add("code ", code) + " not in total") + logText));
+            Assert(TestHelpers.inOp(((Map<String, Object>)entry).get("free"), code), ((TestHelpers.add("code ", code) + " not in free") + logText));
+            Assert(TestHelpers.inOp(((Map<String, Object>)entry).get("used"), code), ((TestHelpers.add("code ", code) + " not in used") + logText));
             String total = exchange.safeString(((Map<String, Object>)entry).get("total"), code);
             String free = exchange.safeString(((Map<String, Object>)entry).get("free"), code);
             String used = exchange.safeString(((Map<String, Object>)entry).get("used"), code);

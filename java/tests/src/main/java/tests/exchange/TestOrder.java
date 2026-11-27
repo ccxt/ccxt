@@ -1,6 +1,7 @@
 package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -19,7 +20,7 @@ public class TestOrder extends BaseTest {
     public static void testOrder(BaseExchange exchange, Object skippedProperties, String method, Object entry, String symbol, Object now)
     {
         // prediction-market orders are keyed by an outcome handle, not a `symbol`
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        if (TestHelpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
         {
             skippedProperties = exchange.extend(new HashMap<String, Object>() {{
                 put( "symbol", true );
@@ -66,7 +67,7 @@ public class TestOrder extends BaseTest {
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", (String) (exchange.safeString(entry, "remaining")));
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", (String) (exchange.safeString(entry, "filled")));
-        if (!(Helpers.inOp(skippedProperties, "trades")))
+        if (!(TestHelpers.inOp(skippedProperties, "trades")))
         {
             Object skippedNew = exchange.deepExtend(skippedProperties, new HashMap<String, Object>() {{
                 put( "timestamp", true );
@@ -75,7 +76,7 @@ public class TestOrder extends BaseTest {
             }});
             if (!java.util.Objects.equals(((Map<String, Object>)entry).get("trades"), null))
             {
-                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("trades")); i++)
+                for (var i = 0; i < TestHelpers.getArrayLength(((Map<String, Object>)entry).get("trades")); i++)
                 {
                     TestTrade.testTrade(exchange, skippedNew, method, Helpers.GetValue(((Map<String, Object>)entry).get("trades"), i), symbol, now, false);
                 }

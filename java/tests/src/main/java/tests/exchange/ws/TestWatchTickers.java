@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -38,10 +39,10 @@ public class TestWatchTickers extends BaseTest {
         Object argParams = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String method = "watchTickers";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
+        Object ends = TestHelpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
+        while ((TestHelpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = new HashMap<String, Object>() {{}};
             Boolean success = true;
@@ -49,7 +50,7 @@ public class TestWatchTickers extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{Helpers.toStringListArg(argSymbols), new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTickers", new Object[]{TestHelpers.toStringListArg(argSymbols), new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 // for some exchanges, specifically watchTickers method not subscribe
@@ -62,7 +63,7 @@ public class TestWatchTickers extends BaseTest {
                     // return;
                     // return false;
                     shouldReturn = true;
-                } else if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                } else if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -76,7 +77,7 @@ public class TestWatchTickers extends BaseTest {
             if (Boolean.TRUE.equals(success))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
-                List<Object> values = Helpers.objectValues(response);
+                List<Object> values = TestHelpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
                 {
@@ -93,14 +94,14 @@ public class TestWatchTickers extends BaseTest {
                     {
                         Object ohlcv = null;
                         String tickerSymbol = (String) ((Map<String, Object>)ticker).get("symbol");
-                        if ((!java.util.Objects.equals(tickerSymbol, null)) && Helpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
+                        if ((!java.util.Objects.equals(tickerSymbol, null)) && TestHelpers.isTrue(TestSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
                         {
                             ohlcv = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{tickerSymbol, "1d", (Long) null, 5L, new HashMap<String, Object>() {{}}})).join();
                         }
                         TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }
                 }
-                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
+                if (TestHelpers.isGreaterThan((TestHelpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

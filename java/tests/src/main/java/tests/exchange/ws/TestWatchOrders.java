@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -21,8 +22,8 @@ public class TestWatchOrders extends BaseTest {
 
         String method = "watchOrders";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
-        while (Helpers.isLessThan(now, ends))
+        Object ends = TestHelpers.add(now, 15000);
+        while (TestHelpers.isLessThan(now, ends))
         {
             Object response = null;
             Boolean success = true;
@@ -35,7 +36,7 @@ public class TestWatchOrders extends BaseTest {
                 }
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -51,7 +52,7 @@ public class TestWatchOrders extends BaseTest {
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; i < Helpers.getArrayLength(response); i++)
+                for (var i = 0; i < TestHelpers.getArrayLength(response); i++)
                 {
                     TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }

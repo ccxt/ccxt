@@ -1,6 +1,7 @@
 package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
+import tests.TestHelpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
@@ -21,10 +22,10 @@ public class TestWatchTicker extends BaseTest {
 
         String method = "watchTicker";
         Object now = exchange.milliseconds();
-        Object ends = Helpers.add(now, 15000);
+        Object ends = TestHelpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
+        while ((TestHelpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean success = true;
@@ -34,7 +35,7 @@ public class TestWatchTicker extends BaseTest {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchTicker", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (!TestHelpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
@@ -45,7 +46,7 @@ public class TestWatchTicker extends BaseTest {
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 TestTicker.testTicker(exchange, skippedProperties, method, response, symbol);
-                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
+                if (TestHelpers.isGreaterThan((TestHelpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }
