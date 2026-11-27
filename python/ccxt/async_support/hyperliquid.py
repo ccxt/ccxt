@@ -1476,9 +1476,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             if limit is not None:
                 # optimization if limit is provided
                 timeframeInMilliseconds = self.parse_timeframe(timeframe) * 1000
-                startTime = self.sum(until, timeframeInMilliseconds * limit * -1)
-                if startTime < 0:
-                    startTime = 0
+                calculatedStartTime = until - (timeframeInMilliseconds * limit)
+                startTime = 0 if (calculatedStartTime < 0) else calculatedStartTime
                 useTail = False
             else:
                 startTime = 0

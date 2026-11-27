@@ -5034,7 +5034,8 @@ class BaseExchange(object):
         result = []
         feeValues = list(reduced.values())
         for i in range(0, len(feeValues)):
-            reducedFeeValues = list(feeValues[i].values())
+            feeValue = self.safe_dict(feeValues, i, {})
+            reducedFeeValues = list(feeValue.values())
             result = self.array_concat(result, reducedFeeValues)
         return result
 
@@ -8296,9 +8297,8 @@ class BaseExchange(object):
                 clients = list(self.clients.values())
                 for i in range(0, len(clients)):
                     client = clients[i]
-                    futures = client.futures
-                    if 'fetchPositionsSnapshot' in futures:
-                        del futures['fetchPositionsSnapshot']
+                    if 'fetchPositionsSnapshot' in client.futures:
+                        del client.futures['fetchPositionsSnapshot']
             elif (topic == 'ticker' or topic == 'markPrice') and (self.tickers is not None):
                 tickerSymbols = list(self.tickers.keys())
                 for i in range(0, len(tickerSymbols)):

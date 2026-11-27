@@ -1475,7 +1475,7 @@ class PredictionExchange(BaseExchange):
         signed = self.sign_evm_transaction(tx, self.privateKey)
         return await self.eth_rpc(rpcUrl, 'eth_sendRawTransaction', [signed])
 
-    async def wait_for_transaction_receipt(self, rpcUrl: Str, txHash: Str, timeout=60000):
+    async def wait_for_transaction_receipt(self, rpcUrl: Str, txHash: Str, timeout: Int = 60000):
         start = self.milliseconds()
         while((self.milliseconds() - start) < timeout):
             receipt = await self.eth_rpc(rpcUrl, 'eth_getTransactionReceipt', [txHash])
