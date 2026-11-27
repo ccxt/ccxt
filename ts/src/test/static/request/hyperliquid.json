@@ -16,6 +16,490 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCrossBorrowRates": [
+            {
+                "description": "borrow rates of the borrow/lend protocol",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [],
+                "output": {
+                    "type": "allBorrowLendReserveStates"
+                }
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "borrow rate of a currency",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "USDC"
+                ],
+                "output": {
+                    "type": "borrowLendReserveState",
+                    "token": 0
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "borrow interest, tokens with nothing borrowed are skipped",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "borrowLendUserState",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "approveAgent": [
+            {
+                "description": "approve the unnamed api wallet",
+                "method": "approveAgent",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x000000000000000000000000000000000000dEaD"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "signatureChainId": "0x66eee",
+                        "agentAddress": "0x000000000000000000000000000000000000dEaD",
+                        "nonce": 1711104140105,
+                        "type": "approveAgent"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "approve a named api wallet with an expiration",
+                "method": "approveAgent",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x000000000000000000000000000000000000dEaD",
+                    "bot valid_until 1795692771591"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "signatureChainId": "0x66eee",
+                        "agentAddress": "0x000000000000000000000000000000000000dEaD",
+                        "nonce": 1711104140105,
+                        "type": "approveAgent",
+                        "agentName": "bot valid_until 1795692771591"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "fetchApprovedBuilders": [
+            {
+                "description": "builders approved by a user",
+                "method": "fetchApprovedBuilders",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "approvedBuilders",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchVaultDetails": [
+            {
+                "description": "details of a vault",
+                "method": "fetchVaultDetails",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"
+                ],
+                "output": {
+                    "type": "vaultDetails",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"
+                }
+            },
+            {
+                "description": "details of a vault with the follower state of a user",
+                "method": "fetchVaultDetails",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "vaultDetails",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingDelegations": [
+            {
+                "description": "staking delegations of a user",
+                "method": "fetchStakingDelegations",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegations",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingSummary": [
+            {
+                "description": "staking summary of a user",
+                "method": "fetchStakingSummary",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegatorSummary",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingHistory": [
+            {
+                "description": "staking history of a user",
+                "method": "fetchStakingHistory",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegatorHistory",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingRewards": [
+            {
+                "description": "staking rewards of a user",
+                "method": "fetchStakingRewards",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegatorRewards",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "noop": [
+            {
+                "description": "invalidate a given nonce",
+                "method": "noop",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    1795692771591
+                ],
+                "output": {
+                    "action": {
+                        "type": "noop"
+                    },
+                    "nonce": 1795692771591,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "claimRewards": [
+            {
+                "description": "claim rewards",
+                "method": "claimRewards",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [],
+                "output": {
+                    "action": {
+                        "type": "claimRewards"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "usdSend": [
+            {
+                "description": "send usdc to another address",
+                "method": "usdSend",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    1.5,
+                    "0x000000000000000000000000000000000000dEaD"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "destination": "0x000000000000000000000000000000000000dEaD",
+                        "amount": "1.5",
+                        "time": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "usdSend"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "spotSend": [
+            {
+                "description": "send a spot asset to another address",
+                "method": "spotSend",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "HYPE",
+                    0.5,
+                    "0x000000000000000000000000000000000000dEaD"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "destination": "0x000000000000000000000000000000000000dEaD",
+                        "token": "HYPE:0x0d01dc56dcaaca66ad901c959b4011ec",
+                        "amount": "0.5",
+                        "time": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "spotSend"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "stakingDeposit": [
+            {
+                "description": "move hype into staking",
+                "method": "stakingDeposit",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    1.5
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "wei": 150000000,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "cDeposit"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "stakingWithdraw": [
+            {
+                "description": "move hype out of staking",
+                "method": "stakingWithdraw",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    0.25
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "wei": 25000000,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "cWithdraw"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "tokenDelegate": [
+            {
+                "description": "delegate to a validator",
+                "method": "tokenDelegate",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x5ac99df645f3414876c816caa18b2d234024b487",
+                    2
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "wei": 200000000,
+                        "isUndelegate": false,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "tokenDelegate"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "undelegate from a validator",
+                "method": "tokenDelegate",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x5ac99df645f3414876c816caa18b2d234024b487",
+                    1e-08,
+                    true
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "wei": 1,
+                        "isUndelegate": true,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "tokenDelegate"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch the sub-accounts of a user",
+                "method": "fetchAccounts",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "subAccounts",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "leverage tiers of the main dex",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "SOL/USDC:USDC",
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "output": {
+                    "type": "meta"
+                }
+            },
+            {
+                "description": "hip3 leverage tiers are requested from the symbols' dex",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": {
+                    "type": "meta",
+                    "dex": "xyz"
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "leverage tiers of a single market",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "output": {
+                    "type": "meta"
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage of a swap market",
+                "method": "fetchLeverage",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "activeAssetData",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL"
+                }
+            }
+        ],
         "fetchMyLiquidations": [
             {
                 "description": "fetchMyLiquidations skips non-liquidation fills",
@@ -1499,6 +1983,23 @@
                     ]
                 ],
                 "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            },
+            {
+                "description": "predicted funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC"
+                    ],
+                    {
+                        "method": "predictedFundings"
+                    }
+                ],
+                "output": {
+                    "type": "predictedFundings"
+                }
             }
         ],
         "fetchOpenInterest": [
@@ -1701,6 +2202,21 @@
                     }
                 ],
                 "output": { "type": "userFills", "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A" }
+            },
+            {
+                "description": "fills of twap orders",
+                "method": "fetchMyTrades",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "twap": true
+                    }
+                ],
+                "output": "{\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"type\":\"userTwapSliceFills\"}"
             }
         ],
         "fetchPosition": [

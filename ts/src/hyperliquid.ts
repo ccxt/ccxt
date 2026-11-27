@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotF
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
+import type { Account, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Leverage, LeverageTier, LeverageTiers, Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fee, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, List, Num, Bool, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, CurrencyInterface, TradingFeeInterface, Ticker, Tickers, LedgerEntry, Liquidation, FundingRates, FundingRate, OpenInterests, OpenInterest, MarketInterface, Status, Endpoint, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -54,16 +54,16 @@ export default class hyperliquid extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': true,
                 'editOrders': true,
-                'fetchAccounts': false,
+                'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': false,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
-                'fetchCrossBorrowRate': false,
-                'fetchCrossBorrowRates': false,
+                'fetchCrossBorrowRate': true,
+                'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
@@ -78,11 +78,11 @@ export default class hyperliquid extends Exchange {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
-                'fetchLeverageTiers': false,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchMarginMode': undefined,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyLiquidations': true,
@@ -1374,7 +1374,9 @@ export default class hyperliquid extends Exchange {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+     * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
@@ -1382,6 +1384,38 @@ export default class hyperliquid extends Exchange {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const method = this.safeString (this.handleOptionAndParams (params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 0);
+        const paramsMethod: Dict = this.safeDict (this.handleOptionAndParams (params, 'fetchFundingRates', 'method', 'metaAndAssetCtxs'), 1, {});
+        if (method === 'predictedFundings') {
+            const predictedResponse = await this.publicPostInfo (this.extend ({ 'type': 'predictedFundings' }, paramsMethod));
+            //
+            //     [
+            //         [
+            //             "BTC",
+            //             [
+            //                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+            //                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+            //                 [ "BybitPerp", null ]
+            //             ]
+            //         ]
+            //     ]
+            //
+            const predicted: List = [];
+            if (Array.isArray (predictedResponse)) {
+                for (let i = 0; i < predictedResponse.length; i++) {
+                    const coinEntry = this.safeList (predictedResponse, i, []);
+                    const venues = this.safeList (coinEntry, 1, []);
+                    const venuesByName: Dict = {};
+                    for (let j = 0; j < venues.length; j++) {
+                        const venue = this.safeList (venues, j, []);
+                        const venueName = this.safeString (venue, 0, '');
+                        venuesByName[venueName] = this.safeDict (venue, 1);
+                    }
+                    predicted.push ({ 'name': this.safeString (coinEntry, 0), 'predictedFundings': venuesByName });
+                }
+            }
+            return this.parseFundingRates (predicted, symbolsNormalized);
+        }
         const request: Dict = {
             'type': 'metaAndAssetCtxs',
         };
@@ -1389,7 +1423,7 @@ export default class hyperliquid extends Exchange {
         if (dexName !== undefined) {
             request['dex'] = dexName;
         }
-        const response = await this.publicPostInfo (this.extend (request, params));
+        const response = await this.publicPostInfo (this.extend (request, paramsMethod));
         //
         //     [
         //         {
@@ -1459,6 +1493,42 @@ export default class hyperliquid extends Exchange {
         const base = this.safeString (info, 'name');
         const marketId = this.coinToMarketId (base);
         const symbol = this.safeSymbol (marketId, market);
+        const predictedFundings = this.safeDict (info, 'predictedFundings');
+        if (predictedFundings !== undefined) {
+            //
+            //     {
+            //         "name": "BTC",
+            //         "predictedFundings": {
+            //             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+            //             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+            //             "BybitPerp": null
+            //         }
+            //     }
+            //
+            const predictedFunding = this.safeDict (predictedFundings, 'HlPerp', {});
+            const nextFundingTimestamp = this.safeInteger (predictedFunding, 'nextFundingTime');
+            const intervalHours = this.safeString (predictedFunding, 'fundingIntervalHours', '1');
+            return {
+                'info': info,
+                'symbol': symbol,
+                'markPrice': undefined,
+                'indexPrice': undefined,
+                'interestRate': undefined,
+                'estimatedSettlePrice': undefined,
+                'timestamp': undefined,
+                'datetime': undefined,
+                'fundingRate': undefined,
+                'fundingTimestamp': undefined,
+                'fundingDatetime': undefined,
+                'nextFundingRate': this.safeNumber (predictedFunding, 'fundingRate'),
+                'nextFundingTimestamp': nextFundingTimestamp,
+                'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+                'previousFundingRate': undefined,
+                'previousFundingTimestamp': undefined,
+                'previousFundingDatetime': undefined,
+                'interval': intervalHours + 'h',
+            } as FundingRate;
+        }
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'markPx');
         const oraclePx = this.safeNumber (info, 'oraclePx');
@@ -3810,12 +3880,14 @@ export default class hyperliquid extends Exchange {
      * @description fetch all trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
@@ -3831,15 +3903,18 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'user': userAddress,
         };
-        if (since !== undefined) {
+        const twap = this.safeBool (paramsPublicAddress, 'twap', false);
+        const until = this.safeInteger (paramsPublicAddress, 'until');
+        const paramsOmitted: Dict = this.omit (paramsPublicAddress, [ 'until', 'twap' ]);
+        if (twap) {
+            request['type'] = 'userTwapSliceFills';
+        } else if (since !== undefined) {
             request['type'] = 'userFillsByTime';
             request['startTime'] = since;
         } else {
             request['type'] = 'userFills';
         }
-        const until = this.safeInteger (paramsPublicAddress, 'until');
-        const paramsOmitted: Dict = this.omit (paramsPublicAddress, 'until');
-        if (until !== undefined) {
+        if ((until !== undefined) && !twap) {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo (this.extend (request, paramsOmitted));
@@ -3867,6 +3942,38 @@ export default class hyperliquid extends Exchange {
         let myFills: Dict[] = [];
         if (Array.isArray (response)) {
             myFills = response;
+        }
+        if (twap) {
+            //
+            //     [
+            //         {
+            //             "fill": {
+            //                 "closedPnl": "0.0",
+            //                 "coin": "AVAX",
+            //                 "crossed": true,
+            //                 "dir": "Open Long",
+            //                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //                 "oid": 90542681,
+            //                 "px": "18.435",
+            //                 "side": "B",
+            //                 "startPosition": "26.86",
+            //                 "sz": "93.53",
+            //                 "time": 1681222254710,
+            //                 "fee": "0.01",
+            //                 "feeToken": "USDC",
+            //                 "tid": 118906512037719
+            //             },
+            //             "twapId": 3156
+            //         }
+            //     ]
+            //
+            const twapFills: Dict[] = [];
+            for (let i = 0; i < myFills.length; i++) {
+                const twapFill = this.safeDict (myFills, i, {});
+                const fill = this.safeDict (twapFill, 'fill', {});
+                twapFills.push (this.extend (fill, { 'twapId': this.safeString (twapFill, 'twapId') }));
+            }
+            myFills = twapFills;
         }
         return this.parseTrades (myFills, market, since, limit);
     }
@@ -4306,6 +4413,180 @@ export default class hyperliquid extends Exchange {
         //     }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+     * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    override async fetchLeverageTiers (symbols: Strings = undefined, params: Dict = {}): Promise<LeverageTiers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        const request: Dict = {
+            'type': 'meta',
+        };
+        const dexName = this.getDexFromSymbols ('fetchLeverageTiers', symbolsNormalized);
+        if (dexName !== undefined) {
+            request['dex'] = dexName;
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "universe": [
+        //             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+        //             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+        //         ],
+        //         "marginTables": [
+        //             [
+        //                 54,
+        //                 {
+        //                     "description": "tiered 20x (2)",
+        //                     "marginTiers": [
+        //                         { "lowerBound": "0.0", "maxLeverage": 20 },
+        //                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //                     ]
+        //                 }
+        //             ]
+        //         ],
+        //         "collateralToken": 0
+        //     }
+        //
+        const universe = this.safeList (response, 'universe', []);
+        const marginTables = this.safeList (response, 'marginTables', []);
+        const tablesById: Dict = {};
+        for (let i = 0; i < marginTables.length; i++) {
+            const marginTable = this.safeList (marginTables, i, []);
+            const tableId = this.safeString (marginTable, 0, '');
+            tablesById[tableId] = this.safeDict (marginTable, 1, {});
+        }
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        const tiers: Dict = {};
+        for (let i = 0; i < universe.length; i++) {
+            const asset = this.safeDict (universe, i, {});
+            // the coin name resolves to the unified symbol, delisted assets have no market
+            const symbol = this.coinToMarketId (this.safeString (asset, 'name')) as string;
+            const market = this.safeDict (this.markets, symbol);
+            if (market === undefined) {
+                continue;
+            }
+            if ((symbolsLength > 0) && !this.inArray (symbol, symbolsNormalized as string[])) {
+                continue;
+            }
+            const assetTable = this.safeDict (tablesById, this.safeString (asset, 'marginTableId'), {});
+            let marginTiers = this.safeList (assetTable, 'marginTiers');
+            if (marginTiers === undefined) {
+                // margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+                marginTiers = [ { 'lowerBound': '0.0', 'maxLeverage': this.safeInteger (asset, 'maxLeverage') } ];
+            }
+            tiers[symbol] = this.parseMarketLeverageTiers (this.extend (asset, { 'marginTiers': marginTiers }), market as Market);
+        }
+        return tiers as LeverageTiers;
+    }
+
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+        //
+        //     {
+        //         "szDecimals": 2,
+        //         "name": "SOL",
+        //         "maxLeverage": 20,
+        //         "marginTableId": 54,
+        //         "marginTiers": [
+        //             { "lowerBound": "0.0", "maxLeverage": 20 },
+        //             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //         ]
+        //     }
+        //
+        const marginTiers = this.safeList (info, 'marginTiers', []);
+        const tiers: List = [];
+        for (let i = 0; i < marginTiers.length; i++) {
+            const tier = this.safeDict (marginTiers, i, {});
+            const nextTier = this.safeDict (marginTiers, i + 1, {});
+            const maxLeverage = this.safeString (tier, 'maxLeverage');
+            // the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+            const maintenanceMarginRate = Precise.stringDiv ('1', Precise.stringMul ('2', maxLeverage));
+            tiers.push ({
+                'tier': i + 1,
+                'symbol': this.safeString (market, 'symbol'),
+                'currency': this.safeString (market, 'settle'),
+                'minNotional': this.safeNumber (tier, 'lowerBound'),
+                'maxNotional': this.safeNumber (nextTier, 'lowerBound'),
+                'maintenanceMarginRate': this.parseNumber (maintenanceMarginRate),
+                'maxLeverage': this.parseNumber (maxLeverage),
+                'info': tier,
+            });
+        }
+        return tiers as LeverageTier[];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverage
+     * @description fetch the set leverage and margin mode for a swap market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    override async fetchLeverage (symbol: string, params: Dict = {}): Promise<Leverage> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' fetchLeverage() supports swap markets only');
+        }
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchLeverage', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchLeverage', params), 1, {});
+        const request: Dict = {
+            'type': 'activeAssetData',
+            'user': userAddress,
+            'coin': this.safeString (market, 'baseName'),
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     {
+        //         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        //         "coin": "SOL",
+        //         "leverage": {
+        //             "type": "cross", // or "isolated", which also carries "rawUsd"
+        //             "value": 20
+        //         },
+        //         "maxTradeSzs": [ "13.63", "13.63" ],
+        //         "availableToTrade": [ "48.103059", "48.103059" ],
+        //         "markPx": "70.58"
+        //     }
+        //
+        return this.parseLeverage (response as Dict, market);
+    }
+
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const leverageInfo = this.safeDict (leverage, 'leverage', {});
+        const leverageValue = this.safeInteger (leverageInfo, 'value');
+        const coin = this.safeString (leverage, 'coin');
+        let marketId: Str = undefined;
+        if (coin !== undefined) {
+            marketId = this.coinToMarketId (coin);
+        }
+        return {
+            'info': leverage,
+            'symbol': this.safeSymbol (marketId, market),
+            'marginMode': this.safeStringLower (leverageInfo, 'type'),
+            'longLeverage': leverageValue,
+            'shortLeverage': leverageValue,
+        } as Leverage;
     }
 
     /**
@@ -5327,6 +5608,792 @@ export default class hyperliquid extends Exchange {
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));
         return response;
+    }
+
+    buildApproveAgentSig (message: Dict): Dict {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:ApproveAgent': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'agentAddress', 'type': 'address' },
+                { 'name': 'agentName', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveAgent
+     * @description approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+     * @param {string} agentAddress the address of the API wallet to approve
+     * @param {string} [agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async approveAgent (agentAddress: string, agentName: Str = undefined, params: Dict = {}): Promise<Dict> {
+        const nonce = this.incrementingNonce ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const hyperliquidChain = (isSandboxMode) ? 'Testnet' : 'Mainnet';
+        // the name is always part of the signed message, it is empty for the unnamed API wallet
+        const payload: Dict = {
+            'hyperliquidChain': hyperliquidChain,
+            'agentAddress': agentAddress,
+            'agentName': (agentName === undefined) ? '' : agentName,
+            'nonce': nonce,
+        };
+        const sig = this.buildApproveAgentSig (payload);
+        const action: Dict = {
+            'hyperliquidChain': hyperliquidChain,
+            'signatureChainId': '0x66eee',
+            'agentAddress': agentAddress,
+            'nonce': nonce,
+            'type': 'approveAgent',
+        };
+        if (agentName !== undefined) {
+            action['agentName'] = agentName;
+        }
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#noop
+     * @description sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+     * @param {int} [nonce] the nonce to mark as used, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    async noop (nonce: Int = undefined, params: Dict = {}): Promise<Dict> {
+        const action: Dict = {
+            'type': 'noop',
+        };
+        return await this.postL1Action (action, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#claimRewards
+     * @description claims the rewards earned by the account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async claimRewards (params: Dict = {}): Promise<Dict> {
+        const action: Dict = {
+            'type': 'claimRewards',
+        };
+        return await this.postL1Action (action, undefined, params);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postL1Action
+     * @description signs an L1 action that has no market or order data and posts it to the exchange endpoint
+     * @param {object} action the action to sign and send
+     * @param {int} [nonce] the nonce to sign with, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    async postL1Action (action: Dict, nonce: Int = undefined, params: Dict = {}): Promise<Dict> {
+        const requestNonce = (nonce === undefined) ? this.incrementingNonce () : nonce;
+        const [ vaultAddressOption, paramsVault ] = this.handleOptionStringAndParams (params, 'createOrder', 'vaultAddress');
+        const vaultAddress: Str = this.formatVaultAddress (vaultAddressOption);
+        const signature = this.signL1Action (action, requestNonce, vaultAddress);
+        const request: Dict = {
+            'action': action,
+            'nonce': requestNonce,
+            'signature': signature,
+        };
+        if (vaultAddress !== undefined) {
+            request['vaultAddress'] = vaultAddress;
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        const response = await this.privatePostExchange (this.extend (request, paramsVault));
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#usdSend
+     * @description sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+     * @param {float} amount the amount of USDC to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async usdSend (amount: number, address: string, params: Dict = {}): Promise<Dict> {
+        this.checkAddress (address);
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'destination', 'type': 'string' },
+            { 'name': 'amount', 'type': 'string' },
+            { 'name': 'time', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'destination': address,
+            'amount': this.numberToString (amount),
+            'time': nonce,
+        };
+        return await this.postUserSignedAction ('usdSend', 'HyperliquidTransaction:UsdSend', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#spotSend
+     * @description sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+     * @param {string} code unified currency code of the asset to send
+     * @param {float} amount the amount to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async spotSend (code: string, amount: number, address: string, params: Dict = {}): Promise<Dict> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const currencyInfo = this.safeDict (currency, 'info', {});
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'destination', 'type': 'string' },
+            { 'name': 'token', 'type': 'string' },
+            { 'name': 'amount', 'type': 'string' },
+            { 'name': 'time', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'destination': address,
+            'token': this.safeString (currencyInfo, 'name', '') + ':' + this.safeString (currencyInfo, 'tokenId', ''),
+            'amount': this.numberToString (amount),
+            'time': nonce,
+        };
+        return await this.postUserSignedAction ('spotSend', 'HyperliquidTransaction:SpotSend', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingDeposit
+     * @description moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+     * @param {float} amount the amount of HYPE to move into staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async stakingDeposit (amount: number, params: Dict = {}): Promise<Dict> {
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'wei', 'type': 'uint64' },
+            { 'name': 'nonce', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'wei': this.hypeToWei (amount),
+            'nonce': nonce,
+        };
+        return await this.postUserSignedAction ('cDeposit', 'HyperliquidTransaction:CDeposit', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingWithdraw
+     * @description moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+     * @param {float} amount the amount of HYPE to move out of staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async stakingWithdraw (amount: number, params: Dict = {}): Promise<Dict> {
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'wei', 'type': 'uint64' },
+            { 'name': 'nonce', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'wei': this.hypeToWei (amount),
+            'nonce': nonce,
+        };
+        return await this.postUserSignedAction ('cWithdraw', 'HyperliquidTransaction:CWithdraw', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#tokenDelegate
+     * @description delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+     * @param {string} validator the address of the validator
+     * @param {float} amount the amount of HYPE to delegate or undelegate
+     * @param {boolean} [isUndelegate] true to undelegate, false (default) to delegate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async tokenDelegate (validator: string, amount: number, isUndelegate: boolean = false, params: Dict = {}): Promise<Dict> {
+        this.checkAddress (validator);
+        const nonce = this.incrementingNonce ();
+        const messageTypes: List = [
+            { 'name': 'hyperliquidChain', 'type': 'string' },
+            { 'name': 'validator', 'type': 'address' },
+            { 'name': 'wei', 'type': 'uint64' },
+            { 'name': 'isUndelegate', 'type': 'bool' },
+            { 'name': 'nonce', 'type': 'uint64' },
+        ];
+        const message: Dict = {
+            'hyperliquidChain': this.hyperliquidChainName (),
+            'validator': validator,
+            'wei': this.hypeToWei (amount),
+            'isUndelegate': isUndelegate,
+            'nonce': nonce,
+        };
+        return await this.postUserSignedAction ('tokenDelegate', 'HyperliquidTransaction:TokenDelegate', messageTypes, message, nonce, params);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hyperliquidChainName
+     * @description the chain name that user-signed actions are signed for
+     * @returns {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+     */
+    hyperliquidChainName (): string {
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        return (isSandboxMode) ? 'Testnet' : 'Mainnet';
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hypeToWei
+     * @description converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+     * @param {float} amount the amount of HYPE
+     * @returns {int} the amount in wei
+     */
+    hypeToWei (amount: number): int {
+        return this.parseToInt (Precise.stringMul (this.numberToString (amount), '100000000'));
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postUserSignedAction
+     * @description signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+     * @param {string} actionType the type of the action
+     * @param {string} primaryType the EIP-712 primary type of the message
+     * @param {object[]} messageTypes the EIP-712 fields of the message
+     * @param {object} message the message to sign, its fields are sent as the action
+     * @param {int} nonce the nonce of the request
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    async postUserSignedAction (actionType: string, primaryType: string, messageTypes: List, message: Dict, nonce: int, params: Dict = {}): Promise<Dict> {
+        const types: Dict = {};
+        types[primaryType] = messageTypes;
+        const signature = this.signUserSignedAction (types, message);
+        const action = this.extend (message, {
+            'signatureChainId': '0x66eee',
+            'type': actionType,
+        });
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchApprovedBuilders
+     * @description fetch the addresses of the builders the user approved a builder fee for
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {string[]} a list of builder addresses
+     */
+    async fetchApprovedBuilders (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchApprovedBuilders', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchApprovedBuilders', params), 1, {});
+        const request: Dict = {
+            'type': 'approvedBuilders',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchVaultDetails
+     * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+     * @param {string} vaultAddress the address of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+     * @returns {object} the vault details as returned by the exchange
+     */
+    async fetchVaultDetails (vaultAddress: string, params: Dict = {}): Promise<Dict> {
+        const request: Dict = {
+            'type': 'vaultDetails',
+            'vaultAddress': vaultAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "name": "Test",
+        //         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+        //         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+        //         "description": "This community-owned vault provides liquidity to Hyperliquid",
+        //         "portfolio": [
+        //             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+        //         ],
+        //         "apr": 0.36387129259090006,
+        //         "followerState": null,
+        //         "leaderFraction": 0.0007904828725729887,
+        //         "leaderCommission": 0,
+        //         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+        //         "maxDistributable": 94856870.164485,
+        //         "maxWithdrawable": 742557.680863,
+        //         "isClosed": false,
+        //         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+        //         "allowDeposits": true,
+        //         "alwaysCloseOnWithdraw": false
+        //     }
+        //
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingDelegations
+     * @description fetch the amounts of HYPE the user delegated to each validator
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of delegations as returned by the exchange
+     */
+    async fetchStakingDelegations (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingDelegations', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingDelegations', params), 1, {});
+        const request: Dict = {
+            'type': 'delegations',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //             "amount": "12060.16529862",
+        //             "lockedUntilTimestamp": 1735466781353
+        //         }
+        //     ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingSummary
+     * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} the staking summary as returned by the exchange
+     */
+    async fetchStakingSummary (params: Dict = {}): Promise<Dict> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingSummary', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingSummary', params), 1, {});
+        const request: Dict = {
+            'type': 'delegatorSummary',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     {
+        //         "delegated": "12060.16529862",
+        //         "undelegated": "0.0",
+        //         "totalPendingWithdrawal": "0.0",
+        //         "nPendingWithdrawals": 0
+        //     }
+        //
+        return response as Dict;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingHistory
+     * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking events as returned by the exchange
+     */
+    async fetchStakingHistory (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingHistory', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingHistory', params), 1, {});
+        const request: Dict = {
+            'type': 'delegatorHistory',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1735380381353,
+        //             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+        //             "delta": {
+        //                 "delegate": {
+        //                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //                     "amount": "10000.0",
+        //                     "isUndelegate": false
+        //                 }
+        //             }
+        //         }
+        //     ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingRewards
+     * @description fetch the staking rewards earned by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking rewards as returned by the exchange
+     */
+    async fetchStakingRewards (params: Dict = {}): Promise<List> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchStakingRewards', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchStakingRewards', params), 1, {});
+        const request: Dict = {
+            'type': 'delegatorRewards',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1736726400073,
+        //             "source": "delegation",
+        //             "totalAmount": "0.73117184"
+        //         }
+        //     ]
+        //
+        return response as List;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchAccounts
+     * @description fetch the sub-accounts of a master account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchAccounts', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchAccounts', params), 1, {});
+        const request: Dict = {
+            'type': 'subAccounts',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "name": "Test",
+        //             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+        //             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+        //             "clearinghouseState": {
+        //                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMaintenanceMarginUsed": "0.0",
+        //                 "withdrawable": "29.78001",
+        //                 "assetPositions": [],
+        //                 "time": 1733968369395
+        //             },
+        //             "spotState": {
+        //                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+        //             }
+        //         }
+        //     ]
+        //
+        // the response is null when the account has no sub-accounts
+        const result: Account[] = [];
+        if (Array.isArray (response)) {
+            for (let i = 0; i < response.length; i++) {
+                result.push (this.parseAccount (this.safeDict (response, i, {})));
+            }
+        }
+        return result;
+    }
+
+    override parseAccount (account: Dict): Account {
+        return {
+            'id': this.safeString (account, 'subAccountUser'),
+            'type': 'subaccount',
+            'name': this.safeString (account, 'name'),
+            'code': undefined,
+            'info': account,
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    override async fetchCrossBorrowRates (params: Dict = {}): Promise<CrossBorrowRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {
+            'type': 'allBorrowLendReserveStates',
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             0,
+        //             {
+        //                 "borrowYearlyRate": "0.05",
+        //                 "supplyYearlyRate": "0.0249808267",
+        //                 "balance": "284714721.5832400322",
+        //                 "utilization": "0.5551294814",
+        //                 "oraclePx": "1.0",
+        //                 "ltv": "0.0",
+        //                 "totalSupplied": "639994288.7804760933",
+        //                 "totalBorrowed": "355279697.6056296229"
+        //             }
+        //         ]
+        //     ]
+        //
+        const rates: Dict = {};
+        if (Array.isArray (response)) {
+            for (let i = 0; i < response.length; i++) {
+                const reserve = this.safeList (response, i, []);
+                const reserveState = this.safeDict (reserve, 1, {});
+                const rate = this.parseBorrowRate (this.extend (reserveState, { 'token': this.safeString (reserve, 0) }));
+                const code = this.safeString (rate, 'currency', '');
+                rates[code] = rate;
+            }
+        }
+        return rates as CrossBorrowRates;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRate
+     * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    override async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const currency = this.currency (code);
+        const request: Dict = {
+            'type': 'borrowLendReserveState',
+            'token': this.parseToInt (currency['id']),
+        };
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        //     {
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0008245002",
+        //         "balance": "3245939.4732256099",
+        //         "utilization": "0.018322226",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "3306509.7335290499",
+        //         "totalBorrowed": "60582.61869494"
+        //     }
+        //
+        return this.parseBorrowRate (this.extend (response as Dict, { 'token': currency['id'] }), currency) as CrossBorrowRate;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#tokenIndexToCurrencyCode
+     * @description resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+     * @param {string} tokenIndex the index of the token
+     * @returns {string} the unified currency code
+     */
+    tokenIndexToCurrencyCode (tokenIndex: Str): Str {
+        const cachedCurrencies = this.safeDict (this.options, 'cachedCurrenciesById', {});
+        const tokenName = this.safeString (cachedCurrencies, tokenIndex);
+        if (tokenName !== undefined) {
+            return this.safeCurrencyCode (tokenName);
+        }
+        // the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currencyInfo = this.safeDict (this.currencies[code], 'info', {});
+            if (this.safeString (currencyInfo, 'index') === tokenIndex) {
+                return code;
+            }
+        }
+        return this.safeCurrencyCode (tokenIndex);
+    }
+
+    override parseBorrowRate (info: any, currency: Currency = undefined): Dict {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0249808267",
+        //         "balance": "284714721.5832400322",
+        //         "utilization": "0.5551294814",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "639994288.7804760933",
+        //         "totalBorrowed": "355279697.6056296229"
+        //     }
+        //
+        return {
+            'currency': this.tokenIndexToCurrencyCode (this.safeString (info, 'token')),
+            'rate': this.safeNumber (info, 'borrowYearlyRate'),
+            'period': 31536000000, // the rate is yearly
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchBorrowInterest
+     * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+     * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    override async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<BorrowInterest[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const userAddress = this.safeString (this.handlePublicAddress ('fetchBorrowInterest', params), 0);
+        const paramsPublicAddress: Dict = this.safeDict (this.handlePublicAddress ('fetchBorrowInterest', params), 1, {});
+        const request: Dict = {
+            'type': 'borrowLendUserState',
+            'user': userAddress,
+        };
+        const response = await this.publicPostInfo (this.extend (request, paramsPublicAddress));
+        //
+        //     {
+        //         "tokenToState": [
+        //             [
+        //                 0,
+        //                 {
+        //                     "borrow": { "basis": "100.0", "value": "100.25" },
+        //                     "supply": { "basis": "0.0", "value": "0.0" }
+        //                 }
+        //             ]
+        //         ],
+        //         "health": "healthy",
+        //         "healthFactor": null
+        //     }
+        //
+        const tokenToState = this.safeList (response, 'tokenToState', []);
+        const interests: List = [];
+        for (let i = 0; i < tokenToState.length; i++) {
+            const tokenState = this.safeList (tokenToState, i, []);
+            const state = this.safeDict (tokenState, 1, {});
+            const borrow = this.safeDict (state, 'borrow', {});
+            // tokens that are only supplied have nothing borrowed
+            if (Precise.stringGt (this.safeString (borrow, 'value', '0'), '0')) {
+                interests.push (this.extend (state, { 'token': this.safeString (tokenState, 0) }));
+            }
+        }
+        const parsed = this.parseBorrowInterests (interests);
+        return this.filterByCurrencySinceLimit (parsed, code, undefined, limit) as BorrowInterest[];
+    }
+
+    override parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrow": { "basis": "100.0", "value": "100.25" },
+        //         "supply": { "basis": "0.0", "value": "0.0" }
+        //     }
+        //
+        const borrow = this.safeDict (info, 'borrow', {});
+        const borrowed = this.safeString (borrow, 'value');
+        // the basis is the amount borrowed, the value includes the interest accrued since
+        const interest = Precise.stringSub (borrowed, this.safeString (borrow, 'basis'));
+        return {
+            'info': info,
+            'symbol': undefined,
+            'currency': this.tokenIndexToCurrencyCode (this.safeString (info, 'token')),
+            'interest': this.parseNumber (interest),
+            'interestRate': undefined,
+            'amountBorrowed': this.parseNumber (borrowed),
+            'marginMode': 'cross',
+            'timestamp': undefined,
+            'datetime': undefined,
+        } as BorrowInterest;
     }
 
     /**

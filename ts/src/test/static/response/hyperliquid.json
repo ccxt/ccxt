@@ -879,6 +879,141 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "fills of twap orders",
+                "method": "fetchMyTrades",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "twap": true
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "fill": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.435",
+                            "side": "B",
+                            "startPosition": "26.86",
+                            "sz": "3.53",
+                            "time": 1795692771591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037719
+                        },
+                        "twapId": 3156
+                    },
+                    {
+                        "fill": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.512",
+                            "side": "B",
+                            "startPosition": "30.39",
+                            "sz": "3.53",
+                            "time": 1795692801591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037720
+                        },
+                        "twapId": 3156
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.435",
+                            "side": "B",
+                            "startPosition": "26.86",
+                            "sz": "3.53",
+                            "time": 1795692771591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037719,
+                            "twapId": "3156"
+                        },
+                        "timestamp": 1795692771591,
+                        "datetime": "2026-11-26T11:32:51.591Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "id": "118906512037719",
+                        "order": "90542681",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 70.435,
+                        "amount": 3.53,
+                        "cost": 248.63555,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.01
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "closedPnl": "0.0",
+                            "coin": "SOL",
+                            "crossed": true,
+                            "dir": "Open Long",
+                            "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            "oid": 90542681,
+                            "px": "70.512",
+                            "side": "B",
+                            "startPosition": "30.39",
+                            "sz": "3.53",
+                            "time": 1795692801591,
+                            "fee": "0.01",
+                            "feeToken": "USDC",
+                            "tid": 118906512037720,
+                            "twapId": "3156"
+                        },
+                        "timestamp": 1795692801591,
+                        "datetime": "2026-11-26T11:33:21.591Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "id": "118906512037720",
+                        "order": "90542681",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 70.512,
+                        "amount": 3.53,
+                        "cost": 248.90736,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.01
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -3052,6 +3187,1089 @@
                         "SOL": 0.07894692,
                         "USDH": 0.00621736
                     }
+                }
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "predicted funding rates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC"
+                    ],
+                    {
+                        "method": "predictedFundings"
+                    }
+                ],
+                "httpResponse": [
+                    [
+                        "BTC",
+                        [
+                            [
+                                "BinPerp",
+                                {
+                                    "fundingRate": "0.00007851",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                }
+                            ],
+                            [
+                                "HlPerp",
+                                {
+                                    "fundingRate": "-0.0000054226",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                }
+                            ],
+                            [
+                                "BybitPerp",
+                                {
+                                    "fundingRate": "0.00008697",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                }
+                            ]
+                        ]
+                    ],
+                    [
+                        "SOL",
+                        [
+                            [
+                                "BinPerp",
+                                {
+                                    "fundingRate": "0.0",
+                                    "nextFundingTime": 1795694400000
+                                }
+                            ],
+                            [
+                                "HlPerp",
+                                {
+                                    "fundingRate": "0.0000125",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                }
+                            ],
+                            [
+                                "BybitPerp",
+                                null
+                            ]
+                        ]
+                    ]
+                ],
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "info": {
+                            "name": "BTC",
+                            "predictedFundings": {
+                                "BinPerp": {
+                                    "fundingRate": "0.00007851",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                },
+                                "HlPerp": {
+                                    "fundingRate": "-0.0000054226",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                },
+                                "BybitPerp": {
+                                    "fundingRate": "0.00008697",
+                                    "nextFundingTime": 1795708800000,
+                                    "fundingIntervalHours": 8
+                                }
+                            }
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": null,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": -5.4226e-06,
+                        "nextFundingTimestamp": 1795690800000,
+                        "nextFundingDatetime": "2026-11-26T11:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    },
+                    "SOL/USDC:USDC": {
+                        "info": {
+                            "name": "SOL",
+                            "predictedFundings": {
+                                "BinPerp": {
+                                    "fundingRate": "0.0",
+                                    "nextFundingTime": 1795694400000
+                                },
+                                "HlPerp": {
+                                    "fundingRate": "0.0000125",
+                                    "nextFundingTime": 1795690800000,
+                                    "fundingIntervalHours": 1
+                                },
+                                "BybitPerp": null
+                            }
+                        },
+                        "symbol": "SOL/USDC:USDC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": null,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": 1.25e-05,
+                        "nextFundingTimestamp": 1795690800000,
+                        "nextFundingDatetime": "2026-11-26T11:00:00.000Z",
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    }
+                }
+            }
+        ],
+        "fetchCrossBorrowRates": [
+            {
+                "description": "borrow rates of the borrow/lend protocol",
+                "method": "fetchCrossBorrowRates",
+                "input": [],
+                "httpResponse": [
+                    [
+                        0,
+                        {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0249808267",
+                            "balance": "284714721.5832400322",
+                            "utilization": "0.5551294814",
+                            "oraclePx": "1.0",
+                            "ltv": "0.0",
+                            "totalSupplied": "639994288.7804760933",
+                            "totalBorrowed": "355279697.6056296229"
+                        }
+                    ],
+                    [
+                        150,
+                        {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0",
+                            "balance": "15645035.9247208908",
+                            "utilization": "0.0",
+                            "oraclePx": "60.659",
+                            "ltv": "0.65",
+                            "totalSupplied": "15645035.9247208908",
+                            "totalBorrowed": "0.0"
+                        }
+                    ]
+                ],
+                "parsedResponse": {
+                    "USDC": {
+                        "currency": "USDC",
+                        "rate": 0.05,
+                        "period": 31536000000,
+                        "timestamp": null,
+                        "datetime": null,
+                        "info": {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0249808267",
+                            "balance": "284714721.5832400322",
+                            "utilization": "0.5551294814",
+                            "oraclePx": "1.0",
+                            "ltv": "0.0",
+                            "totalSupplied": "639994288.7804760933",
+                            "totalBorrowed": "355279697.6056296229",
+                            "token": "0"
+                        }
+                    },
+                    "HYPE": {
+                        "currency": "HYPE",
+                        "rate": 0.05,
+                        "period": 31536000000,
+                        "timestamp": null,
+                        "datetime": null,
+                        "info": {
+                            "borrowYearlyRate": "0.05",
+                            "supplyYearlyRate": "0.0",
+                            "balance": "15645035.9247208908",
+                            "utilization": "0.0",
+                            "oraclePx": "60.659",
+                            "ltv": "0.65",
+                            "totalSupplied": "15645035.9247208908",
+                            "totalBorrowed": "0.0",
+                            "token": "150"
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "borrow rate of a currency",
+                "method": "fetchCrossBorrowRate",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": {
+                    "borrowYearlyRate": "0.05",
+                    "supplyYearlyRate": "0.0249808267",
+                    "balance": "284714721.5832400322",
+                    "utilization": "0.5551294814",
+                    "oraclePx": "1.0",
+                    "ltv": "0.0",
+                    "totalSupplied": "639994288.7804760933",
+                    "totalBorrowed": "355279697.6056296229"
+                },
+                "parsedResponse": {
+                    "currency": "USDC",
+                    "rate": 0.05,
+                    "period": 31536000000,
+                    "timestamp": null,
+                    "datetime": null,
+                    "info": {
+                        "borrowYearlyRate": "0.05",
+                        "supplyYearlyRate": "0.0249808267",
+                        "balance": "284714721.5832400322",
+                        "utilization": "0.5551294814",
+                        "oraclePx": "1.0",
+                        "ltv": "0.0",
+                        "totalSupplied": "639994288.7804760933",
+                        "totalBorrowed": "355279697.6056296229",
+                        "token": "0"
+                    }
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "borrow interest, tokens with nothing borrowed are skipped",
+                "method": "fetchBorrowInterest",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "tokenToState": [
+                        [
+                            0,
+                            {
+                                "borrow": {
+                                    "basis": "100.0",
+                                    "value": "100.25"
+                                },
+                                "supply": {
+                                    "basis": "0.0",
+                                    "value": "0.0"
+                                }
+                            }
+                        ],
+                        [
+                            150,
+                            {
+                                "borrow": {
+                                    "basis": "0.0",
+                                    "value": "0.0"
+                                },
+                                "supply": {
+                                    "basis": "2.0",
+                                    "value": "2.01"
+                                }
+                            }
+                        ]
+                    ],
+                    "health": "healthy",
+                    "healthFactor": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "borrow": {
+                                "basis": "100.0",
+                                "value": "100.25"
+                            },
+                            "supply": {
+                                "basis": "0.0",
+                                "value": "0.0"
+                            },
+                            "token": "0"
+                        },
+                        "symbol": null,
+                        "currency": "USDC",
+                        "interest": 0.25,
+                        "interestRate": null,
+                        "amountBorrowed": 100.25,
+                        "marginMode": "cross",
+                        "timestamp": null,
+                        "datetime": null
+                    }
+                ]
+            }
+        ],
+        "fetchApprovedBuilders": [
+            {
+                "description": "builders approved by a user",
+                "method": "fetchApprovedBuilders",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    "0x476fa87b4d3818f437f38f1263bee508d7672d82"
+                ],
+                "parsedResponse": [
+                    "0x476fa87b4d3818f437f38f1263bee508d7672d82"
+                ]
+            }
+        ],
+        "fetchVaultDetails": [
+            {
+                "description": "details of a vault",
+                "method": "fetchVaultDetails",
+                "input": [
+                    "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"
+                ],
+                "httpResponse": {
+                    "name": "Test",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+                    "description": "This community-owned vault provides liquidity to Hyperliquid",
+                    "portfolio": [
+                        [
+                            "day",
+                            {
+                                "accountValueHistory": [
+                                    [
+                                        1734397526634,
+                                        "329265410.90790099"
+                                    ]
+                                ],
+                                "pnlHistory": [
+                                    [
+                                        1734397526634,
+                                        "0.0"
+                                    ]
+                                ],
+                                "vlm": "0.0"
+                            }
+                        ]
+                    ],
+                    "apr": 0.36387129259090006,
+                    "followerState": null,
+                    "leaderFraction": 0.0007904828725729887,
+                    "leaderCommission": 0,
+                    "followers": [
+                        {
+                            "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c",
+                            "vaultEquity": "714491.71026243",
+                            "pnl": "3203.43553709",
+                            "allTimePnl": "79843.74476046",
+                            "daysFollowing": 388,
+                            "vaultEntryTime": 1700926145201,
+                            "lockupUntil": 1734824439201
+                        }
+                    ],
+                    "maxDistributable": 94856870.164485,
+                    "maxWithdrawable": 742557.680863,
+                    "isClosed": false,
+                    "relationship": {
+                        "type": "parent",
+                        "data": {
+                            "childAddresses": [
+                                "0x010461c14e146ac35fe42271bdc1134ee31c703a"
+                            ]
+                        }
+                    },
+                    "allowDeposits": true,
+                    "alwaysCloseOnWithdraw": false
+                },
+                "parsedResponse": {
+                    "name": "Test",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+                    "description": "This community-owned vault provides liquidity to Hyperliquid",
+                    "portfolio": [
+                        [
+                            "day",
+                            {
+                                "accountValueHistory": [
+                                    [
+                                        1734397526634,
+                                        "329265410.90790099"
+                                    ]
+                                ],
+                                "pnlHistory": [
+                                    [
+                                        1734397526634,
+                                        "0.0"
+                                    ]
+                                ],
+                                "vlm": "0.0"
+                            }
+                        ]
+                    ],
+                    "apr": 0.36387129259090006,
+                    "followerState": null,
+                    "leaderFraction": 0.0007904828725729887,
+                    "leaderCommission": 0,
+                    "followers": [
+                        {
+                            "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c",
+                            "vaultEquity": "714491.71026243",
+                            "pnl": "3203.43553709",
+                            "allTimePnl": "79843.74476046",
+                            "daysFollowing": 388,
+                            "vaultEntryTime": 1700926145201,
+                            "lockupUntil": 1734824439201
+                        }
+                    ],
+                    "maxDistributable": 94856870.164485,
+                    "maxWithdrawable": 742557.680863,
+                    "isClosed": false,
+                    "relationship": {
+                        "type": "parent",
+                        "data": {
+                            "childAddresses": [
+                                "0x010461c14e146ac35fe42271bdc1134ee31c703a"
+                            ]
+                        }
+                    },
+                    "allowDeposits": true,
+                    "alwaysCloseOnWithdraw": false
+                }
+            }
+        ],
+        "fetchStakingDelegations": [
+            {
+                "description": "staking delegations of a user",
+                "method": "fetchStakingDelegations",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "amount": "12060.16529862",
+                        "lockedUntilTimestamp": 1735466781353
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "amount": "12060.16529862",
+                        "lockedUntilTimestamp": 1735466781353
+                    }
+                ]
+            }
+        ],
+        "fetchStakingSummary": [
+            {
+                "description": "staking summary of a user",
+                "method": "fetchStakingSummary",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "delegated": "12060.16529862",
+                    "undelegated": "0.0",
+                    "totalPendingWithdrawal": "0.0",
+                    "nPendingWithdrawals": 0
+                },
+                "parsedResponse": {
+                    "delegated": "12060.16529862",
+                    "undelegated": "0.0",
+                    "totalPendingWithdrawal": "0.0",
+                    "nPendingWithdrawals": 0
+                }
+            }
+        ],
+        "fetchStakingHistory": [
+            {
+                "description": "staking history of a user",
+                "method": "fetchStakingHistory",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1735380381353,
+                        "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+                        "delta": {
+                            "delegate": {
+                                "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                                "amount": "10000.0",
+                                "isUndelegate": false
+                            }
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "time": 1735380381353,
+                        "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+                        "delta": {
+                            "delegate": {
+                                "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                                "amount": "10000.0",
+                                "isUndelegate": false
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchStakingRewards": [
+            {
+                "description": "staking rewards of a user",
+                "method": "fetchStakingRewards",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1736726400073,
+                        "source": "delegation",
+                        "totalAmount": "0.73117184"
+                    },
+                    {
+                        "time": 1736726400073,
+                        "source": "commission",
+                        "totalAmount": "130.76445876"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "time": 1736726400073,
+                        "source": "delegation",
+                        "totalAmount": "0.73117184"
+                    },
+                    {
+                        "time": 1736726400073,
+                        "source": "commission",
+                        "totalAmount": "130.76445876"
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "two sub-accounts",
+                "method": "fetchAccounts",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "name": "test",
+                        "subAccountUser": "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                        "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "clearinghouseState": {
+                            "marginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMarginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMaintenanceMarginUsed": "0.0",
+                            "withdrawable": "0.0",
+                            "assetPositions": [],
+                            "time": 1795692771591
+                        },
+                        "spotState": {
+                            "balances": [
+                                {
+                                    "coin": "USDC",
+                                    "token": 0,
+                                    "total": "0.0",
+                                    "hold": "0.0",
+                                    "entryNtl": "0.0"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "second",
+                        "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+                        "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "clearinghouseState": {
+                            "marginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMarginSummary": {
+                                "accountValue": "0.0",
+                                "totalNtlPos": "0.0",
+                                "totalRawUsd": "0.0",
+                                "totalMarginUsed": "0.0"
+                            },
+                            "crossMaintenanceMarginUsed": "0.0",
+                            "withdrawable": "0.0",
+                            "assetPositions": [],
+                            "time": 1795692771591
+                        },
+                        "spotState": {
+                            "balances": [
+                                {
+                                    "coin": "USDC",
+                                    "token": 0,
+                                    "total": "0.22",
+                                    "hold": "0.0",
+                                    "entryNtl": "0.0"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                        "type": "subaccount",
+                        "name": "test",
+                        "code": null,
+                        "info": {
+                            "name": "test",
+                            "subAccountUser": "0x56a1cc0d72cf557718c8488991278ab3c78e10ff",
+                            "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "clearinghouseState": {
+                                "marginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMarginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMaintenanceMarginUsed": "0.0",
+                                "withdrawable": "0.0",
+                                "assetPositions": [],
+                                "time": 1795692771591
+                            },
+                            "spotState": {
+                                "balances": [
+                                    {
+                                        "coin": "USDC",
+                                        "token": 0,
+                                        "total": "0.0",
+                                        "hold": "0.0",
+                                        "entryNtl": "0.0"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "id": "0x035605fc2f24d65300227189025e90a0d947f16c",
+                        "type": "subaccount",
+                        "name": "second",
+                        "code": null,
+                        "info": {
+                            "name": "second",
+                            "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+                            "master": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "clearinghouseState": {
+                                "marginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMarginSummary": {
+                                    "accountValue": "0.0",
+                                    "totalNtlPos": "0.0",
+                                    "totalRawUsd": "0.0",
+                                    "totalMarginUsed": "0.0"
+                                },
+                                "crossMaintenanceMarginUsed": "0.0",
+                                "withdrawable": "0.0",
+                                "assetPositions": [],
+                                "time": 1795692771591
+                            },
+                            "spotState": {
+                                "balances": [
+                                    {
+                                        "coin": "USDC",
+                                        "token": 0,
+                                        "total": "0.22",
+                                        "hold": "0.0",
+                                        "entryNtl": "0.0"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "tiered tables and a single tier asset without a listed table",
+                "method": "fetchLeverageTiers",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC",
+                        "MEME/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "universe": [
+                        {
+                            "szDecimals": 5,
+                            "name": "BTC",
+                            "maxLeverage": 40,
+                            "marginTableId": 56
+                        },
+                        {
+                            "szDecimals": 2,
+                            "name": "SOL",
+                            "maxLeverage": 20,
+                            "marginTableId": 54
+                        },
+                        {
+                            "szDecimals": 0,
+                            "name": "MEME",
+                            "maxLeverage": 3,
+                            "marginTableId": 3
+                        }
+                    ],
+                    "marginTables": [
+                        [
+                            54,
+                            {
+                                "description": "tiered 20x (2)",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 20
+                                    },
+                                    {
+                                        "lowerBound": "70000000.0",
+                                        "maxLeverage": 10
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            56,
+                            {
+                                "description": "tiered 40x",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 40
+                                    },
+                                    {
+                                        "lowerBound": "150000000.0",
+                                        "maxLeverage": 20
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    "collateralToken": 0
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": [
+                        {
+                            "tier": 1,
+                            "symbol": "BTC/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 0,
+                            "maxNotional": 150000000,
+                            "maintenanceMarginRate": 0.0125,
+                            "maxLeverage": 40,
+                            "info": {
+                                "lowerBound": "0.0",
+                                "maxLeverage": 40
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "BTC/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 150000000,
+                            "maxNotional": null,
+                            "maintenanceMarginRate": 0.025,
+                            "maxLeverage": 20,
+                            "info": {
+                                "lowerBound": "150000000.0",
+                                "maxLeverage": 20
+                            }
+                        }
+                    ],
+                    "SOL/USDC:USDC": [
+                        {
+                            "tier": 1,
+                            "symbol": "SOL/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 0,
+                            "maxNotional": 70000000,
+                            "maintenanceMarginRate": 0.025,
+                            "maxLeverage": 20,
+                            "info": {
+                                "lowerBound": "0.0",
+                                "maxLeverage": 20
+                            }
+                        },
+                        {
+                            "tier": 2,
+                            "symbol": "SOL/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 70000000,
+                            "maxNotional": null,
+                            "maintenanceMarginRate": 0.05,
+                            "maxLeverage": 10,
+                            "info": {
+                                "lowerBound": "70000000.0",
+                                "maxLeverage": 10
+                            }
+                        }
+                    ],
+                    "MEME/USDC:USDC": [
+                        {
+                            "tier": 1,
+                            "symbol": "MEME/USDC:USDC",
+                            "currency": "USDC",
+                            "minNotional": 0,
+                            "maxNotional": null,
+                            "maintenanceMarginRate": 0.16666666666666666,
+                            "maxLeverage": 3,
+                            "info": {
+                                "lowerBound": "0.0",
+                                "maxLeverage": 3
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "leverage tiers of a single market",
+                "method": "fetchMarketLeverageTiers",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "universe": [
+                        {
+                            "szDecimals": 5,
+                            "name": "BTC",
+                            "maxLeverage": 40,
+                            "marginTableId": 56
+                        },
+                        {
+                            "szDecimals": 2,
+                            "name": "SOL",
+                            "maxLeverage": 20,
+                            "marginTableId": 54
+                        },
+                        {
+                            "szDecimals": 0,
+                            "name": "MEME",
+                            "maxLeverage": 3,
+                            "marginTableId": 3
+                        }
+                    ],
+                    "marginTables": [
+                        [
+                            54,
+                            {
+                                "description": "tiered 20x (2)",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 20
+                                    },
+                                    {
+                                        "lowerBound": "70000000.0",
+                                        "maxLeverage": 10
+                                    }
+                                ]
+                            }
+                        ],
+                        [
+                            56,
+                            {
+                                "description": "tiered 40x",
+                                "marginTiers": [
+                                    {
+                                        "lowerBound": "0.0",
+                                        "maxLeverage": 40
+                                    },
+                                    {
+                                        "lowerBound": "150000000.0",
+                                        "maxLeverage": 20
+                                    }
+                                ]
+                            }
+                        ]
+                    ],
+                    "collateralToken": 0
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "SOL/USDC:USDC",
+                        "currency": "USDC",
+                        "minNotional": 0,
+                        "maxNotional": 70000000,
+                        "maintenanceMarginRate": 0.025,
+                        "maxLeverage": 20,
+                        "info": {
+                            "lowerBound": "0.0",
+                            "maxLeverage": 20
+                        }
+                    },
+                    {
+                        "tier": 2,
+                        "symbol": "SOL/USDC:USDC",
+                        "currency": "USDC",
+                        "minNotional": 70000000,
+                        "maxNotional": null,
+                        "maintenanceMarginRate": 0.05,
+                        "maxLeverage": 10,
+                        "info": {
+                            "lowerBound": "70000000.0",
+                            "maxLeverage": 10
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "cross leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL",
+                    "leverage": {
+                        "type": "cross",
+                        "value": 20
+                    },
+                    "maxTradeSzs": [
+                        "13.63",
+                        "13.63"
+                    ],
+                    "availableToTrade": [
+                        "48.103059",
+                        "48.103059"
+                    ],
+                    "markPx": "70.58"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "coin": "SOL",
+                        "leverage": {
+                            "type": "cross",
+                            "value": 20
+                        },
+                        "maxTradeSzs": [
+                            "13.63",
+                            "13.63"
+                        ],
+                        "availableToTrade": [
+                            "48.103059",
+                            "48.103059"
+                        ],
+                        "markPx": "70.58"
+                    },
+                    "symbol": "SOL/USDC:USDC",
+                    "marginMode": "cross",
+                    "longLeverage": 20,
+                    "shortLeverage": 20
+                }
+            },
+            {
+                "description": "isolated leverage",
+                "method": "fetchLeverage",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL",
+                    "leverage": {
+                        "type": "isolated",
+                        "value": 5,
+                        "rawUsd": "0.0"
+                    },
+                    "maxTradeSzs": [
+                        "3.4",
+                        "3.4"
+                    ],
+                    "availableToTrade": [
+                        "48.103059",
+                        "48.103059"
+                    ],
+                    "markPx": "70.58"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "coin": "SOL",
+                        "leverage": {
+                            "type": "isolated",
+                            "value": 5,
+                            "rawUsd": "0.0"
+                        },
+                        "maxTradeSzs": [
+                            "3.4",
+                            "3.4"
+                        ],
+                        "availableToTrade": [
+                            "48.103059",
+                            "48.103059"
+                        ],
+                        "markPx": "70.58"
+                    },
+                    "symbol": "SOL/USDC:USDC",
+                    "marginMode": "isolated",
+                    "longLeverage": 5,
+                    "shortLeverage": 5
                 }
             }
         ],

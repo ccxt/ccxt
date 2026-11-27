@@ -180,6 +180,152 @@
                 ]
             }
         ],
+        "watchBidsAsks": [
+            {
+                "description": "swap best bid and ask, the second update has an empty ask side",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "url": "wss://api.hyperliquid.xyz/ws",
+                "messages": [
+                    {
+                        "channel": "subscriptionResponse",
+                        "data": {
+                            "method": "subscribe",
+                            "subscription": {
+                                "type": "bbo",
+                                "coin": "BTC"
+                            }
+                        }
+                    },
+                    {
+                        "channel": "bbo",
+                        "data": {
+                            "coin": "BTC",
+                            "time": 1795692679488,
+                            "bbo": [
+                                {
+                                    "px": "60612.0",
+                                    "sz": "12.46853",
+                                    "n": 39
+                                },
+                                {
+                                    "px": "60613.0",
+                                    "sz": "1.43894",
+                                    "n": 8
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "channel": "bbo",
+                        "data": {
+                            "coin": "BTC",
+                            "time": 1795692679688,
+                            "bbo": [
+                                {
+                                    "px": "60612.0",
+                                    "sz": "11.9",
+                                    "n": 38
+                                },
+                                null
+                            ]
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "subscribe",
+                        "subscription": {
+                            "type": "bbo",
+                            "coin": "BTC"
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "BTC/USDC:USDC": {
+                            "symbol": "BTC/USDC:USDC",
+                            "timestamp": 1795692679488,
+                            "datetime": "2026-11-26T11:31:19.488Z",
+                            "bid": 60612,
+                            "bidVolume": 12.46853,
+                            "ask": 60613,
+                            "askVolume": 1.43894,
+                            "info": {
+                                "coin": "BTC",
+                                "time": 1795692679488,
+                                "bbo": [
+                                    {
+                                        "px": "60612.0",
+                                        "sz": "12.46853",
+                                        "n": 39
+                                    },
+                                    {
+                                        "px": "60613.0",
+                                        "sz": "1.43894",
+                                        "n": 8
+                                    }
+                                ]
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    },
+                    {
+                        "BTC/USDC:USDC": {
+                            "symbol": "BTC/USDC:USDC",
+                            "timestamp": 1795692679688,
+                            "datetime": "2026-11-26T11:31:19.688Z",
+                            "bid": 60612,
+                            "bidVolume": 11.9,
+                            "ask": null,
+                            "askVolume": null,
+                            "info": {
+                                "coin": "BTC",
+                                "time": 1795692679688,
+                                "bbo": [
+                                    {
+                                        "px": "60612.0",
+                                        "sz": "11.9",
+                                        "n": 38
+                                    },
+                                    null
+                                ]
+                            },
+                            "high": null,
+                            "low": null,
+                            "open": null,
+                            "close": null,
+                            "last": null,
+                            "change": null,
+                            "percentage": null,
+                            "average": null,
+                            "vwap": null,
+                            "baseVolume": null,
+                            "quoteVolume": null,
+                            "previousClose": null,
+                            "indexPrice": null,
+                            "markPrice": null
+                        }
+                    }
+                ]
+            }
+        ],
         "watchTicker": [
             {
                 "description": "swap ticker",
