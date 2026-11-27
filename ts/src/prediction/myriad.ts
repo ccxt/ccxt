@@ -3681,7 +3681,7 @@ export default class myriad extends Exchange {
             const outcomeObj = await this.loadOutcome (outcomeResolved);
             const info = this.safeDict (outcomeObj, 'info', {});
             networkId = this.safeString (info, 'networkId', networkId);
-            outcomeResolved = this.safeOutcomeSymbol (outcomeResolved, outcomeObj);
+            outcomeResolved = this.safeString (outcomeObj, 'outcome');
         }
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';

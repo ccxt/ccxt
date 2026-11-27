@@ -10139,7 +10139,9 @@ class NewTranspiler {
                 // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
                 // PredictionExchange Str params: callers pass *string or addressable string
-                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1 ], "loadOutcome": [ 0 ] },
+                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ] },
+                // Prediction-tier only required string params (WatchTradesAsync returns []PredictionTrade, separate from BaseExchange)
+                "predictionUnifiedStringParams": { "watchTrades": [ 0 ] },
                 // the two base files declare their own stdlib imports (declareBaseFileStdlibImports); the test
                 // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
                 "baseFileStdlibImportSeamPaths": '(?:base/Exchange(?:\\.nooverloads\\.\\d+)?|base/PredictionExchange)\\.ts$',
