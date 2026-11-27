@@ -4773,13 +4773,14 @@ class bitget(Exchange, ImplicitAPI):
         historicalEndpointNeeded = (useHistoryEndpoint is True)
         # exchange aligns from endTime, so it's important, not startTime
         # startTime is supported only on "recent" endpoint, not on "historical" endpoint
-        calculatedStartTime = None
-        calculatedEndTime = None
+        # the end time stays at now when neither since nor until is given, hasEndTime tells both cases apart
+        hasEndTime = (since is not None) or (until is not None)
+        calculatedEndTime = now
         if since is not None:
-            calculatedStartTime = since
             request['startTime'] = since
             if until is None:
-                calculatedEndTime = self.sum(since, recentDuration)
+                sinceEndTime = self.sum(since, recentDuration)
+                calculatedEndTime = sinceEndTime
                 if since > now - recentDuration:
                     calculatedEndTime = now
                 request['endTime'] = calculatedEndTime
@@ -4791,7 +4792,6 @@ class bitget(Exchange, ImplicitAPI):
             request['endTime'] = untilEndTime
             if since is None:
                 untilStartTime = untilEndTime - recentDuration
-                calculatedStartTime = untilStartTime
                 # we do not need to set "startTime" here
                 if (recentEndpointAvailableDays is not None) and (untilStartTime <= now - (recentEndpointAvailableDays - 1) * msInDay):
                     historicalEndpointNeeded = True
@@ -4800,15 +4800,15 @@ class bitget(Exchange, ImplicitAPI):
             historicalLimit = maxLimitForHistoryEndpoint if (recentLimit > maxLimitForHistoryEndpoint) else recentLimit
             limitResolved = historicalLimit
             historicalDuration = historicalLimit * duration
-            calculatedStartTime = calculatedEndTime - historicalDuration
-            request['startTime'] = calculatedStartTime
-            # for contract, maximum 90 days allowed between start-end times
-            if not self.safe_bool(market, 'spot', False):
-                maxDistanceForContracts = 90 * msInDay
-                # endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-                if (calculatedEndTime is not None) and (historicalDuration > maxDistanceForContracts):
-                    calculatedEndTime = self.sum(calculatedStartTime, maxDistanceForContracts)
-                    request['endTime'] = calculatedEndTime
+            if hasEndTime:
+                historicalStartTime = calculatedEndTime - historicalDuration
+                request['startTime'] = historicalStartTime
+                # for contract, maximum 90 days allowed between start-end times
+                if not self.safe_bool(market, 'spot', False):
+                    maxDistanceForContracts = 90 * msInDay
+                    # endTime - startTime is historicalDuration here
+                    if historicalDuration > maxDistanceForContracts:
+                        request['endTime'] = self.sum(historicalStartTime, maxDistanceForContracts)
         # we need to set limit to safely cover the period
         request['limit'] = limitResolved
         # make request

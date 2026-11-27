@@ -1809,7 +1809,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         marketId = self.safe_integer(info, 'marketId')
         messageHash = 'orders'
         orders = await self.subscribe_opinion_channel(messageHash, 'trade.order.update', marketId)
-        sym = self.safe_outcome_symbol(outcome, outcomeObj)
+        sym = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(orders, 'outcome', sym, since, limit, 'timestamp', True)
 
     def parse_ws_order_status(self, status: Int) -> Str:
@@ -1916,7 +1916,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         marketId = self.safe_integer(info, 'marketId')
         messageHash = 'myTrades'
         trades = await self.subscribe_opinion_channel(messageHash, 'trade.record.new', marketId)
-        sym = self.safe_outcome_symbol(outcome, outcomeObj)
+        sym = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(trades, 'outcome', sym, since, limit, 'timestamp', True)
 
     def handle_my_trade(self, client: Client, message: dict):

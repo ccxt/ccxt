@@ -266,13 +266,14 @@ class PredictionExchange(BaseExchange):
             matched = False
             for ti in range(0, len(eventTags)):
                 tag = eventTags[ti]
-                tagLabel = None
+                # a tag without a label reads as '' and normalizes to an empty key, which matches nothing
+                tagLabel = ''
                 if isinstance(tag, str):
-                    tagLabel = tag
+                    tagLabel = self.safe_string(eventTags, ti, '')
                 else:
-                    tagLabel = self.safe_string_2(tag, 'slug', 'title')
-                if tagLabel is not None:
-                    tagKey = self.normalize_tag_key(tagLabel)
+                    tagLabel = self.safe_string_2(tag, 'slug', 'title', '')
+                tagKey = self.normalize_tag_key(tagLabel)
+                if tagKey != '':
                     for wi in range(0, len(wanted)):
                         if tagKey.find(wanted[wi]) >= 0:
                             matched = True

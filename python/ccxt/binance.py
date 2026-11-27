@@ -8756,7 +8756,8 @@ class binance(Exchange, ImplicitAPI):
             isPortfolioMargin, paramsPaginate = self.handle_option_bool_and_params_2(paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', False)
             if stock:
                 # request['endTime'] holds endTime whenever endTime is defined
-                endTimeResolved = self.safe_integer(request, 'endTime', self.milliseconds())
+                endTimeRequest = self.safe_integer(request, 'endTime')
+                endTimeResolved = endTimeRequest if (endTimeRequest is not None) else self.milliseconds()
                 if endTime is None:
                     request['endTime'] = endTimeResolved
                 if since is None:

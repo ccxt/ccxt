@@ -160,9 +160,10 @@ class kucoin(ccxt.async_support.kucoin):
             client.keepAlive = pingInterval
             return result
         except Exception as e:
-            future = self.safe_value(self.options['urls'], connectId)
+            urls = self.safe_dict(self.options, 'urls', {})
+            future = self.safe_value(urls, connectId)
             future.reject(e)
-            del self.options['urls'][connectId]
+            self.options['urls'] = self.omit(urls, connectId)
         return None
 
     def request_id(self) -> int:
@@ -445,7 +446,7 @@ class kucoin(ccxt.async_support.kucoin):
                 return newDict
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
-    async def subscribe_public_multiple_uta(self, messageHashes: list[str], channel: str, symbols: list[object], params: dict = {}, subscription: dict = None):
+    async def subscribe_public_multiple_uta(self, messageHashes: list[str], channel: str, symbols: list[str], params: dict = {}, subscription: dict = None):
         requestId = str(self.request_id())
         market = self.get_market_from_symbols(symbols)
         isContract = self.safe_bool(market, 'contract', False)

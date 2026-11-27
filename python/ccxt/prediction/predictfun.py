@@ -941,15 +941,13 @@ class predictfun(PredictionExchange, ImplicitAPI):
             'info': rawTopic,
         }
 
-    def strip_price_formatting(self, text: Str) -> Str:
+    def strip_price_formatting(self, text: str) -> str:
         """
  @ignore
         drops the formatting the venue puts in a price but not in its slug - the currency sign, and a comma that sits between two digits
         :param str [text]: the raw title or outcome label
         :returns str: the same text with '$' removed and thousands separators closed up
         """
-        if text is None:
-            return None
         digits = '0123456789'
         chars = self.string_to_chars_array(text)
         stripped = ''
@@ -977,7 +975,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             stripped = stripped + ','
         return stripped
 
-    def title_for_market_symbol(self, topicSlug: Str, title: Str, marketCount: Int = None) -> Str:
+    def title_for_market_symbol(self, topicSlug: Str, title: Str, marketCount: Int = None) -> str:
         """
  @ignore
         decides what of a market title belongs in the unified symbol, given how many markets its topic holds
@@ -993,6 +991,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         # inside a multi-market topic the title is what keeps the handles apart, so it stays
         if (marketCount == 1) and (topicSlug is not None):
             return topicSlug
+        if title is None:
+            return ''
         return self.strip_price_formatting(title)
 
     def parse_topic_market(self, rawMarket: dict, rawTopic: dict) -> Market:
@@ -1123,7 +1123,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             rawOutcome = rawOutcomes[oi]
             # a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             # handle verbatim - strip the same formatting the title gets
-            rawLabel = self.safe_string_upper(rawOutcome, 'name')
+            rawLabel = self.safe_string_upper(rawOutcome, 'name', '')
             label = self.strip_price_formatting(rawLabel)
             tokenId = self.safe_string(rawOutcome, 'onChainId')
             outcomeHandle = marketSymbol + ':' + label
@@ -3365,7 +3365,8 @@ class predictfun(PredictionExchange, ImplicitAPI):
         eventHandle = None
         if topicSlug is not None:
             eventHandle = self.shorten_slug(topicSlug)
-        label = self.strip_price_formatting(self.safe_string_upper(details, 'outcomeName'))
+        rawOutcomeName = self.safe_string_upper(details, 'outcomeName')
+        label = self.strip_price_formatting(rawOutcomeName) if (rawOutcomeName is not None) else None
         return {
             'outcome': None,
             'outcomeId': None,

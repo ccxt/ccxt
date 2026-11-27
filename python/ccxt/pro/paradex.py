@@ -2024,7 +2024,8 @@ class paradex(ccxt.async_support.paradex):
             entryLength = self.parse_to_int(self.sbe_read_uint(frameHex, position, 2))
             numInGroup = self.parse_to_int(self.sbe_read_uint(frameHex, position + 2, 2))
             position = position + 4
-            if (entryLength < 16) or (self.parse_to_int(self.sum(position, numInGroup * entryLength)) > frameEnd):
+            groupEnd = self.parse_to_int(self.sum(position, numInGroup * entryLength))
+            if (entryLength < 16) or (groupEnd > frameEnd):
                 return None
             for j in range(0, numInGroup):
                 levels.append({

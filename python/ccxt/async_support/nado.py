@@ -2944,12 +2944,12 @@ class nado(Exchange, ImplicitAPI):
     def order_verifying_contract(self, productId: Int) -> str:
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)
 
-    def pad_hex(self, value: str, length: float, left: bool = True) -> str:
+    def pad_hex(self, value: str, length: int, left: bool = True) -> str:
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         if left:
             paddedLeft = zeros + value
-            start = len(paddedLeft) - self.parse_to_int(length)
-            return paddedLeft[start:len(paddedLeft)]
+            start = len(paddedLeft) - length
+            return paddedLeft[start:]
         paddedRight = value + zeros
         end = self.parse_to_int(length)
         return paddedRight[0:end]

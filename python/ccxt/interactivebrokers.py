@@ -836,11 +836,13 @@ class interactivebrokers(Exchange, ImplicitAPI):
         :returns int: the timestamp when the session was found lost
         """
         self.options['gatewayAuthenticatedTimestamp'] = None
-        lostTimestamp = self.safe_integer(self.options, 'gatewaySessionLostTimestamp')
-        if lostTimestamp is None:
-            lostTimestamp = self.milliseconds()
+        lostTimestamp = self.milliseconds()
+        storedTimestamp = self.safe_integer(self.options, 'gatewaySessionLostTimestamp')
+        if storedTimestamp is None:
             self.options['gatewaySessionLostTimestamp'] = lostTimestamp
             self.ibkr_gateway_schedule_regain()
+        else:
+            lostTimestamp = storedTimestamp
         return lostTimestamp
 
     def ibkr_gateway_schedule_regain(self) -> bool:
@@ -2443,7 +2445,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
         fields, query = self.handle_option_and_params(params, 'fetchTickers', 'fields')
-        fieldsString = ','.join(fields)
+        fieldsString = ','.join((fields))
         readyFields = ['31', '84', '86']
         response = self.ibkr_fetch_snapshot(symbolsNormalized, fieldsString, readyFields, query)
         #

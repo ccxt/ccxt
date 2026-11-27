@@ -323,7 +323,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         teamTwoName = self.safe_string(raw, 'teamTwoName', '')
         outcomeOneName = self.safe_string(raw, 'outcomeOneName')
         outcomeTwoName = self.safe_string(raw, 'outcomeTwoName')
-        eventSlug = self.shorten_slug(teamOneName + ' ' + teamTwoName)
+        matchTitle = teamOneName + ' ' + teamTwoName
+        eventSlug = self.shorten_slug(matchTitle)
         # one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         # variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         # slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -437,7 +438,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         tags = self.safe_list(params, 'tags', [])
         tagsLength = len(tags)
         for i in range(0, tagsLength):
-            queries.append(tags[i])
+            queries.append(self.safe_string(tags, i, ''))
         rest = self.omit(params, ['eventId', 'slug', 'leagueId', 'sportId', 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'limit'])
         rawMarkets = []
         if eventId is not None:
@@ -582,7 +583,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         eventSlug = None
         if (teamOneName is not None) and (teamTwoName is not None):
             title = teamOneName + ' vs ' + teamTwoName
-            eventSlug = self.shorten_slug(teamOneName + ' ' + teamTwoName)
+            matchTitle = teamOneName + ' ' + teamTwoName
+            eventSlug = self.shorten_slug(matchTitle)
         else:
             eventSlug = self.shorten_slug(fixtureId)
         return {
@@ -2452,15 +2454,13 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # exchange-not-available error). unmapped codes fall through to the base http-status handling
         if response is None:
             return None
-        message = self.safe_value(response, 'message')
-        if message is None:
-            return None
         # validation failures arrive in string-array form, business errors in single-code-string form
-        messageString = None
-        if isinstance(message, list):
-            messageString = ', '.join(message)
-        else:
-            messageString = message
+        messageList = self.safe_list(response, 'message', [])
+        messageString = self.safe_string(response, 'message')
+        if self.safe_string(messageList, 0) is not None:
+            messageString = ', '.join(messageList)
+        if messageString is None:
+            return None
         feedback = self.id + ' ' + body
         self.throw_exactly_matched_exception(self.exceptions['exact'], messageString, feedback)
         self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)

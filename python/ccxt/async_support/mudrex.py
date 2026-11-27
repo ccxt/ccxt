@@ -217,7 +217,7 @@ class mudrex(Exchange, ImplicitAPI):
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
-        if response is None or not isinstance(response, dict):
+        if response is None:
             return None
         success = self.safe_bool(response, 'success', True)
         if not success:

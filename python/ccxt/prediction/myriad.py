@@ -3093,7 +3093,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         info = self.safe_dict(outcomeObj, 'info', {})
         networkId = self.safe_string(info, 'networkId', '')
         marketId = self.safe_string(info, 'marketId', '')
-        sym = self.safe_outcome_symbol(outcome, outcomeObj)
+        sym = self.safe_string(outcomeObj, 'outcome')
         channel = 'trades:' + networkId + ':' + marketId
         messageHash = 'myTrades'
         trades = await self.subscribe_myriad_channel(messageHash, channel, params)
@@ -3341,11 +3341,11 @@ class myriad(PredictionExchange, ImplicitAPI):
             outcomeObj = await self.load_outcome(outcomeResolved)
             info = self.safe_dict(outcomeObj, 'info', {})
             networkId = self.safe_string(info, 'networkId', networkId)
-            outcomeResolved = self.safe_outcome_symbol(outcomeResolved, outcomeObj)
+            outcomeResolved = self.safe_string(outcomeObj, 'outcome')
         channel = 'orders:' + networkId + ':' + trader
         messageHash = 'orders'
         orders = await self.subscribe_myriad_channel(messageHash, channel, params)
-        return self.filter_by_value_since_limit(orders, 'outcome', outcomeResolved, since, limit, 'timestamp', True)
+        return self.filter_by_outcome_since_limit(orders, outcomeResolved, since, limit, True)
 
     def handle_order(self, client: Client, data: dict):
         if self.orders is None:

@@ -174,17 +174,15 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         sent = {}
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
-            subscription = client.subscriptions[keys[i]]
-            if isinstance(subscription, dict):
-                request = self.safe_string(subscription, 'request')
-                if (request is not None) and request.startswith('smd+') and not (request in sent):
-                    sent[request] = True
-                    try:
-                        await client.send(request)
-                    except Exception as e:
-                        # the connection is gone, the client reconnects on the next watch call
-                        if self.verbose:
-                            self.log('ibkrKeepAliveSession resubscribe failed ' + self.exception_message(e))
+            request = self.safe_string(client.subscriptions[keys[i]], 'request')
+            if (request is not None) and request.startswith('smd+') and not (request in sent):
+                sent[request] = True
+                try:
+                    await client.send(request)
+                except Exception as e:
+                    # the connection is gone, the client reconnects on the next watch call
+                    if self.verbose:
+                        self.log('ibkrKeepAliveSession resubscribe failed ' + self.exception_message(e))
         tickleInterval = self.safe_integer(self.options, 'tickleInterval', 240000)
         self.delay(tickleInterval, self.ibkr_keep_alive_session, client)
         return None
@@ -238,11 +236,10 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         """
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
-            subscription = client.subscriptions[keys[i]]
-            if isinstance(subscription, dict):
-                request = self.safe_string(subscription, 'request')
-                conid = self.safe_string(subscription, 'conid')
-                if (request is not None) and request.startswith('smd+') and (conid == marketId):
+            request = self.safe_string(client.subscriptions[keys[i]], 'request')
+            if (request is not None) and request.startswith('smd+'):
+                conid = self.safe_string(client.subscriptions[keys[i]], 'conid')
+                if conid == marketId:
                     return None  # still in use
         # the connection is open, the callers get the client from ibkrConnect ()
         emptyArgs = '{}'  # a separate literal, the php transpiler turns '+{}' into '+array()'
@@ -575,7 +572,8 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         # the live candles built from smd before the history arrived are kept only when they are newer than the history
         for i in range(0, len(stored)):
             candle = stored[i]
-            if (lastHistoryTimestamp is None) or (candle[0] > lastHistoryTimestamp):
+            candleTimestamp = self.safe_integer(candle, 0, 0)
+            if (lastHistoryTimestamp is None) or (candleTimestamp > lastHistoryTimestamp):
                 bars.append(candle)
         sorted = self.sort_by(bars, 0)
         ohlcvLimit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -660,9 +658,10 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
             candle = None
             if length > 0:
                 lastCandle = stored[length - 1]
-                if lastCandle[0] == candleTimestamp:
+                lastTimestamp = self.safe_integer(lastCandle, 0, 0)
+                if lastTimestamp == candleTimestamp:
                     candle = lastCandle
-                elif lastCandle[0] > candleTimestamp:
+                elif lastTimestamp > candleTimestamp:
                     continue
             if candle is None:
                 stored.append([candleTimestamp, price, price, price, price, size])

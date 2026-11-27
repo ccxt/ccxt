@@ -328,7 +328,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                     return questionSlug + '_' + outcomeSlug + '_' + outcomeId
                 return questionSlug + '_' + outcomeId
         # Fallback: use name slugified, or OUTCOME-<id>
-        if (name is not None) and (name != ''):
+        if name != '':
             return self.shorten_slug(name) + '_' + outcomeId
         return 'OUTCOME_' + outcomeId
 
