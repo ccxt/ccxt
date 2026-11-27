@@ -1650,7 +1650,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
                 $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
                 for ($j = 0; $j < count($subMessageHashes); $j++) {
-                    $this->clean_unsubscription($client, $subMessageHashes[$j], $this->safe_string($messageHashes, $j));
+                    $this->clean_unsubscription($client, $this->safe_string($subMessageHashes, $j), $this->safe_string($messageHashes, $j));
                 }
                 $this->clean_cache($subscription);
                 return;

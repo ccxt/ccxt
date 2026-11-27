@@ -3003,7 +3003,13 @@ class okx extends \ccxt\async\okx {
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        $this->clean_unsubscription($client, $channel . ':' . $this->market_id($symbol), null);
+        $marketId = $this->market_id($symbol);
+        if ($marketId !== null) {
+            $marketSubHash = $channel . ':' . $marketId;
+            $this->clean_unsubscription($client, $marketSubHash, null);
+        } else {
+            $this->clean_unsubscription($client, null, null);
+        }
         if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }

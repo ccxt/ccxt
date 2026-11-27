@@ -3139,7 +3139,7 @@ class predictfun extends Exchange {
         // every outcome of the market, and an exact match is what keeps a sibling market out of it
         $isWalletTopic = ($this->safe_string($subscription, 'topic') === 'walletEvents');
         for ($i = 0; $i < $messageHashesLength; $i++) {
-            $this->clean_unsubscription($client, $subMessageHashes[$i], $messageHashes[$i], $isWalletTopic);
+            $this->clean_unsubscription($client, $this->safe_string($subMessageHashes, $i), $messageHashes[$i], $isWalletTopic);
         }
         $this->clean_cache($subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -

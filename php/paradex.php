@@ -2080,7 +2080,8 @@ class paradex extends Exchange {
         $isTakeProfitOrStopLoss = $isStopLossOrder || $isTakeProfitOrder;
         $sizeString = '0';
         // a stop loss or take profit order with a size of 0 closes the whole position when triggered
-        if (!$isTakeProfitOrStopLoss || (($amount !== null) && ($amount > 0))) {
+        $amountStr = $this->number_to_string($amount);
+        if (!$isTakeProfitOrStopLoss || (($amountStr !== null) && Precise::string_gt($amountStr, '0'))) {
             $sizeString = $this->amount_to_precision($symbol, $amount);
         }
         $stopPrice = null;

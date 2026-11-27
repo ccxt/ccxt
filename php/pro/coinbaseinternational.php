@@ -217,7 +217,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
          * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
          * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
          *
-         * @param {string[]} $channels exchange channel names
+         * @param {string[]} $channels exchange $channel names
          * @param {boolean} [$isPrivate] whether to authenticate and unsubscribe privately
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->route] auto (default), deribit, or coinbase; overrides options.route
@@ -247,7 +247,8 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client = $this->client($url);
         $this->watch_multiple($url, $unWatchMessageHashes, $this->deep_extend($request, $paramsResolved), $unWatchMessageHashes);
         for ($i = 0; $i < $channelsLength; $i++) {
-            $this->clean_unsubscription($client, $this->safe_string($channels, $i, ''), $this->safe_string($unWatchMessageHashes, $i, ''));
+            $channel = $this->safe_string($channels, $i, '');
+            $this->clean_unsubscription($client, $channel, $this->safe_string($unWatchMessageHashes, $i, ''));
         }
         return true;
     }

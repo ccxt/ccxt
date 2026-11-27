@@ -3247,7 +3247,7 @@ class nado extends Exchange {
                     $weights = $this->safe_list($byQuery, $queryName, array());
                     $baseWeight = $this->safe_integer($weights, 0, 2);
                     $rowsPerWeight = $this->safe_integer($weights, 1);
-                    if ($rowsPerWeight === null) {
+                    if (($rowsPerWeight === null) || ($rowsPerWeight <= 0)) {
                         return $baseWeight;
                     }
                     $query = $this->safe_dict($params, $queryName, array());
@@ -3265,6 +3265,9 @@ class nado extends Exchange {
             // distinct local names: the C# emitter rejects a name already used in a sibling block
             $rowsBaseWeight = $this->safe_integer($byRows, 0, 2);
             $rowsDivisor = $this->safe_integer($byRows, 1, 50);
+            if ($rowsDivisor <= 0) {
+                return $rowsBaseWeight;
+            }
             $rowCount = $this->safe_integer($params, 'limit', 100); // the v2 default page
             return $this->sum($rowsBaseWeight, $this->parse_to_int($rowCount / $rowsDivisor));
         }

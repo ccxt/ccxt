@@ -9160,7 +9160,15 @@ class okx extends Exchange {
         //     }
         //
         $underlyings = $this->safe_list($response, 'data', array());
-        return $this->to_array($this->safe_list($underlyings, 0, array()));
+        $first = $this->safe_list($underlyings, 0, array());
+        $result = array();
+        for ($i = 0; $i < count($first); $i++) {
+            $item = $this->safe_string($first, $i);
+            if ($item !== null) {
+                $result[] = $item;
+            }
+        }
+        return $result;
     }
 
     public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {

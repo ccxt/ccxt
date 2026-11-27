@@ -2072,6 +2072,9 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $symbol = $this->safe_symbol($marketId);
         $interval = $this->safe_string($subscription, 'interval', '');
         $timeframe = $this->find_timeframe($interval);
+        if (($timeframe === null) || ($symbol === null)) {
+            return;
+        }
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);

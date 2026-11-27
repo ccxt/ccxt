@@ -3187,6 +3187,9 @@ class lighter extends Exchange {
         $market = $this->market($symbol);
         $nonce = $this->fetch_nonce($accountIndex, $apiKeyIndex, $paramsAccountIndex);
         $leverageNum = $this->parse_number($leverage);
+        if (($leverageNum === null) || ($leverageNum <= 0)) {
+            throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires leverage > 0');
+        }
         $signRaw = array(
             'market_index' => $this->parse_to_int($market['id']),
             'initial_margin_fraction' => $this->parse_to_int(10000 / $leverageNum),

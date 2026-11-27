@@ -528,7 +528,7 @@ class paradex extends \ccxt\async\paradex {
         $prefix = $this->safe_bool($subscription, 'prefix', false);
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
         for ($j = 0; $j < count($subMessageHashes); $j++) {
-            $this->clean_unsubscription($client, $subMessageHashes[$j], $unsubHash, $prefix);
+            $this->clean_unsubscription($client, $this->safe_string($subMessageHashes, $j), $unsubHash, $prefix);
         }
         $this->clean_cache($subscription);
         $client->resolve(true, $unsubHash);
@@ -1243,7 +1243,8 @@ class paradex extends \ccxt\async\paradex {
         if (($symbolsLength > 0) && (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions))) {
             // the all-markets subscription has no market filter to remove these from, their watchers are ended here
             for ($i = 0; $i < count($subMessageHashes); $i++) {
-                $this->clean_unsubscription($client, $subMessageHashes[$i], 'unsubscribe:' . $subMessageHashes[$i]);
+                $subHash = $this->safe_string($subMessageHashes, $i, '');
+                $this->clean_unsubscription($client, $subHash, 'unsubscribe:' . $subHash);
             }
             $this->clean_cache(array( 'topic' => 'ticker', 'symbols' => $tickerSymbols ));
             return true;

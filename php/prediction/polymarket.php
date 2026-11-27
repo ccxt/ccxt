@@ -1356,6 +1356,9 @@ class polymarket extends Exchange {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         $resolutionMs = $fidelityMin * 60 * 1000;
+        if ($resolutionMs <= 0) {
+            throw new BadRequest($this->id . ' fetchOHLCV() invalid timeframe resolution');
+        }
         $buckets = array();
         for ($i = 0; $i < count($history); $i++) {
             $item = $this->safe_dict($history, $i);
