@@ -6981,7 +6981,7 @@ export class BaseExchange {
             }
             let isNewCandle = candle === -1;
             if (!isNewCandle) {
-                const candleTimestamp = this.safeInteger (ohlcvs[candle], i_timestamp);
+                const candleTimestamp = this.safeInteger (this.safeList (ohlcvs, candle), i_timestamp);
                 if (candleTimestamp === undefined) {
                     throw new ExchangeError (this.id + ' buildOHLCVC() missing candle timestamp');
                 }

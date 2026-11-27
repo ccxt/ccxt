@@ -8059,9 +8059,19 @@ function numDoubleProductWriteType (csharp, declaration, type, node, context) {
 }
 // a write into an `Int` local: the Int64 sum twin, Math.Min/Max over two Int64 locals, or a lifted Int64? `-`/`*` chain
 function int64AnnotatedLocalWriteType (csharp, declaration, node, context) {
-    const direct = integerBoxCastType (csharp, stripParens (node), context) ?? int64LocalsMinMaxWriteType (csharp, declaration, node, context);
-    if (direct !== undefined) { return direct; }
-    return liftedIntegerChain (csharp, node, context)?.nullable ? 'Int64?' : undefined;
+    const bare = stripParens (node);
+    if (bare?.kind === ts.SyntaxKind.Identifier) {
+        const pType = printedUnwrittenParameterType (csharp, bare);
+        if (pType === 'Int64' || pType === 'Int64?') { return pType; }
+    }
+    selfReadStack.push ({ declaration, type: 'Int64?' });
+    try {
+        const direct = integerBoxCastType (csharp, bare, context) ?? int64LocalsMinMaxWriteType (csharp, declaration, node, context) ?? mathMinMaxBoxType (csharp, bare, context)?.type;
+        if (direct !== undefined) { return direct; }
+        return liftedIntegerChain (csharp, node, context)?.nullable ? 'Int64?' : undefined;
+    } finally {
+        selfReadStack.pop ();
+    }
 }
 // `x = Math.min (a, b)` over two other locals both declared Int64: the declared-Int64 min/max pass prints Math.Min(a, b), the same Int64 box the helper hands back
 function int64LocalsMinMaxWriteType (csharp, declaration, node, context) {

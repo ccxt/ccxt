@@ -9492,7 +9492,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goStringSliceIndexPtr (goAsyncStringValue (content, path)) : content;  // typed async string value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
     content = path.endsWith ('.go') ? goPlainBoxIsEqual (content) : content;
-    content = path.endsWith ('.go') ? goInt64RetypeArith (content) : content;  // re-run after goChan3Pass + goTypedIsEqualNative (e.g. loadTimeDifference serverTime)
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
     if (path.endsWith ('.go')) {
         content = goDropRedundantTyped (goStructReturnsPass (content));
@@ -9515,6 +9514,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = alignGoTrailingComments (goGofmtBinarySpacing (content));
     }
     content = path.endsWith ('.go') ? goTypedRecvLocals (content) : content;  // after every pass keyed on `x := rN.Value`
+    content = path.endsWith ('.go') ? goInt64RetypeArith (goTypedIsEqualNative (content)) : content;  // re-run after goTypedRecvLocals types `*int64` receives (e.g. loadTimeDifference)
     content = path.endsWith ('.go') ? goTypedNilFoldLocals (content) : content;
     content = path.endsWith ('.go') ? goTypedEndpointNilLocals (content) : content;
     content = path.endsWith ('.go') ? goTypedEndpointRawLocals (content) : content;
