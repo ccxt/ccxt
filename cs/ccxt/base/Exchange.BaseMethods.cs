@@ -1531,8 +1531,8 @@ public partial class BaseExchange
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         string stringifiedNumber = this.numberToString(number);
-        object convertedNumber = JsParse.parseFloat(stringifiedNumber);
-        return ((Int64?)((object)(parseInt(((object)convertedNumber)))));
+        double? convertedNumber = JsParse.parseFloat(stringifiedNumber);
+        return ((convertedNumber != null && !double.IsNaN(convertedNumber.Value) && !double.IsInfinity(convertedNumber.Value) && convertedNumber.Value >= (double)Int64.MinValue && convertedNumber.Value < 9223372036854775808.0) ? (Int64?)Convert.ToInt64(Math.Floor(convertedNumber.Value)) : null);
     }
 
     public virtual object parseToNumeric(object number)
@@ -3461,26 +3461,40 @@ public partial class BaseExchange
                     break; // this is needed because of GO
                 }
             }
-            object content = response;
-            if ((content == null))
+            if ((response == null))
             {
                 throw new NullResponse ((this.id + " fetchWebEndpoint() returned empty content")) ;
             }
+            if (!(response is string))
+            {
+                if (((startRegex != null)) || ((endRegex != null)))
+                {
+                    throw new BadResponse ((this.id + " fetchWebEndpoint() returned non-string content")) ;
+                }
+                return response;
+            }
+            object content = response;
             if ((startRegex != null))
             {
                 List<object> splitted_by_start = ((string)content).Split(new [] {startRegex}, StringSplitOptions.None).ToList<object>();
+                int startLen = splitted_by_start.Count;
+                if (startLen < 2)
+                {
+                    throw new NullResponse ((this.id + " fetchWebEndpoint() returned empty content")) ;
+                }
                 content = (splitted_by_start != null && 1 < splitted_by_start.Count ? splitted_by_start[1] : null); // we need second part after start
-            }
-            if ((content == null))
-            {
-                throw new NullResponse ((this.id + " fetchWebEndpoint() returned empty content")) ;
             }
             if ((endRegex != null))
             {
                 List<object> splitted_by_end = ((string)content).Split(new [] {endRegex}, StringSplitOptions.None).ToList<object>();
+                int endLen = splitted_by_end.Count;
+                if (endLen < 1)
+                {
+                    throw new NullResponse ((this.id + " fetchWebEndpoint() returned empty content")) ;
+                }
                 content = (splitted_by_end != null && 0 < splitted_by_end.Count ? splitted_by_end[0] : null); // we need first part after start
             }
-            if (((returnAsJson is true)) && ((content is string)))
+            if ((returnAsJson is true))
             {
                 object jsoned = this.parseJson(((string)content).Trim()); // content should be trimmed before json parsing
                 if (((jsoned != null)) && ((jsoned != null)))
@@ -4957,7 +4971,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328080 && i_timestamp < ohlcvsSlot328080.Count ? ohlcvsSlot328080[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot328615 && i_timestamp < ohlcvsSlot328615.Count ? ohlcvsSlot328615[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -6220,7 +6234,7 @@ public partial class BaseExchange
         return ((double?)((object)(this.parseNumber(value, defaultNumber))));
     }
 
-    public virtual string? parsePrecision(object precision)
+    public virtual string? parsePrecision(string precision)
     {
         /**
          * @ignore
@@ -6232,7 +6246,7 @@ public partial class BaseExchange
         {
             return ((string?)((object)(null)));
         }
-        Int64? precisionNumber = parseInt(precision);
+        Int64? precisionNumber = JsParse.parseInt(precision);
         if ((precisionNumber == null))
         {
             return ((string?)((object)(null)));

@@ -2239,9 +2239,7 @@ public partial class hyperliquid : Exchange
             //
             if ((response != null))
             {
-                response = response.Replace("\"", (string)"");
-                response = response.Replace("\"", (string)"");
-                enableUnifiedMargin = response == "unifiedAccount";
+                enableUnifiedMargin = ((response.Replace("\"", (string)"") == "unifiedAccount"));
             }
             // don't cache this result if this is a different addresss
             this.options["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
