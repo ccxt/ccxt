@@ -23,7 +23,7 @@ func HelperTestInitThrottler() {
 	Assert(exchange.InArray(ccxt.GetValue(tokenBucket, "capacity"), []any{1, 1}))
 	var cost any = exchange.ParseToNumeric(exchange.SafeString2(tokenBucket, "cost", "defaultCost")) // python sync, todo fix
 	Assert(exchange.InArray(cost, []any{1, 1}))
-	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
+	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	var expectEnabled bool = ccxt.GetArgBool(optionalArgs, 0, true)

@@ -16,15 +16,15 @@ func TestIsDictionary() {
 		"a": 1,
 	}))
 	// populated list is not a dict
-	Assert(!ccxt.EvalTruthy(exchange.IsDictionary([]any{1, 2, 3})))
+	Assert(!EvalTruthy(exchange.IsDictionary([]any{1, 2, 3})))
 	// null is not a dict, in js typeof null is object so the explicit
 	// null check matters, see https://github.com/ccxt/ccxt/pull/29704
-	Assert(!ccxt.EvalTruthy(exchange.IsDictionary(nil)))
+	Assert(!EvalTruthy(exchange.IsDictionary(nil)))
 	// undefined is not a dict
-	Assert(!ccxt.EvalTruthy(exchange.IsDictionary(nil)))
+	Assert(!EvalTruthy(exchange.IsDictionary(nil)))
 	// scalars are not dicts
-	Assert(!ccxt.EvalTruthy(exchange.IsDictionary("str")))
-	Assert(!ccxt.EvalTruthy(exchange.IsDictionary(5)))
-	Assert(!ccxt.EvalTruthy(exchange.IsDictionary(true)))
+	Assert(!EvalTruthy(exchange.IsDictionary("str")))
+	Assert(!EvalTruthy(exchange.IsDictionary(5)))
+	Assert(!EvalTruthy(exchange.IsDictionary(true)))
 	Assert(exchange.IsDictionary(map[string]any{}))
 }

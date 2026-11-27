@@ -28,6 +28,6 @@ func TestToArray() {
 	//
 	assert((len(result1) == 3), "testToArray: length of result1 should be 3")
 	assert((len(result2) == 2), "testToArray: length of result2 should be 2")
-	assert(ccxt.EvalTruthy(exchange.InArray(1, result1)) && ccxt.EvalTruthy(exchange.InArray(3, result1)) && ccxt.EvalTruthy(exchange.InArray(2, result1)), "testToArray: result1 should include 1, 3, and 2")
-	assert(ccxt.EvalTruthy(exchange.InArray("x", result2)) && ccxt.EvalTruthy(exchange.InArray(2, result2)), "testToArray: result2 should include \"x\" and 2")
+	assert(EvalTruthy(exchange.InArray(1, result1)) && EvalTruthy(exchange.InArray(3, result1)) && EvalTruthy(exchange.InArray(2, result1)), "testToArray: result1 should include 1, 3, and 2")
+	assert(EvalTruthy(exchange.InArray("x", result2)) && EvalTruthy(exchange.InArray(2, result2)), "testToArray: result2 should include \"x\" and 2")
 }

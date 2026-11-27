@@ -163,7 +163,7 @@ func TbfeCheckExtended(extended any, hasSub any) {
 	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "e"), nil))
 	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "other1"), "x"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "other2"), "y"))
-	if ccxt.EvalTruthy(hasSub) {
+	if EvalTruthy(hasSub) {
 		Assert(ccxt.InOp(extended, "sub"))
 	}
 }
