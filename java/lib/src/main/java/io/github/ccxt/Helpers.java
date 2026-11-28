@@ -510,28 +510,4 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
     private static String typeName(Object o) {
         return (o == null) ? "null" : o.getClass().getName();
     }
-
-    public static boolean isInstance(Object value, Object type) {
-        if (!(type instanceof Class<?> clazz)) {
-            return false;
-        }
-
-        Object target = unwrapIfThrowable(value);
-        return clazz.isInstance(target);
-    }
-
-    private static Object unwrapIfThrowable(Object value) {
-        if (!(value instanceof Throwable t)) {
-            return value; // normal object, no unwrap
-        }
-
-        // unwrap async wrappers
-        while (t instanceof CompletionException || t instanceof ExecutionException) {
-            if (t.getCause() == null) {
-                break;
-            }
-            t = t.getCause();
-        }
-        return t;
-    }
 }

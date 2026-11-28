@@ -4378,7 +4378,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 // Test printer: Map-locals retype + core-arg passes over generated test classes (members sit one level deeper than in exchanges), and a list literal handed to callDynamically alre...
-const JAVA_TEST_ONLY_HELPERS_RE = /\bHelpers\.(newMap|isTrue|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual|add|subtract|divide|multiply|getArrayLength|mathMax|mathAbs|promiseAll|toStringOrNull|toString|inOp|replace|getArg|toLongOrNull|toStringArg|toMapArg|toStringListArg|objectKeys|objectValues|opNeg|split)\(/g;
+const JAVA_TEST_ONLY_HELPERS_RE = /\bHelpers\.(newMap|isTrue|isGreaterThan|isLessThan|isGreaterThanOrEqual|isLessThanOrEqual|add|subtract|divide|multiply|getArrayLength|mathMax|mathAbs|promiseAll|toStringOrNull|toString|inOp|replace|getArg|toLongOrNull|toStringArg|toMapArg|toStringListArg|objectKeys|objectValues|opNeg|split|isInstance)\(/g;
 export function routeJavaTestOnlyHelpers (content: string): string {
     if (!JAVA_TEST_ONLY_HELPERS_RE.test (content)) return content;
     JAVA_TEST_ONLY_HELPERS_RE.lastIndex = 0;

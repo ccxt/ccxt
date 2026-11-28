@@ -319,4 +319,19 @@ public class TestHelpers {
         String delim = String.valueOf(splitter);
         return Arrays.asList(s.split(Pattern.quote(delim)));
     }
+
+    public static boolean isInstance(Object value, Object type) {
+        if (!(type instanceof Class<?> clazz)) {
+            return false;
+        }
+        Object target = value;
+        if (value instanceof Throwable t) {
+            // unwrap async wrappers
+            while ((t instanceof java.util.concurrent.CompletionException || t instanceof ExecutionException) && t.getCause() != null) {
+                t = t.getCause();
+            }
+            target = t;
+        }
+        return clazz.isInstance(target);
+    }
 }
