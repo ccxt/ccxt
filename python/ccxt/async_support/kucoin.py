@@ -3618,7 +3618,8 @@ class kucoin(Exchange, ImplicitAPI):
             address = address.replace('bitcoincash:', '')
         code = None
         if currency is not None:
-            code = self.safe_currency_code(currency['id'])
+            currencyId = self.safe_string(currency, 'id')
+            code = self.safe_currency_code(currencyId)
             if code != 'NIM':
                 # contains spaces
                 self.check_address(address)

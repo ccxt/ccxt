@@ -2978,7 +2978,7 @@ class bullish(Exchange, ImplicitAPI):
         codeError = self.safe_string(response, 'errorCode')
         type = self.safe_string(response, 'type')
         if (codeError is not None and codeError != '0' and codeError != '1001') or (type is not None and type == 'HttpInvalidParameterException'):
-            message = ''
+            message = None
             errorCodeName = self.safe_string(response, 'errorCodeName')
             if errorCodeName is not None:
                 message = errorCodeName

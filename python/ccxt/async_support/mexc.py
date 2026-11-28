@@ -4971,7 +4971,7 @@ class mexc(Exchange, ImplicitAPI):
         currencyWithNetwork = self.safe_string(transaction, 'coin')
         if currencyWithNetwork is not None:
             currencyParts = currencyWithNetwork.split('-')
-            currencyId = currencyParts[0]
+            currencyId = self.safe_string(currencyParts, 0)
         code = self.safe_currency_code(currencyId, currency)
         network = None
         rawNetwork = self.safe_string(transaction, 'network')

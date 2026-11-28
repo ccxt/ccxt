@@ -2135,7 +2135,8 @@ class bitteam(Exchange, ImplicitAPI):
             free = self.safe_string(currencyBalance, 'free')
             used = self.safe_string(currencyBalance, 'used')
             total = self.safe_string(currencyBalance, 'total')
-            currencyCode = self.safe_currency_code(rawCurrencyId.lower())
+            rawCurrencyIdLower = rawCurrencyId.lower()
+            currencyCode = self.safe_currency_code(rawCurrencyIdLower)
             if currencyCode is not None:
                 balance[currencyCode] = {
                     'free': free,

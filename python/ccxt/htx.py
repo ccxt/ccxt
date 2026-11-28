@@ -1724,25 +1724,29 @@ class htx(Exchange, ImplicitAPI):
                 if swap:
                     marketType = 'swap'
                     parts = contractId.split('-')
-                    baseId = self.safe_string_lower(market, 'symbol')
-                    quoteId = self.safe_string_lower(parts, 1)
+                    swapBaseId = self.safe_string_lower(market, 'symbol')
+                    swapQuoteId = self.safe_string_lower(parts, 1)
+                    baseId = swapBaseId
+                    quoteId = swapQuoteId
                     if inverse:
-                        settleId = baseId
+                        settleId = swapBaseId
                     else:
-                        settleId = quoteId
+                        settleId = swapQuoteId
                 elif future:
                     marketType = 'future'
-                    baseId = self.safe_string_lower(market, 'symbol')
+                    futureBaseId = self.safe_string_lower(market, 'symbol')
+                    baseId = futureBaseId
                     if inverse:
                         quoteId = 'USD'
-                        settleId = baseId
+                        settleId = futureBaseId
                     else:
                         pair = self.safe_string(market, 'pair')
                         if pair is None:
                             raise ExchangeError(self.id + ' method() missing pair')
                         parts = pair.split('-')
-                        quoteId = self.safe_string_lower(parts, 1)
-                        settleId = quoteId
+                        futureQuoteId = self.safe_string_lower(parts, 1)
+                        quoteId = futureQuoteId
+                        settleId = futureQuoteId
             else:
                 marketType = 'spot'
                 spotBaseId = self.safe_string(market, 'base-currency')

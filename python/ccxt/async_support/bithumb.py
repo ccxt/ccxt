@@ -467,7 +467,7 @@ class bithumb(Exchange, ImplicitAPI):
                     parts = marketId.split('-')
                     # to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = self.safe_string(parts, 1)
-                    quoteId = parts[0]
+                    quoteId = self.safe_string(parts, 0)
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                 if (base is None) or (quote is None):

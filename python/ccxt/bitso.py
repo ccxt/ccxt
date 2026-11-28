@@ -497,8 +497,10 @@ class bitso(Exchange, ImplicitAPI):
             parts = id.split('_')
             baseId = self.safe_string(parts, 0, '')
             quoteId = self.safe_string(parts, 1, '')
-            base = self.safe_currency_code(baseId.upper())
-            quote = self.safe_currency_code(quoteId.upper())
+            baseIdUpper = baseId.upper()
+            quoteIdUpper = quoteId.upper()
+            base = self.safe_currency_code(baseIdUpper)
+            quote = self.safe_currency_code(quoteIdUpper)
             if (base is None) or (quote is None):
                 continue
             fees = self.safe_dict(market, 'fees', {})

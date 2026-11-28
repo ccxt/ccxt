@@ -1570,7 +1570,7 @@ class kucoin(ccxt.async_support.kucoin):
                 subscription = None
                 for i in range(0, len(subscriptions)):
                     key = subscriptions[i]
-                    if (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
+                    if (topicSymbol is not None) and (topicChannel is not None) and (key.find(topicSymbol) >= 0) and (key.find(topicChannel) >= 0):
                         subscription = client.subscriptions[key]
                         break
                 limit = self.safe_integer(subscription, 'limit')

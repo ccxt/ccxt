@@ -3084,6 +3084,7 @@ class pacifica(Exchange, ImplicitAPI):
         }
         eventType = self.safe_string(transaction, 'event_type')
         amount = self.safe_string(transaction, 'amount')
+        currencyCode = self.safe_currency_code('USDC', currency)
         return {
             'info': transaction,
             'id': None,
@@ -3099,7 +3100,7 @@ class pacifica(Exchange, ImplicitAPI):
             'tagFrom': None,
             'type': self.safe_string(types, eventType),
             'amount': self.parse_number(Precise.string_abs(amount)),
-            'currency': self.safe_currency_code('USDC', currency),
+            'currency': currencyCode,
             'status': None,
             'updated': None,
             'comment': None,

@@ -522,7 +522,10 @@ class deepcoin(Exchange, ImplicitAPI):
         isLinear = None
         if swap:
             isLinear = (quoteId != 'USD')
-            settleId = quoteId if isLinear else baseId
+            if isLinear:
+                settleId = quoteId
+            else:
+                settleId = baseId
             settle = self.safe_currency_code(settleId)
             if settle is None:
                 return None

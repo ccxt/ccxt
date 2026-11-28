@@ -652,8 +652,8 @@ class bitfinex(Exchange, ImplicitAPI):
         quoteId = None
         if id.find(':') >= 0:
             parts = id.split(':')
-            baseId = parts[0]
-            quoteId = parts[1]
+            baseId = self.safe_string(parts, 0)
+            quoteId = self.safe_string(parts, 1)
         else:
             baseId = id[0:3]
             quoteId = id[3:6]
@@ -865,17 +865,13 @@ class bitfinex(Exchange, ImplicitAPI):
         return self.parse_currencies_custom(ids, indexed, indexedNetworks)
 
     def parse_currencies_custom(self, ids: list[object], indexed: dict, indexedNetworks: dict) -> dict:
-        allowedIds = []
+        result = {}
         for i in range(0, len(ids)):
             id = self.safe_string(ids, i, '')
             if id.endswith('F0'):
                 # we get a lot of F0 currencies, skip those
                 continue
-            allowedIds.append(id)
-        result = {}
-        arr = self.to_array(allowedIds)
-        for i in range(0, len(arr)):
-            parsed = self.parse_currency_custom(arr[i], indexed, indexedNetworks)
+            parsed = self.parse_currency_custom(id, indexed, indexedNetworks)
             code = self.safe_string(parsed, 'code', '')
             result[code] = parsed
         return result
