@@ -3925,7 +3925,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let codeError: Option<String> = self.safe_string_k_opt(&response, "errorCode", &[]);
         let type_var: Option<String> = self.safe_string_k_opt(&response, "type", &[]);
         if ((codeError.is_some()) && (codeError.as_deref() != Some("0")) && (codeError.as_deref() != Some("1001"))) || ((type_var.is_some()) && (type_var.as_deref() == Some("HttpInvalidParameterException"))) {
-            let mut message: Option<String> = Some("".to_string());
+            let mut message: Option<String> = None;
             let errorCodeName: Option<String> = self.safe_string_k_opt(response, "errorCodeName", &[]);
             if (errorCodeName.is_some()) {
                 message = errorCodeName;

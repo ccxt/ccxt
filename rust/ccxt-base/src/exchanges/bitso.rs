@@ -1272,8 +1272,10 @@ impl Bitso {
             let parts: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let baseId: String = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let quoteId: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let base: Option<String> = self.safe_currency_code((Value::from(baseId.to_uppercase())).as_str(), None);
-            let quote: Option<String> = self.safe_currency_code((Value::from(quoteId.to_uppercase())).as_str(), None);
+            let baseIdUpper: String = baseId.to_uppercase();
+            let quoteIdUpper: String = quoteId.to_uppercase();
+            let base: Option<String> = self.safe_currency_code(Some(baseIdUpper.as_str()), None);
+            let quote: Option<String> = self.safe_currency_code(Some(quoteIdUpper.as_str()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }

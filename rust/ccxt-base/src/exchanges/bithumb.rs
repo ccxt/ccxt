@@ -1669,7 +1669,7 @@ impl Bithumb {
                     let parts: crate::value::List = crate::value::List::new(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = self.safe_string_opt(&parts, Value::Int(1), &[]);
-                    quoteId = parts.get(0).and_then(Value::as_str).map(str::to_owned);
+                    quoteId = self.safe_string_opt(&parts, Value::Int(0), &[]);
                     base = self.safe_currency_code(baseId.as_deref(), None);
                     quote = self.safe_currency_code(quoteId.as_deref(), None);
                 }

@@ -992,8 +992,8 @@ impl crate::exchange::DerivedExchange for Mexc {
         let mut currencyId: Option<String> = None;
         let currencyWithNetwork: Option<String> = self.safe_string_k_opt(transaction, "coin", &[]);
         if (currencyWithNetwork.is_some()) {
-            let currencyParts: Vec<Value> = Value::Array(if let Some(__s) = currencyWithNetwork.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            currencyId = currencyParts.get(0).and_then(Value::as_str).map(str::to_owned);
+            let currencyParts: crate::value::List = crate::value::List::new(if let Some(__s) = currencyWithNetwork.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
+            currencyId = self.safe_string_opt(&currencyParts, Value::Int(0), &[]);
         }
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         let mut network: Option<String> = None;

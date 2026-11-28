@@ -385,7 +385,8 @@ impl crate::exchange::DerivedExchange for Kucoin {
         }
         let mut code: Option<String> = None;
         if (currency.is_some()) {
-            code = self.safe_currency_code((crate::value::KeyRead::key_read(&currency, "id")).as_str(), None);
+            let currencyId: Option<String> = self.safe_string_k_opt(&currency, "id", &[]);
+            code = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.as_deref() != Some("NIM")) {
                 // contains spaces
                 self.check_address(&[&Value::from(address.as_deref())]);

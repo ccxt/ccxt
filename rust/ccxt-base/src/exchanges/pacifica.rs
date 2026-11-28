@@ -714,6 +714,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         });
         let eventType: Option<String> = self.safe_string_k_opt(transaction, "event_type", &[]);
         let amount: Option<String> = self.safe_string_k_opt(transaction, "amount", &[]);
+        let currencyCode: Option<String> = self.safe_currency_code(Some("USDC"), currency);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(transaction));
@@ -730,7 +731,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string(&types, eventType.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&amount), &[]));
-        m.insert("currency".to_string(), self.safe_currency_code(Some("USDC"), currency).map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), currencyCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Null);
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);

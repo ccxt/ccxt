@@ -2300,7 +2300,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     let mut __for_first_9: bool = true;
                     while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (subscriptions.len() as i64) } {
                     let key: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    if (((if let (Some(__h), Some(__n)) = (key.as_deref(), topicSymbol.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) && (((if let (Some(__h), Some(__n)) = (key.as_deref(), topicChannel.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
+                    if (topicSymbol.is_some()) && (topicChannel.is_some()) && (((if let (Some(__h), Some(__n)) = (key.as_deref(), topicSymbol.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) && (((if let (Some(__h), Some(__n)) = (key.as_deref(),
+                        topicChannel.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                         subscription = client.get_subscription(key.as_deref());
                         break;
                     }

@@ -605,7 +605,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
             let free: Option<String> = self.safe_string_k_opt(&currencyBalance, "free", &[]);
             let used: Option<String> = self.safe_string_k_opt(&currencyBalance, "used", &[]);
             let total: Option<String> = self.safe_string_k_opt(&currencyBalance, "total", &[]);
-            let currencyCode: Option<String> = self.safe_currency_code((rawCurrencyId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)).as_str(), None);
+            let rawCurrencyIdLower: Option<String> = rawCurrencyId.as_deref().map(str::to_lowercase);
+            let currencyCode: Option<String> = self.safe_currency_code(rawCurrencyIdLower.as_deref(), None);
             if (currencyCode.is_some()) {
                 balance.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

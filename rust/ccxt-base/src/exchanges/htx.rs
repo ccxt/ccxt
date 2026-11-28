@@ -5823,27 +5823,31 @@ impl Htx {
                 if swap {
                     marketType = Some("swap".to_string());
                     let parts: crate::value::List = crate::value::List::new(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                    baseId = self.safe_string_lower_k_opt(&market, "symbol", &[]);
-                    quoteId = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
+                    let swapBaseId: Option<String> = self.safe_string_lower_k_opt(&market, "symbol", &[]);
+                    let swapQuoteId: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
+                    baseId = swapBaseId.clone();
+                    quoteId = swapQuoteId.clone();
                     if (inverse == Some(true)) {
-                        settleId = baseId.clone();
+                        settleId = swapBaseId;
                     }  else {
-                        settleId = quoteId.clone();
+                        settleId = swapQuoteId;
                     }
                 }  else if future {
                     marketType = Some("future".to_string());
-                    baseId = self.safe_string_lower_k_opt(&market, "symbol", &[]);
+                    let futureBaseId: Option<String> = self.safe_string_lower_k_opt(&market, "symbol", &[]);
+                    baseId = futureBaseId.clone();
                     if (inverse == Some(true)) {
                         quoteId = Some("USD".to_string());
-                        settleId = baseId.clone();
+                        settleId = futureBaseId;
                     }  else {
                         let pair: Option<String> = self.safe_string_k_opt(&market, "pair", &[]);
                         if (pair.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " method() missing pair")));
                         }
                         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                        quoteId = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
-                        settleId = quoteId.clone();
+                        let futureQuoteId: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(1), &[]);
+                        quoteId = futureQuoteId.clone();
+                        settleId = futureQuoteId;
                     }
                 }
             }  else {

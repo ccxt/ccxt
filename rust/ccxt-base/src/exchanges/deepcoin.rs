@@ -371,7 +371,11 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let mut isLinear: Option<bool> = None;
         if swap {
             isLinear = Some(quoteId != "USD");
-            settleId = (if (isLinear == Some(true)) { Some(quoteId.clone()) } else { baseId.clone() });
+            if (isLinear == Some(true)) {
+                settleId = Some(quoteId.clone());
+            }  else {
+                settleId = baseId.clone();
+            }
             settle = self.safe_currency_code(settleId.as_deref(), None);
             if (settle.is_none()) {
                 return None;
