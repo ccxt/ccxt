@@ -6,7 +6,7 @@ import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest, RateLimitExceeded, MarketClosed, OperationRejected, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint, FundingRate } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, FeeString, List, DepositWithdrawFees, PositionModeInfo, Endpoint, FundingRate, FundingRateHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined, // has but not implemented
                 'fetchGreeks': false,
                 'fetchLedger': undefined, // has but not implemented
@@ -2978,6 +2978,77 @@ export default class poloniex extends Exchange {
             'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
             'interval': this.parseFundingInterval (intervalMilliseconds),
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices. The exchange chooses which rows it returns: the row limit defaults to 100, its ordering and boundaries are not documented, and its Chinese docs say the start time defaults to the start of the current day (timezone not stated, not independently verified), so pass since to ask for older data. since and until are sent as milliseconds although the English docs say seconds. The result is not guaranteed to be complete or to start at since
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-the-historical-funding-rates
+     * @param {string} symbol unified symbol of the swap market to fetch the funding rate history for (required)
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch, max 1000, the exchange default is 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<FundingRateHistory[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!this.safeBool (market, 'swap', false)) {
+            throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['sT'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request['eT'] = until;
+        }
+        const response = await this.swapPublicGetV3MarketFundingRateHistory (this.extend (request, this.omit (params, [ 'until', 'till' ])));
+        //
+        //    {
+        //        "code": 200,
+        //        "data": [
+        //            {
+        //                "fR": "0.000004",
+        //                "fT": "1719964800000",
+        //                "s": "BTC_USDT_PERP"
+        //            }
+        //        ],
+        //        "msg": "Success"
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseFundingRateHistories (data, market, since, limit) as FundingRateHistory[];
+    }
+
+    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+        //
+        //    {
+        //        "fR": "0.000004",
+        //        "fT": "1719964800000",
+        //        "s": "BTC_USDT_PERP"
+        //    }
+        //
+        const marketId = this.safeString (contract, 's');
+        const timestamp = this.safeInteger (contract, 'fT');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (contract, 'fR'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as FundingRateHistory;
     }
 
     parseFundingInterval (interval: Str): Str {

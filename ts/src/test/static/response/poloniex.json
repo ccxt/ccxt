@@ -48,6 +48,156 @@
                 }
             }
         ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "swap funding rate history, shuffled rows, a numeric fT and an ETH row that is dropped (hand-built)",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "data": [
+                        {
+                            "fR": "0.00012",
+                            "fT": "1795334400000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.0001",
+                            "fT": "1795276800000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.00015",
+                            "fT": "1795305600000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.00002",
+                            "fT": "1795305600000",
+                            "s": "ETH_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.00011",
+                            "fT": 1795363200000,
+                            "s": "BTC_USDT_PERP"
+                        }
+                    ],
+                    "msg": "Success"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fR": "0.0001",
+                            "fT": "1795276800000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1795276800000,
+                        "datetime": "2026-11-21T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fR": "0.00015",
+                            "fT": "1795305600000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00015,
+                        "timestamp": 1795305600000,
+                        "datetime": "2026-11-22T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fR": "0.00012",
+                            "fT": "1795334400000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00012,
+                        "timestamp": 1795334400000,
+                        "datetime": "2026-11-22T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fR": "0.00011",
+                            "fT": 1795363200000,
+                            "s": "BTC_USDT_PERP"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00011,
+                        "timestamp": 1795363200000,
+                        "datetime": "2026-11-22T16:00:00.000Z"
+                    }
+                ]
+            },
+            {
+                "description": "swap funding rate history with since and limit, base helper behavior on hand-built rows",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1795305600000,
+                    2
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "data": [
+                        {
+                            "fR": "0.00012",
+                            "fT": "1795334400000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.0001",
+                            "fT": "1795276800000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.00015",
+                            "fT": "1795305600000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.00002",
+                            "fT": "1795305600000",
+                            "s": "ETH_USDT_PERP"
+                        },
+                        {
+                            "fR": "0.00011",
+                            "fT": 1795363200000,
+                            "s": "BTC_USDT_PERP"
+                        }
+                    ],
+                    "msg": "Success"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fR": "0.00015",
+                            "fT": "1795305600000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00015,
+                        "timestamp": 1795305600000,
+                        "datetime": "2026-11-22T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fR": "0.00012",
+                            "fT": "1795334400000",
+                            "s": "BTC_USDT_PERP"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00012,
+                        "timestamp": 1795334400000,
+                        "datetime": "2026-11-22T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer with exchange-specific toAccount",
