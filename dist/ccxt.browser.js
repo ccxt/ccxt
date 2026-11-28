@@ -564143,15 +564143,14 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
         const timestamp = this.safeInteger2(trade, 't', 'T');
         let side = this.safeStringLower(trade, 'S');
         let takerOrMaker = undefined;
-        const m = this.safeValue(trade, 'm');
         if (side === undefined) {
             side = 'sell';
-            if (m === true) {
+            if (this.safeBool(trade, 'm', false)) {
                 side = 'buy';
             }
         } else {
             // spot private
-            takerOrMaker = m;
+            takerOrMaker = this.safeValue(trade, 'm');
         }
         const price = this.safeString(trade, 'p');
         const amount = this.safeString2(trade, 'q', 'v');
@@ -595427,16 +595426,14 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
         const errorMessage = this.safeString2(message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
             const requestId = this.safeString2(message, 'reqid', 'req_id');
-            const broad = this.exceptions['ws']['broad'];
-            const broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
-            let exception = undefined;
-            if (broadKey === undefined) {
-                exception = new _base_errors_js__rspack_import_1.ExchangeError(errorMessage); // c# requirement to convert the errorMessage to string
-            } else {
-                exception = new broad[broadKey](errorMessage);
-            }
             if (requestId !== undefined) {
-                client.reject(exception, requestId);
+                const broad = this.exceptions['ws']['broad'];
+                try {
+                    this.throwBroadlyMatchedException(broad, errorMessage, errorMessage);
+                    throw new _base_errors_js__rspack_import_1.ExchangeError(errorMessage);
+                } catch (e) {
+                    client.reject(e, requestId);
+                }
             }
             return false;
         }
@@ -629422,12 +629419,11 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         let messageHash = 'wallet:';
-        let method = undefined;
+        let method = 'balanceMargin_subscribe';
         if (type === 'spot') {
             method = 'balanceSpot_subscribe';
             messageHash += 'spot';
         } else {
-            method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
         const url = this.safeString(this.urls['api'], 'ws');
@@ -629547,7 +629543,7 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         }
         client.resolve(this.balance, messageHash);
     }
-    async watchPublic(messageHash, method, reqParams = [], params = {}) {
+    async watchPublic(messageHash, method, reqParams, params = {}) {
         const url = this.safeString(this.urls['api'], 'ws');
         const id = this.incrementingNonce();
         const request = {
@@ -629625,7 +629621,7 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
             }
         }
     }
-    async watchPrivate(messageHash, method, reqParams = [], params = {}) {
+    async watchPrivate(messageHash, method, reqParams, params = {}) {
         this.checkRequiredCredentials();
         await this.authenticate();
         const url = this.safeString(this.urls['api'], 'ws');

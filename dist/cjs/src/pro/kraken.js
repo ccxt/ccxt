@@ -1773,17 +1773,15 @@ class kraken extends kraken$1["default"] {
         const errorMessage = this.safeString2(message, 'errorMessage', 'error');
         if (errorMessage !== undefined) {
             const requestId = this.safeString2(message, 'reqid', 'req_id');
-            const broad = this.exceptions['ws']['broad'];
-            const broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
-            let exception = undefined;
-            if (broadKey === undefined) {
-                exception = new errors.ExchangeError(errorMessage); // c# requirement to convert the errorMessage to string
-            }
-            else {
-                exception = new broad[broadKey](errorMessage);
-            }
             if (requestId !== undefined) {
-                client.reject(exception, requestId);
+                const broad = this.exceptions['ws']['broad'];
+                try {
+                    this.throwBroadlyMatchedException(broad, errorMessage, errorMessage);
+                    throw new errors.ExchangeError(errorMessage);
+                }
+                catch (e) {
+                    client.reject(e, requestId);
+                }
             }
             return false;
         }

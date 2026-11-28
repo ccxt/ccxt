@@ -110,9 +110,9 @@ export default class whitebit extends whitebitRest {
     setBalanceCache(client: Client, type: Str, subscriptionHash: string): void;
     loadBalanceSnapshot(client: Client, messageHash: string, type: Str, subscriptionHash: string): Promise<void>;
     handleBalance(client: Client, message: Dict): void;
-    watchPublic(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
+    watchPublic(messageHash: string, method: string, reqParams: any[], params?: Dict): Promise<any>;
     watchMultipleSubscription(messageHash: string, method: string, symbol: Str, isNested?: boolean, params?: Dict): Promise<any>;
-    watchPrivate(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
+    watchPrivate(messageHash: string, method: string, reqParams: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<number>;
     handleAuthenticate(client: Client, message: Dict): Dict;
     handleErrorMessage(client: Client, message: Dict): boolean;
