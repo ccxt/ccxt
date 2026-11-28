@@ -825,14 +825,13 @@ public partial class whitebit : ccxt.whitebit
         string type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         string messageHash = "wallet:";
-        string? method = null;
+        string method = "balanceMargin_subscribe";
         if ((type == "spot"))
         {
             method = "balanceSpot_subscribe";
             messageHash = messageHash + "spot";
         } else
         {
-            method = "balanceMargin_subscribe";
             messageHash = messageHash + "margin";
         }
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -975,9 +974,8 @@ public partial class whitebit : ccxt.whitebit
         client.resolve(this.balance, messageHash);
     }
 
-    public async virtual Task<T> watchPublic<T>(string messageHash, string method, IList<object>? reqParams = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchPublic<T>(string messageHash, string method, IList<object> reqParams, IDictionary<string, object>? parameters = null)
     {
-        reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Int64? id = this.incrementingNonce();
@@ -1066,9 +1064,8 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, object method, IList<object>? reqParams = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, string method, IList<object> reqParams, IDictionary<string, object>? parameters = null)
     {
-        reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.authenticate();

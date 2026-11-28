@@ -1441,18 +1441,17 @@ public partial class bybit : ccxt.bybit
         Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
-        object m = this.safeValue(trade, "m");
         if ((side == null))
         {
             side = "sell";
-            if ((m is true))
+            if ((this.safeBool(trade, "m", false) == true))
             {
                 side = "buy";
             }
         } else
         {
             // spot private
-            takerOrMaker = m;
+            takerOrMaker = this.safeValue(trade, "m");
         }
         string? price = this.safeString(trade, "p");
         string? amount = this.safeString2(trade, "q", "v");
@@ -2024,7 +2023,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88630 && ((hxArr88630 is IList<object>) || (hxArr88630 is not null && hxArr88630.GetType().IsGenericType && hxArr88630.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88632 && ((hxArr88632 is IList<object>) || (hxArr88632 is not null && hxArr88632.GetType().IsGenericType && hxArr88632.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)

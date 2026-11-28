@@ -1988,19 +1988,17 @@ public partial class kraken : ccxt.kraken
         if ((errorMessage != null))
         {
             string? requestId = this.safeString2(message, "reqid", "req_id");
-            object broad = (this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null);
-            string? broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
-            object exception = null;
-            if ((broadKey == null))
-            {
-                exception = new ExchangeError(                errorMessage); // c# requirement to convert the errorMessage to string
-            } else
-            {
-                exception = this.newException(getValue(broad, broadKey), errorMessage);
-            }
             if ((requestId != null))
             {
-                client.reject(exception, requestId);
+                object broad = (this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null);
+                try
+                {
+                    this.throwBroadlyMatchedException(broad, errorMessage, errorMessage);
+                    throw new ExchangeError (errorMessage) ;
+                } catch(Exception e)
+                {
+                    client.reject(e, requestId);
+                }
             }
             return false;
         }
