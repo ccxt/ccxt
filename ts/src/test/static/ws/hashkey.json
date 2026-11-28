@@ -1,0 +1,80 @@
+{
+    "exchange": "hashkey",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe: the cancel frame is sent, the exchange does not acknowledge it and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "trade",
+                        "event": "cancel"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot 1m kline unsubscribe: the cancel frame is sent, the exchange does not acknowledge it and the call resolves true",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "kline_1m",
+                        "event": "cancel"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "spot depth unsubscribe: the cancel frame is sent, the exchange does not acknowledge it and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "depth",
+                        "event": "cancel"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTicker": [
+            {
+                "description": "spot realtimes unsubscribe: the cancel frame is sent, the exchange does not acknowledge it and the call resolves true",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://stream-glb.hashkey.com/quote/ws/v1",
+                "messages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "realtimes",
+                        "event": "cancel"
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ]
+    }
+}

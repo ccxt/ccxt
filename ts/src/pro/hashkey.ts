@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import { AuthenticationError, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
 import type { List, Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, MarketInterface } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -24,6 +24,10 @@ export default class hashkey extends hashkeyRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPositions': false,
+                'unWatchOHLCV': true,
+                'unWatchOrderBook': true,
+                'unWatchTicker': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -61,6 +65,45 @@ export default class hashkey extends hashkeyRest {
         };
         const url = this.urls['api']['ws']['public'];
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name hashkey#unSubscribePublic
+     * @description sends a cancel request for a public topic and drops the subscription and its cache
+     * @param {object} market the market to unsubscribe from
+     * @param {string} topic exchange topic name the subscription was opened with
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    async unSubscribePublic (market: MarketInterface, topic: string, subHash: string, subscription: Dict, params: Dict = {}): Promise<any> {
+        const url = this.urls['api']['ws']['public'];
+        const client = this.client (url);
+        const isSubscribed = (subHash in client.subscriptions);
+        const marketId = this.safeString (market, 'id');
+        const request: Dict = {
+            'symbol': marketId,
+            'topic': topic,
+            'event': 'cancel',
+        };
+        try {
+            // the cancel goes out even when nothing is subscribed locally, hashkey silently ignores it
+            await client.send (this.deepExtend (request, params));
+        } catch (e) {
+            if (isSubscribed) {
+                // the socket is not open (yet), so the queued subscribe has not gone out either -
+                // keep the subscription instead of letting that subscribe stream unwatched
+                throw new NetworkError (this.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open');
+            }
+        }
+        // hashkey does not acknowledge a cancel request, it just stops streaming the topic,
+        // so the subscription is cleaned up as soon as the request is sent
+        this.cleanCache (subscription);
+        this.cleanUnsubscription (client, subHash, 'unsubscribe:' + subHash);
+        return true;
     }
 
     async watchPrivate (messageHash: string) {
@@ -107,6 +150,32 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
+    /**
+     * @method
+     * @name hashkey#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const topic = 'kline_' + interval;
+        const subHash = 'ohlcv:' + symbolValue + ':' + timeframe;
+        const subscription: Dict = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [ [ symbolValue, timeframe ] ],
+        };
+        return await this.unSubscribePublic (market, topic, subHash, subscription, params);
+    }
+
     handleOHLCV (client: Client, message: Dict) {
         //
         //     {
@@ -143,6 +212,11 @@ export default class hashkey extends hashkeyRest {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        if (!(messageHash in client.subscriptions)) {
+            // a candle hashkey pushed before it processed an unWatchOHLCV, which it does not acknowledge
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -157,7 +231,6 @@ export default class hashkey extends hashkeyRest {
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
         }
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
         client.resolve (stored, messageHash);
     }
 
@@ -205,6 +278,29 @@ export default class hashkey extends hashkeyRest {
         return await this.wathPublic (market, topic, messageHash, params);
     }
 
+    /**
+     * @method
+     * @name hashkey#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const subHash = 'ticker:' + symbolValue;
+        const subscription: Dict = {
+            'topic': 'ticker',
+            'symbols': [ symbolValue ],
+        };
+        return await this.unSubscribePublic (market, 'realtimes', subHash, subscription, params);
+    }
+
     handleTicker (client: Client, message: Dict) {
         //
         //     {
@@ -238,6 +334,10 @@ export default class hashkey extends hashkeyRest {
         const ticker = this.parseTicker (this.safeDict (data, 0, {}));
         const symbol = this.safeString (ticker, 'symbol', '');
         const messageHash = 'ticker:' + symbol;
+        if (!(messageHash in client.subscriptions)) {
+            // a ticker hashkey pushed before it processed an unWatchTicker, which it does not acknowledge
+            return;
+        }
         this.tickers[(symbol as string)] = ticker;
         client.resolve (this.tickers[(symbol as string)], messageHash);
     }
@@ -270,6 +370,29 @@ export default class hashkey extends hashkeyRest {
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name hashkey#unWatchTrades
+     * @description unWatches information on multiple trades made in a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const subHash = 'trades:' + symbolValue;
+        const subscription: Dict = {
+            'topic': 'trades',
+            'symbols': [ symbolValue ],
+        };
+        return await this.unSubscribePublic (market, 'trade', subHash, subscription, params);
+    }
+
     handleTrades (client: Client, message: Dict) {
         //
         //     {
@@ -298,6 +421,11 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol: string = this.safeString (market, 'symbol', '');
+        const messageHash = 'trades' + ':' + symbol;
+        if (!(messageHash in client.subscriptions)) {
+            // trades hashkey pushed before it processed an unWatchTrades, which it does not acknowledge
+            return;
+        }
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
@@ -312,7 +440,6 @@ export default class hashkey extends hashkeyRest {
                 stored.append (parsed);
             }
         }
-        const messageHash = 'trades' + ':' + symbol;
         client.resolve (stored, messageHash);
     }
 
@@ -336,6 +463,29 @@ export default class hashkey extends hashkeyRest {
         const messageHash = 'orderbook:' + symbolValue;
         const orderbook: WsOrderBook = await this.wathPublic (market, topic, messageHash, params);
         return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name hashkey#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified symbol of the market to unwatch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const subHash = 'orderbook:' + symbolValue;
+        const subscription: Dict = {
+            'topic': 'orderbook',
+            'symbols': [ symbolValue ],
+        };
+        return await this.unSubscribePublic (market, 'depth', subHash, subscription, params);
     }
 
     handleOrderBook (client: Client, message: Dict) {
@@ -371,6 +521,10 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = 'orderbook:' + symbol;
+        if (!(messageHash in client.subscriptions)) {
+            // a snapshot hashkey pushed before it processed an unWatchOrderBook, which it does not acknowledge
+            return;
+        }
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
         }
