@@ -500,8 +500,10 @@ class bitso extends bitso$1["default"] {
             const parts = id.split('_');
             const baseId = this.safeString(parts, 0, '');
             const quoteId = this.safeString(parts, 1, '');
-            const base = this.safeCurrencyCode(baseId.toUpperCase());
-            const quote = this.safeCurrencyCode(quoteId.toUpperCase());
+            const baseIdUpper = baseId.toUpperCase();
+            const quoteIdUpper = quoteId.toUpperCase();
+            const base = this.safeCurrencyCode(baseIdUpper);
+            const quote = this.safeCurrencyCode(quoteIdUpper);
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }

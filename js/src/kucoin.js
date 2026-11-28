@@ -3725,7 +3725,8 @@ export default class kucoin extends Exchange {
         }
         let code = undefined;
         if (currency !== undefined) {
-            code = this.safeCurrencyCode(currency['id']);
+            const currencyId = this.safeString(currency, 'id');
+            code = this.safeCurrencyCode(currencyId);
             if (code !== 'NIM') {
                 // contains spaces
                 this.checkAddress(address);

@@ -3085,7 +3085,7 @@ class bullish extends bullish$1["default"] {
         const codeError = this.safeString(response, 'errorCode');
         const type = this.safeString(response, 'type');
         if ((codeError !== undefined && codeError !== '0' && codeError !== '1001') || (type !== undefined && type === 'HttpInvalidParameterException')) {
-            let message = '';
+            let message = undefined;
             const errorCodeName = this.safeString(response, 'errorCodeName');
             if (errorCodeName !== undefined) {
                 message = errorCodeName;

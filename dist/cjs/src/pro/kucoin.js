@@ -1683,7 +1683,7 @@ class kucoin extends kucoin$1["default"] {
                 let subscription = undefined;
                 for (let i = 0; i < subscriptions.length; i++) {
                     const key = subscriptions[i];
-                    if ((key.indexOf(topicSymbol) >= 0) && (key.indexOf(topicChannel) >= 0)) {
+                    if ((topicSymbol !== undefined) && (topicChannel !== undefined) && (key.indexOf(topicSymbol) >= 0) && (key.indexOf(topicChannel) >= 0)) {
                         subscription = client.subscriptions[key];
                         break;
                     }

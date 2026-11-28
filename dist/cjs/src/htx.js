@@ -1738,21 +1738,24 @@ class htx extends htx$1["default"] {
                 if (swap) {
                     marketType = 'swap';
                     const parts = contractId.split('-');
-                    baseId = this.safeStringLower(market, 'symbol');
-                    quoteId = this.safeStringLower(parts, 1);
+                    const swapBaseId = this.safeStringLower(market, 'symbol');
+                    const swapQuoteId = this.safeStringLower(parts, 1);
+                    baseId = swapBaseId;
+                    quoteId = swapQuoteId;
                     if (inverse) {
-                        settleId = baseId;
+                        settleId = swapBaseId;
                     }
                     else {
-                        settleId = quoteId;
+                        settleId = swapQuoteId;
                     }
                 }
                 else if (future) {
                     marketType = 'future';
-                    baseId = this.safeStringLower(market, 'symbol');
+                    const futureBaseId = this.safeStringLower(market, 'symbol');
+                    baseId = futureBaseId;
                     if (inverse) {
                         quoteId = 'USD';
-                        settleId = baseId;
+                        settleId = futureBaseId;
                     }
                     else {
                         const pair = this.safeString(market, 'pair');
@@ -1760,8 +1763,9 @@ class htx extends htx$1["default"] {
                             throw new errors.ExchangeError(this.id + ' method() missing pair');
                         }
                         const parts = pair.split('-');
-                        quoteId = this.safeStringLower(parts, 1);
-                        settleId = quoteId;
+                        const futureQuoteId = this.safeStringLower(parts, 1);
+                        quoteId = futureQuoteId;
+                        settleId = futureQuoteId;
                     }
                 }
             }

@@ -235367,8 +235367,8 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         let quoteId = undefined;
         if (id.indexOf(':') >= 0) {
             const parts = id.split(':');
-            baseId = parts[0];
-            quoteId = parts[1];
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
         } else {
             baseId = id.slice(0, 3);
             quoteId = id.slice(3, 6);
@@ -235583,18 +235583,13 @@ class bitfinex extends _abstract_bitfinex_js__rspack_import_0/* ["default"] */.A
         return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
     }
     parseCurrenciesCustom(ids, indexed, indexedNetworks) {
-        const allowedIds = [];
+        const result = {};
         for(let i = 0; i < ids.length; i++){
             const id = this.safeString(ids, i, '');
             if (id.endsWith('F0')) {
                 continue;
             }
-            allowedIds.push(id);
-        }
-        const result = {};
-        const arr = this.toArray(allowedIds);
-        for(let i = 0; i < arr.length; i++){
-            const parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
+            const parsed = this.parseCurrencyCustom(id, indexed, indexedNetworks);
             const code = this.safeString(parsed, 'code', '');
             result[code] = parsed;
         }
@@ -254862,7 +254857,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
                     const parts = marketId.split('-');
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = this.safeString(parts, 1);
-                    quoteId = parts[0];
+                    quoteId = this.safeString(parts, 0);
                     base = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);
                 }
@@ -264117,8 +264112,10 @@ class bitso extends _abstract_bitso_js__rspack_import_0/* ["default"] */.A {
             const parts = id.split('_');
             const baseId = this.safeString(parts, 0, '');
             const quoteId = this.safeString(parts, 1, '');
-            const base = this.safeCurrencyCode(baseId.toUpperCase());
-            const quote = this.safeCurrencyCode(quoteId.toUpperCase());
+            const baseIdUpper = baseId.toUpperCase();
+            const quoteIdUpper = quoteId.toUpperCase();
+            const base = this.safeCurrencyCode(baseIdUpper);
+            const quote = this.safeCurrencyCode(quoteIdUpper);
             if (base === undefined || quote === undefined) {
                 continue;
             }
@@ -271307,7 +271304,8 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
             const free = this.safeString(currencyBalance, 'free');
             const used = this.safeString(currencyBalance, 'used');
             const total = this.safeString(currencyBalance, 'total');
-            const currencyCode = this.safeCurrencyCode(rawCurrencyId.toLowerCase());
+            const rawCurrencyIdLower = rawCurrencyId.toLowerCase();
+            const currencyCode = this.safeCurrencyCode(rawCurrencyIdLower);
             if (currencyCode !== undefined) {
                 balance[currencyCode] = {
                     'free': free,
@@ -292973,7 +292971,7 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
         const codeError = this.safeString(response, 'errorCode');
         const type = this.safeString(response, 'type');
         if (codeError !== undefined && codeError !== '0' && codeError !== '1001' || type !== undefined && type === 'HttpInvalidParameterException') {
-            let message = '';
+            let message = undefined;
             const errorCodeName = this.safeString(response, 'errorCodeName');
             if (errorCodeName !== undefined) {
                 message = errorCodeName;
@@ -331923,7 +331921,11 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         let isLinear = undefined;
         if (swap) {
             isLinear = quoteId !== 'USD';
-            settleId = isLinear ? quoteId : baseId;
+            if (isLinear) {
+                settleId = quoteId;
+            } else {
+                settleId = baseId;
+            }
             settle = this.safeCurrencyCode(settleId);
             if (settle === undefined) {
                 return undefined;
@@ -393726,27 +393728,31 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 if (swap) {
                     marketType = 'swap';
                     const parts = contractId.split('-');
-                    baseId = this.safeStringLower(market, 'symbol');
-                    quoteId = this.safeStringLower(parts, 1);
+                    const swapBaseId = this.safeStringLower(market, 'symbol');
+                    const swapQuoteId = this.safeStringLower(parts, 1);
+                    baseId = swapBaseId;
+                    quoteId = swapQuoteId;
                     if (inverse) {
-                        settleId = baseId;
+                        settleId = swapBaseId;
                     } else {
-                        settleId = quoteId;
+                        settleId = swapQuoteId;
                     }
                 } else if (future) {
                     marketType = 'future';
-                    baseId = this.safeStringLower(market, 'symbol');
+                    const futureBaseId = this.safeStringLower(market, 'symbol');
+                    baseId = futureBaseId;
                     if (inverse) {
                         quoteId = 'USD';
-                        settleId = baseId;
+                        settleId = futureBaseId;
                     } else {
                         const pair = this.safeString(market, 'pair');
                         if (pair === undefined) {
                             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' method() missing pair');
                         }
                         const parts = pair.split('-');
-                        quoteId = this.safeStringLower(parts, 1);
-                        settleId = quoteId;
+                        const futureQuoteId = this.safeStringLower(parts, 1);
+                        quoteId = futureQuoteId;
+                        settleId = futureQuoteId;
                     }
                 }
             } else {
@@ -429394,7 +429400,8 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
         }
         let code = undefined;
         if (currency !== undefined) {
-            code = this.safeCurrencyCode(currency['id']);
+            const currencyId = this.safeString(currency, 'id');
+            code = this.safeCurrencyCode(currencyId);
             if (code !== 'NIM') {
                 // contains spaces
                 this.checkAddress(address);
@@ -455620,7 +455627,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         const currencyWithNetwork = this.safeString(transaction, 'coin');
         if (currencyWithNetwork !== undefined) {
             const currencyParts = currencyWithNetwork.split('-');
-            currencyId = currencyParts[0];
+            currencyId = this.safeString(currencyParts, 0);
         }
         const code = this.safeCurrencyCode(currencyId, currency);
         let network = undefined;
@@ -486407,6 +486414,7 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
         };
         const eventType = this.safeString(transaction, 'event_type');
         const amount = this.safeString(transaction, 'amount');
+        const currencyCode = this.safeCurrencyCode('USDC', currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -486422,7 +486430,7 @@ class pacifica extends _abstract_pacifica_js__rspack_import_0/* ["default"] */.A
             'tagFrom': undefined,
             'type': this.safeString(types, eventType),
             'amount': this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(amount)),
-            'currency': this.safeCurrencyCode('USDC', currency),
+            'currency': currencyCode,
             'status': undefined,
             'updated': undefined,
             'comment': undefined,
@@ -598991,7 +598999,7 @@ class kucoin extends _kucoin_js__rspack_import_0/* ["default"] */.A {
                 let subscription = undefined;
                 for(let i = 0; i < subscriptions.length; i++){
                     const key = subscriptions[i];
-                    if (key.indexOf(topicSymbol) >= 0 && key.indexOf(topicChannel) >= 0) {
+                    if (topicSymbol !== undefined && topicChannel !== undefined && key.indexOf(topicSymbol) >= 0 && key.indexOf(topicChannel) >= 0) {
                         subscription = client.subscriptions[key];
                         break;
                     }
