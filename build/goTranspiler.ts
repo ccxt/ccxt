@@ -14113,7 +14113,26 @@ export function goStringSliceIndexPtr (content: string): string {
         ? ind + 'var ' + x + ' *string = nil\n' + ind + 'if ' + i + ' >= 0 && ' + i + ' < len(' + xs + ') {\n' + ind + '\t' + x + ' = &' + xs + '[' + i + ']\n' + ind + '}'
         : line));
     const index = /^(\t+)var (\w+) \*string = (?:ccxt\.)?SafeStringPtr\((\w+)\[(\w+)\]\)$/gm;
-    return content.replace (index, (line: string, ind: string, x: string, xs: string, i: string, at: number) => (proven (at, xs, x) ? ind + 'var ' + x + ' *string = &' + xs + '[' + i + ']' : line));
+    content = content.replace (index, (line: string, ind: string, x: string, xs: string, i: string, at: number) => (proven (at, xs, x) ? ind + 'var ' + x + ' *string = &' + xs + '[' + i + ']' : line));
+    return goStringPtrReaderArgs (content);
+}
+
+// the *string slot of a base reader that only reads it (market/symbol/*ToPrecision): `SafeStringPtr(xs[i])` of a once-declared,
+// element-unwritten []string local is `&xs[i]`, and `SafeStringPtr(p)` of a once-declared *string local is `p`
+function goStringPtrReaderArgs (content: string): string {
+    if (content.indexOf ('SafeStringPtr(') < 0) { return content; }
+    const readerArg = /((?:this|this\.DerivedExchange|exchange)\.(?:Market|Symbol|PriceToPrecision|AmountToPrecision|CostToPrecision|FeeToPrecision)\()(?:ccxt\.)?SafeStringPtr\((\w+)(?:\[(\w+)\])?\)(?=[,)])/g;
+    return content.replace (readerArg, (all: string, head: string, name: string, i: string | undefined, at: number) => {
+        const start = Math.max (0, content.lastIndexOf ('\nfunc ', at));
+        const endAt = content.indexOf ('\n}\n', at);
+        const body = content.slice (start, (endAt < 0) ? content.length : endAt);
+        const decls = body.match (new RegExp ('(?:\\bvar ' + name + ' |[(,] *' + name + ' (?![=!<>&|+/%])|\\b' + name + ' := |\\b' + name + ', \\w+ := )', 'g')) || [];
+        if (decls.length !== 1) { return all; }
+        if (i === undefined) { return new RegExp ('\\bvar ' + name + ' \\*string\\b').test (body) ? head + name : all; }
+        const typed = new RegExp ('(?:\\bvar ' + name + '|[(,] *' + name + ') \\[\\]string\\b').test (body);
+        const written = new RegExp ('\\b' + name + '\\[[^\\]\\n]*\\] (?:\\+)?= ').test (body);
+        return (typed && !written) ? head + '&' + name + '[' + i + ']' : all;
+    });
 }
 
 export function goStringSliceIndexPtrCheck (): string[] {
@@ -14124,6 +14143,12 @@ export function goStringSliceIndexPtrCheck (): string[] {
     if (!out.includes ('\tvar b *string = nil\n\tif 1 >= 0 && 1 < len(ps) {\n\t\tb = &ps[1]\n\t}\n}')) { problems.push ('slice-index-ptr: closure form missing'); }
     for (const [ d, e ] of [ [ '[]any', '' ], [ '[]string', '\tps[0] = "x"\n' ], [ '[]string', '\tps := h()\n' ] ]) {
         if (goStringSliceIndexPtr (fn (d, e)) !== fn (d, e)) { problems.push ('slice-index-ptr: unproven rewritten ' + d + e); }
+    }
+    const reader = (decl: string, arg: string) => 'func (this *X) f() {\n\tvar ps ' + decl + ' = g()\n\tvar m map[string]any = this.Market(SafeStringPtr(' + arg + '))\n}\n';
+    if (!goStringSliceIndexPtr (reader ('[]string', 'ps[0]')).includes ('this.Market(&ps[0])')) { problems.push ('slice-index-ptr: reader element form missing'); }
+    if (!goStringSliceIndexPtr (reader ('*string', 'ps')).includes ('this.Market(ps)')) { problems.push ('slice-index-ptr: reader pointer form missing'); }
+    for (const [ d, a ] of [ [ '[]any', 'ps[0]' ], [ 'any', 'ps' ], [ 'string', 'ps' ] ]) {
+        if (goStringSliceIndexPtr (reader (d, a)) !== reader (d, a)) { problems.push ('slice-index-ptr: reader unproven rewritten ' + d + ' ' + a); }
     }
     return problems;
 }
