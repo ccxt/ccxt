@@ -4022,6 +4022,7 @@ public class Pacifica extends PacificaApi
         }};
         String eventType = this.safeString(transaction, "event_type");
         String amount = this.safeString(transaction, "amount");
+        String currencyCode = this.safeCurrencyCode("USDC", currency);
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", null );
@@ -4037,7 +4038,7 @@ public class Pacifica extends PacificaApi
             put( "tagFrom", null );
             put( "type", Pacifica.this.safeString(types, eventType) );
             put( "amount", Pacifica.this.parseNumber(Precise.stringAbs(amount)) );
-            put( "currency", Pacifica.this.safeCurrencyCode("USDC", currency) );
+            put( "currency", currencyCode );
             put( "status", null );
             put( "updated", null );
             put( "comment", null );

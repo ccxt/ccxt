@@ -2448,7 +2448,8 @@ public class Bitteam extends BitteamApi
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            String currencyCode = this.safeCurrencyCode(rawCurrencyId.toLowerCase(), null);
+            String rawCurrencyIdLower = rawCurrencyId.toLowerCase();
+            String currencyCode = this.safeCurrencyCode(rawCurrencyIdLower, null);
             if (!java.util.Objects.equals(currencyCode, null))
             {
                 balance.put(currencyCode, new HashMap<String, Object>() {{

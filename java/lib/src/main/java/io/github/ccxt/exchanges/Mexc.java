@@ -6108,8 +6108,8 @@ public class Mexc extends MexcApi
         String currencyWithNetwork = this.safeString(transaction, "coin");
         if (!java.util.Objects.equals(currencyWithNetwork, null))
         {
-            List<String> currencyParts = new ArrayList<String>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-"))));
-            currencyId = (currencyParts == null || 0 >= currencyParts.size() ? null : currencyParts.get(0));
+            List<Object> currencyParts = new ArrayList<Object>(Arrays.asList(((String)currencyWithNetwork).split(java.util.regex.Pattern.quote("-"))));
+            currencyId = this.safeString(currencyParts, 0);
         }
         String code = this.safeCurrencyCode(currencyId, currency);
         String network = null;

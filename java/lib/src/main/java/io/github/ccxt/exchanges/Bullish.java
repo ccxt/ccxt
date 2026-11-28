@@ -3770,7 +3770,7 @@ public class Bullish extends BullishApi
         String type = this.safeString(response, "type");
         if ((!java.util.Objects.equals(codeError, null) && !java.util.Objects.equals(codeError, "0") && !java.util.Objects.equals(codeError, "1001")) || (!java.util.Objects.equals(type, null) && java.util.Objects.equals(type, "HttpInvalidParameterException")))
         {
-            String message = "";
+            String message = null;
             String errorCodeName = this.safeString(response, "errorCodeName");
             if (!java.util.Objects.equals(errorCodeName, null))
             {

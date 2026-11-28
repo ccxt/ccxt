@@ -630,8 +630,10 @@ public class Bitso extends BitsoApi
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
             String baseId = this.safeString(parts, 0, "");
             String quoteId = this.safeString(parts, 1, "");
-            String base = this.safeCurrencyCode(baseId.toUpperCase(), null);
-            String quote = this.safeCurrencyCode(quoteId.toUpperCase(), null);
+            String baseIdUpper = baseId.toUpperCase();
+            String quoteIdUpper = quoteId.toUpperCase();
+            String base = this.safeCurrencyCode(baseIdUpper, null);
+            String quote = this.safeCurrencyCode(quoteIdUpper, null);
             if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
             {
                 continue;

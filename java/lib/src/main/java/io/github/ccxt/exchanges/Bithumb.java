@@ -634,10 +634,10 @@ public class Bithumb extends BithumbApi
                 String quote = null;
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    List<String> parts = new ArrayList<String>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
+                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = this.safeString(parts, 1);
-                    quoteId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                    quoteId = this.safeString(parts, 0);
                     base = this.safeCurrencyCode(baseId, null);
                     quote = this.safeCurrencyCode(quoteId, null);
                 }

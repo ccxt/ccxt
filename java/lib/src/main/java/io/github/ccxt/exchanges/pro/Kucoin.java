@@ -2079,7 +2079,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 for (var i = 0; i < subscriptions.size(); i++)
                 {
                     String key = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
-                    if (((topicSymbol == null ? -1 : key.indexOf(topicSymbol)) >= 0) && ((topicChannel == null ? -1 : key.indexOf(topicChannel)) >= 0))
+                    if ((!java.util.Objects.equals(topicSymbol, null)) && (!java.util.Objects.equals(topicChannel, null)) && (key.indexOf(((String)topicSymbol)) >= 0) && (key.indexOf(((String)topicChannel)) >= 0))
                     {
                         subscription = (client.subscriptions == null || key == null ? null : client.subscriptions.get(key));
                         break;

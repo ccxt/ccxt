@@ -2742,23 +2742,26 @@ public class Htx extends HtxApi
                 {
                     marketType = "swap";
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)contractId).split(java.util.regex.Pattern.quote("-"))));
-                    baseId = this.safeStringLower(market, "symbol");
-                    quoteId = this.safeStringLower(parts, 1);
+                    String swapBaseId = this.safeStringLower(market, "symbol");
+                    String swapQuoteId = this.safeStringLower(parts, 1);
+                    baseId = swapBaseId;
+                    quoteId = swapQuoteId;
                     if (Boolean.TRUE.equals(inverse))
                     {
-                        settleId = baseId;
+                        settleId = swapBaseId;
                     } else
                     {
-                        settleId = quoteId;
+                        settleId = swapQuoteId;
                     }
                 } else if (Boolean.TRUE.equals(future))
                 {
                     marketType = "future";
-                    baseId = this.safeStringLower(market, "symbol");
+                    String futureBaseId = this.safeStringLower(market, "symbol");
+                    baseId = futureBaseId;
                     if (Boolean.TRUE.equals(inverse))
                     {
                         quoteId = "USD";
-                        settleId = baseId;
+                        settleId = futureBaseId;
                     } else
                     {
                         String pair = this.safeString(market, "pair");
@@ -2767,8 +2770,9 @@ public class Htx extends HtxApi
                             throw new ExchangeError((this.id + " method() missing pair")) ;
                         }
                         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote("-"))));
-                        quoteId = this.safeStringLower(parts, 1);
-                        settleId = quoteId;
+                        String futureQuoteId = this.safeStringLower(parts, 1);
+                        quoteId = futureQuoteId;
+                        settleId = futureQuoteId;
                     }
                 }
             } else

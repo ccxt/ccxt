@@ -719,7 +719,13 @@ public class Deepcoin extends DeepcoinApi
         if (Boolean.TRUE.equals(swap))
         {
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
-            settleId = ((Boolean.TRUE.equals(isLinear))) ? quoteId : baseId;
+            if (Boolean.TRUE.equals(isLinear))
+            {
+                settleId = quoteId;
+            } else
+            {
+                settleId = baseId;
+            }
             settle = this.safeCurrencyCode(settleId, null);
             if (java.util.Objects.equals(settle, null))
             {

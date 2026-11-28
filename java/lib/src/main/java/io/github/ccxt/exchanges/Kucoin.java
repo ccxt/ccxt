@@ -4491,7 +4491,8 @@ public class Kucoin extends KucoinApi
         String code = null;
         if (!java.util.Objects.equals(currency, null))
         {
-            code = this.safeCurrencyCode((String) (currency.get("id")), null);
+            String currencyId = this.safeString(currency, "id");
+            code = this.safeCurrencyCode(currencyId, null);
             if (!java.util.Objects.equals(code, "NIM"))
             {
                 // contains spaces

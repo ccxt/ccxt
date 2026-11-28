@@ -963,9 +963,9 @@ public class Bitfinex extends BitfinexApi
         String quoteId = null;
         if (((String)id).indexOf(":") >= 0)
         {
-            List<String> parts = new ArrayList<String>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
-            baseId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
-            quoteId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
+            baseId = this.safeString(parts, 0);
+            quoteId = this.safeString(parts, 1);
         } else
         {
             baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
@@ -1184,7 +1184,7 @@ public class Bitfinex extends BitfinexApi
 
     public Map<String, Object> parseCurrenciesCustom(List<Object> ids, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
     {
-        List<Object> allowedIds = new ArrayList<Object>(Arrays.asList());
+        Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ids.size(); i++)
         {
             String id = this.safeString(ids, i, "");
@@ -1192,13 +1192,7 @@ public class Bitfinex extends BitfinexApi
             {
                 continue;
             }
-            allowedIds.add(id);
-        }
-        Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> arr = this.toArray(allowedIds);
-        for (var i = 0; i < arr.size(); i++)
-        {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrencyCustom((String) ((arr == null || i < 0 || i >= arr.size() ? null : arr.get(i))), indexed, indexedNetworks);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseCurrencyCustom(id, indexed, indexedNetworks);
             String code = this.safeString(parsed, "code", "");
             result.put(code, parsed);
         }
