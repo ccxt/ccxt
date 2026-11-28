@@ -1219,7 +1219,9 @@ impl ClientHandle {
     pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions), key.into()) }
     /// `Object.keys(client.subscriptions)` (internal tags filtered).
     pub fn subscription_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(self.field("subscriptions").as_ref().unwrap_or(&self.subscriptions)).as_array().cloned().unwrap_or_default()
+        let live = self.field("subscriptions");
+        let src = live.as_ref().unwrap_or(&self.subscriptions);
+        src.as_map().map(|m| m.keys().filter(|k| k.as_str() != "__ws_subs_url" && k.as_str() != "__ws_sub_ref").cloned().map(Value::from).collect()).unwrap_or_default()
     }
     /// `Object.values(client.subscriptions)` (internal tags filtered), read live.
     pub fn subscription_values(&self) -> Vec<Value> {
@@ -1233,7 +1235,8 @@ impl ClientHandle {
     pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Flight { Flight::from(&handle_get(self.field("futures").as_ref().unwrap_or(&self.futures), key.into())) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
-        crate::runtime::object_keys(self.field("futures").as_ref().unwrap_or(&self.futures)).as_array().cloned().unwrap_or_default()
+        let live = self.field("futures");
+        live.as_ref().unwrap_or(&self.futures).as_map().into_iter().flat_map(indexmap::IndexMap::keys).cloned().map(Value::from).collect()
     }
     /// `key in client.rejections`, read live.
     pub fn has_rejection<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(self.field("rejections").as_ref().unwrap_or(&self.rejections), key.into()) }
