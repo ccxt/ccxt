@@ -511,49 +511,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         return (o == null) ? "null" : o.getClass().getName();
     }
 
-    public static void throwDynamicException(Object exception, Object message) {
-        if (exception == null) {
-            throw new RuntimeException(String.valueOf(message));
-        }
-        if (!(exception instanceof Class<?>)) {
-            throw new IllegalArgumentException("exception must be a Class");
-        }
-
-        Class<?> exClass = (Class<?>) exception;
-        String msg = String.valueOf(message);
-
-        if (!Throwable.class.isAssignableFrom(exClass)) {
-            throw new RuntimeException("Not a Throwable: " + exClass.getName() + " :: " + msg);
-        }
-
-        try {
-            Throwable toThrow;
-            try {
-                var ctorWithMsg = exClass.getDeclaredConstructor(String.class);
-                ctorWithMsg.setAccessible(true);
-                toThrow = (Throwable) ctorWithMsg.newInstance(msg);
-            } catch (NoSuchMethodException innerNoStringCtor) {
-                var defaultCtor = exClass.getDeclaredConstructor();
-                defaultCtor.setAccessible(true);
-                toThrow = (Throwable) defaultCtor.newInstance();
-            }
-
-            // IMPORTANT: do not catch this with catch(Throwable)
-            throwUnchecked(toThrow);
-
-        } catch (ReflectiveOperationException | SecurityException reflectError) {
-            throw new RuntimeException(
-                "Failed to construct dynamic exception: " + exClass.getName() + " :: " + msg,
-                reflectError
-            );
-        }
-    }
-
-@SuppressWarnings("unchecked")
-private static <T extends Throwable> void throwUnchecked(Throwable t) throws T {
-    throw (T) t;
-}
-
     public static boolean isInstance(Object value, Object type) {
         if (!(type instanceof Class<?> clazz)) {
             return false;

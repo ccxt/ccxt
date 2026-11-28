@@ -1940,31 +1940,30 @@ export default class krakenfutures extends Exchange {
     }
 
     verifyOrderActionSuccess (status: Str, method: string, omit: string[] = []) {
-        const errors: Dict = {
-            'invalidOrderType': InvalidOrder,
-            'invalidSide': InvalidOrder,
-            'invalidSize': InvalidOrder,
-            'invalidPrice': InvalidOrder,
-            'insufficientAvailableFunds': InsufficientFunds,
-            'selfFill': ExchangeError,
-            'tooManySmallOrders': ExchangeError,
-            'maxPositionViolation': BadRequest,
-            'marketSuspended': ExchangeNotAvailable,
-            'marketInactive': ExchangeNotAvailable,
-            'clientOrderIdAlreadyExist': DuplicateOrderId,
-            'clientOrderIdTooLong': BadRequest,
-            'outsidePriceCollar': InvalidOrder,
-            'postWouldExecute': OrderImmediatelyFillable,  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
-            'iocWouldNotExecute': OrderNotFillable, // -||-
-            'wouldNotReducePosition': ExchangeError,
-            'orderForEditNotFound': OrderNotFound,
-            'orderForEditNotAStop': InvalidOrder,
-            'filled': OrderNotFound,
-            'notFound': OrderNotFound,
-        };
         if (status !== undefined) {
-            if ((status in errors) && !this.inArray (status, omit)) {
-                throw new errors[status] (this.id + ': ' + method + ' failed due to ' + status);
+            if (!this.inArray (status, omit)) {
+                this.throwExactlyMatchedException ({
+                    'invalidOrderType': InvalidOrder,
+                    'invalidSide': InvalidOrder,
+                    'invalidSize': InvalidOrder,
+                    'invalidPrice': InvalidOrder,
+                    'insufficientAvailableFunds': InsufficientFunds,
+                    'selfFill': ExchangeError,
+                    'tooManySmallOrders': ExchangeError,
+                    'maxPositionViolation': BadRequest,
+                    'marketSuspended': ExchangeNotAvailable,
+                    'marketInactive': ExchangeNotAvailable,
+                    'clientOrderIdAlreadyExist': DuplicateOrderId,
+                    'clientOrderIdTooLong': BadRequest,
+                    'outsidePriceCollar': InvalidOrder,
+                    'postWouldExecute': OrderImmediatelyFillable,  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+                    'iocWouldNotExecute': OrderNotFillable, // -||-
+                    'wouldNotReducePosition': ExchangeError,
+                    'orderForEditNotFound': OrderNotFound,
+                    'orderForEditNotAStop': InvalidOrder,
+                    'filled': OrderNotFound,
+                    'notFound': OrderNotFound,
+                }, status, this.id + ': ' + method + ' failed due to ' + status);
             }
         }
     }

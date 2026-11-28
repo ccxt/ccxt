@@ -189,6 +189,8 @@ const JAVA_HAND_WRITTEN_PAIR_METHODS = [
     'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption', 'handlePostOnly',
     // hand-written with a Boolean return (the printed body returns its Object default)
     'safeBool', 'safeBool2', 'safeBoolN',
+    // hand-written: the matched error class is constructed by the base constructor lookup
+    'throwExactlyMatchedException', 'throwBroadlyMatchedException',
 ];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the TS `export def...
 const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';

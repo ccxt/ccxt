@@ -3209,7 +3209,7 @@ export default class lbank extends Exchange {
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
             }, errorCode, this.json (response));
-            const ErrorClass = this.safeValue ({
+            this.throwExactlyMatchedException ({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
                 '10003': BadRequest,
@@ -3259,8 +3259,8 @@ export default class lbank extends Exchange {
                 '10601': ExchangeError, // 'Interface closed unavailable',
                 '10701': BadSymbol, // 'invalid asset code',
                 '10702': PermissionDenied, // 'not allowed deposit',
-            }, errorCode, ExchangeError);
-            throw new ErrorClass (message);
+            }, errorCode, message);
+            throw new ExchangeError (message);
         }
         return undefined;
     }

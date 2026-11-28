@@ -2971,6 +2971,39 @@ public class BaseExchange {
         }
     }
 
+    public void throwExactlyMatchedException(Map<String, Object> exact, String str, String message) {
+        if (str == null) {
+            return;
+        }
+        if (exact.containsKey(str)) {
+            throw this.matchedException(exact.get(str), message);
+        }
+    }
+
+    public void throwBroadlyMatchedException(Map<String, Object> broad, String str, String message) {
+        if (str == null) {
+            return;
+        }
+        // first key contained in the string wins, in the table's own key order
+        for (String broadKey : new ArrayList<String>(broad.keySet())) {
+            if (str.indexOf(broadKey) >= 0) {
+                throw this.matchedException(broad.get(broadKey), message);
+            }
+        }
+    }
+
+    // builds the error an exceptions table maps a key to; a null entry is a plain RuntimeException
+    private RuntimeException matchedException(Object errorClass, String message) {
+        if (errorClass == null) {
+            return new RuntimeException(String.valueOf(message));
+        }
+        if (!(errorClass instanceof Class<?> exClass)) {
+            return new IllegalArgumentException("exception must be a Class");
+        }
+        Throwable ex = newException(exClass, String.valueOf(message));
+        return (ex instanceof RuntimeException runtime) ? runtime : new RuntimeException(ex);
+    }
+
     private Throwable newException(Class<?> exClass, String message) {
         try {
             try {
@@ -10023,27 +10056,6 @@ public Map<String, Object> describe()
 
 
 
-
-    public void throwExactlyMatchedException(Map<String, Object> exact, String str, String message)
-    {
-        if (java.util.Objects.equals(str, null))
-        {
-            return;
-        }
-        if (exact.containsKey(str))
-        {
-            Helpers.throwDynamicException((exact == null || str == null ? null : exact.get(str)), message);
-        }
-    }
-
-    public void throwBroadlyMatchedException(Map<String, Object> broad, String str, String message)
-    {
-        String broadKey = this.findBroadlyMatchedKey(broad, (String) (str));
-        if (!java.util.Objects.equals(broadKey, null))
-        {
-            Helpers.throwDynamicException((broad == null || broadKey == null ? null : broad.get(broadKey)), message);
-        }
-    }
 
     public String findBroadlyMatchedKey(Map<String, Object> broad, String errorString)
     {
