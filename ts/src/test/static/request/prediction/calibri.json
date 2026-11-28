@@ -1,0 +1,743 @@
+{
+    "exchange": "calibri",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {
+        "wallet": {
+            "exchange_address": "0xA06be29A9077DA70c70601156aac9F2cE0E3b595",
+            "chain_id": 137,
+            "domain_name": "Calibri CTF Prediction Markets",
+            "proxy_address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+            "signature_type": 2,
+            "safe_status": "ready",
+            "owner_address": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf"
+        }
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets pages the event listing",
+                "method": "fetchMarkets",
+                "url": "https://calibri.io/api/v2/pythia/public/events?expand_series=true&page=1&limit=100",
+                "input": []
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents sends the query as q and pages the listing",
+                "method": "fetchEvents",
+                "url": "https://calibri.io/api/v2/pythia/public/events?expand_series=true&q=repo&page=1&limit=100",
+                "input": [
+                    {
+                        "query": "repo"
+                    }
+                ]
+            },
+            {
+                "description": "fetchEvents sends one tag listing per tag, as a slug",
+                "method": "fetchEvents",
+                "url": "https://calibri.io/api/v2/pythia/public/events?expand_series=true&status=active&tag=economics&page=1&limit=100",
+                "input": [
+                    {
+                        "tags": [
+                            "Economics"
+                        ],
+                        "status": "active"
+                    }
+                ]
+            },
+            {
+                "description": "fetchEvents by slug reads the single event",
+                "method": "fetchEvents",
+                "url": "https://calibri.io/api/v2/pythia/public/events/gtm-sarb-repo-nov-2026",
+                "input": [
+                    {
+                        "slug": "gtm-sarb-repo-nov-2026"
+                    }
+                ]
+            },
+            {
+                "description": "fetchEvents by eventId reads the single event",
+                "method": "fetchEvents",
+                "url": "https://calibri.io/api/v2/pythia/public/events/6351",
+                "input": [
+                    {
+                        "eventId": "6351"
+                    }
+                ]
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "fetchEvent by slug",
+                "method": "fetchEvent",
+                "url": "https://calibri.io/api/v2/pythia/public/events/gtm-sarb-repo-nov-2026",
+                "input": [
+                    "gtm-sarb-repo-nov-2026"
+                ]
+            },
+            {
+                "description": "fetchEvent by numeric id",
+                "method": "fetchEvent",
+                "url": "https://calibri.io/api/v2/pythia/public/events/6351",
+                "input": [
+                    "6351"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker reads the market ticker for a NO outcome",
+                "method": "fetchTicker",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715/ticker",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:NO"
+                ]
+            },
+            {
+                "description": "fetchTicker accepts a {market_id}:side reference",
+                "method": "fetchTicker",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715/ticker",
+                "input": [
+                    "993715:yes"
+                ]
+            },
+            {
+                "description": "fetchTicker on an uncached token id looks the market up by token",
+                "method": "fetchTicker",
+                "url": "https://calibri.io/api/v2/pythia/public/markets?token_id=999888777",
+                "input": [
+                    "999888777"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers reads the all-markets tickers once",
+                "method": "fetchTickers",
+                "url": "https://calibri.io/api/v2/pythia/public/tickers",
+                "input": [
+                    [
+                        "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "GTM_SARB_REPO_NOV_2026_CUT:NO"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook with a level limit",
+                "method": "fetchOrderBook",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715/order-book?asks_limit=10&bids_limit=10",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    10
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV maps the timeframe to minutes and since to seconds, and asks for a wide window from since (limit is applied client-side)",
+                "method": "fetchOHLCV",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715/k-line?period=60&time_from=1792350000&limit=1000",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    "1h",
+                    1792350000000,
+                    5
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades reads the market tape",
+                "method": "fetchTrades",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715/contracts/recent?limit=50",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:NO",
+                    null,
+                    50
+                ]
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://calibri.io/api/v2/atlas/public/timestamp",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://calibri.io/api/v2/status",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance reads the account balances",
+                "method": "fetchBalance",
+                "url": "https://calibri.io/api/v2/atlas/account/balances",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions filters by market id, open only",
+                "method": "fetchPositions",
+                "url": "https://calibri.io/api/v2/atlas/account/positions?open_only=true&market_ids=993715",
+                "input": [
+                    [
+                        "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                    ]
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders asks for every state at once",
+                "method": "fetchOrders",
+                "url": "https://calibri.io/api/v2/pythia/orders?state=wait%2Cdone%2Ccancel%2Creject&limit=50",
+                "input": [
+                    null,
+                    null,
+                    50
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders asks for state=wait on one outcome",
+                "method": "fetchOpenOrders",
+                "url": "https://calibri.io/api/v2/pythia/orders?state=wait&market_id=993715&side=yes",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders asks for state=done with time_from in seconds (history honours it)",
+                "method": "fetchClosedOrders",
+                "url": "https://calibri.io/api/v2/pythia/orders?state=done&time_from=1792350000&limit=20",
+                "input": [
+                    null,
+                    1792350000000,
+                    20
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders asks for state=cancel",
+                "method": "fetchCanceledOrders",
+                "url": "https://calibri.io/api/v2/pythia/orders?state=cancel",
+                "input": []
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder by id",
+                "method": "fetchOrder",
+                "url": "https://calibri.io/api/v2/pythia/orders/99326754",
+                "input": [
+                    "99326754"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades sends the market, the side and the limit, and leaves voided fills out on the server",
+                "method": "fetchMyTrades",
+                "url": "https://calibri.io/api/v2/atlas/account/contracts?market_id=993715&side=yes&state=active%2Csettled&limit=20",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    null,
+                    20
+                ]
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades filters contracts by order id",
+                "method": "fetchOrderTrades",
+                "url": "https://calibri.io/api/v2/atlas/account/contracts?order_id=99326754",
+                "input": [
+                    "99326754"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder posts to the order cancel path",
+                "method": "cancelOrder",
+                "url": "https://calibri.io/api/v2/pythia/orders/99326754/cancel",
+                "input": [
+                    "99326754"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders scopes by market and side on the query string",
+                "method": "cancelAllOrders",
+                "url": "https://calibri.io/api/v2/pythia/orders/cancel?market_id=993715&side=no",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:NO"
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit buy, signature type 2 (EOA owner)",
+                "method": "createOrder",
+                "url": "https://calibri.io/api/v2/atlas/account/orders",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    "limit",
+                    "buy",
+                    100,
+                    0.6,
+                    {
+                        "salt": "1512366075204170929049582354406559215",
+                        "expiration": "1795000000",
+                        "clientOrderId": "bot-0001"
+                    }
+                ],
+                "options": {
+                    "wallet": {
+                        "exchange_address": "0xA06be29A9077DA70c70601156aac9F2cE0E3b595",
+                        "chain_id": 137,
+                        "domain_name": "Calibri CTF Prediction Markets",
+                        "proxy_address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signature_type": 2,
+                        "safe_status": "ready",
+                        "owner_address": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf"
+                    }
+                },
+                "output": {
+                    "market_id": 993715,
+                    "side": "yes",
+                    "direction": "buy",
+                    "ord_type": "limit",
+                    "price": "0.6",
+                    "volume": "100",
+                    "post_only": false,
+                    "ioc": false,
+                    "client_order_id": "bot-0001",
+                    "signed_order": {
+                        "salt": "1512366075204170929049582354406559215",
+                        "maker": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signer": "0xb67f9a782D3678a0BAC50C22eacbb4924Fe9D4cF",
+                        "taker": "0x0000000000000000000000000000000000000000",
+                        "token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "maker_amount": "60000000",
+                        "taker_amount": "100000000",
+                        "expiration": "1795000000",
+                        "nonce": "0",
+                        "fee_rate_bps": "0",
+                        "side": 0,
+                        "signature_type": 2,
+                        "signature": "0x8cbc9f8715afa12914bb1b74dcc347d2505d7a0ac9f7bfff945da5bd838b2c41099a213340b56add5d08e5b3e2da11b5fddfdba11dba799774046db23154f6331b"
+                    }
+                }
+            },
+            {
+                "description": "createOrder market buy with a price ceiling is an IOC limit",
+                "method": "createOrder",
+                "url": "https://calibri.io/api/v2/atlas/account/orders",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    "market",
+                    "buy",
+                    10,
+                    0.7,
+                    {
+                        "salt": "1512366075204170929049582354406559215",
+                        "expiration": "1792363022"
+                    }
+                ],
+                "options": {
+                    "wallet": {
+                        "exchange_address": "0xA06be29A9077DA70c70601156aac9F2cE0E3b595",
+                        "chain_id": 137,
+                        "domain_name": "Calibri CTF Prediction Markets",
+                        "proxy_address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signature_type": 2,
+                        "safe_status": "ready",
+                        "owner_address": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf"
+                    }
+                },
+                "output": {
+                    "market_id": 993715,
+                    "side": "yes",
+                    "direction": "buy",
+                    "ord_type": "limit",
+                    "price": "0.7",
+                    "volume": "10",
+                    "post_only": false,
+                    "ioc": true,
+                    "signed_order": {
+                        "salt": "1512366075204170929049582354406559215",
+                        "maker": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signer": "0xb67f9a782D3678a0BAC50C22eacbb4924Fe9D4cF",
+                        "taker": "0x0000000000000000000000000000000000000000",
+                        "token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "maker_amount": "7000000",
+                        "taker_amount": "10000000",
+                        "expiration": "1792363022",
+                        "nonce": "0",
+                        "fee_rate_bps": "0",
+                        "side": 0,
+                        "signature_type": 2,
+                        "signature": "0x5290d1a5fc0d0046a28baf1609b6555fc5d5df39e359b42787d8bf244578f6625008c9872b26d3a65a69d052bee371819655fafd87cb8d517854a8441a9b0b621b"
+                    }
+                }
+            },
+            {
+                "description": "createOrder limit sell of NO, signature type 3 (Safe owner key, SafeMessage)",
+                "method": "createOrder",
+                "url": "https://calibri.io/api/v2/atlas/account/orders",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_CUT:NO",
+                    "limit",
+                    "sell",
+                    12.5,
+                    0.35,
+                    {
+                        "salt": "1512366075204170929049582354406559215",
+                        "expiration": "1795000000"
+                    }
+                ],
+                "options": {
+                    "wallet": {
+                        "exchange_address": "0xA06be29A9077DA70c70601156aac9F2cE0E3b595",
+                        "chain_id": 137,
+                        "domain_name": "Calibri CTF Prediction Markets",
+                        "proxy_address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signature_type": 3,
+                        "safe_status": "ready"
+                    }
+                },
+                "output": {
+                    "market_id": 993714,
+                    "side": "no",
+                    "direction": "sell",
+                    "ord_type": "limit",
+                    "price": "0.35",
+                    "volume": "12.5",
+                    "post_only": false,
+                    "ioc": false,
+                    "signed_order": {
+                        "salt": "1512366075204170929049582354406559215",
+                        "maker": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signer": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "taker": "0x0000000000000000000000000000000000000000",
+                        "token_id": "56117804364142373074919148400268198406202348078678452246765344789609008084552",
+                        "maker_amount": "12500000",
+                        "taker_amount": "4375000",
+                        "expiration": "1795000000",
+                        "nonce": "0",
+                        "fee_rate_bps": "0",
+                        "side": 1,
+                        "signature_type": 3,
+                        "signature": "0x00a6547cb6b23d780ff100e4dc1152770f819152408e3806e1133f8682d3ad42122bad9da5c8e16be41983e77c5eb0d8d5ad9def857161a9d1fa6314a8da1fde1b"
+                    }
+                }
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "createOrders posts the signed orders as one batch",
+                "method": "createOrders",
+                "url": "https://calibri.io/api/v2/atlas/account/orders/batch",
+                "input": [
+                    [
+                        {
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 5,
+                            "price": 0.4,
+                            "params": {
+                                "salt": "1",
+                                "expiration": "1795000000"
+                            }
+                        },
+                        {
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:NO",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 5,
+                            "price": 0.5,
+                            "params": {
+                                "salt": "2",
+                                "expiration": "1795000000"
+                            }
+                        }
+                    ]
+                ],
+                "options": {
+                    "wallet": {
+                        "exchange_address": "0xA06be29A9077DA70c70601156aac9F2cE0E3b595",
+                        "chain_id": 137,
+                        "domain_name": "Calibri CTF Prediction Markets",
+                        "proxy_address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signature_type": 2,
+                        "safe_status": "ready",
+                        "owner_address": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf"
+                    }
+                },
+                "output": {
+                    "orders": [
+                        {
+                            "market_id": 993715,
+                            "side": "yes",
+                            "direction": "buy",
+                            "ord_type": "limit",
+                            "price": "0.4",
+                            "volume": "5",
+                            "post_only": false,
+                            "ioc": false,
+                            "signed_order": {
+                                "salt": "1",
+                                "maker": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                                "signer": "0xb67f9a782D3678a0BAC50C22eacbb4924Fe9D4cF",
+                                "taker": "0x0000000000000000000000000000000000000000",
+                                "token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                                "maker_amount": "2000000",
+                                "taker_amount": "5000000",
+                                "expiration": "1795000000",
+                                "nonce": "0",
+                                "fee_rate_bps": "0",
+                                "side": 0,
+                                "signature_type": 2,
+                                "signature": "0x0c1ea504500a3966f8148a43ac64a138b44284db818e63531c4101463fa989946e7213348103ed2f4334fa11ffdc71097a4c91a26d792bffd0f10c5d3272ca011b"
+                            }
+                        },
+                        {
+                            "market_id": 993715,
+                            "side": "no",
+                            "direction": "buy",
+                            "ord_type": "limit",
+                            "price": "0.5",
+                            "volume": "5",
+                            "post_only": false,
+                            "ioc": false,
+                            "signed_order": {
+                                "salt": "2",
+                                "maker": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                                "signer": "0xb67f9a782D3678a0BAC50C22eacbb4924Fe9D4cF",
+                                "taker": "0x0000000000000000000000000000000000000000",
+                                "token_id": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                                "maker_amount": "2500000",
+                                "taker_amount": "5000000",
+                                "expiration": "1795000000",
+                                "nonce": "0",
+                                "fee_rate_bps": "0",
+                                "side": 0,
+                                "signature_type": 2,
+                                "signature": "0xb4cc54e9a5f9866954a5a8386f81a7f2634734155f2bfdea1d3bccd883c3f98f746f7014c40789220b6ca81d2de33a807ddb5e6ce1e959e8ddea26d0751ac1141c"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "editOrder posts a newly signed order to the replace path",
+                "method": "editOrder",
+                "url": "https://calibri.io/api/v2/atlas/account/orders/99326754/replace",
+                "input": [
+                    "99326754",
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    "limit",
+                    "buy",
+                    50,
+                    0.55,
+                    {
+                        "salt": "1512366075204170929049582354406559215",
+                        "expiration": "1795000000"
+                    }
+                ],
+                "options": {
+                    "wallet": {
+                        "exchange_address": "0xA06be29A9077DA70c70601156aac9F2cE0E3b595",
+                        "chain_id": 137,
+                        "domain_name": "Calibri CTF Prediction Markets",
+                        "proxy_address": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signature_type": 2,
+                        "safe_status": "ready",
+                        "owner_address": "0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf"
+                    }
+                },
+                "output": {
+                    "market_id": 993715,
+                    "side": "yes",
+                    "direction": "buy",
+                    "ord_type": "limit",
+                    "price": "0.55",
+                    "volume": "50",
+                    "post_only": false,
+                    "ioc": false,
+                    "signed_order": {
+                        "salt": "1512366075204170929049582354406559215",
+                        "maker": "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed",
+                        "signer": "0xb67f9a782D3678a0BAC50C22eacbb4924Fe9D4cF",
+                        "taker": "0x0000000000000000000000000000000000000000",
+                        "token_id": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "maker_amount": "27500000",
+                        "taker_amount": "50000000",
+                        "expiration": "1795000000",
+                        "nonce": "0",
+                        "fee_rate_bps": "0",
+                        "side": 0,
+                        "signature_type": 2,
+                        "signature": "0xe0d72b7bd55bb6baa84f9402918f8898702919cccda040b6f8e9a983c199a5500cbc4af6ef33a413006492257515eb6983a6efefeb8f253df0af23467074cb1b1c"
+                    }
+                }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee reads the market for its fee rate",
+                "method": "fetchTradingFee",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest reads the market",
+                "method": "fetchOpenInterest",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts reads the wallet config",
+                "method": "fetchAccounts",
+                "url": "https://calibri.io/api/v2/atlas/account/wallet",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://calibri.io/api/v2/atlas/public/currencies",
+                "input": []
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits with a limit",
+                "method": "fetchDeposits",
+                "url": "https://calibri.io/api/v2/atlas/account/deposits?limit=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://calibri.io/api/v2/atlas/account/withdraws",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger sends time bounds in seconds, the limit and the page",
+                "method": "fetchLedger",
+                "url": "https://calibri.io/api/v2/atlas/account/transactions?time_from=1792400000&limit=50&page=2",
+                "input": [
+                    null,
+                    1792400000000,
+                    50,
+                    {
+                        "page": 2
+                    }
+                ]
+            }
+        ],
+        "fetchSettlements": [
+            {
+                "description": "fetchSettlements",
+                "method": "fetchSettlements",
+                "url": "https://calibri.io/api/v2/atlas/account/settled?limit=10",
+                "input": [
+                    null,
+                    null,
+                    10
+                ]
+            }
+        ],
+        "fetchOrdersByIds": [
+            {
+                "description": "fetchOrdersByIds reads every order in one request",
+                "method": "fetchOrdersByIds",
+                "url": "https://calibri.io/api/v2/pythia/orders?ids=99326754%2C99326755&limit=100",
+                "input": [
+                    [
+                        "99326754",
+                        "99326755"
+                    ]
+                ]
+            }
+        ],
+        "approve": [
+            {
+                "description": "approve asks the account wallet for its setup",
+                "method": "approve",
+                "url": "https://calibri.io/api/v2/atlas/account/wallet?setup=1",
+                "input": []
+            }
+        ],
+        "redeem": [
+            {
+                "description": "redeem reads the redeemable markets",
+                "method": "redeem",
+                "url": "https://calibri.io/api/v2/atlas/account/wallet/redeemable",
+                "input": []
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "createMarketBuyOrderWithCost reads the book first",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://calibri.io/api/v2/pythia/public/markets/993715/order-book",
+                "input": [
+                    "993715:yes",
+                    10
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders cancels every id in one request",
+                "method": "cancelOrders",
+                "url": "https://calibri.io/api/v2/pythia/orders/cancel/batch?ids=99326754%2C99326755",
+                "input": [
+                    [
+                        "99326754",
+                        "99326755"
+                    ]
+                ]
+            }
+        ]
+    }
+}

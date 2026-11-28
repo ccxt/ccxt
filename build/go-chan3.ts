@@ -1255,6 +1255,8 @@ export const GO_CHAN3_EXTRA_STRUCTS: string[] = [
 export const GO_CHAN3_SHARED_PRED_STRUCTS = new Set<string> ([
     'Account', 'Balance', 'Balances', 'LeverageTiers', 'LeverageTier', 'MarginLoan',
     'MarketInterface', 'Currency', 'Currencies', 'PredictionEvent', 'PredictionOutcome',
+    // calibri: fetchDeposits / fetchWithdrawals / fetchLedger on a prediction venue
+    'Transaction', 'LedgerEntry',
 ]);
 
 function goChan3IsPredOnlyStruct (t: string): boolean {

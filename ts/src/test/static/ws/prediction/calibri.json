@@ -1,0 +1,1029 @@
+{
+    "exchange": "calibri",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchOrderBook": [
+            {
+                "description": "YES side: snapshot then two increments, one call per frame",
+                "disabledGO": "the go websocket order book always carries a symbol field, empty for a prediction book",
+                "disabledRS": "the rust prediction transpile leaves websocket handlers on &self, so the book they build is not stored",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "993715.ob-inc"
+                            ]
+                        }
+                    },
+                    {
+                        "993715.ob-snap": {
+                            "bids": [
+                                [
+                                    "0.6",
+                                    "100"
+                                ],
+                                [
+                                    "0.59",
+                                    "40"
+                                ]
+                            ],
+                            "asks": [
+                                [
+                                    "0.63",
+                                    "25"
+                                ],
+                                [
+                                    "0.65",
+                                    "10"
+                                ]
+                            ],
+                            "sequence": 9712,
+                            "timestamp": 1795000123
+                        }
+                    },
+                    {
+                        "993715.ob-inc": {
+                            "bids": [
+                                [
+                                    "0.6",
+                                    "0"
+                                ]
+                            ],
+                            "sequence": 9713,
+                            "timestamp": 1795000124
+                        }
+                    },
+                    {
+                        "993715.ob-inc": {
+                            "asks": [
+                                [
+                                    "0.62",
+                                    "12"
+                                ]
+                            ],
+                            "sequence": 9714,
+                            "timestamp": 1795000125
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                0.6,
+                                100
+                            ],
+                            [
+                                0.59,
+                                40
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.63,
+                                25
+                            ],
+                            [
+                                0.65,
+                                10
+                            ]
+                        ],
+                        "timestamp": 1795000123000,
+                        "datetime": "2026-11-18T11:08:43.000Z",
+                        "nonce": 9712,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                0.59,
+                                40
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.63,
+                                25
+                            ],
+                            [
+                                0.65,
+                                10
+                            ]
+                        ],
+                        "timestamp": 1795000124000,
+                        "datetime": "2026-11-18T11:08:44.000Z",
+                        "nonce": 9713,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                0.59,
+                                40
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.62,
+                                12
+                            ],
+                            [
+                                0.63,
+                                25
+                            ],
+                            [
+                                0.65,
+                                10
+                            ]
+                        ],
+                        "timestamp": 1795000125000,
+                        "datetime": "2026-11-18T11:08:45.000Z",
+                        "nonce": 9714,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "993715.ob-inc"
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "NO side is the complement of the YES book, one call per frame",
+                "disabledGO": "the go websocket order book always carries a symbol field, empty for a prediction book",
+                "disabledRS": "the rust prediction transpile leaves websocket handlers on &self, so the book they build is not stored",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:NO"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "993715.ob-inc"
+                            ]
+                        }
+                    },
+                    {
+                        "993715.ob-snap": {
+                            "bids": [
+                                [
+                                    "0.6",
+                                    "100"
+                                ],
+                                [
+                                    "0.59",
+                                    "40"
+                                ]
+                            ],
+                            "asks": [
+                                [
+                                    "0.63",
+                                    "25"
+                                ],
+                                [
+                                    "0.65",
+                                    "10"
+                                ]
+                            ],
+                            "sequence": 9712,
+                            "timestamp": 1795000123
+                        }
+                    },
+                    {
+                        "993715.ob-inc": {
+                            "bids": [
+                                [
+                                    "0.6",
+                                    "0"
+                                ]
+                            ],
+                            "sequence": 9713,
+                            "timestamp": 1795000124
+                        }
+                    },
+                    {
+                        "993715.ob-inc": {
+                            "asks": [
+                                [
+                                    "0.62",
+                                    "12"
+                                ]
+                            ],
+                            "sequence": 9714,
+                            "timestamp": 1795000125
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "993715.ob-inc"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                0.37,
+                                25
+                            ],
+                            [
+                                0.35,
+                                10
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.4,
+                                100
+                            ],
+                            [
+                                0.41,
+                                40
+                            ]
+                        ],
+                        "timestamp": 1795000123000,
+                        "datetime": "2026-11-18T11:08:43.000Z",
+                        "nonce": 9712,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:NO",
+                        "outcomeId": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                0.37,
+                                25
+                            ],
+                            [
+                                0.35,
+                                10
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.41,
+                                40
+                            ]
+                        ],
+                        "timestamp": 1795000124000,
+                        "datetime": "2026-11-18T11:08:44.000Z",
+                        "nonce": 9713,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:NO",
+                        "outcomeId": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                0.38,
+                                12
+                            ],
+                            [
+                                0.37,
+                                25
+                            ],
+                            [
+                                0.35,
+                                10
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.41,
+                                40
+                            ]
+                        ],
+                        "timestamp": 1795000125000,
+                        "datetime": "2026-11-18T11:08:45.000Z",
+                        "nonce": 9714,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:NO",
+                        "outcomeId": "112269125058359687453165521079081312845533508813895586408930599830673309261225",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    }
+                ]
+            },
+            {
+                "description": "a snapshot can share its sequence with the next increment: the repeated sequence is applied, not resynced",
+                "disabledGO": "the go websocket order book always carries a symbol field, empty for a prediction book",
+                "disabledRS": "the rust prediction transpile leaves websocket handlers on &self, so the book they build is not stored",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "993715.ob-inc"
+                            ]
+                        }
+                    },
+                    {
+                        "993715.ob-snap": {
+                            "bids": [
+                                [
+                                    "0.6",
+                                    "100"
+                                ],
+                                [
+                                    "0.59",
+                                    "40"
+                                ]
+                            ],
+                            "asks": [
+                                [
+                                    "0.63",
+                                    "25"
+                                ],
+                                [
+                                    "0.65",
+                                    "10"
+                                ]
+                            ],
+                            "sequence": 9712,
+                            "timestamp": 1795000123
+                        }
+                    },
+                    {
+                        "993715.ob-inc": {
+                            "asks": [
+                                [
+                                    "0.62",
+                                    "12"
+                                ]
+                            ],
+                            "sequence": 9712,
+                            "timestamp": 1795000124
+                        }
+                    },
+                    {
+                        "993715.ob-inc": {
+                            "bids": [
+                                [
+                                    "0.6",
+                                    "0"
+                                ]
+                            ],
+                            "sequence": 9713,
+                            "timestamp": 1795000125
+                        }
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                0.6,
+                                100
+                            ],
+                            [
+                                0.59,
+                                40
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.63,
+                                25
+                            ],
+                            [
+                                0.65,
+                                10
+                            ]
+                        ],
+                        "timestamp": 1795000123000,
+                        "datetime": "2026-11-18T11:08:43.000Z",
+                        "nonce": 9712,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                0.6,
+                                100
+                            ],
+                            [
+                                0.59,
+                                40
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.62,
+                                12
+                            ],
+                            [
+                                0.63,
+                                25
+                            ],
+                            [
+                                0.65,
+                                10
+                            ]
+                        ],
+                        "timestamp": 1795000124000,
+                        "datetime": "2026-11-18T11:08:44.000Z",
+                        "nonce": 9712,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                0.59,
+                                40
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                0.62,
+                                12
+                            ],
+                            [
+                                0.63,
+                                25
+                            ],
+                            [
+                                0.65,
+                                10
+                            ]
+                        ],
+                        "timestamp": 1795000125000,
+                        "datetime": "2026-11-18T11:08:45.000Z",
+                        "nonce": 9713,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "993715.ob-inc"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "a mint on the public tape",
+                "disabledCS": "the c# websocket structs are the crypto types, with no outcome, label, market or event fields",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "993715.trades"
+                            ]
+                        }
+                    },
+                    {
+                        "993715.trades": {
+                            "trade": {
+                                "id": 41276,
+                                "market_id": 993715,
+                                "match_type": "mint",
+                                "side": null,
+                                "price": "0.56",
+                                "volume": "10",
+                                "yes_locked": "5.6",
+                                "no_locked": "4.4",
+                                "taker_side": "no",
+                                "created_at": "2026-10-19T11:32:31Z"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "993715.trades"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "41276",
+                            "order": null,
+                            "timestamp": 1792409551000,
+                            "datetime": "2026-10-19T11:32:31.000Z",
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": "taker",
+                            "price": 0.56,
+                            "amount": 10,
+                            "cost": 5.6,
+                            "fee": null,
+                            "realizedPnl": null,
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                            "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "label": "Yes",
+                            "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                            "info": {
+                                "id": 41276,
+                                "market_id": 993715,
+                                "match_type": "mint",
+                                "side": null,
+                                "price": "0.56",
+                                "volume": "10",
+                                "yes_locked": "5.6",
+                                "no_locked": "4.4",
+                                "taker_side": "no",
+                                "created_at": "2026-10-19T11:32:31Z"
+                            }
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchTicker": [
+            {
+                "description": "a rolling 24h ticker frame",
+                "disabledCS": "the c# websocket structs are the crypto types, with no outcome, label, market or event fields",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "993715.ticker"
+                            ]
+                        }
+                    },
+                    {
+                        "993715.ticker": {
+                            "timestamp": 1795000126,
+                            "ticker": {
+                                "buy": "0.6",
+                                "sell": "0.63",
+                                "buy_volume": "100",
+                                "sell_volume": "25",
+                                "low": "0.55",
+                                "high": "0.66",
+                                "last": "0.62",
+                                "open": "0.6",
+                                "volume": "1500",
+                                "quote_volume": "900",
+                                "avg_price": "0.6",
+                                "change_24h": "0.0333"
+                            }
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "993715.ticker"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "timestamp": 1795000126000,
+                        "datetime": "2026-11-18T11:08:46.000Z",
+                        "high": 0.66,
+                        "low": 0.55,
+                        "bid": 0.6,
+                        "bidVolume": 100,
+                        "ask": 0.63,
+                        "askVolume": 25,
+                        "open": 0.6,
+                        "close": 0.62,
+                        "last": 0.62,
+                        "change": 0.02,
+                        "percentage": 3.33,
+                        "average": 0.6,
+                        "baseVolume": 1500,
+                        "quoteVolume": 900,
+                        "openInterest": null,
+                        "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                        "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                        "label": "Yes",
+                        "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                        "event": "GTM_SARB_REPO_NOV_2026",
+                        "info": {
+                            "timestamp": 1795000126,
+                            "ticker": {
+                                "buy": "0.6",
+                                "sell": "0.63",
+                                "buy_volume": "100",
+                                "sell_volume": "25",
+                                "low": "0.55",
+                                "high": "0.66",
+                                "last": "0.62",
+                                "open": "0.6",
+                                "volume": "1500",
+                                "quote_volume": "900",
+                                "avg_price": "0.6",
+                                "change_24h": "0.0333"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "a forming one-minute candle",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                    "1m"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "993715.kline-1m"
+                            ]
+                        }
+                    },
+                    {
+                        "993715.kline-1m": [
+                            1795000080,
+                            0.6,
+                            0.62,
+                            0.6,
+                            0.62,
+                            40
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "993715.kline-1m"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1795000080000,
+                            0.6,
+                            0.62,
+                            0.6,
+                            0.62,
+                            40
+                        ]
+                    ]
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "placed, then a partial fill merges into the order",
+                "disabledCS": "the c# websocket structs are the crypto types, with no outcome, label, market or event fields",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "order"
+                            ]
+                        }
+                    },
+                    {
+                        "order": {
+                            "id": 99327299,
+                            "timestamp": 1795000127,
+                            "market_id": 993715,
+                            "side": "yes",
+                            "direction": "buy",
+                            "price": "0.45",
+                            "state": "wait",
+                            "origin_volume": "10",
+                            "remaining_volume": "10",
+                            "ord_type": "limit",
+                            "ioc": false,
+                            "client_order_id": "bot-0001",
+                            "updated_at": "2026-10-19T17:05:19Z"
+                        }
+                    },
+                    {
+                        "order": {
+                            "id": 99327299,
+                            "client_order_id": "bot-0001",
+                            "market_id": 993715,
+                            "side": "yes",
+                            "direction": "buy",
+                            "state": "wait",
+                            "remaining_volume": "6",
+                            "contracts_count": 1,
+                            "updated_at": "2026-10-19T17:05:20Z"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "order"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "99327299",
+                            "clientOrderId": "bot-0001",
+                            "timestamp": 1795000127000,
+                            "datetime": "2026-11-18T11:08:47.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1792429519000,
+                            "status": "open",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "side": "buy",
+                            "price": 0.45,
+                            "average": null,
+                            "amount": 10,
+                            "filled": 0,
+                            "remaining": 10,
+                            "cost": 0,
+                            "fee": null,
+                            "reduceOnly": null,
+                            "postOnly": null,
+                            "trades": [],
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                            "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "label": "Yes",
+                            "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                            "event": "GTM_SARB_REPO_NOV_2026",
+                            "info": {
+                                "id": 99327299,
+                                "timestamp": 1795000127,
+                                "market_id": 993715,
+                                "side": "yes",
+                                "direction": "buy",
+                                "price": "0.45",
+                                "state": "wait",
+                                "origin_volume": "10",
+                                "remaining_volume": "10",
+                                "ord_type": "limit",
+                                "ioc": false,
+                                "client_order_id": "bot-0001",
+                                "updated_at": "2026-10-19T17:05:19Z"
+                            }
+                        }
+                    ],
+                    [
+                        {
+                            "id": "99327299",
+                            "clientOrderId": "bot-0001",
+                            "timestamp": 1795000127000,
+                            "datetime": "2026-11-18T11:08:47.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1792429520000,
+                            "status": "open",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "side": "buy",
+                            "price": 0.45,
+                            "average": null,
+                            "amount": 10,
+                            "filled": 4,
+                            "remaining": 6,
+                            "cost": 1.8,
+                            "fee": null,
+                            "reduceOnly": null,
+                            "postOnly": null,
+                            "trades": [],
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                            "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "label": "Yes",
+                            "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                            "event": "GTM_SARB_REPO_NOV_2026",
+                            "info": {
+                                "id": 99327299,
+                                "timestamp": 1795000127,
+                                "market_id": 993715,
+                                "side": "yes",
+                                "direction": "buy",
+                                "price": "0.45",
+                                "state": "wait",
+                                "origin_volume": "10",
+                                "remaining_volume": "6",
+                                "ord_type": "limit",
+                                "ioc": false,
+                                "client_order_id": "bot-0001",
+                                "updated_at": "2026-10-19T17:05:20Z",
+                                "contracts_count": 1
+                            }
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "the member's own fill with its fee",
+                "disabledCS": "the c# websocket structs are the crypto types, with no outcome, label, market or event fields",
+                "input": [
+                    "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "contract"
+                            ]
+                        }
+                    },
+                    {
+                        "contract": {
+                            "id": 245213,
+                            "market_id": 993715,
+                            "order_id": 99327299,
+                            "side": "yes",
+                            "direction": "buy",
+                            "taker_or_maker": "taker",
+                            "fee": "0.0693",
+                            "price": "0.45",
+                            "volume": "4",
+                            "state": "active",
+                            "created_at": "2026-10-19T17:05:19Z"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "contract"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "245213",
+                            "order": "99327299",
+                            "timestamp": 1792429519000,
+                            "datetime": "2026-10-19T17:05:19.000Z",
+                            "type": "limit",
+                            "side": "buy",
+                            "takerOrMaker": "taker",
+                            "price": 0.45,
+                            "amount": 4,
+                            "cost": 1.8,
+                            "fee": {
+                                "cost": 0.0693,
+                                "currency": "USDC"
+                            },
+                            "realizedPnl": null,
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                            "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "label": "Yes",
+                            "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                            "info": {
+                                "id": 245213,
+                                "market_id": 993715,
+                                "order_id": 99327299,
+                                "side": "yes",
+                                "direction": "buy",
+                                "taker_or_maker": "taker",
+                                "fee": "0.0693",
+                                "price": "0.45",
+                                "volume": "4",
+                                "state": "active",
+                                "created_at": "2026-10-19T17:05:19Z"
+                            }
+                        }
+                    ]
+                ]
+            }
+        ],
+        "watchPositions": [
+            {
+                "description": "a position update",
+                "disabledCS": "the c# websocket structs are the crypto types, with no outcome, label, market or event fields",
+                "input": [
+                    [
+                        "GTM_SARB_REPO_NOV_2026_HOLD:YES"
+                    ]
+                ],
+                "url": "wss://calibri.io/api/v2/websocket/private",
+                "messages": [
+                    {
+                        "success": {
+                            "message": "subscribed",
+                            "streams": [
+                                "position"
+                            ]
+                        }
+                    },
+                    {
+                        "position": {
+                            "market_id": 993715,
+                            "side": "yes",
+                            "custody": "self",
+                            "volume": "10",
+                            "locked_volume": "4",
+                            "sellable_volume": "6",
+                            "avg_price": "0.56",
+                            "realized_pnl": "0.3",
+                            "settled_payout": null,
+                            "source": null,
+                            "updated_at": "2026-10-19T17:05:20Z"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "streams": [
+                            "position"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "993715:yes:self",
+                            "timestamp": 1792429520000,
+                            "datetime": "2026-10-19T17:05:20.000Z",
+                            "contracts": 10,
+                            "contractSize": 1,
+                            "side": "long",
+                            "notional": null,
+                            "unrealizedPnl": null,
+                            "realizedPnl": 0.3,
+                            "collateral": null,
+                            "entryPrice": 0.56,
+                            "markPrice": null,
+                            "lastPrice": null,
+                            "percentage": null,
+                            "resolved": null,
+                            "won": null,
+                            "settleFraction": null,
+                            "payout": null,
+                            "outcome": "GTM_SARB_REPO_NOV_2026_HOLD:YES",
+                            "outcomeId": "46290367595615971082075345757735212412323659961946795890653041366376772822685",
+                            "label": "Yes",
+                            "market": "GTM_SARB_REPO_NOV_2026_HOLD",
+                            "event": "GTM_SARB_REPO_NOV_2026",
+                            "info": {
+                                "market_id": 993715,
+                                "side": "yes",
+                                "custody": "self",
+                                "volume": "10",
+                                "locked_volume": "4",
+                                "sellable_volume": "6",
+                                "avg_price": "0.56",
+                                "realized_pnl": "0.3",
+                                "settled_payout": null,
+                                "source": null,
+                                "updated_at": "2026-10-19T17:05:20Z"
+                            }
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}
