@@ -7199,12 +7199,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let m = indexmap::IndexMap::new();
                 m
             })]);
-            let tradeFee: Value = self.extend(Value::Map({
+            let tradeFee: crate::value::Dict = self.extend_t(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), &[__ws_arg_41]);
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
-            if (orderId.is_some()) && (tradeFee != Value::Null) && (symbol.is_some()) {
+            if (orderId.is_some()) && (true) && (symbol.is_some()) {
                 if (self.orders.is_some()) {
                     let mut orders: Value = self.safe_dict(&self.orders.hashmap(), Value::from(symbol.as_deref()), &[Value::Map({
                         let m = indexmap::IndexMap::new();
@@ -7214,47 +7214,55 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     if (order.is_some()) {
                         // accumulate order fees
                         let fees: Option<crate::value::List> = self.safe_list_k_o(&order, "fees");
-                        let mut fee: Value = self.safe_dict_k(&order, "fee", &[]);
+                        let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
                         if (fees.is_some()) && !(self.is_empty(&fees).as_bool() == Some(true)) {
                             let mut insertNewFeeCurrency: bool = true;
+                            let mut newFees: crate::value::List = std::sync::Arc::new(Vec::new());
                             {
                                                                 let mut i: i64 = 0;
                                 let mut __for_first_31: bool = true;
                                 while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (fees.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                                let orderFee: crate::value::Dict = fees.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-                                if (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
-                                    let feeCost: Value = self.sum(&[tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
-                                    let mut feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);
+                                let mut orderFee: crate::value::Dict = self.extend_t(Value::Map({
+                                    let m = indexmap::IndexMap::new();
+                                    m
+                                }), &[fees.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
+                                if insertNewFeeCurrency && (self.safe_string_k(&orderFee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
+                                    let feeCost: Value = self.sum(&[crate::value::KeyRead::key_read(&&tradeFee, "cost"), crate::value::KeyRead::key_read(&&orderFee, "cost")]);
+                                    let mut feeCostString: Option<String> = self.currency_to_precision((crate::value::KeyRead::key_read(&&tradeFee, "currency")).as_str(), feeCost, &[]);
                                     if (feeCostString.is_none()) {
                                         feeCostString = Some("0".to_string());
                                     }
-                                    if let Some(__d) = &mut order { let __r06v = Value::from((match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
-                                        if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert(Value::Null) { if let Some(Value::Dict(__f)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__f).insert("cost".into(), __r06v); } } }
+                                    std::sync::Arc::make_mut(&mut orderFee).insert("cost".into(), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                std::sync::Arc::make_mut(&mut newFees).push(Value::Dict(orderFee));
                             }
                             }
                             if insertNewFeeCurrency {
-                                if let Some(__d) = &mut order { if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("fees".to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(tradeFee.clone()); } }
+                                std::sync::Arc::make_mut(&mut newFees).push(Value::from(&tradeFee));
                             }
-                        }  else if (fee != Value::Null) {
+                            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::Arr(newFees)); }
+                        }  else if (fee.is_some()) {
                             if (self.safe_string_k(&fee, "currency", &[]).as_str() == self.safe_string_k(&tradeFee, "currency", &[]).as_str()) {
-                                let feeCost: Value = self.sum(&[fee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
-                                let mut feeCostString: Option<String> = self.currency_to_precision((tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null)).as_str(), feeCost, &[]);
+                                let feeCost: Value = self.sum(&[crate::value::KeyRead::key_read(&&fee, "cost"), crate::value::KeyRead::key_read(&&tradeFee, "cost")]);
+                                let mut feeCostString: Option<String> = self.currency_to_precision((crate::value::KeyRead::key_read(&&tradeFee, "currency")).as_str(), feeCost, &[]);
                                 if (feeCostString.is_none()) {
                                     feeCostString = Some("0".to_string());
                                 }
-                                if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".into(), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null })); }
-                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), fee.clone()); }
+                                let mut newFee: crate::value::Dict = self.extend_t(Value::Map({
+                                    let m = indexmap::IndexMap::new();
+                                    m
+                                }), &[&fee]);
+                                std::sync::Arc::make_mut(&mut newFee).insert("cost".into(), (match feeCostString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Dict(newFee)); }
                             }  else if (self.safe_string_k(&fee, "currency", &[]) == Value::Null) {
-                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee.clone()); }
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::from(&tradeFee)); }
                             }  else {
-                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::from(vec![fee, tradeFee])); }
+                                if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fees".into(), Value::from(vec![fee.map_or(Value::Null, Value::Dict), Value::from(&tradeFee)])); }
                                 if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Null); }
                             }
                         }  else {
-                            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), tradeFee); }
+                            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Dict(tradeFee)); }
                         }
                         // save this trade in the order
                         let mut orderTrades: crate::value::List = self.safe_list_k_t(&order, "trades");
