@@ -6879,10 +6879,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         if ((!java.util.Objects.equals(fees, null)) && !this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
+                            List<Object> newFees = new ArrayList<Object>(Arrays.asList());
                             for (var i = 0; i < fees.size(); i++)
                             {
-                                Map<String, Object> orderFee = (Map<String, Object>) (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
-                                if (java.util.Objects.equals(this.safeString(orderFee, "currency"), this.safeString(tradeFee, "currency")))
+                                Map<String, Object> orderFee = this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i)));
+                                if (Boolean.TRUE.equals(insertNewFeeCurrency) && java.util.Objects.equals(this.safeString(orderFee, "currency"), this.safeString(tradeFee, "currency")))
                                 {
                                     Object feeCost = this.sum(tradeFee.get("cost"), orderFee.get("cost"));
                                     String feeCostString = (String) this.currencyToPrecision((String) (tradeFee.get("currency")), feeCost, null);
@@ -6890,15 +6891,16 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    Helpers.addElementToObject(Helpers.GetValue(order.get("fees"), i), "cost", Double.parseDouble(feeCostString));
+                                    orderFee.put("cost", Double.parseDouble(feeCostString));
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.add(orderFee);
                             }
                             if (Boolean.TRUE.equals(insertNewFeeCurrency))
                             {
-                                ((List<Object>)order.get("fees")).add(tradeFee);
+                                newFees.add(tradeFee);
                             }
+                            order.put("fees", newFees);
                         } else if (!java.util.Objects.equals(fee, null))
                         {
                             if (java.util.Objects.equals(this.safeString(fee, "currency"), this.safeString(tradeFee, "currency")))
@@ -6909,8 +6911,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 {
                                     feeCostString = "0";
                                 }
-                                fee.put("cost", Double.parseDouble(feeCostString));
-                                order.put("fee", fee);
+                                Map<String, Object> newFee = this.extend(new HashMap<String, Object>() {{}}, fee);
+                                newFee.put("cost", Double.parseDouble(feeCostString));
+                                order.put("fee", newFee);
                             } else if (java.util.Objects.equals(this.safeString(fee, "currency"), null))
                             {
                                 order.put("fee", tradeFee);
