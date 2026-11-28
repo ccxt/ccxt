@@ -4808,6 +4808,12 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goAsyncInt64Value (content) : content;  // typed async int64 value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
     content = path.endsWith ('.go') ? goPlainBoxIsEqual (content) : content;
+    // the ws client registry is a mutex-guarded map on BaseExchange (exchange_ws_cache.go):
+    // after every nil-compare fold above has settled the generated guards, map each direct
+    // this.Clients read/mutation onto the exported WsClient* accessors. Last semantic pass,
+    // so the undefined half of `(this.clients === undefined) || !(url in this.clients)` is
+    // already `this.Clients == nil` and collapses to the lookup result.
+    content = path.endsWith ('.go') ? goWsClientRegistryAccessors (content) : content;
     // struct returns after every retype pass (base ParseTicker is `any` until formatGoSource)
     if (path.endsWith ('.go')) {
         content = goDropRedundantTyped (goStructReturnsPass (content));
@@ -9498,7 +9504,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ()).concat (goPredictionEndpointBodySelfTest ());
+        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goWsClientRegistrySelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ()).concat (goPredictionEndpointBodySelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10311,6 +10317,70 @@ function goTypedBoolCompareText (fn: string): string {
         }
         return '(' + name + ((not === '!') ? ' != ' : ' == ') + lit + ')';
     }) as any);
+}
+
+// ===== ws client registry accessors =====
+// BaseExchange keeps its ws clients in this.Clients behind clientsMu (see
+// go/v4/exchange_ws_cache.go): subscription and close goroutines create and drop
+// clients concurrently, so generated venue code must never index that map. Route
+// every read and mutation through the exported WsClient* helpers, which take the
+// lock. Once the registry owns its map the `this.clients === undefined` half of
+// the TS guards is constant, so the emitted condition keeps only the lookup
+// result. Both the bare and the ccxt.-qualified spellings are handled: the base
+// file lives in package ccxt, and the venue files reach this pass already
+// qualified by addPackagePrefix.
+function goWsClientRegistryAccessors (content: string): string {
+    if (!/\bClients\b/.test (content)) {
+        return content;
+    }
+    return content
+        // Object.values(this.clients) -> snapshot (a copy taken under the read lock)
+        .replace (/(?<![\w.])(?:ccxt\.)?ObjectValues\(this\.Clients\)/g, 'this.WsClientSnapshot()')
+        // this.safeValue(this.clients, url) -> lookup (exactly two arguments; a default keeps SafeValue)
+        .replace (/(?<![\w.])(?:ccxt\.|this\.)?SafeValue\(this\.Clients, ([^,\n]+)\)/g, 'this.WsClientLookup($1)')
+        // delete(this.clients, url) -> delete through the write lock
+        .replace (/(?<![\w.])delete\(this\.Clients, ([^,\n]+)\)/g, 'this.WsClientDelete($1)')
+        // url in this.clients -> membership under the read lock
+        .replace (/(?<![\w.])(?:ccxt\.)?InOp\(this\.Clients, ([^,\n]+)\)/g, 'this.WsClientHas($1)')
+        // this.clients[url] !== undefined / === undefined -> has / !has
+        .replace (/this\.Clients\[([^\[\]\n]+)\] != nil/g, 'this.WsClientHas($1)')
+        .replace (/this\.Clients\[([^\[\]\n]+)\] == nil/g, '!this.WsClientHas($1)')
+        // this.clients[url] === client -> identity compare
+        .replace (/this\.Clients\[([^\[\]\n]+)\] == (\*?[A-Za-z_]\w*)/g, 'this.WsClientIs($1, $2)')
+        // this.clients[url] -> comma-ok read (a map write keeps its index expression)
+        .replace (/this\.Clients\[([^\[\]\n]+)\](?!\s*=(?!=))/g, 'this.WsClientGet($1)')
+        // the registry is never nil: drop the undefined half of the generated guards
+        .replace (/\(?this\.Clients == nil\)? \|\| !ok/g, '!ok')
+        .replace (/\(?this\.Clients != nil\)? && ok/g, 'ok');
+}
+
+function goWsClientRegistrySelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (body: string): string => goWsClientRegistryAccessors ('func (this *X) F(url *string) {\n' + body + '}\n');
+    const snap = f ('\tvar clients []any = ObjectValues(this.Clients)\n\tvar other []any = ccxt.ObjectValues(this.Clients)\n');
+    ok ((snap.indexOf ('var clients []any = this.WsClientSnapshot()') >= 0) && (snap.indexOf ('var other []any = this.WsClientSnapshot()') >= 0), 'snapshot: ' + snap);
+    const lookup = f ('\tvar client any = this.SafeValue(this.Clients, url)\n\tvar nested any = this.SafeValue(this.Clients, client.(ClientInterface).GetUrl())\n');
+    ok ((lookup.indexOf ('var client any = this.WsClientLookup(url)') >= 0) && (lookup.indexOf ('var nested any = this.WsClientLookup(client.(ClientInterface).GetUrl())') >= 0), 'lookup: ' + lookup);
+    const keep = f ('\tvar client any = this.SafeValue(this.Clients, url, nil)\n');
+    ok (keep.indexOf ('SafeValue(') >= 0, 'lookup with a default keeps SafeValue: ' + keep);
+    const del = f ('\tdelete(this.Clients, url)\n\tdelete(this.Clients, client.(ClientInterface).GetUrl())\n');
+    ok ((del.indexOf ('this.WsClientDelete(url)') >= 0) && (del.indexOf ('this.WsClientDelete(client.(ClientInterface).GetUrl())') >= 0), 'delete: ' + del);
+    const has = f ('\tif !(ccxt.InOp(this.Clients, url)) {\n\t}\n\tif InOp(this.Clients, url) {\n\t}\n');
+    ok ((has.match (/this\.WsClientHas\(url\)/g) || []).length === 2, 'has: ' + has);
+    const is = f ('\tif this.Clients[url] == client {\n\t}\n\tif this.Clients[url] != nil {\n\t}\n\tif this.Clients[url] == nil {\n\t}\n');
+    ok (is.indexOf ('if this.WsClientIs(url, client) {') >= 0, 'is: ' + is);
+    ok (is.indexOf ('if this.WsClientHas(url) {') >= 0, 'not-nil has: ' + is);
+    ok (is.indexOf ('if !this.WsClientHas(url) {') >= 0, 'nil has: ' + is);
+    const get = f ('\tif _, ok := this.Clients[*url]; ok {\n\t}\n\tvar client any = this.Clients[url]\n');
+    ok ((get.match (/this\.WsClientGet\(\*url\)/g) || []).length === 1, 'comma-ok get: ' + get);
+    ok (get.indexOf ('var client any = this.WsClientGet(url)') >= 0, 'value get: ' + get);
+    const guard = f ('\tif _, ok := this.Clients[url]; (this.Clients == nil) || !ok {\n\t}\n\tif _, ok := this.Clients[url]; (this.Clients != nil) && ok {\n\t}\n');
+    ok ((guard.indexOf ('if _, ok := this.WsClientGet(url); !ok {') >= 0) && (guard.indexOf ('if _, ok := this.WsClientGet(url); ok {') >= 0), 'guards: ' + guard);
+    ok (goWsClientRegistryAccessors (guard) === guard, 'second application is a no-op');
+    const other = f ('\tvar v any = SafeValue(this.Options, "ws")\n\tvar t any = this.Tables[url]\n');
+    ok ((other.indexOf ('SafeValue(this.Options, "ws")') >= 0) && (other.indexOf ('this.Tables[url]') >= 0), 'unrelated maps keep their access: ' + other);
+    return problems;
 }
 
 // base struct fields whose every write (hand-written + generated) is a non-nil *ArrayCache*,
