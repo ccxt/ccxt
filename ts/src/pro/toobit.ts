@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import toobitRest from '../toobit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool, Fee } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -26,6 +26,14 @@ export default class toobit extends toobitRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchOHLCVForSymbols': true,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
+                'unWatchTicker': true,
+                'unWatchTickers': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -229,6 +237,86 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name toobit#unWatchTrades
+     * @description unsubscribes from the trades channel
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name toobit#unWatchTradesForSymbols
+     * @description unsubscribes from the trades channel for a list of symbols
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchTradesForSymbols() requires a symbols argument');
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const subHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            subHashes.push ('trade::' + symbolsNormalized[i]);
+        }
+        const subscription: Dict = {
+            'topic': 'trades',
+            'symbols': symbolsNormalized,
+        };
+        return await this.unSubscribePublic ('trade', symbolsNormalized, subHashes, subscription, params);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name toobit#unSubscribePublic
+     * @description sends a single cancel request for the symbols of a public topic and drops the subscriptions and their cache
+     * @param {string} rawTopic exchange topic name: trade, kline_1m, realtimes, depth or diffDepth
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {string[]} subHashes the message hashes the watch method subscribed with, one per symbol
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    async unSubscribePublic (rawTopic: string, symbols: string[], subHashes: string[], subscription: Dict, params: Dict = {}): Promise<any> {
+        const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
+        const client = this.client (url);
+        const marketIds = this.marketIds (symbols);
+        const symbolValue = marketIds.join (',');
+        const request: Dict = {
+            'symbol': symbolValue,
+            'topic': rawTopic,
+            'event': 'cancel',
+        };
+        try {
+            await client.send (this.extend (request, params));
+        } catch (e) {
+            // the socket is not open (yet), so a queued subscribe has not gone out either -
+            // keep the subscriptions instead of letting that subscribe stream unwatched
+            throw new NetworkError (this.id + ' could not unsubscribe from ' + rawTopic + ', the websocket connection is not open');
+        }
+        // toobit does not acknowledge a cancel request, it just stops streaming the topic,
+        // so the subscriptions are cleaned up as soon as the request is sent
+        this.cleanCache (subscription);
+        for (let i = 0; i < subHashes.length; i++) {
+            const subHash = subHashes[i];
+            this.cleanUnsubscription (client, subHash, 'unsubscribe::' + subHash);
+        }
+        return true;
+    }
+
     handleTrades (client: Client, message: Dict) {
         //
         //     {
@@ -256,6 +344,11 @@ export default class toobit extends toobitRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');
+        const messageHash = 'trade::' + symbol;
+        if (!(messageHash in client.subscriptions)) {
+            // a frame toobit pushed before it processed a cancel request, which it does not acknowledge
+            return;
+        }
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache (limit);
@@ -266,7 +359,6 @@ export default class toobit extends toobitRest {
         for (let i = 0; i < parsedTrades.length; i++) {
             stored.append (parsedTrades[i]);
         }
-        const messageHash = 'trade::' + symbol;
         client.resolve (stored, messageHash);
     }
 
@@ -343,6 +435,63 @@ export default class toobit extends toobitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
+    /**
+     * @method
+     * @name toobit#unWatchOHLCV
+     * @description unsubscribes from the candlestick channel
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
+    /**
+     * @method
+     * @name toobit#unWatchOHLCVForSymbols
+     * @description unsubscribes from the candlestick channel for a list of symbols
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unsubscribe from, example [['BTC/USDT', '1m'], ['LTC/USDT', '1m']], a single timeframe for all symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const timeframes = this.safeDict (this.options['ws'], 'timeframes', {});
+        const symbols: string[] = [];
+        const subHashes: string[] = [];
+        const cleanedPairs: string[][] = [];
+        let selectedTimeframe: Str = undefined;
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = this.safeList (symbolsAndTimeframes, i);
+            const symbolStr = this.safeString (data, 0, '');
+            const market = this.market (symbolStr);
+            const symbol = market['symbol'];
+            const unifiedTimeframe = this.safeString (data, 1, '1m');
+            const rawTimeframe = this.safeString (timeframes, unifiedTimeframe, unifiedTimeframe);
+            if (selectedTimeframe !== undefined && selectedTimeframe !== rawTimeframe) {
+                throw new NotSupported (this.id + ' unWatchOHLCVForSymbols() only supports a single timeframe for all symbols');
+            } else {
+                selectedTimeframe = rawTimeframe;
+            }
+            symbols.push (symbol);
+            subHashes.push ('ohlcv::' + symbolStr + '::' + unifiedTimeframe);
+            cleanedPairs.push ([ symbol, unifiedTimeframe ]);
+        }
+        const subscription: Dict = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': cleanedPairs,
+        };
+        return await this.unSubscribePublic ('kline_' + selectedTimeframe, symbols, subHashes, subscription, params);
+    }
+
     handleOHLCV (client: Client, message: Dict) {
         //
         //     {
@@ -375,6 +524,11 @@ export default class toobit extends toobitRest {
         const params = this.safeDict (message, 'params', {});
         const timeframeId = this.safeString (params, 'klineType');
         const timeframe = this.findTimeframe (timeframeId);
+        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
+        if (!(messageHash in client.subscriptions)) {
+            // a frame toobit pushed before it processed a cancel request, which it does not acknowledge
+            return;
+        }
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -391,7 +545,6 @@ export default class toobit extends toobitRest {
             const parsed = this.parseWsOHLCV (data[i], market);
             stored.append (parsed);
         }
-        const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         const resolveData = [ symbol, timeframe, stored ];
         client.resolve (resolveData, messageHash);
     }
@@ -471,6 +624,49 @@ export default class toobit extends toobitRest {
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
+    /**
+     * @method
+     * @name toobit#unWatchTicker
+     * @description unsubscribes from the ticker channel
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name toobit#unWatchTickers
+     * @description unsubscribes from the ticker channel for a list of symbols
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchTickers() requires a symbols argument');
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const subHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            subHashes.push ('ticker::' + symbolsNormalized[i]);
+        }
+        const subscription: Dict = {
+            'topic': 'ticker',
+            'symbols': symbolsNormalized,
+        };
+        return await this.unSubscribePublic ('realtimes', symbolsNormalized, subHashes, subscription, params);
+    }
+
     handleTickers (client: Client, message: Dict) {
         //
         //    {
@@ -516,13 +712,18 @@ export default class toobit extends toobitRest {
             const ticker = this.safeDict (data, i, {});
             const parsed = this.parseWsTicker (ticker);
             const symbol = parsed['symbol'];
+            const messageHash = 'ticker::' + this.safeString (parsed, 'symbol', '');
+            if (!(messageHash in client.subscriptions)) {
+                // a frame toobit pushed before it processed a cancel request, which it does not acknowledge
+                continue;
+            }
             if (symbol !== undefined) {
                 this.tickers[symbol] = parsed;
             }
             if (symbol !== undefined) {
                 newTickers[symbol] = parsed;
             }
-            client.resolve (parsed, 'ticker::' + this.safeString (parsed, 'symbol', ''));
+            client.resolve (parsed, messageHash);
         }
         client.resolve (newTickers, 'tickers');
     }
@@ -583,6 +784,56 @@ export default class toobit extends toobitRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name toobit#unWatchOrderBook
+     * @description unsubscribes from the order book channel
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
+     * @param {string} symbol unified symbol of the market to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel the subscription was opened with, 'depth' or 'diffDepth', default is 'depth'
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name toobit#unWatchOrderBookForSymbols
+     * @description unsubscribes from the order book channel for a list of symbols
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+     * @see https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
+     * @param {string[]} symbols unified symbols of the markets to unsubscribe from
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel the subscription was opened with, 'depth' or 'diffDepth', default is 'depth'
+     * @returns {boolean} true once the cancel request has been sent (toobit does not acknowledge it)
+     */
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchOrderBookForSymbols() requires a symbols argument');
+        }
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
+        const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchOrderBookForSymbols', 'channel', 'depth');
+        const subHashes: string[] = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            subHashes.push ('orderBook::' + symbolsNormalized[i] + '::' + channel);
+        }
+        const subscription: Dict = {
+            'topic': 'orderbook',
+            'symbols': symbolsNormalized,
+        };
+        return await this.unSubscribePublic (channel, symbolsNormalized, subHashes, subscription, paramsChannel);
+    }
+
     handleOrderBook (client: Client, message: Dict) {
         //
         //     {
@@ -613,10 +864,14 @@ export default class toobit extends toobitRest {
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        const messageHash = 'orderBook::' + symbol + '::' + 'diffDepth';
+        if (!(messageHash in client.subscriptions)) {
+            // a frame toobit pushed before it processed a cancel request, which it does not acknowledge
+            return;
+        }
         const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i);
-            const messageHash = 'orderBook::' + symbol + '::' + 'diffDepth';
             if (!(symbol in this.orderbooks)) {
                 const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
@@ -675,6 +930,10 @@ export default class toobit extends toobitRest {
             const marketId = this.safeString (entry, 's');
             const symbol = this.safeSymbol (marketId);
             const messageHash = 'orderBook::' + symbol + '::' + channel;
+            if (!(messageHash in client.subscriptions)) {
+                // a frame toobit pushed before it processed a cancel request, which it does not acknowledge
+                continue;
+            }
             if (!(symbol in this.orderbooks)) {
                 const limit = this.safeInteger (this.options['ws'], 'orderBookLimit', 1000);
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
