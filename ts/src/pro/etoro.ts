@@ -75,7 +75,10 @@ export default class etoro extends etoroRest {
     }
 
     getPrivateTopic (): string {
-        return this.isSandboxModeEnabled ? 'private:demo' : 'private:real';
+        if (this.isSandboxModeEnabled) {
+            return 'private:demo';
+        }
+        return 'private:real';
     }
 
     /**
@@ -312,7 +315,9 @@ export default class etoro extends etoroRest {
             let stillWatched = false;
             for (let j = 0; j < marketsById.length; j++) {
                 const sharedSymbol = this.safeString (marketsById[j], 'symbol');
-                if ((('sub:ticker:' + sharedSymbol) in client.subscriptions) || (('sub:bidask:' + sharedSymbol) in client.subscriptions)) {
+                const sharedTickerKey = 'sub:ticker:' + sharedSymbol;
+                const sharedBidAskKey = 'sub:bidask:' + sharedSymbol;
+                if ((sharedTickerKey in client.subscriptions) || (sharedBidAskKey in client.subscriptions)) {
                     stillWatched = true;
                     break;
                 }
@@ -395,8 +400,10 @@ export default class etoro extends etoroRest {
             const previousInfo = this.safeDict (previous, 'info', {});
             const merged = this.extend (previousInfo, content);
             const ticker = this.parseWsTicker (merged, market as Market);
-            const tickerWatched = (('sub:ticker:' + symbol) in client.subscriptions);
-            const bidAskWatched = (('sub:bidask:' + symbol) in client.subscriptions);
+            const tickerKey = 'sub:ticker:' + symbol;
+            const bidAskKey = 'sub:bidask:' + symbol;
+            const tickerWatched = (tickerKey in client.subscriptions);
+            const bidAskWatched = (bidAskKey in client.subscriptions);
             if (tickerWatched || !bidAskWatched) {
                 this.tickers[symbol] = ticker;
                 client.resolve (ticker, 'ticker:' + symbol);
@@ -673,7 +680,8 @@ export default class etoro extends etoroRest {
         this.cleanCache ({ 'topic': kind });
         const kinds = [ 'orders', 'myTrades', 'positions' ];
         for (let i = 0; i < kinds.length; i++) {
-            if (('sub:private:' + kinds[i]) in client.subscriptions) {
+            const subscriptionKey = 'sub:private:' + kinds[i];
+            if (subscriptionKey in client.subscriptions) {
                 return true;
             }
         }
@@ -804,7 +812,7 @@ export default class etoro extends etoroRest {
             };
         }
         const positionId = this.safeString (trade, 'positionId');
-        const tradeSide = isOpen ? 'open' : 'close';
+        const tradeSide = (isOpen) ? 'open' : 'close';
         return this.safeTrade ({
             'info': trade,
             'id': positionId + '-' + tradeSide,

@@ -451,7 +451,8 @@ export default class etoro extends Exchange {
             const instrument = publicInstruments[i];
             if (this.safeInteger (instrument, 'instrumentTypeID') === 10) {
                 const symbolFull = this.safeString (instrument, 'symbolFull', '');
-                cryptoSymbols[symbolFull.toUpperCase ()] = true;
+                const upperSymbolFull = symbolFull.toUpperCase ();
+                cryptoSymbols[upperSymbolFull] = true;
             }
         }
         const result = [];
@@ -657,10 +658,8 @@ export default class etoro extends Exchange {
             const cryptoQuotes = this.safeList (this.options, 'cryptoQuotes', []);
             for (let i = 0; i < cryptoQuotes.length; i++) {
                 const cryptoQuote = cryptoQuotes[i];
-                const quoteLength = cryptoQuote.length;
-                const symbolLength = upperSymbol.length;
-                if ((symbolLength > quoteLength) && upperSymbol.endsWith (cryptoQuote)) {
-                    const baseLength = symbolLength - quoteLength;
+                if ((upperSymbol.length > cryptoQuote.length) && upperSymbol.endsWith (cryptoQuote)) {
+                    const baseLength = (upperSymbol.length - cryptoQuote.length);
                     const baseId = upperSymbol.slice (0, baseLength);
                     if ((baseId in cryptoSymbols) || (baseId === 'GOLD')) {
                         return [ baseId, cryptoQuote ];
@@ -757,9 +756,9 @@ export default class etoro extends Exchange {
             'option': false,
             'active': active,
             'contract': !isSpot,
-            'linear': isSpot ? undefined : true,
-            'inverse': isSpot ? undefined : false,
-            'contractSize': isSpot ? undefined : this.parseNumber ('1'),
+            'linear': (isSpot) ? undefined : true,
+            'inverse': (isSpot) ? undefined : false,
+            'contractSize': (isSpot) ? undefined : this.parseNumber ('1'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -824,7 +823,8 @@ export default class etoro extends Exchange {
         if (partsLength < 2) {
             return undefined;
         }
-        const suffix = parts[partsLength - 1].toUpperCase ();
+        const lastPart = parts[partsLength - 1];
+        const suffix = lastPart.toUpperCase ();
         const baseParts = [];
         for (let i = 0; i < partsLength - 1; i++) {
             baseParts.push (parts[i]);
@@ -858,7 +858,9 @@ export default class etoro extends Exchange {
             const month = this.safeString (months, suffix.slice (0, 3));
             const year = suffix.slice (3);
             const digits = '0123456789';
-            const isYear = (year.length === 2) && (digits.indexOf (year.slice (0, 1)) !== -1) && (digits.indexOf (year.slice (1, 2)) !== -1);
+            const firstYearDigit = year.slice (0, 1);
+            const secondYearDigit = year.slice (1, 2);
+            const isYear = (year.length === 2) && (digits.indexOf (firstYearDigit) >= 0) && (digits.indexOf (secondYearDigit) >= 0);
             if ((month !== undefined) && isYear) {
                 expiry = this.parse8601 ('20' + year + '-' + month + '-01T00:00:00Z');
             }
@@ -996,12 +998,15 @@ export default class etoro extends Exchange {
         let query = undefined;
         [ chunkSize, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'chunkSize', 600);
         const promises: Promise<any>[] = [];
-        for (let i = 0; i < ids.length; i += chunkSize) {
-            const chunk = this.arraySlice (ids, i, i + chunkSize);
+        const idsLength = ids.length;
+        let start = 0;
+        while (start < idsLength) {
+            const chunk = this.arraySlice (ids, start, start + chunkSize);
             const request: Dict = {
                 'instrumentIds': chunk.join (','),
             };
             promises.push (this.publicGetV1MarketDataInstrumentsRates (this.extend (request, query)));
+            start = start + chunkSize;
         }
         const responses = await Promise.all (promises);
         const result: Dict = {};
@@ -1098,7 +1103,7 @@ export default class etoro extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.historical] set to true to force the data endpoint, it is used automatically for ranges older than the latest 1000 candles
      * @param {string} [params.side] 'bid', 'ask' or 'both', only used by the data endpoint, default is 'bid'
-     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
@@ -1381,8 +1386,10 @@ export default class etoro extends Exchange {
      * @param {float} [price] the price for a limit order
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.cost] the amount in USD to invest instead of the amount in base currency
-     * @param {float} [params.triggerPrice] the price at which a market-if-touched order is triggered
+     * @param {float} [params.triggerPrice] the price at which a market-if-touched order is triggered, alias params.stopPrice
      * @param {int} [params.leverage] the leverage multiplier, default is 1
+     * @param {float} [params.stopLossPrice] the price of the stop loss attached to the position
+     * @param {float} [params.takeProfitPrice] the price of the take profit attached to the position
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {bool} [params.trailing] set to true for a trailing stop loss
@@ -1646,7 +1653,7 @@ export default class etoro extends Exchange {
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.isCloseOrder] set to true to cancel a pending close order, created by closePosition
-     * @returns {object} An [order structure](https://docs.ccxt.com/?id=order-structure)
+     * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
@@ -1713,7 +1720,7 @@ export default class etoro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] the client order id (the request id used when the order was created)
      * @param {bool} [params.isCloseOrder] set to true to fetch a close order, created by closePosition
-     * @returns {object} An [order structure](https://docs.ccxt.com/?id=order-structure)
+     * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
      */
     override async fetchOrder (id: Str, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
@@ -1739,7 +1746,7 @@ export default class etoro extends Exchange {
         const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['referenceId'] = clientOrderId;
-        } else if ((id !== undefined) && (id.indexOf ('-') !== -1)) {
+        } else if ((id !== undefined) && (id.indexOf ('-') >= 0)) {
             request['referenceId'] = id;
         } else {
             request['orderId'] = id;
@@ -2417,6 +2424,7 @@ export default class etoro extends Exchange {
 
     /**
      * @method
+     * @ignore
      * @name etoro#editPosition
      * @description changes the stop loss and the take profit of an open position
      * @see https://api-portal.etoro.com/api-reference/trading--real/modify-stop-loss-and-take-profit-settings-on-an-open-position.md
@@ -2444,7 +2452,7 @@ export default class etoro extends Exchange {
         }
         const trailing = this.safeBool (params, 'trailing');
         if (trailing !== undefined) {
-            request['stopLossType'] = trailing ? 'trailing' : 'fixed';
+            request['stopLossType'] = (trailing) ? 'trailing' : 'fixed';
         }
         const clearStopLoss = this.safeBool (params, 'clearStopLoss', false);
         if (clearStopLoss) {
@@ -2664,11 +2672,11 @@ export default class etoro extends Exchange {
         let price: Str = undefined;
         let timestamp: Int = undefined;
         if (isOpen) {
-            side = isBuy ? 'buy' : 'sell';
+            side = (isBuy) ? 'buy' : 'sell';
             price = this.safeString (trade, 'openRate');
             timestamp = this.parse8601 (this.safeString (trade, 'openTimestamp'));
         } else {
-            side = isBuy ? 'sell' : 'buy';
+            side = (isBuy) ? 'sell' : 'buy';
             price = this.safeString (trade, 'closeRate');
             timestamp = this.parse8601 (this.safeString (trade, 'closeTimestamp'));
         }
@@ -2683,7 +2691,7 @@ export default class etoro extends Exchange {
         return this.safeTrade ({
             'info': trade,
             'id': positionId + '-' + this.safeString (trade, 'tradeSide'),
-            'order': isOpen ? this.safeString (trade, 'orderId') : undefined,
+            'order': (isOpen) ? this.safeString (trade, 'orderId') : undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': marketResolved['symbol'],
@@ -2754,7 +2762,7 @@ export default class etoro extends Exchange {
             'lastPrice': this.safeNumber (position, 'closeRate'),
             'collateral': this.safeNumber (position, 'investment'),
             'marginMode': 'isolated',
-            'side': isBuy ? 'long' : 'short',
+            'side': (isBuy) ? 'long' : 'short',
             'percentage': undefined,
             'hedged': true,
             'stopLossPrice': this.parseNumber (this.parseProtectionRate (this.safeString (position, 'stopLossRate'))),
@@ -2823,12 +2831,12 @@ export default class etoro extends Exchange {
         const errorCode = this.safeStringN (response, [ 'errorCode', 'code' ], this.safeString (error, 'code'));
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-        if ((code === 400) && (url.indexOf ('/trading/execution/') !== -1)) {
+        if ((code === 400) && (url.indexOf ('/trading/execution/') >= 0)) {
             // {"message":"Validation failed: \n -- Amount: ... Severity: Error"}
             throw new InvalidOrder (feedback);
         }
         if (code === 404) {
-            if (url.indexOf ('orders') !== -1) {
+            if (url.indexOf ('orders') >= 0) {
                 throw new OrderNotFound (feedback);
             }
             throw new BadRequest (feedback);
