@@ -325,28 +325,28 @@ func TestSafeFloat() {
 	var inputList []any = []any{"Hi", 2}
 	// safeFloat
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "i"), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "i"), float64(1)))
 	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "f"), 0.123))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "strNumber"), ccxt.ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "strNumber"), float64(3)))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 1), ccxt.ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat(inputList, 1), float64(2)))
 	// safeFloat2
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "i"), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "i"), float64(1)))
 	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "f"), 0.123))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "strNumber"), ccxt.ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputDict, "a", "strNumber"), float64(3)))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputList, 2, 1), ccxt.ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloat2(inputList, 2, 1), float64(2)))
 	// safeFloatN
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "i"}), ccxt.ParseFloat(1)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "i"}), float64(1)))
 	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "f"}), 0.123))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "strNumber"}), ccxt.ParseFloat(3)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputDict, []any{"a", "b", "strNumber"}), float64(3)))
 	// @ts-expect-error
-	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{3, 2, 1}), ccxt.ParseFloat(2)))
+	Assert(ccxt.IsEqual(exchange.SafeFloatN(inputList, []any{3, 2, 1}), float64(2)))
 	// safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
 	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent"), nil), "safeFloat failed for missing key")
 	assert(ccxt.IsEqual(exchange.SafeFloat(inputDict, "nonexistent", 5), 5), "safeFloat failed for missing key with default")

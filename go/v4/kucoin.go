@@ -10422,7 +10422,11 @@ func (this *Kucoin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var amountString *string = this.CurrencyToPrecision(code, amount, networkCode)
 	if amountString != nil {
-		request["amount"] = ParseFloat(amountString)
+		if parsedFloat, parseErr := strconv.ParseFloat(*amountString, 64); parseErr == nil {
+			request["amount"] = parsedFloat
+		} else {
+			request["amount"] = nil
+		}
 	}
 	includeFee, paramsIncludeFee := this.HandleOptionBoolAndParams(paramsNetworkCode, "withdraw", "includeFee", false)
 	if includeFee {

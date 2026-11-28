@@ -1832,7 +1832,12 @@ func (this *BaseExchange) ParseToInt(number any) int64 {
 	// the cast is erased at transpile-time, so output matches every target language, rather than
 	// branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
 	var stringifiedNumber *string = this.NumberToString(number)
-	var convertedNumber any = ParseFloat(stringifiedNumber)
+	var convertedNumber *float64 = nil
+	if stringifiedNumber != nil {
+		if parsedFloat, parseErr := strconv.ParseFloat(*stringifiedNumber, 64); parseErr == nil {
+			convertedNumber = &parsedFloat
+		}
+	}
 	return ParseInt(convertedNumber)
 }
 func (this *BaseExchange) ParseToNumeric(number any) any {
@@ -1842,7 +1847,10 @@ func (this *BaseExchange) ParseToNumeric(number any) any {
 	// in Python: 1 == 1.0 is true
 	// in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
 	if stringVersion != nil && strings.Index(*stringVersion, ".") >= 0 {
-		return ParseFloat(stringVersion)
+		if parsedFloat, parseErr := strconv.ParseFloat(*stringVersion, 64); parseErr == nil {
+			return parsedFloat
+		}
+		return nil
 	}
 	return ParseInt(stringVersion)
 }

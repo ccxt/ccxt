@@ -7586,24 +7586,34 @@ func (this *Binance) HandleMyTrade(client ccxt.ClientInterface, message any) {
 					var fee map[string]any = this.SafeDictMap(order, "fee")
 					if (fees != nil) && !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
+						var newFees []any = []any{}
 						for i := 0; i < len(fees); i++ {
-							var orderFee, _ = fees[i].(map[string]any)
-							if this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency")) {
+							var orderFee map[string]any = this.Extend(map[string]any{}, fees[i])
+							if insertNewFeeCurrency && (this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency"))) {
 								var feeCost any = this.Sum(tradeFee["cost"], orderFee["cost"])
 								var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
 								if feeCostString == nil {
 									feeCostStringValue := "0"
 									feeCostString = &feeCostStringValue
 								}
-								ccxt.AddElementToObject(ccxt.GetValue(order["fees"], i), "cost", ccxt.ParseFloat(feeCostString))
+								if feeCostString != nil {
+									if parsedFloat, parseErr := strconv.ParseFloat(*feeCostString, 64); parseErr == nil {
+										orderFee["cost"] = parsedFloat
+									} else {
+										orderFee["cost"] = nil
+									}
+								} else {
+									orderFee["cost"] = nil
+								}
 								insertNewFeeCurrency = false
-								break
 							}
+							newFees = append(newFees, orderFee)
 						}
 						if insertNewFeeCurrency {
-							retRes574032 := order["fees"]
-							ccxt.AppendToArray(&retRes574032, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes574032)
+							newFees = append(newFees, tradeFee)
+						}
+						if order != nil {
+							order["fees"] = newFees
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
@@ -7613,9 +7623,18 @@ func (this *Binance) HandleMyTrade(client ccxt.ClientInterface, message any) {
 								feeCostStringValue := "0"
 								feeCostString = &feeCostStringValue
 							}
-							ccxt.AddElementToObject(fee, "cost", ccxt.ParseFloat(feeCostString))
+							var newFee map[string]any = this.Extend(map[string]any{}, fee)
+							if feeCostString != nil {
+								if parsedFloat, parseErr := strconv.ParseFloat(*feeCostString, 64); parseErr == nil {
+									newFee["cost"] = parsedFloat
+								} else {
+									newFee["cost"] = nil
+								}
+							} else {
+								newFee["cost"] = nil
+							}
 							if order != nil {
-								order["fee"] = fee
+								order["fee"] = newFee
 							}
 						} else if this.SafeString(fee, "currency") == nil {
 							if order != nil {
