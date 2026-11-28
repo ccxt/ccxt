@@ -1363,17 +1363,13 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
-        $symbolKnown = false;
+        $marketResolved = $market;
         if (($base !== null) && ($quote !== null)) {
             $knownSymbol = $base . '/' . $quote;
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($knownSymbol ?? '', $this->markets))) {
-                $symbolKnown = true;
+                $marketResolved = $this->market($knownSymbol);
             }
             $symbol = $knownSymbol;
-        }
-        $marketResolved = $market;
-        if ($symbolKnown) {
-            $marketResolved = $this->market($symbol);
         }
         $orderSide = $this->safe_string($order, 'side');
         $side = null;

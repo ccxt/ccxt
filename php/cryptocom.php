@@ -3304,14 +3304,11 @@ class cryptocom extends Exchange {
         $request = array();
         $market = null;
         if ($symbolsNormalized !== null) {
-            $symbol = null;
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 1) {
                 throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
-            if ($symbolsLength === 1) {
-                $symbol = $symbolsNormalized[0];
-            }
+            $symbol = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }

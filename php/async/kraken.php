@@ -1876,7 +1876,7 @@ class kraken extends Exchange {
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $parsedAmount = $this->amount_to_precision($market['symbol'], $amount);
+            $parsedAmount = $this->amount_to_precision($this->safe_string($market, 'symbol'), $amount);
             $req = array(
                 'type' => $side,
                 'ordertype' => $type,

@@ -1027,7 +1027,7 @@ class backpack extends Exchange {
         return $response;
     }
 
-    public function fetch_stock_indicative_quote(string $symbol, string $side, float $amount, $params = array()): array {
+    public function fetch_stock_indicative_quote(?string $symbol, string $side, float $amount, $params = array()): array {
         /**
          * @ignore
          * fetches a size-specific indicative stock quote without submitting or accepting an RFQ
@@ -1138,10 +1138,11 @@ class backpack extends Exchange {
         }
         $this->load_markets();
         $market = $this->rfq_conversion_market($fromCode, $toCode);
+        $marketSymbol = $this->safe_string($market, 'symbol');
         $fromIsBase = $fromCode === $this->safe_string($market, 'base');
         $side = ($fromIsBase) ? 'sell' : 'buy';
         if (!$fromIsBase) {
-            $initialQuote = $this->fetch_stock_indicative_quote($market['symbol'], $side, 1, array( 'stock' => true ));
+            $initialQuote = $this->fetch_stock_indicative_quote($marketSymbol, $side, 1, array( 'stock' => true ));
             $initialPrice = $this->safe_string($initialQuote, 'price');
             if (!$this->safe_bool($initialQuote, 'available', false) || ($initialPrice === null)) {
                 throw new InvalidOrder($this->id . ' fetchConvertQuote() stock indicative quote unavailable => ' . $this->safe_string($initialQuote, 'reason', 'priceUnavailable'));
@@ -1154,7 +1155,7 @@ class backpack extends Exchange {
                 throw new InvalidOrder($this->id . ' fetchConvertQuote() price must be positive');
             }
             $rawQuantity = Precise::string_div($amountString, $priceParam, 18);
-            $preciseQuantity = $this->amount_to_precision($market['symbol'], $this->parse_number($rawQuantity));
+            $preciseQuantity = $this->amount_to_precision($marketSymbol, $this->parse_number($rawQuantity));
             if ($preciseQuantity === null) {
                 throw new InvalidOrder($this->id . ' fetchConvertQuote() could not determine a stock quantity');
             }
@@ -1163,7 +1164,7 @@ class backpack extends Exchange {
                 throw new InvalidOrder($this->id . ' fetchConvertQuote() amount is too small for one stock increment');
             }
         }
-        $quote = $this->fetch_stock_indicative_quote($market['symbol'], $side, $this->parse_number($amountString), array( 'stock' => true ));
+        $quote = $this->fetch_stock_indicative_quote($marketSymbol, $side, $this->parse_number($amountString), array( 'stock' => true ));
         if (!$this->safe_bool($quote, 'available', false) || ($this->safe_string($quote, 'price') === null)) {
             throw new InvalidOrder($this->id . ' fetchConvertQuote() stock indicative quote unavailable => ' . $this->safe_string($quote, 'reason', 'priceUnavailable'));
         }
@@ -1177,7 +1178,7 @@ class backpack extends Exchange {
                     throw new InvalidOrder($this->id . ' fetchConvertQuote() amount is too small for one stock increment');
                 }
                 $amountString = $reducedQuantity;
-                $quote = $this->fetch_stock_indicative_quote($market['symbol'], $side, $this->parse_number($amountString), array( 'stock' => true ));
+                $quote = $this->fetch_stock_indicative_quote($marketSymbol, $side, $this->parse_number($amountString), array( 'stock' => true ));
                 if (!$this->safe_bool($quote, 'available', false) || ($this->safe_string($quote, 'price') === null)) {
                     throw new InvalidOrder($this->id . ' fetchConvertQuote() stock indicative quote unavailable => ' . $this->safe_string($quote, 'reason', 'priceUnavailable'));
                 }

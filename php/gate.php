@@ -1353,7 +1353,7 @@ class gate extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
-        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
+        if (($marketId !== null) && $isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -6017,11 +6017,12 @@ class gate extends Exchange {
         }
         if ($isSpot) {
             $ordersRequests = array();
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $this->safe_string($ids, $i, '');
                 $orderItem = array(
                     'id' => $id,
-                    'symbol' => $symbol,
+                    'symbol' => $marketSymbol,
                 );
                 $ordersRequests[] = $orderItem;
             }

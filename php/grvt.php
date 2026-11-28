@@ -2218,7 +2218,8 @@ class grvt extends Exchange {
         $legs = array();
         for ($i = 0; $i < count($orderLegs); $i++) {
             $leg = $orderLegs[$i];
-            $market = $this->market($leg['instrument']);
+            $instrument = $this->safe_string($leg, 'instrument');
+            $market = $this->market($instrument);
             $precisionValue = $this->precision_from_string($this->safe_string($market['precision'], 'base'));
             $sizeMultiplier = pow(10, $precisionValue);
             $size = $this->safe_string($leg, 'size');

@@ -12130,18 +12130,11 @@ class binance extends Exchange {
         $request = array();
         $market = null;
         if ($symbolsNormalized !== null) {
-            $symbol = null;
-            if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
-                $symbolsLength = count($symbolsNormalized);
-                if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if ($symbolsLength === 1) {
-                    $symbol = $symbolsNormalized[0];
-                }
-            } else {
-                $symbol = $symbolsNormalized;
+            $symbolsLength = count($symbolsNormalized);
+            if ($symbolsLength > 1) {
+                throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
             }
+            $symbol = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }

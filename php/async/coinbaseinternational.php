@@ -2210,7 +2210,7 @@ class coinbaseinternational extends Exchange {
         if ($this->is_native_deribit_credentials() && ($this->safe_bool($market, 'contract', false))) {
             $exchangeAmount = Precise::string_mul($exchangeAmount, $this->safe_string($market, 'contractSize'));
         }
-        return $this->amount_to_precision($market['symbol'], $exchangeAmount);
+        return $this->amount_to_precision($this->safe_string($market, 'symbol'), $exchangeAmount);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {

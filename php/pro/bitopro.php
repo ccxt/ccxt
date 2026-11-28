@@ -284,7 +284,8 @@ class bitopro extends \ccxt\async\bitopro {
         if (($base === null) || ($quote === null)) {
             return;
         }
-        $symbol = $this->symbol($base . '/' . $quote);
+        $marketSymbol = $base . '/' . $quote;
+        $symbol = $this->symbol($marketSymbol);
         $messageHash = $this->safe_string($message, 'event');
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -327,7 +328,8 @@ class bitopro extends \ccxt\async\bitopro {
         $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
-            $symbol = $this->symbol($base . '/' . $quote);
+            $marketSymbol = $base . '/' . $quote;
+            $symbol = $this->symbol($marketSymbol);
         }
         $marketResolved = $this->safe_market($symbol, $market);
         $price = $this->safe_string($trade, 'price');

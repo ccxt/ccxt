@@ -2441,15 +2441,11 @@ class deepcoin extends Exchange {
         $request = array(
             'OrderSysID' => $id,
         );
-        $market = null;
-        $symbolResolved = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            if ($this->safe_bool($market, 'spot', false)) {
-                throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
-            }
-            $symbolResolved = $this->safe_string($market, 'symbol');
+        $market = $this->market($symbol);
+        if ($this->safe_bool($market, 'spot', false)) {
+            throw new NotSupported($this->id . ' editOrder() is not supported for spot markets');
         }
+        $symbolResolved = $this->safe_string($market, 'symbol');
         $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
         $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
         $isTPSL = ($stopLossPrice !== null) || ($takeProfitPrice !== null);
@@ -2459,10 +2455,10 @@ class deepcoin extends Exchange {
                 throw new BadRequest($this->id . ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.');
             }
             if ($stopLossPrice !== null) {
-                $request['slTriggerPx'] = ($symbolResolved !== '') ? $this->price_to_precision($symbolResolved, $stopLossPrice) : $this->number_to_string($stopLossPrice);
+                $request['slTriggerPx'] = ($symbolResolved !== null) ? $this->price_to_precision($symbolResolved, $stopLossPrice) : $this->number_to_string($stopLossPrice);
             }
             if ($takeProfitPrice !== null) {
-                $request['tpTriggerPx'] = ($symbolResolved !== '') ? $this->price_to_precision($symbolResolved, $takeProfitPrice) : $this->number_to_string($takeProfitPrice);
+                $request['tpTriggerPx'] = ($symbolResolved !== null) ? $this->price_to_precision($symbolResolved, $takeProfitPrice) : $this->number_to_string($takeProfitPrice);
             }
             $paramsOmitted = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice' ));
             $response = Async\await($this->privatePostDeepcoinTradeReplaceOrderSltp($this->extend($request, $paramsOmitted)));

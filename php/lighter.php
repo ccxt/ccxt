@@ -758,7 +758,7 @@ class lighter extends Exchange {
         $this->options['chainId'] = $enable ? 300 : 304;
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
@@ -940,7 +940,7 @@ class lighter extends Exchange {
         return $this->parse_to_int($this->safe_integer($response, 'nonce'));
     }
 
-    public function sign_and_create_order(string $method, ?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function sign_and_create_order(string $method, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

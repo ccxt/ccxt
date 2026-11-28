@@ -6812,26 +6812,21 @@ class bybit extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_cursor('fetchPositions', $symbols, null, null, $paramsPaginate, 'nextPageCursor', 'cursor', null, 200);
         }
+        $symbolsNormalized = $this->market_symbols($symbols);
         $symbol = null;
-        $symbolsNormalized = null;
-        if (($symbols !== null) && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
-            $symbolsLength = count($symbols);
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
-            } elseif ($symbolsLength === 1) {
-                $symbol = $symbols[0];
             }
-            $symbolsNormalized = $this->market_symbols($symbols);
-        } elseif ($symbols !== null) {
-            $symbol = $symbols;
-            $symbolsNormalized = array( $this->symbol($symbol) );
+            $symbol = $this->safe_string($symbolsNormalized, 0);
         }
         $request = array();
         $market = null;
         if ($symbol !== null) {
             $symbolMarket = $this->market($symbol);
             $market = $symbolMarket;
-            $symbol = $symbolMarket['symbol'];
+            $symbol = $this->safe_string($symbolMarket, 'symbol');
             $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchPositions', $market, $paramsPaginate);

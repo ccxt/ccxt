@@ -4426,11 +4426,12 @@ class hyperliquid extends Exchange {
         for ($i = 0; $i < count($universe); $i++) {
             $asset = $this->safe_dict($universe, $i, array());
             // the coin name resolves to the unified symbol, delisted assets have no market
-            $symbol = $this->coin_to_market_id($this->safe_string($asset, 'name'));
-            $market = $this->safe_dict($this->markets, $symbol);
+            $marketId = $this->coin_to_market_id($this->safe_string($asset, 'name'));
+            $market = $this->safe_dict($this->markets, $marketId);
             if ($market === null) {
                 continue;
             }
+            $symbol = $this->safe_string($market, 'symbol', '');
             if (($symbolsLength > 0) && !$this->in_array($symbol, $symbolsNormalized)) {
                 continue;
             }
@@ -6375,7 +6376,10 @@ class hyperliquid extends Exchange {
         if ($hip3Dict !== null) {
             $quote = $this->safe_string($hip3Dict, 'quote', 'USDC');
             $code = $this->safe_string($hip3Dict, 'code', $coin);
-            return $code . '/' . $quote . ':' . $quote;
+            if ($code !== null) {
+                return $code . '/' . $quote . ':' . $quote;
+            }
+            return null;
         }
         if (mb_strpos($coin, '/') > -1 || mb_strpos($coin, '@') > -1) {
             return $coin; // spot
@@ -6385,7 +6389,11 @@ class hyperliquid extends Exchange {
         if (mb_strpos($coin, ':') > -1) {
             $coinId = str_replace(':', '-', $coin);
         }
-        return $this->safe_currency_code($coinId) . '/USDC:USDC';
+        $currencyCode = $this->safe_currency_code($coinId);
+        if ($currencyCode !== null) {
+            return $currencyCode . '/USDC:USDC';
+        }
+        return null;
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {

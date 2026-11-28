@@ -2252,13 +2252,12 @@ class okx extends \ccxt\async\okx {
         }
         Async\await($this->authenticate(array( 'access' => $accessType )));
         $market = null;
-        $symbolResolved = null;
         $type = $typeOption;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $this->safe_string($market, 'symbol');
             $type = $this->safe_string($market, 'type');
         }
+        $symbolResolved = $this->safe_string($market, 'symbol');
         if ($type === 'future') {
             $type = 'futures';
         }

@@ -2457,10 +2457,11 @@ class hitbtc extends Exchange {
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $isPostOnly = $this->is_post_only($type === 'market', false, $params);
         $resolvedMarketType = $this->safe_string($market, 'type');
+        $marketSymbol = $this->safe_string($market, 'symbol');
         $request = array(
             'type' => $type,
             'side' => $side,
-            'quantity' => $this->amount_to_precision($market['symbol'], $amount),
+            'quantity' => $this->amount_to_precision($marketSymbol, $amount),
             'symbol' => $this->safe_string($market, 'id'),
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
@@ -2493,7 +2494,7 @@ class hitbtc extends Exchange {
             if ($price === null) {
                 throw new ExchangeError($this->id . ' createOrder() requires a price argument for limit orders');
             }
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['price'] = $this->price_to_precision($marketSymbol, $price);
         }
         if (($timeInForce === 'GTD')) {
             $expireTime = $this->safe_string($params, 'expire_time');
@@ -2502,7 +2503,7 @@ class hitbtc extends Exchange {
             }
         }
         if ($triggerPrice !== null) {
-            $request['stop_price'] = $this->price_to_precision($market['symbol'], $triggerPrice);
+            $request['stop_price'] = $this->price_to_precision($marketSymbol, $triggerPrice);
             if ($isLimit) {
                 $request['type'] = 'stopLimit';
             } elseif ($type === 'market') {

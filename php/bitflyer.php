@@ -817,10 +817,8 @@ class bitflyer extends Exchange {
             'count' => $limit,
         );
         $response = $this->privateGetGetchildorders($this->extend($request, $params));
-        if ($symbol !== null) {
-            return $this->filter_by($this->parse_orders($response, $market, $since, $limit), 'symbol', $symbol);
-        }
-        return $this->parse_orders($response, $market, $since, $limit);
+        $marketSymbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by($this->parse_orders($response, $market, $since, $limit), 'symbol', $marketSymbol);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): array {

@@ -399,7 +399,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = $this->market($this->single_bid_ask_symbol('watchBidsAsks', $symbols));
+        $bidAskSymbol = $this->single_bid_ask_symbol('watchBidsAsks', $symbols);
+        $market = $this->market($bidAskSymbol);
         $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'bidask:' . $symbol;
         $url = $this->urls['api']['ws']['public'];
@@ -438,7 +439,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = $this->market($this->single_bid_ask_symbol('unWatchBidsAsks', $symbols));
+        $bidAskSymbol = $this->single_bid_ask_symbol('unWatchBidsAsks', $symbols);
+        $market = $this->market($bidAskSymbol);
         $symbol = $this->safe_string($market, 'symbol', '');
         $subMessageHash = 'bidask:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;

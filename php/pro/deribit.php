@@ -245,8 +245,8 @@ class deribit extends \ccxt\async\deribit {
             Async\await($this->authenticate());
         }
         $channels = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $channels[] = 'ticker.' . $this->safe_string($market, 'id', '') . '.' . $interval;
         }
         $message = array(
@@ -330,8 +330,8 @@ class deribit extends \ccxt\async\deribit {
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $url = $this->urls['api']['ws'];
         $channels = array();
-        for ($i = 0; $i < count(($symbolsNormalized)); $i++) {
-            $market = $this->market(($symbolsNormalized)[$i]);
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
             $channels[] = 'quote.' . $this->safe_string($market, 'id', '');
         }
         $message = array(

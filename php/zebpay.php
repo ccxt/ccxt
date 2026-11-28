@@ -1070,7 +1070,7 @@ class zebpay extends Exchange {
             $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
             $formType = $this->safe_string_upper($query, 'formType', 'ORDER_FORM');
             $request['formType'] = $formType;
-            $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($market['id'], $amount));
+            $request['amount'] = $this->parse_to_numeric($this->amount_to_precision($this->safe_string($market, 'id'), $amount));
             $request['marginAsset'] = $marginAsset;
             $hasTP = $takeProfitPrice !== null;
             $hasSL = $stopLossPrice !== null;
