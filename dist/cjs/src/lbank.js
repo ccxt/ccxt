@@ -3183,7 +3183,7 @@ class lbank extends lbank$1["default"] {
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
             }, errorCode, this.json(response));
-            const ErrorClass = this.safeValue({
+            this.throwExactlyMatchedException({
                 '10001': errors.BadRequest,
                 '10002': errors.AuthenticationError,
                 '10003': errors.BadRequest,
@@ -3233,8 +3233,8 @@ class lbank extends lbank$1["default"] {
                 '10601': errors.ExchangeError, // 'Interface closed unavailable',
                 '10701': errors.BadSymbol, // 'invalid asset code',
                 '10702': errors.PermissionDenied, // 'not allowed deposit',
-            }, errorCode, errors.ExchangeError);
-            throw new ErrorClass(message);
+            }, errorCode, message);
+            throw new errors.ExchangeError(message);
         }
         return undefined;
     }

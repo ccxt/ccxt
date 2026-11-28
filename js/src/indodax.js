@@ -1471,7 +1471,7 @@ export default class indodax extends Exchange {
                         throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                     }
                     if (networkId.indexOf(',') >= 0) {
-                        network = [];
+                        const networkCodes = [];
                         if (networkId === undefined) {
                             throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                         }
@@ -1479,9 +1479,10 @@ export default class indodax extends Exchange {
                         for (let j = 0; j < networkIds.length; j++) {
                             const _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if (_netIdTmp !== undefined) {
-                                network.push(_netIdTmp.toUpperCase());
+                                networkCodes.push(_netIdTmp.toUpperCase());
                             }
                         }
+                        network = networkCodes;
                     }
                     else {
                         const _netIdTmp = this.networkIdToCode(networkId, code);

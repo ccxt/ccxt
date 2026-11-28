@@ -1002,7 +1002,7 @@ export default class bithumb extends Exchange {
             if (marketIdsLength === 0) {
                 return result;
             }
-            const marketIdsChunks = [];
+            const singleMarketIds = [];
             const promises = [];
             // the exchange rejects more than 200 market ids per request
             const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
@@ -1016,7 +1016,12 @@ export default class bithumb extends Exchange {
                 const marketIdsChunkLength = marketIdsChunk.length;
                 const isLastMarketId = (i === (marketIdsLength - 1));
                 if ((marketIdsChunkLength >= maxMarketIdsPerRequest) || isLastMarketId) {
-                    marketIdsChunks.push(marketIdsChunk);
+                    if (marketIdsChunkLength === 1) {
+                        singleMarketIds.push(marketIds[i]);
+                    }
+                    else {
+                        singleMarketIds.push('');
+                    }
                     request['markets'] = marketIdsChunk.join(',');
                     promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = [];
@@ -1061,12 +1066,7 @@ export default class bithumb extends Exchange {
                 if (this.isDictionary(response) && (this.safeValue(response, 'data') !== undefined)) {
                     response = this.safeValue(response, 'data');
                 }
-                let expectedMarketId = undefined;
-                const requestedMarketIds = this.safeList(marketIdsChunks, i, []);
-                const firstMarketId = this.safeString(requestedMarketIds, 0);
-                if ((firstMarketId !== undefined) && (this.safeString(requestedMarketIds, 1) === undefined)) {
-                    expectedMarketId = firstMarketId;
-                }
+                const expectedMarketId = this.safeString(singleMarketIds, i);
                 let tickers = [];
                 if (Array.isArray(response)) {
                     tickers = response;

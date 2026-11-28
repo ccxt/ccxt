@@ -3444,9 +3444,10 @@ class binance extends binance$1["default"] {
             rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
         const loadAllOptions = this.handleOption('fetchMarkets', 'loadAllOptions', false);
+        let appendOption = false;
         if (loadAllOptions === true) {
             if (!this.inArray('option', rawFetchMarkets)) {
-                rawFetchMarkets.push('option');
+                appendOption = true;
             }
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
@@ -3459,6 +3460,9 @@ class binance extends binance$1["default"] {
                 continue;
             }
             fetchMarkets.push(type);
+        }
+        if (appendOption && (!isDemoEnv)) {
+            fetchMarkets.push('option');
         }
         const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
@@ -15241,7 +15245,7 @@ class binance extends binance$1["default"] {
             }
             if ((symbols === undefined) || (this.inArray(symbol, symbols))) {
                 if (symbol !== undefined) {
-                    tradingLimits[symbol] = market['limits']['amount'];
+                    tradingLimits[symbol] = this.safeDict(this.safeDict(market, 'limits'), 'amount');
                 }
             }
         }

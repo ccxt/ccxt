@@ -1941,8 +1941,10 @@ class phemex extends phemex$1["default"] {
             const amountIndex = tradeLength - 1;
             priceString = this.safeString(trade, priceIndex);
             amountString = this.safeString(trade, amountIndex);
-            const priceAmount = trade[priceIndex];
-            if (typeof priceAmount === 'number') {
+            // v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            const tradeSettle = this.safeString(marketResolved, 'settle');
+            const isStableSettled = (tradeSettle === 'USDT') || (tradeSettle === 'USDC');
+            if (!isStableSettled) {
                 priceString = this.fromEp(this.safeString(trade, priceIndex), marketResolved);
                 amountString = this.fromEv(this.safeString(trade, amountIndex), marketResolved);
             }

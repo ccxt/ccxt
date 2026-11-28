@@ -1583,8 +1583,15 @@ export default class interactivebrokers extends Exchange {
         const cmeSymbols = Object.keys(cryptoCmeFutureSymbols);
         const cfeSymbols = Object.keys(cryptoCboeFutureSymbols);
         const targetSymbols = this.arraysConcat([coinbaseDerivSymbols, cmeSymbols, cfeSymbols]);
-        const symbols = this.unique(targetSymbols);
-        const joined = symbols.join(','); // c# fix, todo investigate
+        const symbols = [];
+        const targetSymbolsLength = targetSymbols.length;
+        for (let i = 0; i < targetSymbolsLength; i++) {
+            const targetSymbol = this.safeString(targetSymbols, i, '');
+            if (!this.inArray(targetSymbol, symbols)) {
+                symbols.push(targetSymbol);
+            }
+        }
+        const joined = symbols.join(',');
         const request = {
             'symbols': joined,
         };

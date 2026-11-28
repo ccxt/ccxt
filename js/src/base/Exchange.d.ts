@@ -607,7 +607,7 @@ export declare class BaseExchange {
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: any[], limit?: Int, key?: IndexType, fromStart?: boolean): any[];
     filterBySinceLimit(array: object[] | undefined, since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any[];
-    filterByValueSinceLimit(array: object[] | undefined, field: IndexType, value?: any, since?: Int, limit?: Int, key?: string, tail?: boolean): any[];
+    filterByValueSinceLimit(array: object[] | undefined, field: IndexType, value?: Str, since?: Int, limit?: Int, key?: string, tail?: boolean): any[];
     /**
      * @method
      * @name Exchange#setSandboxMode

@@ -117,7 +117,7 @@ export default class whitebit extends whitebitRest {
     handleAuthenticate(client: Client, message: Dict): Dict;
     handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
-    handleSubscriptionStatus(client: Client, message: Dict, id: Int): void;
+    handleSubscriptionStatus(client: Client, message: Dict): void;
     handlePong(client: Client, message: Dict): Dict;
     ping(client: Client): Dict;
 }

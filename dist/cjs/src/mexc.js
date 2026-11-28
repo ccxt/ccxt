@@ -2585,12 +2585,8 @@ class mexc extends mexc$1["default"] {
         if ((type !== 'limit') && (type !== 'market') && (!this.inArray(type, [1, 2, 3, 4, 5, 6]))) {
             throw new errors.InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
         let orderType = 0; // typed seed, every branch below assigns it
-        if (postOnly) {
-            orderType = 2;
-        }
-        else if (type === 'limit') {
+        if (type === 'limit') {
             orderType = 1;
         }
         else if (type === 'market') {
@@ -2598,6 +2594,10 @@ class mexc extends mexc$1["default"] {
         }
         else {
             orderType = this.parseToInt(type);
+        }
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', orderType === 2, params);
+        if (postOnly) {
+            orderType = 2;
         }
         let volString = this.amountToPrecision(symbol, amount);
         if (volString === undefined) {

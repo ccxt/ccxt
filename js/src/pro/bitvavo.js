@@ -493,6 +493,9 @@ export default class bitvavo extends bitvavoRest {
             const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
             const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (interval === undefined) {
+                continue;
+            }
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
             }
@@ -558,6 +561,9 @@ export default class bitvavo extends bitvavoRest {
             const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
             const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (interval === undefined) {
+                continue;
+            }
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
             }

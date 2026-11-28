@@ -797,7 +797,10 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const ticker = await this.subscribe(channels, channels, false, paramsResolved);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsResolved);

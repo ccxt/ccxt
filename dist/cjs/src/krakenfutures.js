@@ -1933,31 +1933,30 @@ class krakenfutures extends krakenfutures$1["default"] {
         return this.safeString(typesMap, orderType, orderType);
     }
     verifyOrderActionSuccess(status, method, omit = []) {
-        const errors$1 = {
-            'invalidOrderType': errors.InvalidOrder,
-            'invalidSide': errors.InvalidOrder,
-            'invalidSize': errors.InvalidOrder,
-            'invalidPrice': errors.InvalidOrder,
-            'insufficientAvailableFunds': errors.InsufficientFunds,
-            'selfFill': errors.ExchangeError,
-            'tooManySmallOrders': errors.ExchangeError,
-            'maxPositionViolation': errors.BadRequest,
-            'marketSuspended': errors.ExchangeNotAvailable,
-            'marketInactive': errors.ExchangeNotAvailable,
-            'clientOrderIdAlreadyExist': errors.DuplicateOrderId,
-            'clientOrderIdTooLong': errors.BadRequest,
-            'outsidePriceCollar': errors.InvalidOrder,
-            'postWouldExecute': errors.OrderImmediatelyFillable, // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
-            'iocWouldNotExecute': errors.OrderNotFillable, // -||-
-            'wouldNotReducePosition': errors.ExchangeError,
-            'orderForEditNotFound': errors.OrderNotFound,
-            'orderForEditNotAStop': errors.InvalidOrder,
-            'filled': errors.OrderNotFound,
-            'notFound': errors.OrderNotFound,
-        };
         if (status !== undefined) {
-            if ((status in errors$1) && !this.inArray(status, omit)) {
-                throw new errors$1[status](this.id + ': ' + method + ' failed due to ' + status);
+            if (!this.inArray(status, omit)) {
+                this.throwExactlyMatchedException({
+                    'invalidOrderType': errors.InvalidOrder,
+                    'invalidSide': errors.InvalidOrder,
+                    'invalidSize': errors.InvalidOrder,
+                    'invalidPrice': errors.InvalidOrder,
+                    'insufficientAvailableFunds': errors.InsufficientFunds,
+                    'selfFill': errors.ExchangeError,
+                    'tooManySmallOrders': errors.ExchangeError,
+                    'maxPositionViolation': errors.BadRequest,
+                    'marketSuspended': errors.ExchangeNotAvailable,
+                    'marketInactive': errors.ExchangeNotAvailable,
+                    'clientOrderIdAlreadyExist': errors.DuplicateOrderId,
+                    'clientOrderIdTooLong': errors.BadRequest,
+                    'outsidePriceCollar': errors.InvalidOrder,
+                    'postWouldExecute': errors.OrderImmediatelyFillable, // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+                    'iocWouldNotExecute': errors.OrderNotFillable, // -||-
+                    'wouldNotReducePosition': errors.ExchangeError,
+                    'orderForEditNotFound': errors.OrderNotFound,
+                    'orderForEditNotAStop': errors.InvalidOrder,
+                    'filled': errors.OrderNotFound,
+                    'notFound': errors.OrderNotFound,
+                }, status, this.id + ': ' + method + ' failed due to ' + status);
             }
         }
     }

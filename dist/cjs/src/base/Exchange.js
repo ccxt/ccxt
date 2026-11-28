@@ -3201,9 +3201,9 @@ class BaseExchange {
             result = [];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                const entryFiledEqualValue = this.safeValue(entry, field) === value;
+                const entryFiledEqualValue = this.safeString(entry, field) === value;
                 const firstCondition = !valueIsDefined || entryFiledEqualValue;
                 const entryKeyValue = this.safeInteger(entry, key);
                 const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);
@@ -3564,8 +3564,8 @@ class BaseExchange {
     isRoundNumber(value) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        const res = this.parseToNumeric((value % 1));
-        return res === 0;
+        const remainder = this.numberToString(value % 1);
+        return (remainder === '0') || (remainder === '-0');
     }
     isEmptyString(value) {
         return !this.valueIsDefined(value) || value === '';
@@ -4880,8 +4880,9 @@ class BaseExchange {
         //     ]
         //
         const reduced = {};
-        for (let i = 0; i < fees.length; i++) {
-            const fee = fees[i];
+        const feesList = this.toArray(fees);
+        for (let i = 0; i < feesList.length; i++) {
+            const fee = feesList[i];
             const code = this.safeString(fee, 'currency');
             const feeCurrencyCode = (code !== undefined) ? code : i.toString();
             if (feeCurrencyCode !== undefined) {
@@ -4896,7 +4897,8 @@ class BaseExchange {
                 }
                 const rateKey = (rate === undefined) ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
-                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise["default"].stringAdd(reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                    const previousCost = this.safeString(reduced[feeCurrencyCode][rateKey], 'cost');
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise["default"].stringAdd(previousCost, cost);
                 }
                 else {
                     const newRateFee = {
@@ -5249,16 +5251,16 @@ class BaseExchange {
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
             if (sameTypeOnly && (marketType !== undefined)) {
-                if (market['type'] !== marketType) {
+                if (this.safeString(market, 'type') !== marketType) {
                     throw new errors.BadRequest(this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
                 }
             }
             if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
-                if (market['linear'] !== isLinearSubType) {
+                if (this.safeBool(market, 'linear') !== isLinearSubType) {
                     throw new errors.BadRequest(this.id + ' symbols must be of the same subType, either linear or inverse.');
                 }
             }
-            if (type !== undefined && market['type'] !== type) {
+            if (type !== undefined && this.safeString(market, 'type') !== type) {
                 throw new errors.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString(market, 'type');
@@ -5388,7 +5390,7 @@ class BaseExchange {
         const aliasKeys = Object.keys(aliases);
         for (let i = 0; i < aliasKeys.length; i++) {
             const alias = aliasKeys[i];
-            if ((aliases[alias] === unifiedCode) && (alias in networkIdsByCodes)) {
+            if ((this.safeString(aliases, alias) === unifiedCode) && (alias in networkIdsByCodes)) {
                 return networkIdsByCodes[alias];
             }
         }
@@ -6140,7 +6142,7 @@ class BaseExchange {
     filterByArray(objects, key, values = undefined, indexed = true) {
         const objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
+        if ((values === undefined) || (values === null) || (values === false) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy(objectsValue, key);
@@ -6164,7 +6166,7 @@ class BaseExchange {
     filterOutByArray(objects, key, values = undefined, indexed = true) {
         const objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
+        if ((values === undefined) || (values === null) || (values === false) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy(objectsValue, key);
@@ -8216,7 +8218,7 @@ class BaseExchange {
                 }
                 let response = undefined;
                 if (method === 'fetchAccounts') {
-                    response = await this[method](paramsOmitted);
+                    response = await this.fetchAccounts(paramsOmitted);
                 }
                 else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, paramsOmitted);

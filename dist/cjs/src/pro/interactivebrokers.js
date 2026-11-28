@@ -419,7 +419,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         await this.ibkrUnsubscribe(client, subHashes, undefined, subscription);
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market(marketSymbols[i]);
-            await this.ibkrUnsubscribeMarketData(client, market['id']);
+            await this.ibkrUnsubscribeMarketData(client, this.safeString(market, 'id'));
         }
         return true;
     }
@@ -562,7 +562,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             'symbolsAndTimeframes': [[unifiedSymbol, timeframe]],
         };
         await this.ibkrUnsubscribe(client, subHashes, undefined, subscription);
-        await this.ibkrUnsubscribeMarketData(client, market['id']);
+        await this.ibkrUnsubscribeMarketData(client, historyMarketId);
         return true;
     }
     handleOHLCV(client, message) {

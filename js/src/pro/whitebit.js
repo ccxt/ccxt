@@ -1098,7 +1098,7 @@ export default class whitebit extends whitebitRest {
         }
         const id = this.safeInteger(message, 'id');
         if (id !== undefined) {
-            this.handleSubscriptionStatus(client, message, id);
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         const methods = {
@@ -1118,7 +1118,8 @@ export default class whitebit extends whitebitRest {
             method.call(this, client, message);
         }
     }
-    handleSubscriptionStatus(client, message, id) {
+    handleSubscriptionStatus(client, message) {
+        const id = this.safeInteger(message, 'id');
         // not every method stores its subscription
         // as an object so we can't do indeById here
         const subs = client.subscriptions;

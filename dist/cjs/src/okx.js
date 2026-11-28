@@ -7410,7 +7410,10 @@ class okx extends okx$1["default"] {
         if (length > 1) {
             const accountId = this.safeString(params, 'accountId');
             if (accountId === undefined) {
-                const accountIds = this.getListFromObjectValues(accounts, 'id');
+                const accountIds = [];
+                for (let i = 0; i < length; i++) {
+                    accountIds.push(this.safeString(this.safeDict(accounts, i), 'id', ''));
+                }
                 throw new errors.ExchangeError(this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join(', '));
             }
             else {

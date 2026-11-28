@@ -1103,7 +1103,7 @@ class kraken extends kraken$1["default"] {
                     const currentAskLength = currentAsk.length;
                     let formattedAsk = '';
                     if (currentAskLength > 1) {
-                        formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                        formattedAsk = this.formatNumber(this.safeString(currentAsk, 0, '')) + this.formatNumber(this.safeString(currentAsk, 1, ''));
                     }
                     payloadArray.push(formattedAsk);
                 }
@@ -1112,7 +1112,7 @@ class kraken extends kraken$1["default"] {
                     const currentBidLength = currentBid.length;
                     let formattedBid = '';
                     if (currentBidLength > 1) {
-                        formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                        formattedBid = this.formatNumber(this.safeString(currentBid, 0, '')) + this.formatNumber(this.safeString(currentBid, 1, ''));
                     }
                     payloadArray.push(formattedBid);
                 }

@@ -1470,7 +1470,7 @@ class indodax extends indodax$1["default"] {
                         throw new errors.ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                     }
                     if (networkId.indexOf(',') >= 0) {
-                        network = [];
+                        const networkCodes = [];
                         if (networkId === undefined) {
                             throw new errors.ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                         }
@@ -1478,9 +1478,10 @@ class indodax extends indodax$1["default"] {
                         for (let j = 0; j < networkIds.length; j++) {
                             const _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if (_netIdTmp !== undefined) {
-                                network.push(_netIdTmp.toUpperCase());
+                                networkCodes.push(_netIdTmp.toUpperCase());
                             }
                         }
+                        network = networkCodes;
                     }
                     else {
                         const _netIdTmp = this.networkIdToCode(networkId, code);

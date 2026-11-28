@@ -3472,15 +3472,15 @@ class gate extends gate$1["default"] {
         };
         const isolated = marginMode === 'margin' && type === 'spot';
         let data = response;
-        if ('balances' in data) { // True for cross_margin and unified
+        const balances = this.safeDict(data, 'balances');
+        if (balances !== undefined) { // True for cross_margin and unified
             const flatBalances = [];
-            const balances = this.safeDict(data, 'balances', {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             const keys = Object.keys(balances);
             for (let i = 0; i < keys.length; i++) {
                 const currencyId = keys[i];
-                const content = this.extend({}, balances[currencyId]);
+                const content = this.extend({}, this.safeDict(balances, currencyId, {}));
                 content['currency'] = currencyId;
                 flatBalances.push(content);
             }

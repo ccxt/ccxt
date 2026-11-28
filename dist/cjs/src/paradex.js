@@ -1261,7 +1261,7 @@ class paradex extends paradex$1["default"] {
                 }
                 else {
                     const market = this.safeMarket(marketId);
-                    if (market['type'] === marketType) {
+                    if (this.safeString(market, 'type') === marketType) {
                         result.push(summary);
                     }
                 }

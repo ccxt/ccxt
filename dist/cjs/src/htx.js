@@ -6182,6 +6182,7 @@ class htx extends htx$1["default"] {
             }
             let clientOrderIds = this.safeValue2(query, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeValue2(query, 'client_order_ids', 'clientOrderIds', clientOrderIds);
+            const clientOrderIdsString = this.safeStringN(query, ['client_order_ids', 'clientOrderIds', 'client_order_id', 'clientOrderId']);
             query = this.omit(query, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds']);
             if (!this.safeBool(market, 'linear', false)) {
                 if (clientOrderIds === undefined) {
@@ -6202,8 +6203,8 @@ class htx extends htx$1["default"] {
                     request['order_id'] = ids;
                 }
                 else {
-                    if (typeof clientOrderIds === 'string') {
-                        request['client_order_id'] = clientOrderIds.split(',');
+                    if (clientOrderIdsString !== undefined) {
+                        request['client_order_id'] = clientOrderIdsString.split(',');
                     }
                     else {
                         request['client_order_id'] = clientOrderIds;

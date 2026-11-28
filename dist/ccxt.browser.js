@@ -181118,9 +181118,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
             result = [];
             for(let i = 0; i < parsedArray.length; i++){
                 const entry = parsedArray[i];
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                const entryFiledEqualValue = this.safeValue(entry, field) === value;
+                const entryFiledEqualValue = this.safeString(entry, field) === value;
                 const firstCondition = !valueIsDefined || entryFiledEqualValue;
                 const entryKeyValue = this.safeInteger(entry, key);
                 const entryKeyGESince = entryKeyValue !== undefined && entryKeyValue !== 0 && since !== undefined && entryKeyValue >= since;
@@ -181486,8 +181486,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     isRoundNumber(value) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        const res = this.parseToNumeric(value % 1);
-        return res === 0;
+        const remainder = this.numberToString(value % 1);
+        return remainder === '0' || remainder === '-0';
     }
     isEmptyString(value) {
         return !this.valueIsDefined(value) || value === '';
@@ -182815,8 +182815,9 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         //     ]
         //
         const reduced = {};
-        for(let i = 0; i < fees.length; i++){
-            const fee = fees[i];
+        const feesList = this.toArray(fees);
+        for(let i = 0; i < feesList.length; i++){
+            const fee = feesList[i];
             const code = this.safeString(fee, 'currency');
             const feeCurrencyCode = code !== undefined ? code : i.toString();
             if (feeCurrencyCode !== undefined) {
@@ -182830,7 +182831,8 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 }
                 const rateKey = rate === undefined ? '' : rate;
                 if (rateKey in reduced[feeCurrencyCode]) {
-                    reduced[feeCurrencyCode][rateKey]['cost'] = _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(reduced[feeCurrencyCode][rateKey]['cost'], cost);
+                    const previousCost = this.safeString(reduced[feeCurrencyCode][rateKey], 'cost');
+                    reduced[feeCurrencyCode][rateKey]['cost'] = _Precise_js__rspack_import_12/* .Precise.stringAdd */.Y.stringAdd(previousCost, cost);
                 } else {
                     const newRateFee = {
                         'currency': code,
@@ -183173,16 +183175,16 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         for(let i = 0; i < symbols.length; i++){
             const market = this.market(symbols[i]);
             if (sameTypeOnly && marketType !== undefined) {
-                if (market['type'] !== marketType) {
+                if (this.safeString(market, 'type') !== marketType) {
                     throw new _errors_js__rspack_import_2.BadRequest(this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
                 }
             }
             if (sameSubTypeOnly && isLinearSubType !== undefined) {
-                if (market['linear'] !== isLinearSubType) {
+                if (this.safeBool(market, 'linear') !== isLinearSubType) {
                     throw new _errors_js__rspack_import_2.BadRequest(this.id + ' symbols must be of the same subType, either linear or inverse.');
                 }
             }
-            if (type !== undefined && market['type'] !== type) {
+            if (type !== undefined && this.safeString(market, 'type') !== type) {
                 throw new _errors_js__rspack_import_2.BadRequest(this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString(market, 'type');
@@ -183311,7 +183313,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         const aliasKeys = Object.keys(aliases);
         for(let i = 0; i < aliasKeys.length; i++){
             const alias = aliasKeys[i];
-            if (aliases[alias] === unifiedCode && alias in networkIdsByCodes) {
+            if (this.safeString(aliases, alias) === unifiedCode && alias in networkIdsByCodes) {
                 return networkIdsByCodes[alias];
             }
         }
@@ -184073,7 +184075,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     filterByArray(objects, key, values = undefined, indexed = true) {
         const objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (values === undefined || values === null || values === false || values === 0 || values === '') {
+        if (values === undefined || values === null || values === false || values === '') {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy(objectsValue, key);
@@ -184096,7 +184098,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     filterOutByArray(objects, key, values = undefined, indexed = true) {
         const objectsValue = this.toArray(objects);
         // return all of them if no values were passed
-        if (values === undefined || values === null || values === false || values === 0 || values === '') {
+        if (values === undefined || values === null || values === false || values === '') {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy(objectsValue, key);
@@ -186218,7 +186220,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
                 }
                 let response = undefined;
                 if (method === 'fetchAccounts') {
-                    response = await this[method](paramsOmitted);
+                    response = await this.fetchAccounts(paramsOmitted);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, paramsOmitted);
                 } else if (method === 'fetchOpenInterestHistory') {
@@ -207408,9 +207410,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
         const loadAllOptions = this.handleOption('fetchMarkets', 'loadAllOptions', false);
+        let appendOption = false;
         if (loadAllOptions === true) {
             if (!this.inArray('option', rawFetchMarkets)) {
-                rawFetchMarkets.push('option');
+                appendOption = true;
             }
         }
         const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
@@ -207423,6 +207426,9 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
                 continue;
             }
             fetchMarkets.push(type);
+        }
+        if (appendOption && !isDemoEnv) {
+            fetchMarkets.push('option');
         }
         const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
         for(let i = 0; i < fetchMarkets.length; i++){
@@ -218963,7 +218969,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             }
             if (symbols === undefined || this.inArray(symbol, symbols)) {
                 if (symbol !== undefined) {
-                    tradingLimits[symbol] = market['limits']['amount'];
+                    tradingLimits[symbol] = this.safeDict(this.safeDict(market, 'limits'), 'amount');
                 }
             }
         }
@@ -255391,7 +255397,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
             if (marketIdsLength === 0) {
                 return result;
             }
-            const marketIdsChunks = [];
+            const singleMarketIds = [];
             const promises = [];
             // the exchange rejects more than 200 market ids per request
             const maxMarketIdsOption = this.safeInteger(this.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
@@ -255405,7 +255411,11 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
                 const marketIdsChunkLength = marketIdsChunk.length;
                 const isLastMarketId = i === marketIdsLength - 1;
                 if (marketIdsChunkLength >= maxMarketIdsPerRequest || isLastMarketId) {
-                    marketIdsChunks.push(marketIdsChunk);
+                    if (marketIdsChunkLength === 1) {
+                        singleMarketIds.push(marketIds[i]);
+                    } else {
+                        singleMarketIds.push('');
+                    }
                     request['markets'] = marketIdsChunk.join(',');
                     promises.push(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = [];
@@ -255450,12 +255460,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
                 if (this.isDictionary(response) && this.safeValue(response, 'data') !== undefined) {
                     response = this.safeValue(response, 'data');
                 }
-                let expectedMarketId = undefined;
-                const requestedMarketIds = this.safeList(marketIdsChunks, i, []);
-                const firstMarketId = this.safeString(requestedMarketIds, 0);
-                if (firstMarketId !== undefined && this.safeString(requestedMarketIds, 1) === undefined) {
-                    expectedMarketId = firstMarketId;
-                }
+                const expectedMarketId = this.safeString(singleMarketIds, i);
                 let tickers = [];
                 if (Array.isArray(response)) {
                     tickers = response;
@@ -258874,9 +258879,8 @@ class bitopro extends _abstract_bitopro_js__rspack_import_0/* ["default"] */.A {
         const candleLength = candles.length;
         let resultLength = 0;
         while(resultLength < limit && i < candleLength){
-            const candle = this.safeList(candles, i, []);
-            if (candle[0] === timestamp) {
-                result.push(candle);
+            if (this.safeInteger(this.safeList(candles, i, []), 0) === timestamp) {
+                result.push(this.safeList(candles, i, []));
                 i = i + 1;
             } else {
                 // set open, high, low to close
@@ -348266,201 +348270,54 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             },
             'precisionMode': (/* inlined export .TICK_SIZE */4),
             'exceptions': {
-                'exact': {
-                    '10001': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        "Wrong request method, please check it's a GET ot POST request"
-                    ],
-                    '10002': [
-                        _base_errors_js__rspack_import_2.AuthenticationError,
-                        'Invalid ApiKey'
-                    ],
-                    '10003': [
-                        _base_errors_js__rspack_import_2.AuthenticationError,
-                        "Sign doesn't match"
-                    ],
-                    '10004': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Illegal request parameters'
-                    ],
-                    '10005': [
-                        _base_errors_js__rspack_import_2.DDoSProtection,
-                        'Request frequency exceeds the limit'
-                    ],
-                    '10006': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Unauthorized to execute this request'
-                    ],
-                    '10007': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'IP address Unauthorized'
-                    ],
-                    '10008': [
-                        _base_errors_js__rspack_import_2.InvalidNonce,
-                        'Timestamp for this request is invalid, timestamp must within 1 minute'
-                    ],
-                    '10009': [
-                        _base_errors_js__rspack_import_2.NetworkError,
-                        'Unexist endpoint, please check endpoint URL'
-                    ],
-                    '10011': [
-                        _base_errors_js__rspack_import_2.AccountSuspended,
-                        'ApiKey expired. Please go to client side to re-create an ApiKey'
-                    ],
-                    '20001': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Trade is not open for this trading pair'
-                    ],
-                    '20002': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Trade of this trading pair is suspended'
-                    ],
-                    '20003': [
-                        _base_errors_js__rspack_import_2.InvalidOrder,
-                        'Invalid price or amount'
-                    ],
-                    '20007': [
-                        _base_errors_js__rspack_import_2.InvalidOrder,
-                        'Price precision error'
-                    ],
-                    '20008': [
-                        _base_errors_js__rspack_import_2.InvalidOrder,
-                        'Amount precision error'
-                    ],
-                    '20009': [
-                        _base_errors_js__rspack_import_2.InvalidOrder,
-                        'Amount is less than the minimum requirement'
-                    ],
-                    '20010': [
-                        _base_errors_js__rspack_import_2.InvalidOrder,
-                        'Cash Amount is less than the minimum requirement'
-                    ],
-                    '20011': [
-                        _base_errors_js__rspack_import_2.InsufficientFunds,
-                        'Insufficient balance'
-                    ],
-                    '20012': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Invalid trade type, valid value: buy/sell)'
-                    ],
-                    '20013': [
-                        _base_errors_js__rspack_import_2.InvalidOrder,
-                        'No order info found'
-                    ],
-                    '20014': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Invalid date, Valid format: 2018-07-25)'
-                    ],
-                    '20015': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Date exceeds the limit'
-                    ],
-                    '20018': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Your trading rights have been banned by the system'
-                    ],
-                    '20019': [
-                        _base_errors_js__rspack_import_2.BadSymbol,
-                        'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front'
-                    ],
-                    '20020': [
-                        _base_errors_js__rspack_import_2.DDoSProtection,
-                        "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."
-                    ],
-                    '50000': [
-                        _base_errors_js__rspack_import_2.ExchangeError,
-                        'Exception error'
-                    ],
-                    '20021': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Invalid currency'
-                    ],
-                    '20022': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'The ending timestamp must be larger than the starting timestamp'
-                    ],
-                    '20023': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Invalid transfer type'
-                    ],
-                    '20024': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Invalid amount'
-                    ],
-                    '20025': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'This currency is not transferable at the moment'
-                    ],
-                    '20026': [
-                        _base_errors_js__rspack_import_2.InsufficientFunds,
-                        'Transfer amount exceed your balance'
-                    ],
-                    '20027': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Abnormal account status'
-                    ],
-                    '20028': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Blacklist for transfer'
-                    ],
-                    '20029': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Transfer amount exceed your daily limit'
-                    ],
-                    '20030': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'You have no position on this trading pair'
-                    ],
-                    '20032': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Withdrawal limited'
-                    ],
-                    '20033': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Wrong Withdrawal ID'
-                    ],
-                    '20034': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Withdrawal service of this crypto has been closed'
-                    ],
-                    '20035': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Withdrawal limit'
-                    ],
-                    '20036': [
-                        _base_errors_js__rspack_import_2.ExchangeError,
-                        'Withdrawal cancellation failed'
-                    ],
-                    '20037': [
-                        _base_errors_js__rspack_import_2.InvalidAddress,
-                        'The withdrawal address, Tag or chain type is not included in the withdrawal management list'
-                    ],
-                    '20038': [
-                        _base_errors_js__rspack_import_2.InvalidAddress,
-                        'The withdrawal address is not on the white list'
-                    ],
-                    '20039': [
-                        _base_errors_js__rspack_import_2.ExchangeError,
-                        "Can't be canceled in current status"
-                    ],
-                    '20040': [
-                        _base_errors_js__rspack_import_2.RateLimitExceeded,
-                        'Withdraw too frequently; limitation: 3 times a minute, 100 times a day'
-                    ],
-                    '20041': [
-                        _base_errors_js__rspack_import_2.PermissionDenied,
-                        'Beyond the daily withdrawal limit'
-                    ],
-                    '20042': [
-                        _base_errors_js__rspack_import_2.BadSymbol,
-                        'Current trading pair does not support API trading'
-                    ],
-                    '400002': [
-                        _base_errors_js__rspack_import_2.BadRequest,
-                        'Invalid Parameter'
-                    ]
-                },
-                'broad': {}
+                '10001': _base_errors_js__rspack_import_2.BadRequest,
+                '10002': _base_errors_js__rspack_import_2.AuthenticationError,
+                '10003': _base_errors_js__rspack_import_2.AuthenticationError,
+                '10004': _base_errors_js__rspack_import_2.BadRequest,
+                '10005': _base_errors_js__rspack_import_2.DDoSProtection,
+                '10006': _base_errors_js__rspack_import_2.PermissionDenied,
+                '10007': _base_errors_js__rspack_import_2.PermissionDenied,
+                '10008': _base_errors_js__rspack_import_2.InvalidNonce,
+                '10009': _base_errors_js__rspack_import_2.NetworkError,
+                '10011': _base_errors_js__rspack_import_2.AccountSuspended,
+                '20001': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20002': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20003': _base_errors_js__rspack_import_2.InvalidOrder,
+                '20007': _base_errors_js__rspack_import_2.InvalidOrder,
+                '20008': _base_errors_js__rspack_import_2.InvalidOrder,
+                '20009': _base_errors_js__rspack_import_2.InvalidOrder,
+                '20010': _base_errors_js__rspack_import_2.InvalidOrder,
+                '20011': _base_errors_js__rspack_import_2.InsufficientFunds,
+                '20012': _base_errors_js__rspack_import_2.BadRequest,
+                '20013': _base_errors_js__rspack_import_2.InvalidOrder,
+                '20014': _base_errors_js__rspack_import_2.BadRequest,
+                '20015': _base_errors_js__rspack_import_2.BadRequest,
+                '20018': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20019': _base_errors_js__rspack_import_2.BadSymbol,
+                '20020': _base_errors_js__rspack_import_2.DDoSProtection,
+                '50000': _base_errors_js__rspack_import_2.ExchangeError,
+                '20021': _base_errors_js__rspack_import_2.BadRequest,
+                '20022': _base_errors_js__rspack_import_2.BadRequest,
+                '20023': _base_errors_js__rspack_import_2.BadRequest,
+                '20024': _base_errors_js__rspack_import_2.BadRequest,
+                '20025': _base_errors_js__rspack_import_2.BadRequest,
+                '20026': _base_errors_js__rspack_import_2.InsufficientFunds,
+                '20027': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20028': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20029': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20030': _base_errors_js__rspack_import_2.BadRequest,
+                '20032': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20033': _base_errors_js__rspack_import_2.BadRequest,
+                '20034': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20035': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20036': _base_errors_js__rspack_import_2.ExchangeError,
+                '20037': _base_errors_js__rspack_import_2.InvalidAddress,
+                '20038': _base_errors_js__rspack_import_2.InvalidAddress,
+                '20039': _base_errors_js__rspack_import_2.ExchangeError,
+                '20040': _base_errors_js__rspack_import_2.RateLimitExceeded,
+                '20041': _base_errors_js__rspack_import_2.PermissionDenied,
+                '20042': _base_errors_js__rspack_import_2.BadSymbol,
+                '400002': _base_errors_js__rspack_import_2.BadRequest
             },
             'options': {
                 'defaultType': 'spot',
@@ -352742,12 +352599,58 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         if (codeError === undefined) {
             throw new _base_errors_js__rspack_import_2.BadResponse(feedback);
         }
-        const unknownError = [
-            _base_errors_js__rspack_import_2.ExchangeError,
-            feedback
-        ];
-        const [ExceptionClass, message] = this.safeValue(this.exceptions['exact'], codeError, unknownError);
-        throw new ExceptionClass(message);
+        const message = this.safeString({
+            '10001': "Wrong request method, please check it's a GET ot POST request",
+            '10002': 'Invalid ApiKey',
+            '10003': "Sign doesn't match",
+            '10004': 'Illegal request parameters',
+            '10005': 'Request frequency exceeds the limit',
+            '10006': 'Unauthorized to execute this request',
+            '10007': 'IP address Unauthorized',
+            '10008': 'Timestamp for this request is invalid, timestamp must within 1 minute',
+            '10009': 'Unexist endpoint, please check endpoint URL',
+            '10011': 'ApiKey expired. Please go to client side to re-create an ApiKey',
+            '20001': 'Trade is not open for this trading pair',
+            '20002': 'Trade of this trading pair is suspended',
+            '20003': 'Invalid price or amount',
+            '20007': 'Price precision error',
+            '20008': 'Amount precision error',
+            '20009': 'Amount is less than the minimum requirement',
+            '20010': 'Cash Amount is less than the minimum requirement',
+            '20011': 'Insufficient balance',
+            '20012': 'Invalid trade type, valid value: buy/sell)',
+            '20013': 'No order info found',
+            '20014': 'Invalid date, Valid format: 2018-07-25)',
+            '20015': 'Date exceeds the limit',
+            '20018': 'Your trading rights have been banned by the system',
+            '20019': 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front',
+            '20020': "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.",
+            '50000': 'Exception error',
+            '20021': 'Invalid currency',
+            '20022': 'The ending timestamp must be larger than the starting timestamp',
+            '20023': 'Invalid transfer type',
+            '20024': 'Invalid amount',
+            '20025': 'This currency is not transferable at the moment',
+            '20026': 'Transfer amount exceed your balance',
+            '20027': 'Abnormal account status',
+            '20028': 'Blacklist for transfer',
+            '20029': 'Transfer amount exceed your daily limit',
+            '20030': 'You have no position on this trading pair',
+            '20032': 'Withdrawal limited',
+            '20033': 'Wrong Withdrawal ID',
+            '20034': 'Withdrawal service of this crypto has been closed',
+            '20035': 'Withdrawal limit',
+            '20036': 'Withdrawal cancellation failed',
+            '20037': 'The withdrawal address, Tag or chain type is not included in the withdrawal management list',
+            '20038': 'The withdrawal address is not on the white list',
+            '20039': "Can't be canceled in current status",
+            '20040': 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day',
+            '20041': 'Beyond the daily withdrawal limit',
+            '20042': 'Current trading pair does not support API trading',
+            '400002': 'Invalid Parameter'
+        }, codeError, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, message);
+        throw new _base_errors_js__rspack_import_2.ExchangeError(message);
     }
 }
 //  ---------------------------------------------------------------------------
@@ -365919,15 +365822,15 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         };
         const isolated = marginMode === 'margin' && type === 'spot';
         let data = response;
-        if ('balances' in data) {
+        const balances = this.safeDict(data, 'balances');
+        if (balances !== undefined) {
             const flatBalances = [];
-            const balances = this.safeDict(data, 'balances', {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             const keys = Object.keys(balances);
             for(let i = 0; i < keys.length; i++){
                 const currencyId = keys[i];
-                const content = this.extend({}, balances[currencyId]);
+                const content = this.extend({}, this.safeDict(balances, currencyId, {}));
                 content['currency'] = currencyId;
                 flatBalances.push(content);
             }
@@ -398050,6 +397953,12 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             }
             let clientOrderIds = this.safeValue2(query, 'client_order_id', 'clientOrderId');
             clientOrderIds = this.safeValue2(query, 'client_order_ids', 'clientOrderIds', clientOrderIds);
+            const clientOrderIdsString = this.safeStringN(query, [
+                'client_order_ids',
+                'clientOrderIds',
+                'client_order_id',
+                'clientOrderId'
+            ]);
             query = this.omit(query, [
                 'client_order_id',
                 'client_order_ids',
@@ -398072,8 +397981,8 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 if (clientOrderIds === undefined) {
                     request['order_id'] = ids;
                 } else {
-                    if (typeof clientOrderIds === 'string') {
-                        request['client_order_id'] = clientOrderIds.split(',');
+                    if (clientOrderIdsString !== undefined) {
+                        request['client_order_id'] = clientOrderIdsString.split(',');
                     } else {
                         request['client_order_id'] = clientOrderIds;
                     }
@@ -411560,7 +411469,7 @@ class indodax extends _abstract_indodax_js__rspack_import_0/* ["default"] */.A {
                         throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                     }
                     if (networkId.indexOf(',') >= 0) {
-                        network = [];
+                        const networkCodes = [];
                         if (networkId === undefined) {
                             throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
                         }
@@ -411568,9 +411477,10 @@ class indodax extends _abstract_indodax_js__rspack_import_0/* ["default"] */.A {
                         for(let j = 0; j < networkIds.length; j++){
                             const _netIdTmp = this.networkIdToCode(networkIds[j], code);
                             if (_netIdTmp !== undefined) {
-                                network.push(_netIdTmp.toUpperCase());
+                                networkCodes.push(_netIdTmp.toUpperCase());
                             }
                         }
+                        network = networkCodes;
                     } else {
                         const _netIdTmp = this.networkIdToCode(networkId, code);
                         if (_netIdTmp !== undefined) {
@@ -413680,8 +413590,15 @@ class interactivebrokers extends _abstract_interactivebrokers_js__rspack_import_
             cmeSymbols,
             cfeSymbols
         ]);
-        const symbols = this.unique(targetSymbols);
-        const joined = symbols.join(','); // c# fix, todo investigate
+        const symbols = [];
+        const targetSymbolsLength = targetSymbols.length;
+        for(let i = 0; i < targetSymbolsLength; i++){
+            const targetSymbol = this.safeString(targetSymbols, i, '');
+            if (!this.inArray(targetSymbol, symbols)) {
+                symbols.push(targetSymbol);
+            }
+        }
+        const joined = symbols.join(',');
         const request = {
             'symbols': joined
         };
@@ -422833,31 +422750,30 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         return this.safeString(typesMap, orderType, orderType);
     }
     verifyOrderActionSuccess(status, method, omit = []) {
-        const errors = {
-            'invalidOrderType': _base_errors_js__rspack_import_1.InvalidOrder,
-            'invalidSide': _base_errors_js__rspack_import_1.InvalidOrder,
-            'invalidSize': _base_errors_js__rspack_import_1.InvalidOrder,
-            'invalidPrice': _base_errors_js__rspack_import_1.InvalidOrder,
-            'insufficientAvailableFunds': _base_errors_js__rspack_import_1.InsufficientFunds,
-            'selfFill': _base_errors_js__rspack_import_1.ExchangeError,
-            'tooManySmallOrders': _base_errors_js__rspack_import_1.ExchangeError,
-            'maxPositionViolation': _base_errors_js__rspack_import_1.BadRequest,
-            'marketSuspended': _base_errors_js__rspack_import_1.ExchangeNotAvailable,
-            'marketInactive': _base_errors_js__rspack_import_1.ExchangeNotAvailable,
-            'clientOrderIdAlreadyExist': _base_errors_js__rspack_import_1.DuplicateOrderId,
-            'clientOrderIdTooLong': _base_errors_js__rspack_import_1.BadRequest,
-            'outsidePriceCollar': _base_errors_js__rspack_import_1.InvalidOrder,
-            'postWouldExecute': _base_errors_js__rspack_import_1.OrderImmediatelyFillable,
-            'iocWouldNotExecute': _base_errors_js__rspack_import_1.OrderNotFillable,
-            'wouldNotReducePosition': _base_errors_js__rspack_import_1.ExchangeError,
-            'orderForEditNotFound': _base_errors_js__rspack_import_1.OrderNotFound,
-            'orderForEditNotAStop': _base_errors_js__rspack_import_1.InvalidOrder,
-            'filled': _base_errors_js__rspack_import_1.OrderNotFound,
-            'notFound': _base_errors_js__rspack_import_1.OrderNotFound
-        };
         if (status !== undefined) {
-            if (status in errors && !this.inArray(status, omit)) {
-                throw new errors[status](this.id + ': ' + method + ' failed due to ' + status);
+            if (!this.inArray(status, omit)) {
+                this.throwExactlyMatchedException({
+                    'invalidOrderType': _base_errors_js__rspack_import_1.InvalidOrder,
+                    'invalidSide': _base_errors_js__rspack_import_1.InvalidOrder,
+                    'invalidSize': _base_errors_js__rspack_import_1.InvalidOrder,
+                    'invalidPrice': _base_errors_js__rspack_import_1.InvalidOrder,
+                    'insufficientAvailableFunds': _base_errors_js__rspack_import_1.InsufficientFunds,
+                    'selfFill': _base_errors_js__rspack_import_1.ExchangeError,
+                    'tooManySmallOrders': _base_errors_js__rspack_import_1.ExchangeError,
+                    'maxPositionViolation': _base_errors_js__rspack_import_1.BadRequest,
+                    'marketSuspended': _base_errors_js__rspack_import_1.ExchangeNotAvailable,
+                    'marketInactive': _base_errors_js__rspack_import_1.ExchangeNotAvailable,
+                    'clientOrderIdAlreadyExist': _base_errors_js__rspack_import_1.DuplicateOrderId,
+                    'clientOrderIdTooLong': _base_errors_js__rspack_import_1.BadRequest,
+                    'outsidePriceCollar': _base_errors_js__rspack_import_1.InvalidOrder,
+                    'postWouldExecute': _base_errors_js__rspack_import_1.OrderImmediatelyFillable,
+                    'iocWouldNotExecute': _base_errors_js__rspack_import_1.OrderNotFillable,
+                    'wouldNotReducePosition': _base_errors_js__rspack_import_1.ExchangeError,
+                    'orderForEditNotFound': _base_errors_js__rspack_import_1.OrderNotFound,
+                    'orderForEditNotAStop': _base_errors_js__rspack_import_1.InvalidOrder,
+                    'filled': _base_errors_js__rspack_import_1.OrderNotFound,
+                    'notFound': _base_errors_js__rspack_import_1.OrderNotFound
+                }, status, this.id + ': ' + method + ' failed due to ' + status);
             }
         }
     }
@@ -443353,7 +443269,7 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit'
             }, errorCode, this.json(response));
-            const ErrorClass = this.safeValue({
+            this.throwExactlyMatchedException({
                 '10001': _base_errors_js__rspack_import_2.BadRequest,
                 '10002': _base_errors_js__rspack_import_2.AuthenticationError,
                 '10003': _base_errors_js__rspack_import_2.BadRequest,
@@ -443403,8 +443319,8 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
                 '10601': _base_errors_js__rspack_import_2.ExchangeError,
                 '10701': _base_errors_js__rspack_import_2.BadSymbol,
                 '10702': _base_errors_js__rspack_import_2.PermissionDenied
-            }, errorCode, _base_errors_js__rspack_import_2.ExchangeError);
-            throw new ErrorClass(message);
+            }, errorCode, message);
+            throw new _base_errors_js__rspack_import_2.ExchangeError(message);
         }
         return undefined;
     }
@@ -453004,16 +452920,17 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         ])) {
             throw new _base_errors_js__rspack_import_2.InvalidOrder(this.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price');
         }
-        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 2, params);
         let orderType = 0; // typed seed, every branch below assigns it
-        if (postOnly) {
-            orderType = 2;
-        } else if (type === 'limit') {
+        if (type === 'limit') {
             orderType = 1;
         } else if (type === 'market') {
             orderType = 6;
         } else {
             orderType = this.parseToInt(type);
+        }
+        const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', orderType === 2, params);
+        if (postOnly) {
+            orderType = 2;
         }
         let volString = this.amountToPrecision(symbol, amount);
         if (volString === undefined) {
@@ -462015,8 +461932,9 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         const rows = [];
         for(let i = 0; i < transactions.length; i++){
             let rebate = undefined;
+            const transactionKey = this.safeString(transactionKeys, i);
             for(let j = 0; j < rebateKeys.length; j++){
-                if (rebateKeys[j] === transactionKeys[i]) {
+                if (this.safeString(rebateKeys, j) === transactionKey) {
                     rebate = this.safeString(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = '';
@@ -476857,7 +476775,10 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         if (length > 1) {
             const accountId = this.safeString(params, 'accountId');
             if (accountId === undefined) {
-                const accountIds = this.getListFromObjectValues(accounts, 'id');
+                const accountIds = [];
+                for(let i = 0; i < length; i++){
+                    accountIds.push(this.safeString(this.safeDict(accounts, i), 'id', ''));
+                }
                 throw new _base_errors_js__rspack_import_1.ExchangeError(this.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + accountIds.join(', '));
             } else {
                 const accountsById = this.indexBy(accounts, 'id');
@@ -488469,7 +488390,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
                     result.push(summary);
                 } else {
                     const market = this.safeMarket(marketId);
-                    if (market['type'] === marketType) {
+                    if (this.safeString(market, 'type') === marketType) {
                         result.push(summary);
                     }
                 }
@@ -494364,8 +494285,10 @@ class phemex extends _abstract_phemex_js__rspack_import_0/* ["default"] */.A {
             const amountIndex = tradeLength - 1;
             priceString = this.safeString(trade, priceIndex);
             amountString = this.safeString(trade, amountIndex);
-            const priceAmount = trade[priceIndex];
-            if (typeof priceAmount === 'number') {
+            // v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            const tradeSettle = this.safeString(marketResolved, 'settle');
+            const isStableSettled = tradeSettle === 'USDT' || tradeSettle === 'USDC';
+            if (!isStableSettled) {
                 priceString = this.fromEp(this.safeString(trade, priceIndex), marketResolved);
                 amountString = this.fromEv(this.safeString(trade, amountIndex), marketResolved);
             }
@@ -508214,7 +508137,7 @@ class hyperliquid extends _abstract_prediction_hyperliquid_js__rspack_import_0/*
         const szDecimals = 4; // outcomes use 4 decimal places
         const active = true;
         const outcomePrecision = {
-            'amount': this.parseNumber(this.parsePrecision(szDecimals.toString())),
+            'amount': this.parseNumber(this.parsePrecision(this.numberToString(szDecimals))),
             'price': 0.0001
         };
         const outcomes = [
@@ -558472,6 +558395,9 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
             const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (interval === undefined) {
+                continue;
+            }
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
             }
@@ -558542,6 +558468,9 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(this.safeString(symbolAndTimeframe, 0, ''));
             const timeframeString = this.safeString(symbolAndTimeframe, 1, '');
             const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            if (interval === undefined) {
+                continue;
+            }
             if (!(interval in marketIdsByInterval)) {
                 marketIdsByInterval[interval] = [];
             }
@@ -570462,7 +570391,10 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         const ticker = await this.subscribe(channels, channels, false, paramsResolved);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
         return this.filterByArray(this.bidsasks, 'symbol', symbolsResolved);
@@ -592591,7 +592523,7 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
         await this.ibkrUnsubscribe(client, subHashes, undefined, subscription);
         for(let i = 0; i < marketSymbols.length; i++){
             const market = this.market(marketSymbols[i]);
-            await this.ibkrUnsubscribeMarketData(client, market['id']);
+            await this.ibkrUnsubscribeMarketData(client, this.safeString(market, 'id'));
         }
         return true;
     }
@@ -592748,7 +592680,7 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
             ]
         };
         await this.ibkrUnsubscribe(client, subHashes, undefined, subscription);
-        await this.ibkrUnsubscribeMarketData(client, market['id']);
+        await this.ibkrUnsubscribeMarketData(client, historyMarketId);
         return true;
     }
     handleOHLCV(client, message) {
@@ -594741,7 +594673,7 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
                     const currentAskLength = currentAsk.length;
                     let formattedAsk = '';
                     if (currentAskLength > 1) {
-                        formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                        formattedAsk = this.formatNumber(this.safeString(currentAsk, 0, '')) + this.formatNumber(this.safeString(currentAsk, 1, ''));
                     }
                     payloadArray.push(formattedAsk);
                 }
@@ -594750,7 +594682,7 @@ class kraken extends _kraken_js__rspack_import_0/* ["default"] */.A {
                     const currentBidLength = currentBid.length;
                     let formattedBid = '';
                     if (currentBidLength > 1) {
-                        formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                        formattedBid = this.formatNumber(this.safeString(currentBid, 0, '')) + this.formatNumber(this.safeString(currentBid, 1, ''));
                     }
                     payloadArray.push(formattedBid);
                 }
@@ -629767,7 +629699,7 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
         }
         const id = this.safeInteger(message, 'id');
         if (id !== undefined) {
-            this.handleSubscriptionStatus(client, message, id);
+            this.handleSubscriptionStatus(client, message);
             return;
         }
         const methods = {
@@ -629787,7 +629719,8 @@ class whitebit extends _whitebit_js__rspack_import_0/* ["default"] */.A {
             method.call(this, client, message);
         }
     }
-    handleSubscriptionStatus(client, message, id) {
+    handleSubscriptionStatus(client, message) {
+        const id = this.safeInteger(message, 'id');
         // not every method stores its subscription
         // as an object so we can't do indeById here
         const subs = client.subscriptions;
@@ -643015,7 +642948,7 @@ class tokocrypto extends _abstract_tokocrypto_js__rspack_import_0/* ["default"] 
         'public'
     ], method = 'GET', params = {}) {
         const apiName = api[0];
-        const restUrls = this.extend({}, this.urls['api']['rest']);
+        const restUrls = this.extend({}, this.safeDict(this.urls['api'], 'rest', {}));
         if (!(apiName in restUrls)) {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
