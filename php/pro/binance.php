@@ -5944,22 +5944,24 @@ class binance extends \ccxt\async\binance {
                         $fee = $this->safe_dict($order, 'fee');
                         if (($fees !== null) && !$this->is_empty($fees)) {
                             $insertNewFeeCurrency = true;
+                            $newFees = array();
                             for ($i = 0; $i < count($fees); $i++) {
-                                $orderFee = $fees[$i];
-                                if ($this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
+                                $orderFee = $this->extend(array(), $fees[$i]);
+                                if ($insertNewFeeCurrency && $this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
                                     $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
                                     $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
                                     if ($feeCostString === null) {
                                         $feeCostString = '0';
                                     }
-                                    $order['fees'][$i]['cost'] = floatval($feeCostString);
+                                    $orderFee['cost'] = floatval($feeCostString);
                                     $insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                $newFees[] = $orderFee;
                             }
                             if ($insertNewFeeCurrency) {
-                                $order['fees'][] = $tradeFee;
+                                $newFees[] = $tradeFee;
                             }
+                            $order['fees'] = $newFees;
                         } elseif ($fee !== null) {
                             if ($this->safe_string($fee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
@@ -5967,8 +5969,9 @@ class binance extends \ccxt\async\binance {
                                 if ($feeCostString === null) {
                                     $feeCostString = '0';
                                 }
-                                $fee['cost'] = floatval($feeCostString);
-                                $order['fee'] = $fee;
+                                $newFee = $this->extend(array(), $fee);
+                                $newFee['cost'] = floatval($feeCostString);
+                                $order['fee'] = $newFee;
                             } elseif ($this->safe_string($fee, 'currency') === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
