@@ -10026,8 +10026,11 @@ func (this *Okx) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], op
 	if length > 1 {
 		var accountId *string = this.SafeString(params, "accountId")
 		if accountId == nil {
-			var accountIds []any = this.GetListFromObjectValues(accounts, "id")
-			panic(ExchangeError(this.Id + " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: " + Join(accountIds, ", ")))
+			var accountIds []string = []string{}
+			for i := 0; i < length; i++ {
+				accountIds = append(accountIds, *this.SafeString(this.SafeDict(accounts, i), "id", ""))
+			}
+			panic(ExchangeError(this.Id + " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: " + strings.Join(accountIds, ", ")))
 		} else {
 			var accountsById map[string]any = this.IndexBy(accounts, "id")
 			selectedAccount = this.SafeDict(accountsById, accountId)
@@ -10566,12 +10569,12 @@ func (this *Okx) modifyMarginHelperBody(ch chan AsyncResult[MarginModification],
 		entry = map[string]any{}
 	}
 	var errorCode *string = this.SafeString(response, "code")
-	var ternaryStr776322 string = "failed"
+	var ternaryStr776622 string = "failed"
 	if errorCode != nil && *errorCode == "0" {
-		ternaryStr776322 = "ok"
+		ternaryStr776622 = "ok"
 	}
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-		"status": ternaryStr776322,
+		"status": ternaryStr776622,
 	}))}
 	return nil
 }
@@ -11649,8 +11652,8 @@ func (this *Okx) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]Dep
 	}
 	var request map[string]any = map[string]any{}
 	if codes != nil {
-		var ids any = this.CurrencyIds(codes)
-		request["ccy"] = Join(ids, ",")
+		var ids []string = this.CurrencyIds(codes)
+		request["ccy"] = strings.Join(ids, ",")
 	}
 
 	r1 := <-this.PrivateGetAssetCurrencies(this.Extend(request, params))
@@ -12447,14 +12450,14 @@ func (this *Okx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict915032 map[string]any
+	var dataDict915332 map[string]any
 	if len(data) > 0 {
-		dataDict915032, _ = data[0].(map[string]any)
+		dataDict915332, _ = data[0].(map[string]any)
 	}
-	if dataDict915032 == nil {
-		dataDict915032 = map[string]any{}
+	if dataDict915332 == nil {
+		dataDict915332 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict915032, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict915332, market)}
 	return nil
 }
 

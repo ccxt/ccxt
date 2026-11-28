@@ -1576,9 +1576,9 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 						previousOrder["trades"] = []any{}
 					}
 				}
-				retRes104620 := previousOrder["trades"]
-				ccxt.AppendToArray(&retRes104620, trade)
-				ccxt.AddElementToObject(previousOrder, "trades", retRes104620)
+				if retRes104620, ok := previousOrder["trades"].([]any); ok {
+					previousOrder["trades"] = append(retRes104620, trade)
+				}
 				if previousOrder != nil {
 					if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
 						previousOrder["lastTradeTimestamp"] = *ptrValue
@@ -1586,10 +1586,10 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 						previousOrder["lastTradeTimestamp"] = nil
 					}
 				}
-				totalCostLit78 := "0"
-				var totalCost *string = &totalCostLit78
-				totalAmountLit79 := "0"
-				var totalAmount *string = &totalAmountLit79
+				totalCostLit79 := "0"
+				var totalCost *string = &totalCostLit79
+				totalAmountLit80 := "0"
+				var totalAmount *string = &totalAmountLit80
 				var previousOrderTrades []any = ccxt.SafeListTyped(previousOrder, "trades")
 				for j := 0; j < len(previousOrderTrades); j++ {
 					var previousOrderTrade, _ = previousOrderTrades[j].(map[string]any)

@@ -3359,16 +3359,17 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	if (typeVar != "limit") && (typeVar != "market") && (!this.InArray(typeVar, []any{1, 2, 3, 4, 5, 6})) {
 		panic(InvalidOrder(this.Id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price"))
 	}
-	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), IsEqual(typeVar, 2), params)
 	var orderType int64 = 0 // typed seed, every branch below assigns it
-	if postOnly {
-		orderType = 2
-	} else if typeVar == "limit" {
+	if typeVar == "limit" {
 		orderType = 1
 	} else if typeVar == "market" {
 		orderType = 6
 	} else {
 		orderType = this.ParseToInt(typeVar)
+	}
+	postOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), (orderType == 2), params)
+	if postOnly {
+		orderType = 2
 	}
 	var volString *string = this.AmountToPrecision(symbol, amount)
 	if volString == nil {
@@ -4227,12 +4228,12 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes326715Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes326715 []any = retRes326715Recv
-	if retRes326715 == nil {
+	retRes326815Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes326815 []any = retRes326815Recv
+	if retRes326815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326815)}
 	}
 	return nil
 }
@@ -4271,12 +4272,12 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes328415Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes328415 []any = retRes328415Recv
-	if retRes328415 == nil {
+	retRes328515Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes328515 []any = retRes328515Recv
+	if retRes328515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328515)}
 	}
 	return nil
 }
@@ -4318,11 +4319,11 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state int
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes330119 []any = OrdersToList(r1.Value)
-		if retRes330119 == nil {
+		var retRes330219 []any = OrdersToList(r1.Value)
+		if retRes330219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes330119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes330219)}
 		}
 		return nil
 	}
@@ -4394,14 +4395,14 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 			}
 			var marginRows []any = marginRowsRecv.Value
 
-			var marginRowsDict335040 map[string]any
+			var marginRowsDict335140 map[string]any
 			if len(marginRows) > 0 {
-				marginRowsDict335040, _ = marginRows[0].(map[string]any)
+				marginRowsDict335140, _ = marginRows[0].(map[string]any)
 			}
-			if marginRowsDict335040 == nil {
-				marginRowsDict335040 = map[string]any{}
+			if marginRowsDict335140 == nil {
+				marginRowsDict335140 = map[string]any{}
 			}
-			ch <- AsyncResult[Order]{Value: this.ParseOrder(marginRowsDict335040, market)}
+			ch <- AsyncResult[Order]{Value: this.ParseOrder(marginRowsDict335140, market)}
 			return nil
 		} else {
 
@@ -5713,11 +5714,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445715 map[string]any = r.Value
-	if retRes445715 == nil {
+	var retRes445815 map[string]any = r.Value
+	if retRes445815 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445715}
+		ch <- AsyncResult[map[string]any]{Value: retRes445815}
 	}
 	return nil
 }
@@ -5747,11 +5748,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes447115 map[string]any = r.Value
-	if retRes447115 == nil {
+	var retRes447215 map[string]any = r.Value
+	if retRes447215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes447115}
+		ch <- AsyncResult[map[string]any]{Value: retRes447215}
 	}
 	return nil
 }
@@ -8453,16 +8454,16 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal649715 map[string]any = map[string]any{
+	var literal649815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal649715["body"] = *requestBody
+		literal649815["body"] = *requestBody
 	}
-	return literal649715
+	return literal649815
 }
 func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

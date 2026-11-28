@@ -405,12 +405,12 @@ func (this *Interactivebrokers) ibkrUnsubscribeBody(ch chan ccxt.AsyncResult[any
  * @param {string} marketId the conid
  * @returns {undefined}
  */
-func (this *Interactivebrokers) IbkrUnsubscribeMarketDataAsync(client ccxt.ClientInterface, marketId any) <-chan ccxt.AsyncResult[any] {
+func (this *Interactivebrokers) IbkrUnsubscribeMarketDataAsync(client ccxt.ClientInterface, marketId *string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ibkrUnsubscribeMarketDataBody(ch, client, marketId)
 	return ch
 }
-func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, marketId any) any {
+func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, marketId *string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var keys []string = client.SubscriptionKeys()
@@ -418,7 +418,7 @@ func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.Async
 		var request *string = this.SafeString(client.SubscriptionGet(keys[i]), "request")
 		if (request != nil) && strings.HasPrefix(*request, "smd+") {
 			var conid *string = this.SafeString(client.SubscriptionGet(keys[i]), "conid")
-			if ccxt.IsEqual(conid, marketId) {
+			if conid == marketId || (conid != nil && marketId != nil && *conid == *marketId) {
 
 				ch <- ccxt.AsyncResult[any]{Value: nil} // still in use
 				return nil
@@ -748,7 +748,7 @@ func (this *Interactivebrokers) ibkrUnWatchMarketDataBody(ch chan ccxt.AsyncResu
 	for i := 0; i < len(marketSymbols); i++ {
 		var market map[string]any = this.Market(&marketSymbols[i])
 
-		r3 := <-this.IbkrUnsubscribeMarketDataAsync(client, market["id"])
+		r3 := <-this.IbkrUnsubscribeMarketDataAsync(client, this.SafeString(market, "id"))
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
@@ -953,9 +953,12 @@ func (this *Interactivebrokers) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(&symbol)
-	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
-	var historyMarketId string = *this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
+	var unifiedSymbol string = market.Symbol
+	var historyMarketId string = ""
+	if market.Id != nil {
+		historyMarketId = *market.Id
+	}
 
 	r1 := <-this.IbkrConnectAsync()
 	if r1.Err != nil {
@@ -974,7 +977,7 @@ func (this *Interactivebrokers) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool],
 		panic(r2.Err)
 	}
 
-	r3 := <-this.IbkrUnsubscribeMarketDataAsync(client, market["id"])
+	r3 := <-this.IbkrUnsubscribeMarketDataAsync(client, &historyMarketId)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}

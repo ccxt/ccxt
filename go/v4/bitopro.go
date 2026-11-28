@@ -1200,9 +1200,8 @@ func (this *Bitopro) InsertMissingCandles(candles []any, distanceInMs int64, sin
 	var candleLength int = len(candles)
 	var resultLength int = 0
 	for (int64(resultLength) < limit) && (i < candleLength) {
-		var candle any = this.SafeList(candles, i, []any{})
-		if IsEqual(GetValue(candle, 0), timestamp) {
-			result = append(result, candle)
+		if IsEqual(this.SafeInteger(this.SafeList(candles, i, []any{}), 0), timestamp) {
+			result = append(result, this.SafeList(candles, i, []any{}))
 			i = i + 1
 		} else {
 			// set open, high, low to close
@@ -1967,11 +1966,11 @@ func (this *Bitopro) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes150215 []any = OrdersToList(r.Value)
-	if retRes150215 == nil {
+	var retRes150115 []any = OrdersToList(r.Value)
+	if retRes150115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes150215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes150115)}
 	}
 	return nil
 }
@@ -2620,16 +2619,16 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	var literal196715 map[string]any = map[string]any{
+	var literal196615 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal196715["body"] = *requestBody
+		literal196615["body"] = *requestBody
 	}
-	return literal196715
+	return literal196615
 }
 func (this *Bitopro) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

@@ -566,7 +566,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeK
 	var szDecimals int = 4 // outcomes use 4 decimal places
 	var active bool = true
 	var outcomePrecision map[string]any = map[string]any{
-		"amount": this.ParseNumber(this.ParsePrecision(strconv.Itoa(szDecimals))),
+		"amount": this.ParseNumber(this.ParsePrecision(this.NumberToString(szDecimals))),
 		"price":  0.0001,
 	}
 	var outcomes []any = []any{map[string]any{

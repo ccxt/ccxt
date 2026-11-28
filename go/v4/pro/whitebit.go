@@ -1511,7 +1511,7 @@ func (this *Whitebit) HandleMessage(client ccxt.ClientInterface, message map[str
 	}
 	var id *int64 = this.SafeInteger(message, "id")
 	if id != nil {
-		this.HandleSubscriptionStatus(client, message, id)
+		this.HandleSubscriptionStatus(client, message)
 		return
 	}
 	var methods map[string]any = map[string]any{
@@ -1531,7 +1531,8 @@ func (this *Whitebit) HandleMessage(client ccxt.ClientInterface, message map[str
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Whitebit) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any, id *int64) {
+func (this *Whitebit) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
+	var id *int64 = this.SafeInteger(message, "id")
 	// not every method stores its subscription
 	// as an object so we can't do indeById here
 	var subs map[string]any = client.SubscriptionsSnapshot()

@@ -1150,9 +1150,9 @@ func (this *Krakenfutures) HandleOrder(client ccxt.ClientInterface, message map[
 					previousOrder["trades"] = []any{}
 				}
 			}
-			retRes80116 := previousOrder["trades"]
-			ccxt.AppendToArray(&retRes80116, trade)
-			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
+			if retRes80116, ok := previousOrder["trades"].([]any); ok {
+				previousOrder["trades"] = append(retRes80116, trade)
+			}
 			if previousOrder != nil {
 				if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
 					previousOrder["lastTradeTimestamp"] = *ptrValue
@@ -1160,10 +1160,10 @@ func (this *Krakenfutures) HandleOrder(client ccxt.ClientInterface, message map[
 					previousOrder["lastTradeTimestamp"] = nil
 				}
 			}
-			totalCostLit106 := "0"
-			var totalCost *string = &totalCostLit106
-			totalAmountLit107 := "0"
-			var totalAmount *string = &totalAmountLit107
+			totalCostLit107 := "0"
+			var totalCost *string = &totalCostLit107
+			totalAmountLit108 := "0"
+			var totalAmount *string = &totalAmountLit108
 			var trades []map[string]any = this.SafeListMapsTyped(previousOrder, "trades")
 			for i := 0; i < len(trades); i++ {
 				var currentTrade map[string]any = trades[i]

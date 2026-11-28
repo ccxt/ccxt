@@ -4377,7 +4377,7 @@ func (this *Lbank) HandleErrors(code int64, reason string, url string, method st
 			"10701": "invalid asset code",
 			"10702": "not allowed deposit",
 		}, errorCode, this.Json(response))
-		var ErrorClass any = this.SafeValue(map[string]any{
+		this.ThrowExactlyMatchedException(map[string]any{
 			"10001": BadRequest,
 			"10002": AuthenticationError,
 			"10003": BadRequest,
@@ -4427,9 +4427,8 @@ func (this *Lbank) HandleErrors(code int64, reason string, url string, method st
 			"10601": ExchangeError,
 			"10701": BadSymbol,
 			"10702": PermissionDenied,
-		}, errorCode, ExchangeError)
-		ThrowDynamicException(ErrorClass, message)
-		return nil
+		}, errorCode, message)
+		panic(ExchangeError(message))
 	}
 	return nil
 }

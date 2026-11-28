@@ -8274,6 +8274,7 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 		}
 		var clientOrderIds any = this.SafeValue2(query, "client_order_id", "clientOrderId")
 		clientOrderIds = this.SafeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds)
+		var clientOrderIdsString *string = this.SafeStringN(query, []any{"client_order_ids", "clientOrderIds", "client_order_id", "clientOrderId"})
 		query = this.OmitDict(query, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
 		if !(*this.SafeBool(market, "linear", false)) {
 			if clientOrderIds == nil {
@@ -8291,8 +8292,8 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 			if clientOrderIds == nil {
 				request["order_id"] = StringSliceToList(ids)
 			} else {
-				if IsString(clientOrderIds) {
-					request["client_order_id"] = Split(clientOrderIds, ",")
+				if clientOrderIdsString != nil {
+					request["client_order_id"] = strings.Split(*clientOrderIdsString, ",")
 				} else {
 					request["client_order_id"] = clientOrderIds
 				}
@@ -9422,7 +9423,7 @@ func (this *Htx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 		statusStr3 := "failed"
 		status = &statusStr3
 	}
-	var literal690815 map[string]any = map[string]any{
+	var literal690915 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"timestamp":   timestamp,
@@ -9434,9 +9435,9 @@ func (this *Htx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 		"status":      nil,
 	}
 	if status != nil {
-		literal690815["status"] = *status
+		literal690915["status"] = *status
 	}
-	return TransferEntryFromMap(literal690815)
+	return TransferEntryFromMap(literal690915)
 }
 
 /**
@@ -9861,11 +9862,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes719923 []any = r1.Value
-			if retRes719923 == nil {
+			var retRes720023 []any = r1.Value
+			if retRes720023 == nil {
 				ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719923)}
+				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes720023)}
 			}
 			return nil
 		}
@@ -9874,11 +9875,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes720119 []any = r2.Value
-		if retRes720119 == nil {
+		var retRes720219 []any = r2.Value
+		if retRes720219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes720119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes720219)}
 		}
 		return nil
 	}
@@ -11279,11 +11280,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes858619 []any = r1.Value
-		if retRes858619 == nil {
+		var retRes858719 []any = r1.Value
+		if retRes858719 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes858619)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes858719)}
 		}
 		return nil
 	}

@@ -2619,31 +2619,30 @@ func (this *Krakenfutures) ParseOrderType(orderType *string) *string {
 func (this *Krakenfutures) VerifyOrderActionSuccess(status *string, method string, optionalArgs ...any) {
 	var omit []string = GetArgStringSlice(optionalArgs, 0, []string{})
 	_ = omit
-	var errors map[string]any = map[string]any{
-		"invalidOrderType":           InvalidOrder,
-		"invalidSide":                InvalidOrder,
-		"invalidSize":                InvalidOrder,
-		"invalidPrice":               InvalidOrder,
-		"insufficientAvailableFunds": InsufficientFunds,
-		"selfFill":                   ExchangeError,
-		"tooManySmallOrders":         ExchangeError,
-		"maxPositionViolation":       BadRequest,
-		"marketSuspended":            ExchangeNotAvailable,
-		"marketInactive":             ExchangeNotAvailable,
-		"clientOrderIdAlreadyExist":  DuplicateOrderId,
-		"clientOrderIdTooLong":       BadRequest,
-		"outsidePriceCollar":         InvalidOrder,
-		"postWouldExecute":           OrderImmediatelyFillable,
-		"iocWouldNotExecute":         OrderNotFillable,
-		"wouldNotReducePosition":     ExchangeError,
-		"orderForEditNotFound":       OrderNotFound,
-		"orderForEditNotAStop":       InvalidOrder,
-		"filled":                     OrderNotFound,
-		"notFound":                   OrderNotFound,
-	}
 	if status != nil {
-		if _, ok := errors[*status]; ok && !this.InArray(status, omit) {
-			ThrowDynamicException(errors[*status], this.Id+": "+method+" failed due to "+*status)
+		if !this.InArray(status, omit) {
+			this.ThrowExactlyMatchedException(map[string]any{
+				"invalidOrderType":           InvalidOrder,
+				"invalidSide":                InvalidOrder,
+				"invalidSize":                InvalidOrder,
+				"invalidPrice":               InvalidOrder,
+				"insufficientAvailableFunds": InsufficientFunds,
+				"selfFill":                   ExchangeError,
+				"tooManySmallOrders":         ExchangeError,
+				"maxPositionViolation":       BadRequest,
+				"marketSuspended":            ExchangeNotAvailable,
+				"marketInactive":             ExchangeNotAvailable,
+				"clientOrderIdAlreadyExist":  DuplicateOrderId,
+				"clientOrderIdTooLong":       BadRequest,
+				"outsidePriceCollar":         InvalidOrder,
+				"postWouldExecute":           OrderImmediatelyFillable,
+				"iocWouldNotExecute":         OrderNotFillable,
+				"wouldNotReducePosition":     ExchangeError,
+				"orderForEditNotFound":       OrderNotFound,
+				"orderForEditNotAStop":       InvalidOrder,
+				"filled":                     OrderNotFound,
+				"notFound":                   OrderNotFound,
+			}, status, this.Id+": "+method+" failed due to "+*status)
 		}
 	}
 }
@@ -3160,7 +3159,7 @@ func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any)
 	if triggerPrice == nil {
 		triggerPrice = this.SafeString(priceTriggerOptions, "triggerPrice")
 	}
-	var literal247831 map[string]any = map[string]any{
+	var literal247731 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       this.SafeStringN(details, []any{"clientOrderId", "clientId", "cliOrdId"}),
@@ -3188,15 +3187,15 @@ func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any)
 		"trades":              trades,
 	}
 	if price != nil {
-		literal247831["price"] = *price
+		literal247731["price"] = *price
 	}
 	if cost != nil {
-		literal247831["cost"] = *cost
+		literal247731["cost"] = *cost
 	}
 	if average != nil {
-		literal247831["average"] = *average
+		literal247731["average"] = *average
 	}
-	return this.SafeOrder(literal247831)
+	return this.SafeOrder(literal247731)
 }
 
 /**
@@ -4395,7 +4394,7 @@ func (this *Krakenfutures) ParsePosition(position map[string]any, optionalArgs .
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var literal345134 map[string]any = map[string]any{
+	var literal345034 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
 		"symbol":                      marketResolved["symbol"],
@@ -4422,9 +4421,9 @@ func (this *Krakenfutures) ParsePosition(position map[string]any, optionalArgs .
 		"percentage":                  nil,
 	}
 	if datetime != nil {
-		literal345134["datetime"] = *datetime
+		literal345034["datetime"] = *datetime
 	}
-	return this.SafePosition(literal345134)
+	return this.SafePosition(literal345034)
 }
 
 /**

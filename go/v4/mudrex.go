@@ -2081,8 +2081,9 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	var rows []any = []any{}
 	for i := 0; i < len(transactions); i++ {
 		var rebate *string = nil
+		var transactionKey *string = this.SafeString(transactionKeys, i)
 		for j := 0; j < len(rebateKeys); j++ {
-			if i >= 0 && i < len(transactionKeys) && rebateKeys[j] == transactionKeys[i] {
+			if this.SafeString(rebateKeys, j) == transactionKey || (this.SafeString(rebateKeys, j) != nil && transactionKey != nil && *this.SafeString(rebateKeys, j) == *transactionKey) {
 				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				rebateKeys[j] = ""
@@ -2153,7 +2154,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": this.SafeString(trade, "trade_currency"),
 		}
 	}
-	var literal140531 map[string]any = map[string]any{
+	var literal140631 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    ts,
 		"datetime":     this.Iso8601(ts),
@@ -2169,12 +2170,12 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if tradeSide != nil {
-		literal140531["side"] = *tradeSide
+		literal140631["side"] = *tradeSide
 	}
 	if takerOrMaker != nil {
-		literal140531["takerOrMaker"] = *takerOrMaker
+		literal140631["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafeTrade(literal140531, marketResolved)
+	return this.SafeTrade(literal140631, marketResolved)
 }
 
 /**

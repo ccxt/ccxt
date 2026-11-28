@@ -1216,7 +1216,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(result)}
 			return nil
 		}
-		var marketIdsChunks []any = []any{}
+		var singleMarketIds []string = []string{}
 		var promises []any = []any{}
 		// the exchange rejects more than 200 market ids per request
 		var maxMarketIdsOption *int64 = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200)
@@ -1224,16 +1224,20 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		if (maxMarketIdsOption != nil) && (*maxMarketIdsOption >= 1) {
 			maxMarketIdsPerRequest = this.ParseToInt(maxMarketIdsOption)
 		}
-		var marketIdsChunk []any = []any{}
+		var marketIdsChunk []string = []string{}
 		for i := 0; i < marketIdsLength; i++ {
 			marketIdsChunk = append(marketIdsChunk, marketIds[i])
 			var marketIdsChunkLength int = len(marketIdsChunk)
 			var isLastMarketId bool = (i == (marketIdsLength - 1))
 			if (int64(marketIdsChunkLength) >= maxMarketIdsPerRequest) || isLastMarketId {
-				marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
-				request["markets"] = Join(marketIdsChunk, ",")
+				if marketIdsChunkLength == 1 {
+					singleMarketIds = append(singleMarketIds, marketIds[i])
+				} else {
+					singleMarketIds = append(singleMarketIds, "")
+				}
+				request["markets"] = strings.Join(marketIdsChunk, ",")
 				promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
-				marketIdsChunk = []any{}
+				marketIdsChunk = []string{}
 			}
 		}
 		//
@@ -1280,12 +1284,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			if this.IsDictionary(response) && (!IsEqual(this.SafeValue(response, "data"), nil)) {
 				response = this.SafeValue(response, "data")
 			}
-			var expectedMarketId *string = nil
-			var requestedMarketIds []any = SafeListTyped(marketIdsChunks, i)
-			var firstMarketId *string = this.SafeString(requestedMarketIds, 0)
-			if (firstMarketId != nil) && (this.SafeString(requestedMarketIds, 1) == nil) {
-				expectedMarketId = firstMarketId
-			}
+			var expectedMarketId *string = this.SafeString(singleMarketIds, i)
 			var tickers []any = []any{}
 			if IsArray(response) {
 				tickers = ArrayTyped(response)
@@ -1324,11 +1323,11 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				if symbol == nil {
 					continue
 				}
-				tickersDict110355, _ := tickers[j].(map[string]any)
-				if tickersDict110355 == nil {
-					tickersDict110355 = map[string]any{}
+				tickersDict110255, _ := tickers[j].(map[string]any)
+				if tickersDict110255 == nil {
+					tickersDict110255 = map[string]any{}
 				}
-				result[*symbol] = TickerToMap(this.ParseTicker(tickersDict110355, market))
+				result[*symbol] = TickerToMap(this.ParseTicker(tickersDict110255, market))
 			}
 		}
 	} else {
@@ -1619,11 +1618,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes133423 []any = r1.Value
-			if retRes133423 == nil {
+			var retRes133323 []any = r1.Value
+			if retRes133323 == nil {
 				ch <- AsyncResult[[]OHLCV]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133423)}
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133323)}
 			}
 			return nil
 		}
@@ -2827,7 +2826,7 @@ func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		timeInForce = &timeInForceStr
 		postOnly = true
 	}
-	var literal229331 map[string]any = map[string]any{
+	var literal229231 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -2851,12 +2850,12 @@ func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order
 		"trades":             rawTrades,
 	}
 	if symbol != nil {
-		literal229331["symbol"] = *symbol
+		literal229231["symbol"] = *symbol
 	}
 	if side != nil {
-		literal229331["side"] = *side
+		literal229231["side"] = *side
 	}
-	return this.SafeOrder(literal229331, marketResolved)
+	return this.SafeOrder(literal229231, marketResolved)
 }
 
 /**
@@ -2910,12 +2909,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var response map[string]any = nil
 	if generation == 2 {
 		var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-		var ternaryStr2345115 string = "wait"
+		var ternaryStr2344115 string = "wait"
 		if twap != nil && *twap {
-			ternaryStr2345115 = "progress"
+			ternaryStr2344115 = "progress"
 		}
 		r1 := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(paramsGeneration, map[string]any{
-			"state": ternaryStr2345115,
+			"state": ternaryStr2344115,
 		}))
 		if r1.Err != nil {
 			panic(r1.Err)
@@ -4344,16 +4343,16 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal341315 map[string]any = map[string]any{
+	var literal341215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal341315["body"] = *requestBody
+		literal341215["body"] = *requestBody
 	}
-	return literal341315
+	return literal341215
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {

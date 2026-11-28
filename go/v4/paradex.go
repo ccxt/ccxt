@@ -1727,7 +1727,7 @@ func (this *Paradex) SummaryMarketId(optionalArgs ...any) string {
  * @returns {object[]} the rows of loaded markets
  */
 func (this *Paradex) FilterLoadedSummaries(summaries []any, optionalArgs ...any) []any {
-	marketType := GetArg(optionalArgs, 0, nil)
+	var marketType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = marketType
 	var result []any = []any{}
 	var marketsById map[string]any = this.Markets_by_id
@@ -1743,7 +1743,7 @@ func (this *Paradex) FilterLoadedSummaries(summaries []any, optionalArgs ...any)
 					result = append(result, summary)
 				} else {
 					var market map[string]any = this.SafeMarket(marketId)
-					if market["type"] == marketType {
+					if this.SafeString(market, "type") == marketType || (this.SafeString(market, "type") != nil && marketType != nil && *this.SafeString(market, "type") == *marketType) {
 						result = append(result, summary)
 					}
 				}

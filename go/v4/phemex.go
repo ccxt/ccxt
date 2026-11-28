@@ -2431,8 +2431,10 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		} else {
 			amountString = nil
 		}
-		var priceAmount any = GetValue(trade, priceIndex)
-		if IsNumber(priceAmount) {
+		// v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+		var tradeSettle *string = this.SafeString(marketResolved, "settle")
+		var isStableSettled bool = (tradeSettle != nil && *tradeSettle == "USDT") || (tradeSettle != nil && *tradeSettle == "USDC")
+		if !isStableSettled {
 			priceString = this.FromEp(this.SafeString(trade, priceIndex), marketResolved)
 			amountString = this.FromEv(this.SafeString(trade, amountIndex), marketResolved)
 		}
@@ -2540,7 +2542,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal202931 map[string]any = map[string]any{
+	var literal203131 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"symbol":       symbol,
@@ -2556,18 +2558,18 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if id != nil {
-		literal202931["id"] = *id
+		literal203131["id"] = *id
 	}
 	if orderId != nil {
-		literal202931["order"] = *orderId
+		literal203131["order"] = *orderId
 	}
 	if typeVar != nil {
-		literal202931["type"] = *typeVar
+		literal203131["type"] = *typeVar
 	}
 	if takerOrMaker != nil {
-		literal202931["takerOrMaker"] = *takerOrMaker
+		literal203131["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafeTrade(literal202931, marketResolved)
+	return this.SafeTrade(literal203131, marketResolved)
 }
 func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 	//
@@ -5339,9 +5341,9 @@ func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) 
 	var isCross *bool = this.SafeBool(position, "crossMargin", false)
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))
-	var ternaryStr426426 string = "isolated"
+	var ternaryStr426626 string = "isolated"
 	if isCross != nil && *isCross {
-		ternaryStr426426 = "cross"
+		ternaryStr426626 = "cross"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5367,7 +5369,7 @@ func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) 
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode":                  ternaryStr426426,
+		"marginMode":                  ternaryStr426626,
 		"side":                        side,
 		"hedged":                      (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
 		"percentage":                  nil,
@@ -6102,16 +6104,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = nil
 	}
-	var literal482315 map[string]any = map[string]any{
+	var literal482515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if bodyResolved != nil {
-		literal482315["body"] = *bodyResolved
+		literal482515["body"] = *bodyResolved
 	}
-	return literal482315
+	return literal482515
 }
 
 /**
@@ -6466,7 +6468,7 @@ func (this *Phemex) ParseTransfer(transfer map[string]any, optionalArgs ...any) 
 		toId = &toIdStr2
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
-	var literal506415 map[string]any = map[string]any{
+	var literal506615 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"timestamp":   timestamp,
@@ -6478,12 +6480,12 @@ func (this *Phemex) ParseTransfer(transfer map[string]any, optionalArgs ...any) 
 		"status":      this.ParseTransferStatus(status),
 	}
 	if fromId != nil {
-		literal506415["fromAccount"] = *fromId
+		literal506615["fromAccount"] = *fromId
 	}
 	if toId != nil {
-		literal506415["toAccount"] = *toId
+		literal506615["toAccount"] = *toId
 	}
-	return TransferEntryFromMap(literal506415)
+	return TransferEntryFromMap(literal506615)
 }
 func (this *Phemex) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -6547,11 +6549,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511519 []any = r1.Value
-		if retRes511519 == nil {
+		var retRes511719 []any = r1.Value
+		if retRes511719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511719)}
 		}
 		return nil
 	}

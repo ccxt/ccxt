@@ -1599,7 +1599,7 @@ func (this *Kraken) HandleOrderBook(client ccxt.ClientInterface, message map[str
 				var currentAskLength int = len(currentAsk)
 				var formattedAsk string = ""
 				if currentAskLength > 1 {
-					formattedAsk = this.FormatNumber(currentAsk[0]) + this.FormatNumber(currentAsk[1])
+					formattedAsk = this.FormatNumber(*this.SafeString(currentAsk, 0, "")) + this.FormatNumber(*this.SafeString(currentAsk, 1, ""))
 				}
 				payloadArray = append(payloadArray, formattedAsk)
 			}
@@ -1608,7 +1608,7 @@ func (this *Kraken) HandleOrderBook(client ccxt.ClientInterface, message map[str
 				var currentBidLength int = len(currentBid)
 				var formattedBid string = ""
 				if currentBidLength > 1 {
-					formattedBid = this.FormatNumber(currentBid[0]) + this.FormatNumber(currentBid[1])
+					formattedBid = this.FormatNumber(*this.SafeString(currentBid, 0, "")) + this.FormatNumber(*this.SafeString(currentBid, 1, ""))
 				}
 				payloadArray = append(payloadArray, formattedBid)
 			}
@@ -1636,8 +1636,8 @@ func (this *Kraken) CustomHandleDeltas(bookside any, deltas []any) {
 		bookside.(ccxt.IOrderBookSide).Store(price, amount)
 	}
 }
-func (this *Kraken) FormatNumber(data any) string {
-	var parts []string = ccxt.Split(data, ".")
+func (this *Kraken) FormatNumber(data string) string {
+	var parts []string = strings.Split(data, ".")
 	var integer string = *this.SafeString(parts, 0, "")
 	var decimals string = *this.SafeString(parts, 1, "")
 	var joinedResult string = integer + decimals

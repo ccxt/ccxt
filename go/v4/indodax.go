@@ -1997,7 +1997,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 					panic(ExchangeError(this.Id + " fetchDepositAddresses() missing networkId"))
 				}
 				if strings.Index(*networkId, ",") >= 0 {
-					network = []any{}
+					var networkCodes []any = []any{}
 					if networkId == nil {
 						panic(ExchangeError(this.Id + " fetchDepositAddresses() missing networkId"))
 					}
@@ -2005,9 +2005,10 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 					for j := 0; j < len(networkIds); j++ {
 						var _netIdTmp *string = this.NetworkIdToCode(networkIds[j], code)
 						if _netIdTmp != nil {
-							AppendToArray(&network, strings.ToUpper(*_netIdTmp))
+							networkCodes = append(networkCodes, strings.ToUpper(*_netIdTmp))
 						}
 					}
+					network = networkCodes
 				} else {
 					var _netIdTmp *string = this.NetworkIdToCode(networkId, code)
 					if _netIdTmp != nil {

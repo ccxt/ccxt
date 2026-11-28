@@ -4884,9 +4884,9 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	}
 	var isolated bool = (marginMode != nil && *marginMode == "margin") && (typeVar != nil && *typeVar == "spot")
 	var data any = response
-	if InOp(data, "balances") {
+	var balances map[string]any = SafeMapTyped(data, "balances")
+	if balances != nil {
 		var flatBalances []any = []any{}
-		var balances map[string]any = SafeMapTyped(data, "balances")
 		// inject currency and create an artificial balance object
 		// so it can follow the existent flow
 		var keys []string = nil
@@ -4898,7 +4898,7 @@ func (this *Gate) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		}
 		for i := 0; i < len(keys); i++ {
 			var currencyId string = keys[i]
-			var content map[string]any = this.Extend(map[string]any{}, balances[currencyId])
+			var content map[string]any = this.Extend(map[string]any{}, this.SafeDict(balances, currencyId, map[string]any{}))
 			content["currency"] = currencyId
 			flatBalances = append(flatBalances, content)
 		}
@@ -6615,7 +6615,7 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 		priceResolved = 0
 	}
 	var contractAmount any = 0
-	var signedAmount any = nil
+	var signedAmount *string = nil
 	var useGateFuturesDecimalSize bool = false
 	if contract != nil && *contract == true {
 		var isClose *bool = this.SafeBool(query, "close", false)
@@ -6623,7 +6623,12 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 			signedAmount = this.GetGateFuturesSignedAmount(symbol, *side, amount)
 			useGateFuturesDecimalSize = this.IsGateFuturesContractWithDecimalSize(market)
 			if !useGateFuturesDecimalSize {
-				contractAmount = ParseInt(signedAmount)
+				contractAmount = int64(math.MinInt64)
+				if signedAmount != nil {
+					if parsedInt, parseErr := strconv.ParseInt(*signedAmount, 10, 64); parseErr == nil {
+						contractAmount = parsedInt
+					}
+				}
 			}
 		}
 	}

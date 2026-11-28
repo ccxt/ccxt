@@ -3325,7 +3325,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiName string = api[0]
-	var restUrls map[string]any = this.Extend(map[string]any{}, this.UrlsApi["rest"])
+	var restUrls map[string]any = this.Extend(map[string]any{}, this.SafeDict(this.Urls["api"], "rest", map[string]any{}))
 	if _, ok := restUrls[apiName]; !ok {
 		panic(NotSupported(this.Id + " does not have a testnet/sandbox URL for " + apiName + " endpoints"))
 	}

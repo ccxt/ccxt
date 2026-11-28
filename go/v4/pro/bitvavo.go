@@ -747,22 +747,15 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 		var market map[string]any = this.Market(this.SafeString(symbolAndTimeframe, 0, ""))
 		var timeframeString *string = this.SafeString(symbolAndTimeframe, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-		var has1 bool
-		if interval != nil {
-			_, has1 = marketIdsByInterval[*interval]
-		}
-		if !has1 {
-			if interval != nil {
-				marketIdsByInterval[*interval] = []any{}
-			}
-		}
-		var intervalIds any
 		if interval == nil {
-			intervalIds = nil
-		} else {
-			intervalIds = marketIdsByInterval[*interval]
+			continue
 		}
-		ccxt.AppendToArray(&intervalIds, market["id"])
+		if _, ok := marketIdsByInterval[*interval]; !ok {
+			marketIdsByInterval[*interval] = []any{}
+		}
+		var intervalIds, _ = marketIdsByInterval[*interval].([]any)
+		intervalIds = append(intervalIds, market["id"])
+		marketIdsByInterval[*interval] = intervalIds
 		messageHashes = append(messageHashes, "multi:"+name+"@"+*this.SafeString(market, "id", "")+"_"+*interval)
 	}
 	var channels []any = []any{}
@@ -870,22 +863,15 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		var market map[string]any = this.Market(this.SafeString(symbolAndTimeframe, 0, ""))
 		var timeframeString *string = this.SafeString(symbolAndTimeframe, 1, "")
 		var interval *string = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-		var has1 bool
-		if interval != nil {
-			_, has1 = marketIdsByInterval[*interval]
-		}
-		if !has1 {
-			if interval != nil {
-				marketIdsByInterval[*interval] = []any{}
-			}
-		}
-		var intervalIds any
 		if interval == nil {
-			intervalIds = nil
-		} else {
-			intervalIds = marketIdsByInterval[*interval]
+			continue
 		}
-		ccxt.AppendToArray(&intervalIds, market["id"])
+		if _, ok := marketIdsByInterval[*interval]; !ok {
+			marketIdsByInterval[*interval] = []any{}
+		}
+		var intervalIds, _ = marketIdsByInterval[*interval].([]any)
+		intervalIds = append(intervalIds, market["id"])
+		marketIdsByInterval[*interval] = intervalIds
 		// both the single-symbol and the multi-symbol watch hashes must be released
 		subMessageHashes = append(subMessageHashes, name+"@"+*this.SafeString(market, "id", "")+"_"+*interval)
 		subMessageHashes = append(subMessageHashes, "multi:"+name+"@"+*this.SafeString(market, "id", "")+"_"+*interval)

@@ -527,57 +527,54 @@ func (this *Digifinex) Describe() map[string]any {
 		},
 		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
-			"exact": map[string]any{
-				"10001":  []any{BadRequest, "Wrong request method, please check it's a GET ot POST request"},
-				"10002":  []any{AuthenticationError, "Invalid ApiKey"},
-				"10003":  []any{AuthenticationError, "Sign doesn't match"},
-				"10004":  []any{BadRequest, "Illegal request parameters"},
-				"10005":  []any{DDoSProtection, "Request frequency exceeds the limit"},
-				"10006":  []any{PermissionDenied, "Unauthorized to execute this request"},
-				"10007":  []any{PermissionDenied, "IP address Unauthorized"},
-				"10008":  []any{InvalidNonce, "Timestamp for this request is invalid, timestamp must within 1 minute"},
-				"10009":  []any{NetworkError, "Unexist endpoint, please check endpoint URL"},
-				"10011":  []any{AccountSuspended, "ApiKey expired. Please go to client side to re-create an ApiKey"},
-				"20001":  []any{PermissionDenied, "Trade is not open for this trading pair"},
-				"20002":  []any{PermissionDenied, "Trade of this trading pair is suspended"},
-				"20003":  []any{InvalidOrder, "Invalid price or amount"},
-				"20007":  []any{InvalidOrder, "Price precision error"},
-				"20008":  []any{InvalidOrder, "Amount precision error"},
-				"20009":  []any{InvalidOrder, "Amount is less than the minimum requirement"},
-				"20010":  []any{InvalidOrder, "Cash Amount is less than the minimum requirement"},
-				"20011":  []any{InsufficientFunds, "Insufficient balance"},
-				"20012":  []any{BadRequest, "Invalid trade type, valid value: buy/sell)"},
-				"20013":  []any{InvalidOrder, "No order info found"},
-				"20014":  []any{BadRequest, "Invalid date, Valid format: 2018-07-25)"},
-				"20015":  []any{BadRequest, "Date exceeds the limit"},
-				"20018":  []any{PermissionDenied, "Your trading rights have been banned by the system"},
-				"20019":  []any{BadSymbol, "Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front"},
-				"20020":  []any{DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."},
-				"50000":  []any{ExchangeError, "Exception error"},
-				"20021":  []any{BadRequest, "Invalid currency"},
-				"20022":  []any{BadRequest, "The ending timestamp must be larger than the starting timestamp"},
-				"20023":  []any{BadRequest, "Invalid transfer type"},
-				"20024":  []any{BadRequest, "Invalid amount"},
-				"20025":  []any{BadRequest, "This currency is not transferable at the moment"},
-				"20026":  []any{InsufficientFunds, "Transfer amount exceed your balance"},
-				"20027":  []any{PermissionDenied, "Abnormal account status"},
-				"20028":  []any{PermissionDenied, "Blacklist for transfer"},
-				"20029":  []any{PermissionDenied, "Transfer amount exceed your daily limit"},
-				"20030":  []any{BadRequest, "You have no position on this trading pair"},
-				"20032":  []any{PermissionDenied, "Withdrawal limited"},
-				"20033":  []any{BadRequest, "Wrong Withdrawal ID"},
-				"20034":  []any{PermissionDenied, "Withdrawal service of this crypto has been closed"},
-				"20035":  []any{PermissionDenied, "Withdrawal limit"},
-				"20036":  []any{ExchangeError, "Withdrawal cancellation failed"},
-				"20037":  []any{InvalidAddress, "The withdrawal address, Tag or chain type is not included in the withdrawal management list"},
-				"20038":  []any{InvalidAddress, "The withdrawal address is not on the white list"},
-				"20039":  []any{ExchangeError, "Can't be canceled in current status"},
-				"20040":  []any{RateLimitExceeded, "Withdraw too frequently; limitation: 3 times a minute, 100 times a day"},
-				"20041":  []any{PermissionDenied, "Beyond the daily withdrawal limit"},
-				"20042":  []any{BadSymbol, "Current trading pair does not support API trading"},
-				"400002": []any{BadRequest, "Invalid Parameter"},
-			},
-			"broad": map[string]any{},
+			"10001":  BadRequest,
+			"10002":  AuthenticationError,
+			"10003":  AuthenticationError,
+			"10004":  BadRequest,
+			"10005":  DDoSProtection,
+			"10006":  PermissionDenied,
+			"10007":  PermissionDenied,
+			"10008":  InvalidNonce,
+			"10009":  NetworkError,
+			"10011":  AccountSuspended,
+			"20001":  PermissionDenied,
+			"20002":  PermissionDenied,
+			"20003":  InvalidOrder,
+			"20007":  InvalidOrder,
+			"20008":  InvalidOrder,
+			"20009":  InvalidOrder,
+			"20010":  InvalidOrder,
+			"20011":  InsufficientFunds,
+			"20012":  BadRequest,
+			"20013":  InvalidOrder,
+			"20014":  BadRequest,
+			"20015":  BadRequest,
+			"20018":  PermissionDenied,
+			"20019":  BadSymbol,
+			"20020":  DDoSProtection,
+			"50000":  ExchangeError,
+			"20021":  BadRequest,
+			"20022":  BadRequest,
+			"20023":  BadRequest,
+			"20024":  BadRequest,
+			"20025":  BadRequest,
+			"20026":  InsufficientFunds,
+			"20027":  PermissionDenied,
+			"20028":  PermissionDenied,
+			"20029":  PermissionDenied,
+			"20030":  BadRequest,
+			"20032":  PermissionDenied,
+			"20033":  BadRequest,
+			"20034":  PermissionDenied,
+			"20035":  PermissionDenied,
+			"20036":  ExchangeError,
+			"20037":  InvalidAddress,
+			"20038":  InvalidAddress,
+			"20039":  ExchangeError,
+			"20040":  RateLimitExceeded,
+			"20041":  PermissionDenied,
+			"20042":  BadSymbol,
+			"400002": BadRequest,
 		},
 		"options": map[string]any{
 			"defaultType":                       "spot",
@@ -786,12 +783,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		retRes57919Recv, _ := MarketInterfacesToList(r.Value), r.Value != nil
-		var retRes57919 []any = retRes57919Recv
-		if retRes57919 == nil {
+		retRes57519Recv, _ := MarketInterfacesToList(r.Value), r.Value != nil
+		var retRes57519 []any = retRes57519Recv
+		if retRes57519 == nil {
 			ch <- AsyncResult[[]MarketInterface]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes57919)}
+			ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes57519)}
 		}
 		return nil
 	}
@@ -800,12 +797,12 @@ func (this *Digifinex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes58115Recv, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
-	var retRes58115 []any = retRes58115Recv
-	if retRes58115 == nil {
+	retRes57715Recv, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
+	var retRes57715 []any = retRes57715Recv
+	if retRes57715 == nil {
 		ch <- AsyncResult[[]MarketInterface]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes58115)}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes57715)}
 	}
 	return nil
 }
@@ -1599,11 +1596,11 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 		return nil
 	}
 
-	responseDict119533, _ := response["data"].(map[string]any)
-	if responseDict119533 == nil {
-		responseDict119533 = map[string]any{}
+	responseDict119133, _ := response["data"].(map[string]any)
+	if responseDict119133 == nil {
+		responseDict119133 = map[string]any{}
 	}
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(responseDict119533, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(responseDict119133, market)}
 	return nil
 }
 func (this *Digifinex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
@@ -1830,7 +1827,7 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal140931 map[string]any = map[string]any{
+	var literal140531 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1846,9 +1843,9 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal140931["type"] = *typeVar
+		literal140531["type"] = *typeVar
 	}
-	return this.SafeTrade(literal140931, marketResolved)
+	return this.SafeTrade(literal140531, marketResolved)
 }
 
 /**
@@ -2832,12 +2829,12 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		retRes212019Recv, _ := OrdersToList(r1.Value), r1.Value != nil
-		var retRes212019 []any = retRes212019Recv
-		if retRes212019 == nil {
+		retRes211619Recv, _ := OrdersToList(r1.Value), r1.Value != nil
+		var retRes211619 []any = retRes211619Recv
+		if retRes211619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes212019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211619)}
 		}
 		return nil
 	}
@@ -3145,7 +3142,7 @@ func (this *Digifinex) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 			}
 		}
 	}
-	var literal237531 map[string]any = map[string]any{
+	var literal237131 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 this.SafeString2(order, "order_id", "data"),
 		"clientOrderId":      nil,
@@ -3172,9 +3169,9 @@ func (this *Digifinex) ParseOrder(order map[string]any, optionalArgs ...any) Ord
 		"trades": nil,
 	}
 	if timeInForce != nil {
-		literal237531["timeInForce"] = *timeInForce
+		literal237131["timeInForce"] = *timeInForce
 	}
-	return this.SafeOrder(literal237531, marketResolved)
+	return this.SafeOrder(literal237131, marketResolved)
 }
 
 /**
@@ -4152,11 +4149,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes310715 []any = TransactionsToList(r.Value)
-	if retRes310715 == nil {
+	var retRes310315 []any = TransactionsToList(r.Value)
+	if retRes310315 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310715)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310315)}
 	}
 	return nil
 }
@@ -4193,11 +4190,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312215 []any = TransactionsToList(r.Value)
-	if retRes312215 == nil {
+	var retRes311815 []any = TransactionsToList(r.Value)
+	if retRes311815 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes312215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311815)}
 	}
 	return nil
 }
@@ -4334,7 +4331,7 @@ func (this *Digifinex) ParseTransfer(transfer map[string]any, optionalArgs ...an
 		toAccount = &toAccountStr2
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
-	var literal325015 map[string]any = map[string]any{
+	var literal324615 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "transfer_id"),
 		"timestamp":   timestamp,
@@ -4346,12 +4343,12 @@ func (this *Digifinex) ParseTransfer(transfer map[string]any, optionalArgs ...an
 		"status":      this.ParseTransferStatus(this.SafeString(transfer, "code")),
 	}
 	if fromAccount != nil {
-		literal325015["fromAccount"] = *fromAccount
+		literal324615["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal325015["toAccount"] = *toAccount
+		literal324615["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal325015)
+	return TransferEntryFromMap(literal324615)
 }
 
 /**
@@ -5220,11 +5217,11 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	var positions []any = SafeListTyped(response, positionRequest)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict388255, _ := positions[i].(map[string]any)
-		if positionsDict388255 == nil {
-			positionsDict388255 = map[string]any{}
+		positionsDict387855, _ := positions[i].(map[string]any)
+		if positionsDict387855 == nil {
+			positionsDict387855 = map[string]any{}
 		}
-		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict388255, market))
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict387855, market))
 		result = append(result, parsedPosition)
 	}
 
@@ -5348,14 +5345,14 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 		dataRequest = "data"
 	}
 	var data []any = SafeListTyped(response, dataRequest)
-	var dataDict398045 map[string]any
+	var dataDict397645 map[string]any
 	if len(data) > 0 {
-		dataDict398045, _ = data[0].(map[string]any)
+		dataDict397645, _ = data[0].(map[string]any)
 	}
-	if dataDict398045 == nil {
-		dataDict398045 = map[string]any{}
+	if dataDict397645 == nil {
+		dataDict397645 = map[string]any{}
 	}
-	var position map[string]any = PositionToMap(this.ParsePosition(dataDict398045, market))
+	var position map[string]any = PositionToMap(this.ParsePosition(dataDict397645, market))
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- AsyncResult[Position]{Value: PositionFromMap(position)}
@@ -6166,14 +6163,14 @@ func (this *Digifinex) ParseMarginModification(data map[string]any, optionalArgs
 	_ = market
 	var marketId *string = this.SafeString(data, "instrument_id")
 	var rawType *int64 = this.SafeInteger(data, "type")
-	var ternaryStr458420 string = "reduce"
+	var ternaryStr458020 string = "reduce"
 	if rawType != nil && *rawType == 1 {
-		ternaryStr458420 = "add"
+		ternaryStr458020 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "swap"),
-		"type":       ternaryStr458420,
+		"type":       ternaryStr458020,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,
@@ -6431,12 +6428,58 @@ func (this *Digifinex) HandleErrors(code int64, reason string, url string, metho
 	if codeError == nil {
 		panic(BadResponse(feedback))
 	}
-	var unknownError []any = []any{ExchangeError, feedback}
-	ExceptionClassmessageVariable := this.SafeValue(this.Exceptions["exact"], codeError, unknownError)
-	ExceptionClass := GetValue(ExceptionClassmessageVariable, 0)
-	message := GetValue(ExceptionClassmessageVariable, 1)
-	ThrowDynamicException(ExceptionClass, message)
-	return nil
+	var message *string = this.SafeString(map[string]any{
+		"10001":  "Wrong request method, please check it's a GET ot POST request",
+		"10002":  "Invalid ApiKey",
+		"10003":  "Sign doesn't match",
+		"10004":  "Illegal request parameters",
+		"10005":  "Request frequency exceeds the limit",
+		"10006":  "Unauthorized to execute this request",
+		"10007":  "IP address Unauthorized",
+		"10008":  "Timestamp for this request is invalid, timestamp must within 1 minute",
+		"10009":  "Unexist endpoint, please check endpoint URL",
+		"10011":  "ApiKey expired. Please go to client side to re-create an ApiKey",
+		"20001":  "Trade is not open for this trading pair",
+		"20002":  "Trade of this trading pair is suspended",
+		"20003":  "Invalid price or amount",
+		"20007":  "Price precision error",
+		"20008":  "Amount precision error",
+		"20009":  "Amount is less than the minimum requirement",
+		"20010":  "Cash Amount is less than the minimum requirement",
+		"20011":  "Insufficient balance",
+		"20012":  "Invalid trade type, valid value: buy/sell)",
+		"20013":  "No order info found",
+		"20014":  "Invalid date, Valid format: 2018-07-25)",
+		"20015":  "Date exceeds the limit",
+		"20018":  "Your trading rights have been banned by the system",
+		"20019":  "Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front",
+		"20020":  "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.",
+		"50000":  "Exception error",
+		"20021":  "Invalid currency",
+		"20022":  "The ending timestamp must be larger than the starting timestamp",
+		"20023":  "Invalid transfer type",
+		"20024":  "Invalid amount",
+		"20025":  "This currency is not transferable at the moment",
+		"20026":  "Transfer amount exceed your balance",
+		"20027":  "Abnormal account status",
+		"20028":  "Blacklist for transfer",
+		"20029":  "Transfer amount exceed your daily limit",
+		"20030":  "You have no position on this trading pair",
+		"20032":  "Withdrawal limited",
+		"20033":  "Wrong Withdrawal ID",
+		"20034":  "Withdrawal service of this crypto has been closed",
+		"20035":  "Withdrawal limit",
+		"20036":  "Withdrawal cancellation failed",
+		"20037":  "The withdrawal address, Tag or chain type is not included in the withdrawal management list",
+		"20038":  "The withdrawal address is not on the white list",
+		"20039":  "Can't be canceled in current status",
+		"20040":  "Withdraw too frequently; limitation: 3 times a minute, 100 times a day",
+		"20041":  "Beyond the daily withdrawal limit",
+		"20042":  "Current trading pair does not support API trading",
+		"400002": "Invalid Parameter",
+	}, codeError, feedback)
+	this.ThrowExactlyMatchedException(this.Exceptions, codeError, message)
+	panic(ExchangeError(message))
 }
 
 func NewDigifinex(userConfig map[string]any) *Digifinex {
