@@ -9047,7 +9047,7 @@ export class BaseExchange {
                 }
                 let response: NullableList = undefined;
                 if (method === 'fetchAccounts') {
-                    response = await this[method] (paramsOmitted);
+                    response = await this.fetchAccounts (paramsOmitted);
                 } else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method] (symbol, paramsOmitted);
                 } else if (method === 'fetchOpenInterestHistory') {
