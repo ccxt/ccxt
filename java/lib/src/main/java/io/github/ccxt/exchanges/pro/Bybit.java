@@ -1594,18 +1594,17 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Long timestamp = (Long) this.safeInteger2(trade, "t", "T");
         String side = this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
-        Object m = this.safeValue(trade, "m");
         if (java.util.Objects.equals(side, null))
         {
             side = "sell";
-            if (java.util.Objects.equals(m, true))
+            if (Boolean.TRUE.equals(this.safeBool(trade, "m", false)))
             {
                 side = "buy";
             }
         } else
         {
             // spot private
-            takerOrMaker = m;
+            takerOrMaker = this.safeValue(trade, "m");
         }
         String price = this.safeString(trade, "p");
         String amount = this.safeString2(trade, "q", "v");

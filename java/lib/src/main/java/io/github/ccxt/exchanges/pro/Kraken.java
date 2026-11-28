@@ -2151,19 +2151,17 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         if (!java.util.Objects.equals(errorMessage, null))
         {
             String requestId = this.safeString2(message, "reqid", "req_id");
-            Object broad = ((Map<String, Object>)this.exceptions.get("ws")).get("broad");
-            Object broadKey = this.findBroadlyMatchedKey((Map<String, Object>) (broad), errorMessage);
-            Object exception = null;
-            if (java.util.Objects.equals(broadKey, null))
-            {
-                exception = new ExchangeError(                ((String)errorMessage)); // c# requirement to convert the errorMessage to string
-            } else
-            {
-                exception = this.newException(Helpers.GetValue(broad, broadKey), errorMessage);
-            }
             if (!java.util.Objects.equals(requestId, null))
             {
-                client.reject(exception, requestId);
+                Object broad = ((Map<String, Object>)this.exceptions.get("ws")).get("broad");
+                try
+                {
+                    this.throwBroadlyMatchedException((Map<String, Object>) (broad), errorMessage, errorMessage);
+                    throw new ExchangeError((String)errorMessage) ;
+                } catch(Exception e)
+                {
+                    client.reject(e, requestId);
+                }
             }
             return false;
         }

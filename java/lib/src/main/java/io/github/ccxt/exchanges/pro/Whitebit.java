@@ -901,14 +901,13 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         String messageHash = "wallet:";
-        String method = null;
+        String method = "balanceMargin_subscribe";
         if (java.util.Objects.equals(type, "spot"))
         {
             method = "balanceSpot_subscribe";
             messageHash = (messageHash + "spot");
         } else
         {
-            method = "balanceMargin_subscribe";
             messageHash = (messageHash + "margin");
         }
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -1062,12 +1061,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         client.resolve(this.balance, messageHash);
     }
 
-    public CompletableFuture<Object> watchPublic(String messageHash, String method, Object reqParams, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublic(String messageHash, String method, List<Object> reqParams, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchPublicCore(messageHash, method, reqParams, parameters));
     }
 
-    private Object watchPublicCore(String messageHash, String method, Object reqParams, Map<String, Object> parameters)
+    private Object watchPublicCore(String messageHash, String method, List<Object> reqParams, Map<String, Object> parameters)
     {
 
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -1164,12 +1163,12 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public CompletableFuture<Object> watchPrivate(String messageHash, String method, Object reqParams, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivate(String messageHash, String method, List<Object> reqParams, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchPrivateCore(messageHash, method, reqParams, parameters));
     }
 
-    private Object watchPrivateCore(String messageHash, String method, Object reqParams, Map<String, Object> parameters)
+    private Object watchPrivateCore(String messageHash, String method, List<Object> reqParams, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
