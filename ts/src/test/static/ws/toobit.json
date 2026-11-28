@@ -181,19 +181,25 @@
         ],
         "unWatchTrades": [
             {
-                "description": "spot trades unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot trades unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     "BTC/USDT"
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "trade",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchTradesForSymbols": [
             {
-                "description": "spot trades unsubscribe for two symbols with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot trades unsubscribe for two symbols: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     [
                         "BTC/USDT",
@@ -202,26 +208,38 @@
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT,ETHUSDT",
+                        "topic": "trade",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchOHLCV": [
             {
-                "description": "spot 1m kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot 1m kline unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     "BTC/USDT",
                     "1m"
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "kline_1m",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchOHLCVForSymbols": [
             {
-                "description": "spot and swap 1m kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot and swap 1m kline unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "disabledPHP": "the php __call camelCase to snake_case fallback looks unWatchOHLCVForSymbols up as un_watch_ohlcvfor_symbols instead of the transpiled un_watch_ohlcv_for_symbols - pre-existing harness limitation, see blofin.json",
                 "input": [
                     [
@@ -237,25 +255,37 @@
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT,BTC-SWAP-USDT",
+                        "topic": "kline_1m",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchTicker": [
             {
-                "description": "spot ticker unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot ticker unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     "BTC/USDT"
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "realtimes",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchTickers": [
             {
-                "description": "spot and swap tickers unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot and swap tickers unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     [
                         "BTC/USDT",
@@ -264,25 +294,37 @@
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT,BTC-SWAP-USDT",
+                        "topic": "realtimes",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchOrderBook": [
             {
-                "description": "spot order book unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot order book unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     "BTC/USDT"
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "topic": "depth",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ],
         "unWatchOrderBookForSymbols": [
             {
-                "description": "spot and swap order book unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "description": "spot and swap order book unsubscribe: the cancel frame is sent, toobit does not acknowledge it and the call resolves true",
                 "input": [
                     [
                         "BTC/USDT",
@@ -291,7 +333,13 @@
                 ],
                 "url": "wss://stream.toobit.com/quote/ws/v1",
                 "messages": [],
-                "sentMessages": [],
+                "sentMessages": [
+                    {
+                        "symbol": "BTCUSDT,BTC-SWAP-USDT",
+                        "topic": "depth",
+                        "event": "cancel"
+                    }
+                ],
                 "parsedResponse": true
             }
         ]

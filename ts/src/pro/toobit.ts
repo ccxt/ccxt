@@ -282,7 +282,7 @@ export default class toobit extends toobitRest {
      * @ignore
      * @method
      * @name toobit#unSubscribePublic
-     * @description sends a single cancel request for the subscribed symbols of a public topic and drops the subscriptions and their cache
+     * @description sends a single cancel request for the symbols of a public topic and drops the subscriptions and their cache
      * @param {string} rawTopic exchange topic name: trade, kline_1m, realtimes, depth or diffDepth
      * @param {string[]} symbols unified symbols of the markets to unsubscribe from
      * @param {string[]} subHashes the message hashes the watch method subscribed with, one per symbol
@@ -293,29 +293,19 @@ export default class toobit extends toobitRest {
     async unSubscribePublic (rawTopic: string, symbols: string[], subHashes: string[], subscription: Dict, params: Dict = {}): Promise<any> {
         const url = this.safeString (this.urls['api']['ws'], 'common', '') + '/quote/ws/v1';
         const client = this.client (url);
-        const marketIds: Str[] = [];
-        for (let i = 0; i < subHashes.length; i++) {
-            const subscribedHash = subHashes[i];
-            if (subscribedHash in client.subscriptions) {
-                const market = this.market (symbols[i]);
-                marketIds.push (market['id']);
-            }
-        }
-        const marketIdsLength = marketIds.length;
-        if (marketIdsLength > 0) {
-            const symbolValue = marketIds.join (',');
-            const request: Dict = {
-                'symbol': symbolValue,
-                'topic': rawTopic,
-                'event': 'cancel',
-            };
-            try {
-                await client.send (this.extend (request, params));
-            } catch (e) {
-                // the socket is not open (yet), so the queued subscribe has not gone out either -
-                // keep the subscriptions instead of letting that subscribe stream unwatched
-                throw new NetworkError (this.id + ' could not unsubscribe from ' + rawTopic + ', the websocket connection is not open');
-            }
+        const marketIds = this.marketIds (symbols);
+        const symbolValue = marketIds.join (',');
+        const request: Dict = {
+            'symbol': symbolValue,
+            'topic': rawTopic,
+            'event': 'cancel',
+        };
+        try {
+            await client.send (this.extend (request, params));
+        } catch (e) {
+            // the socket is not open (yet), so a queued subscribe has not gone out either -
+            // keep the subscriptions instead of letting that subscribe stream unwatched
+            throw new NetworkError (this.id + ' could not unsubscribe from ' + rawTopic + ', the websocket connection is not open');
         }
         // toobit does not acknowledge a cancel request, it just stops streaming the topic,
         // so the subscriptions are cleaned up as soon as the request is sent
