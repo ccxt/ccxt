@@ -6521,10 +6521,11 @@ public partial class binance : ccxt.binance
                         if (((fees != null)) && !this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
+                            List<object> newFees = new List<object>() {};
                             for (int i = 0; i < fees.Count; i++)
                             {
-                                IDictionary<string, object> orderFee = ((IDictionary<string, object>)fees[i]);
-                                if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
+                                Dictionary<string, object> orderFee = this.extend(new Dictionary<string, object>() {}, fees[i]);
+                                if (insertNewFeeCurrency && (this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
                                     object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), (orderFee != null && orderFee.ContainsKey("cost") ? orderFee["cost"] : null));
                                     string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
@@ -6532,15 +6533,16 @@ public partial class binance : ccxt.binance
                                     {
                                         feeCostString = "0";
                                     }
-                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = JsParse.parseFloat(feeCostString);
+                                    orderFee["cost"] = JsParse.parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.Add(orderFee);
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
+                                newFees.Add(tradeFee);
                             }
+                            order["fees"] = newFees;
                         } else if ((fee != null))
                         {
                             if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
@@ -6551,8 +6553,9 @@ public partial class binance : ccxt.binance
                                 {
                                     feeCostString = "0";
                                 }
-                                fee["cost"] = JsParse.parseFloat(feeCostString);
-                                order["fee"] = fee;
+                                Dictionary<string, object> newFee = this.extend(new Dictionary<string, object>() {}, fee);
+                                newFee["cost"] = JsParse.parseFloat(feeCostString);
+                                order["fee"] = newFee;
                             } else if ((this.safeString(fee, "currency") == null))
                             {
                                 order["fee"] = tradeFee;
