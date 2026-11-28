@@ -82,16 +82,18 @@ export default class hashkey extends hashkeyRest {
     async unSubscribePublic (market: MarketInterface, topic: string, subHash: string, subscription: Dict, params: Dict = {}): Promise<any> {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
-        if (subHash in client.subscriptions) {
-            const marketId = this.safeString (market, 'id');
-            const request: Dict = {
-                'symbol': marketId,
-                'topic': topic,
-                'event': 'cancel',
-            };
-            try {
-                await client.send (this.deepExtend (request, params));
-            } catch (e) {
+        const isSubscribed = (subHash in client.subscriptions);
+        const marketId = this.safeString (market, 'id');
+        const request: Dict = {
+            'symbol': marketId,
+            'topic': topic,
+            'event': 'cancel',
+        };
+        try {
+            // the cancel goes out even when nothing is subscribed locally, hashkey silently ignores it
+            await client.send (this.deepExtend (request, params));
+        } catch (e) {
+            if (isSubscribed) {
                 // the socket is not open (yet), so the queued subscribe has not gone out either -
                 // keep the subscription instead of letting that subscribe stream unwatched
                 throw new NetworkError (this.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open');
