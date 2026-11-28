@@ -3340,15 +3340,15 @@ class gate(Exchange, ImplicitAPI):
         }
         isolated = marginMode == 'margin' and type == 'spot'
         data = response
-        if 'balances' in data:  # True for cross_margin and unified
+        balances = self.safe_dict(data, 'balances')
+        if balances is not None:  # True for cross_margin and unified
             flatBalances = []
-            balances = self.safe_dict(data, 'balances', {})
             # inject currency and create an artificial balance object
             # so it can follow the existent flow
             keys = list(balances.keys())
             for i in range(0, len(keys)):
                 currencyId = keys[i]
-                content = self.extend({}, balances[currencyId])
+                content = self.extend({}, self.safe_dict(balances, currencyId, {}))
                 content['currency'] = currencyId
                 flatBalances.append(content)
             data = flatBalances

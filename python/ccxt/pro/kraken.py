@@ -1040,14 +1040,14 @@ class kraken(ccxt.async_support.kraken):
                     currentAskLength = len(currentAsk)
                     formattedAsk = ''
                     if currentAskLength > 1:
-                        formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
+                        formattedAsk = self.format_number(self.safe_string(currentAsk, 0, '')) + self.format_number(self.safe_string(currentAsk, 1, ''))
                     payloadArray.append(formattedAsk)
                 for i in range(0, 10):
                     currentBid = self.safe_list(checkBids, i, [])
                     currentBidLength = len(currentBid)
                     formattedBid = ''
                     if currentBidLength > 1:
-                        formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
+                        formattedBid = self.format_number(self.safe_string(currentBid, 0, '')) + self.format_number(self.safe_string(currentBid, 1, ''))
                     payloadArray.append(formattedBid)
             payload = ''.join(payloadArray)
             localChecksum = self.crc32(payload, False)

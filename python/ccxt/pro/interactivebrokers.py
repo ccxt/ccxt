@@ -375,7 +375,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         await self.ibkr_unsubscribe(client, subHashes, None, subscription)
         for i in range(0, len(marketSymbols)):
             market = self.market(marketSymbols[i])
-            await self.ibkr_unsubscribe_market_data(client, market['id'])
+            await self.ibkr_unsubscribe_market_data(client, self.safe_string(market, 'id'))
         return True
 
     def handle_ticker(self, client: Client, message: dict):
@@ -509,7 +509,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
             'symbolsAndTimeframes': [[unifiedSymbol, timeframe]],
         }
         await self.ibkr_unsubscribe(client, subHashes, None, subscription)
-        await self.ibkr_unsubscribe_market_data(client, market['id'])
+        await self.ibkr_unsubscribe_market_data(client, historyMarketId)
         return True
 
     def handle_ohlcv(self, client: Client, message: dict):

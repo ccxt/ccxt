@@ -1224,7 +1224,7 @@ class paradex(Exchange, ImplicitAPI):
                     result.append(summary)
                 else:
                     market = self.safe_market(marketId)
-                    if market['type'] == marketType:
+                    if self.safe_string(market, 'type') == marketType:
                         result.append(summary)
         return result
 

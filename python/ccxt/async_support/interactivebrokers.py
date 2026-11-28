@@ -1462,8 +1462,13 @@ class interactivebrokers(Exchange, ImplicitAPI):
         cmeSymbols = list(cryptoCmeFutureSymbols.keys())
         cfeSymbols = list(cryptoCboeFutureSymbols.keys())
         targetSymbols = self.arrays_concat([coinbaseDerivSymbols, cmeSymbols, cfeSymbols])
-        symbols = self.unique(targetSymbols)
-        joined = ','.join((symbols))  # c# fix, todo investigate
+        symbols = []
+        targetSymbolsLength = len(targetSymbols)
+        for i in range(0, targetSymbolsLength):
+            targetSymbol = self.safe_string(targetSymbols, i, '')
+            if not self.in_array(targetSymbol, symbols):
+                symbols.append(targetSymbol)
+        joined = ','.join(symbols)
         request = {
             'symbols': joined,
         }

@@ -2483,16 +2483,16 @@ class mexc(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"')
         if (type != 'limit') and (type != 'market') and (not self.in_array(type, [1, 2, 3, 4, 5, 6])):
             raise InvalidOrder(self.id + ' createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price')
-        postOnly, paramsPostOnly = self.handle_post_only(type == 'market', type == 2, params)
         orderType = 0  # typed seed, every branch below assigns it
-        if postOnly:
-            orderType = 2
-        elif type == 'limit':
+        if type == 'limit':
             orderType = 1
         elif type == 'market':
             orderType = 6
         else:
             orderType = self.parse_to_int(type)
+        postOnly, paramsPostOnly = self.handle_post_only(type == 'market', orderType == 2, params)
+        if postOnly:
+            orderType = 2
         volString = self.amount_to_precision(symbol, amount)
         if volString is None:
             volString = '0'

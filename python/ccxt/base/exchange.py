@@ -3556,7 +3556,7 @@ class BaseExchange(object):
         shouldFilterFromStart = not tail and sinceIsDefined
         return self.filter_by_limit(result, limit, key, shouldFilterFromStart)
 
-    def filter_by_value_since_limit(self, array: list[object] | None, field: IndexType, value: object = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
+    def filter_by_value_since_limit(self, array: list[object] | None, field: IndexType, value: Str = None, since: Int = None, limit: Int = None, key='timestamp', tail=False):
         valueIsDefined = self.value_is_defined(value)
         sinceIsDefined = since is not None and since is not None
         parsedArray = self.to_array(array)
@@ -3566,9 +3566,9 @@ class BaseExchange(object):
             result = []
             for i in range(0, len(parsedArray)):
                 entry = parsedArray[i]
-                # safeValue (not entry[field]) so a missing field is a non-match, not a
+                # safeString (not entry[field]) so a missing field is a non-match, not a
                 # KeyError in python/php — prediction structures key on outcome, not symbol
-                entryFiledEqualValue = self.safe_value(entry, field) == value
+                entryFiledEqualValue = self.safe_string(entry, field) == value
                 firstCondition = not valueIsDefined or entryFiledEqualValue
                 entryKeyValue = self.safe_integer(entry, key)
                 entryKeyGESince = (entryKeyValue is not None) and (entryKeyValue != 0) and (since is not None) and (entryKeyValue >= since)
@@ -3896,8 +3896,8 @@ class BaseExchange(object):
     def is_round_number(self, value: float):
         # this method is similar to isInteger, but this is more loyal and does not check for types.
         # i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        res = self.parse_to_numeric((value % 1))
-        return res == 0
+        remainder = self.number_to_string(value % 1)
+        return(remainder == '0') or (remainder == '-0')
 
     def is_empty_string(self, value: object):
         return not self.value_is_defined(value) or value == ''
@@ -5008,8 +5008,9 @@ class BaseExchange(object):
         #     ]
         #
         reduced = {}
-        for i in range(0, len(fees)):
-            fee = fees[i]
+        feesList = self.to_array(fees)
+        for i in range(0, len(feesList)):
+            fee = feesList[i]
             code = self.safe_string(fee, 'currency')
             feeCurrencyCode = code if (code is not None) else str(i)
             if feeCurrencyCode is not None:
@@ -5022,7 +5023,8 @@ class BaseExchange(object):
                     reduced[feeCurrencyCode] = {}
                 rateKey = '' if (rate is None) else rate
                 if rateKey in reduced[feeCurrencyCode]:
-                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
+                    previousCost = self.safe_string(reduced[feeCurrencyCode][rateKey], 'cost')
+                    reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(previousCost, cost)
                 else:
                     newRateFee = {
                         'currency': code,
@@ -5315,12 +5317,12 @@ class BaseExchange(object):
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
             if sameTypeOnly and (marketType is not None):
-                if market['type'] != marketType:
+                if self.safe_string(market, 'type') != marketType:
                     raise BadRequest(self.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.')
             if sameSubTypeOnly and (isLinearSubType is not None):
-                if market['linear'] != isLinearSubType:
+                if self.safe_bool(market, 'linear') != isLinearSubType:
                     raise BadRequest(self.id + ' symbols must be of the same subType, either linear or inverse.')
-            if type is not None and market['type'] != type:
+            if type is not None and self.safe_string(market, 'type') != type:
                 raise BadRequest(self.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request')
             marketType = self.safe_string(market, 'type')
             if not self.safe_bool(market, 'spot', False):
@@ -5434,7 +5436,7 @@ class BaseExchange(object):
         aliasKeys = list(aliases.keys())
         for i in range(0, len(aliasKeys)):
             alias = aliasKeys[i]
-            if (aliases[alias] == unifiedCode) and (alias in networkIdsByCodes):
+            if (self.safe_string(aliases, alias) == unifiedCode) and (alias in networkIdsByCodes):
                 return networkIdsByCodes[alias]
         # fall back to scanning loaded currencies
         if currencyCode is not None:
@@ -6041,7 +6043,7 @@ class BaseExchange(object):
     def filter_by_array(self, objects: dict | list[object] | None, key: IndexType, values: object = None, indexed=True):
         objectsValue = self.to_array(objects)
         # return all of them if no values were passed
-        if (values is None) or (values is None) or (values is False) or (values == 0) or (values == ''):
+        if (values is None) or (values is None) or (values is False) or (values == ''):
             # return indexed ? this.indexBy (objects, key) : objects;
             if indexed:
                 return self.index_by(objectsValue, key)
@@ -6059,7 +6061,7 @@ class BaseExchange(object):
     def filter_out_by_array(self, objects: object, key: IndexType, values: object = None, indexed=True):
         objectsValue = self.to_array(objects)
         # return all of them if no values were passed
-        if (values is None) or (values is None) or (values is False) or (values == 0) or (values == ''):
+        if (values is None) or (values is None) or (values is False) or (values == ''):
             # return indexed ? this.indexBy (objects, key) : objects;
             if indexed:
                 return self.index_by(objectsValue, key)
@@ -7778,7 +7780,7 @@ class BaseExchange(object):
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
-                    response = getattr(self, method)(paramsOmitted)
+                    response = self.fetch_accounts(paramsOmitted)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = getattr(self, method)(symbol, paramsOmitted)
                 elif method == 'fetchOpenInterestHistory':

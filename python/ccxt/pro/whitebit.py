@@ -1018,7 +1018,7 @@ class whitebit(ccxt.async_support.whitebit):
             return
         id = self.safe_integer(message, 'id')
         if id is not None:
-            self.handle_subscription_status(client, message, id)
+            self.handle_subscription_status(client, message)
             return
         methods = {
             'market_update': self.handle_ticker,
@@ -1036,7 +1036,8 @@ class whitebit(ccxt.async_support.whitebit):
         if method is not None:
             method(client, message)
 
-    def handle_subscription_status(self, client: Client, message: dict, id: Int):
+    def handle_subscription_status(self, client: Client, message: dict):
+        id = self.safe_integer(message, 'id')
         # not every method stores its subscription
         # as an object so we can't do indeById here
         subs = client.subscriptions

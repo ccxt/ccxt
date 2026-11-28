@@ -975,7 +975,7 @@ class bithumb(Exchange, ImplicitAPI):
             marketIdsLength = len(marketIds)
             if marketIdsLength == 0:
                 return result
-            marketIdsChunks = []
+            singleMarketIds = []
             promises = []
             # the exchange rejects more than 200 market ids per request
             maxMarketIdsOption = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200)
@@ -988,7 +988,10 @@ class bithumb(Exchange, ImplicitAPI):
                 marketIdsChunkLength = len(marketIdsChunk)
                 isLastMarketId = (i == (marketIdsLength - 1))
                 if (marketIdsChunkLength >= maxMarketIdsPerRequest) or isLastMarketId:
-                    marketIdsChunks.append(marketIdsChunk)
+                    if marketIdsChunkLength == 1:
+                        singleMarketIds.append(marketIds[i])
+                    else:
+                        singleMarketIds.append('')
                     request['markets'] = ','.join(marketIdsChunk)
                     promises.append(self.publicGetV1Ticker(self.extend(request, paramsGeneration)))
                     marketIdsChunk = []
@@ -1030,11 +1033,7 @@ class bithumb(Exchange, ImplicitAPI):
                 response = self.safe_value(responses, i)
                 if self.is_dictionary(response) and (self.safe_value(response, 'data') is not None):
                     response = self.safe_value(response, 'data')
-                expectedMarketId = None
-                requestedMarketIds = self.safe_list(marketIdsChunks, i, [])
-                firstMarketId = self.safe_string(requestedMarketIds, 0)
-                if (firstMarketId is not None) and (self.safe_string(requestedMarketIds, 1) is None):
-                    expectedMarketId = firstMarketId
+                expectedMarketId = self.safe_string(singleMarketIds, i)
                 tickers = []
                 if isinstance(response, list):
                     tickers = response

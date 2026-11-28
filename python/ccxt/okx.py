@@ -6979,7 +6979,9 @@ class okx(Exchange, ImplicitAPI):
         if length > 1:
             accountId = self.safe_string(params, 'accountId')
             if accountId is None:
-                accountIds = self.get_list_from_object_values(accounts, 'id')
+                accountIds = []
+                for i in range(0, length):
+                    accountIds.append(self.safe_string(self.safe_dict(accounts, i), 'id', ''))
                 raise ExchangeError(self.id + ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from: ' + ', '.join(accountIds))
             else:
                 accountsById = self.index_by(accounts, 'id')

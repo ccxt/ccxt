@@ -1420,14 +1420,15 @@ class indodax(Exchange, ImplicitAPI):
                     if networkId is None:
                         raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                     if networkId.find(',') >= 0:
-                        network = []
+                        networkCodes = []
                         if networkId is None:
                             raise ExchangeError(self.id + ' fetchDepositAddresses() missing networkId')
                         networkIds = networkId.split(',')
                         for j in range(0, len(networkIds)):
                             _netIdTmp = self.network_id_to_code(networkIds[j], code)
                             if _netIdTmp is not None:
-                                network.append(_netIdTmp.upper())
+                                networkCodes.append(_netIdTmp.upper())
+                        network = networkCodes
                     else:
                         _netIdTmp = self.network_id_to_code(networkId, code)
                         if _netIdTmp is not None:

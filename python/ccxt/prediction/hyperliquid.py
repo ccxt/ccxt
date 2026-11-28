@@ -452,7 +452,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         szDecimals = 4  # outcomes use 4 decimal places
         active = True
         outcomePrecision = {
-            'amount': str(self.parse_number(self.parse_precision(szDecimals))),
+            'amount': self.parse_number(self.parse_precision(self.number_to_string(szDecimals))),
             'price': 0.0001,
         }
         outcomes = [

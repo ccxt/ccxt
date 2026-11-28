@@ -3015,7 +3015,7 @@ class lbank(Exchange, ImplicitAPI):
                 '10701': 'invalid asset code',
                 '10702': 'not allowed deposit',
             }, errorCode, self.json(response))
-            ErrorClass = self.safe_value({
+            self.throw_exactly_matched_exception({
                 '10001': BadRequest,
                 '10002': AuthenticationError,
                 '10003': BadRequest,
@@ -3065,6 +3065,6 @@ class lbank(Exchange, ImplicitAPI):
                 '10601': ExchangeError,  # 'Interface closed unavailable',
                 '10701': BadSymbol,  # 'invalid asset code',
                 '10702': PermissionDenied,  # 'not allowed deposit',
-            }, errorCode, ExchangeError)
-            raise ErrorClass(message)
+            }, errorCode, message)
+            raise ExchangeError(message)
         return None

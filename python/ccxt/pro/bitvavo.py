@@ -472,6 +472,8 @@ class bitvavo(ccxt.async_support.bitvavo):
             market = self.market(self.safe_string(symbolAndTimeframe, 0, ''))
             timeframeString = self.safe_string(symbolAndTimeframe, 1, '')
             interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            if interval is None:
+                continue
             if not (interval in marketIdsByInterval):
                 marketIdsByInterval[interval] = []
             intervalIds = marketIdsByInterval[interval]
@@ -532,6 +534,8 @@ class bitvavo(ccxt.async_support.bitvavo):
             market = self.market(self.safe_string(symbolAndTimeframe, 0, ''))
             timeframeString = self.safe_string(symbolAndTimeframe, 1, '')
             interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            if interval is None:
+                continue
             if not (interval in marketIdsByInterval):
                 marketIdsByInterval[interval] = []
             intervalIds = marketIdsByInterval[interval]

@@ -1606,7 +1606,7 @@ class BaseExchange(SyncExchange):
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
-                    response = await getattr(self, method)(paramsOmitted)
+                    response = await self.fetch_accounts(paramsOmitted)
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = await getattr(self, method)(symbol, paramsOmitted)
                 elif method == 'fetchOpenInterestHistory':

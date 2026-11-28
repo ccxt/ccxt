@@ -3420,9 +3420,10 @@ class binance(Exchange, ImplicitAPI):
             # for backward-compatibility
             rawFetchMarkets = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
         loadAllOptions = self.handle_option('fetchMarkets', 'loadAllOptions', False)
+        appendOption = False
         if loadAllOptions is True:
             if not self.in_array('option', rawFetchMarkets):
-                rawFetchMarkets.append('option')
+                appendOption = True
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
         isDemoEnv = (demoMode) or (sandboxMode)
@@ -3432,6 +3433,8 @@ class binance(Exchange, ImplicitAPI):
             if type == 'option' and (isDemoEnv):
                 continue
             fetchMarkets.append(type)
+        if appendOption and (not isDemoEnv):
+            fetchMarkets.append('option')
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
         for i in range(0, len(fetchMarkets)):
             marketType = self.safe_string(fetchMarkets, i)
@@ -13993,7 +13996,7 @@ class binance(Exchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' fetchTradingLimits() could not resolve market')
             if (symbols is None) or (self.in_array(symbol, symbols)):
                 if symbol is not None:
-                    tradingLimits[symbol] = market['limits']['amount']
+                    tradingLimits[symbol] = self.safe_dict(self.safe_dict(market, 'limits'), 'amount')
         return tradingLimits
 
     async def fetch_position_mode(self, symbol: Str = None, params: dict = {}) -> PositionModeInfo:

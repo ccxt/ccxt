@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import asyncio
 import hashlib
-import numbers
 from ccxt.base.types import ADL, Balances, Bool, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1895,8 +1894,10 @@ class phemex(Exchange, ImplicitAPI):
             amountIndex = tradeLength - 1
             priceString = self.safe_string(trade, priceIndex)
             amountString = self.safe_string(trade, amountIndex)
-            priceAmount = trade[priceIndex]
-            if isinstance(priceAmount, numbers.Real):
+            # v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            tradeSettle = self.safe_string(marketResolved, 'settle')
+            isStableSettled = (tradeSettle == 'USDT') or (tradeSettle == 'USDC')
+            if not isStableSettled:
                 priceString = self.from_ep(self.safe_string(trade, priceIndex), marketResolved)
                 amountString = self.from_ev(self.safe_string(trade, amountIndex), marketResolved)
         else:

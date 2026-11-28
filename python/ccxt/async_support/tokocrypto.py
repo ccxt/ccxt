@@ -2567,7 +2567,7 @@ class tokocrypto(Exchange, ImplicitAPI):
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
-        restUrls = self.extend({}, self.urls['api']['rest'])
+        restUrls = self.extend({}, self.safe_dict(self.urls['api'], 'rest', {}))
         if not (apiName in restUrls):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
         baseApiUrl = self.safe_string(self.urls['api']['rest'], apiName)

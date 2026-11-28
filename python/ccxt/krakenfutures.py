@@ -1839,31 +1839,30 @@ class krakenfutures(Exchange, ImplicitAPI):
         return self.safe_string(typesMap, orderType, orderType)
 
     def verify_order_action_success(self, status: Str, method: str, omit: list[str] = []):
-        errors = {
-            'invalidOrderType': InvalidOrder,
-            'invalidSide': InvalidOrder,
-            'invalidSize': InvalidOrder,
-            'invalidPrice': InvalidOrder,
-            'insufficientAvailableFunds': InsufficientFunds,
-            'selfFill': ExchangeError,
-            'tooManySmallOrders': ExchangeError,
-            'maxPositionViolation': BadRequest,
-            'marketSuspended': ExchangeNotAvailable,
-            'marketInactive': ExchangeNotAvailable,
-            'clientOrderIdAlreadyExist': DuplicateOrderId,
-            'clientOrderIdTooLong': BadRequest,
-            'outsidePriceCollar': InvalidOrder,
-            'postWouldExecute': OrderImmediatelyFillable,  # the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
-            'iocWouldNotExecute': OrderNotFillable,  # -||-
-            'wouldNotReducePosition': ExchangeError,
-            'orderForEditNotFound': OrderNotFound,
-            'orderForEditNotAStop': InvalidOrder,
-            'filled': OrderNotFound,
-            'notFound': OrderNotFound,
-        }
         if status is not None:
-            if (status in errors) and not self.in_array(status, omit):
-                raise errors[status](self.id + ': ' + method + ' failed due to ' + status)
+            if not self.in_array(status, omit):
+                self.throw_exactly_matched_exception({
+                    'invalidOrderType': InvalidOrder,
+                    'invalidSide': InvalidOrder,
+                    'invalidSize': InvalidOrder,
+                    'invalidPrice': InvalidOrder,
+                    'insufficientAvailableFunds': InsufficientFunds,
+                    'selfFill': ExchangeError,
+                    'tooManySmallOrders': ExchangeError,
+                    'maxPositionViolation': BadRequest,
+                    'marketSuspended': ExchangeNotAvailable,
+                    'marketInactive': ExchangeNotAvailable,
+                    'clientOrderIdAlreadyExist': DuplicateOrderId,
+                    'clientOrderIdTooLong': BadRequest,
+                    'outsidePriceCollar': InvalidOrder,
+                    'postWouldExecute': OrderImmediatelyFillable,  # the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+                    'iocWouldNotExecute': OrderNotFillable,  # -||-
+                    'wouldNotReducePosition': ExchangeError,
+                    'orderForEditNotFound': OrderNotFound,
+                    'orderForEditNotAStop': InvalidOrder,
+                    'filled': OrderNotFound,
+                    'notFound': OrderNotFound,
+                }, status, self.id + ': ' + method + ' failed due to ' + status)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {

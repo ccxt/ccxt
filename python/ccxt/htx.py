@@ -5650,6 +5650,7 @@ class htx(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
             clientOrderIds = self.safe_value_2(query, 'client_order_id', 'clientOrderId')
             clientOrderIds = self.safe_value_2(query, 'client_order_ids', 'clientOrderIds', clientOrderIds)
+            clientOrderIdsString = self.safe_string_n(query, ['client_order_ids', 'clientOrderIds', 'client_order_id', 'clientOrderId'])
             query = self.omit(query, ['client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds'])
             if not self.safe_bool(market, 'linear', False):
                 if clientOrderIds is None:
@@ -5664,8 +5665,8 @@ class htx(Exchange, ImplicitAPI):
                 if clientOrderIds is None:
                     request['order_id'] = ids
                 else:
-                    if isinstance(clientOrderIds, str):
-                        request['client_order_id'] = clientOrderIds.split(',')
+                    if clientOrderIdsString is not None:
+                        request['client_order_id'] = clientOrderIdsString.split(',')
                     else:
                         request['client_order_id'] = clientOrderIds
                 response = self.contractPrivatePostV5TradeCancelBatchOrders(self.extend(request, query))

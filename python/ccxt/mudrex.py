@@ -1216,8 +1216,9 @@ class mudrex(Exchange, ImplicitAPI):
         rows = []
         for i in range(0, len(transactions)):
             rebate = None
+            transactionKey = self.safe_string(transactionKeys, i)
             for j in range(0, len(rebateKeys)):
-                if rebateKeys[j] == transactionKeys[i]:
+                if self.safe_string(rebateKeys, j) == transactionKey:
                     rebate = self.safe_string(rebateAmounts, j)
                     # blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     rebateKeys[j] = ''

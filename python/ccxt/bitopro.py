@@ -935,9 +935,8 @@ class bitopro(Exchange, ImplicitAPI):
         candleLength = len(candles)
         resultLength = 0
         while((resultLength < limit) and (i < candleLength)):
-            candle = self.safe_list(candles, i, [])
-            if candle[0] == timestamp:
-                result.append(candle)
+            if self.safe_integer(self.safe_list(candles, i, []), 0) == timestamp:
+                result.append(self.safe_list(candles, i, []))
                 i = i + 1
             else:
                 # set open, high, low to close
