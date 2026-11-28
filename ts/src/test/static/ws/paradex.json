@@ -1818,7 +1818,8 @@
                     }
                 ],
                 "disabledPHP": "watch_trades() takes a non-nullable string symbol in php, so the ALL subscription cannot be asked for",
-                "disabledGO": "WatchTradesAsync() takes a non-nullable string symbol in go, so the ALL subscription cannot be asked for"
+                "disabledGO": "WatchTradesAsync() takes a non-nullable string symbol in go, so the ALL subscription cannot be asked for",
+                "disabledRS": "watch_trades() takes a non-nullable &str symbol in rust, so the ALL subscription cannot be asked for"
             }
         ],
         "watchTicker": [
