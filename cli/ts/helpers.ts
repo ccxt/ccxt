@@ -623,6 +623,15 @@ async function loadSettingsAndCreateExchange (
         if (cliOptions.keys) {
             // check auth keys in env var
             const requiredCredentials = exchange.requiredCredentials;
+            // CCXT_APIKEYS is an optional JSON object env var keyed by exchange id, e.g. {"binance":{"apiKey":"...","secret":"..."}}
+            let ccxtApiKeys: Record<string, Record<string, unknown>> = {};
+            if (process.env.CCXT_APIKEYS) {
+                try {
+                    ccxtApiKeys = JSON.parse (process.env.CCXT_APIKEYS);
+                } catch (e) {
+                    log.red ('CCXT_APIKEYS env var is not valid JSON, ignoring it');
+                }
+            }
             for (const [ credential, isRequired ] of Object.entries (
                 requiredCredentials
             )) {
@@ -631,8 +640,10 @@ async function loadSettingsAndCreateExchange (
                         exchangeId
             + '_'
             + credential
-                    ).toUpperCase (); // example: KRAKEN_APIKEY
-                    let credentialValue = process.env[credentialEnvName];
+                    ).toUpperCase (); // example: KRAKEN_APIKEY or CCXT_APIKEYS["kraken"]["apiKey"]
+                    // CCXT_APIKEYS values may be non-strings (e.g. numeric uid), stringify them like the other ports
+                    const fallback = ccxtApiKeys?.[exchangeId]?.[credential];
+                    let credentialValue = process.env[credentialEnvName] || ((fallback !== undefined && fallback !== null) ? String (fallback) : undefined);
                     if (credentialValue) {
                         if (credentialValue.indexOf ('---BEGIN') > -1) {
                             credentialValue = (credentialValue as any).replaceAll (

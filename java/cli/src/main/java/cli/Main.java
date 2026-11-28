@@ -159,6 +159,20 @@ public class Main {
             return;
         }
 
+        // CCXT_APIKEYS is an optional JSON object env var keyed by exchange id, e.g. {"binance":{"apiKey":"...","secret":"..."}}
+        Map<String, Object> ccxtApiKeys = new java.util.HashMap<>();
+        String ccxtApiKeysRaw = System.getenv("CCXT_APIKEYS");
+        if (ccxtApiKeysRaw != null && !ccxtApiKeysRaw.isEmpty()) {
+            try {
+                Map<String, Object> parsed = new ObjectMapper().readValue(ccxtApiKeysRaw, Map.class);
+                if (parsed.get(instance.id) instanceof Map) {
+                    ccxtApiKeys = (Map<String, Object>) parsed.get(instance.id);
+                }
+            } catch (Exception e) {
+                System.out.println("CCXT_APIKEYS env var is not valid JSON, ignoring it");
+            }
+        }
+
         for (Map.Entry<String, Boolean> entry : credentials.entrySet()) {
             String key = entry.getKey();
             // attempt every declared credential, not only required ones: some exchanges (e.g.
@@ -179,6 +193,9 @@ public class Main {
             }
             String envKey = instanceIdKey.toUpperCase() + "_" + key.toUpperCase();
             credentialValue = System.getenv(envKey);
+            if ((credentialValue == null || credentialValue.isEmpty()) && ccxtApiKeys.get(key) != null) {
+                credentialValue = ccxtApiKeys.get(key).toString();
+            }
 
             if (credentialValue != null && credentialValue.startsWith("-----BEGIN")) {
                 credentialValue = credentialValue.replace("\\n", "\n");

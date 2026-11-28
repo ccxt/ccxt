@@ -399,8 +399,44 @@ func SetCredential(instance ccxt.ICoreExchange, key string, value string) {
 	}
 }
 
+// loadCcxtApiKeys parses the optional CCXT_APIKEYS env var, a JSON object keyed by exchange id such as
+// {"binance":{"apiKey":"...","secret":"..."}}, and returns the credentials of exchangeId,
+// used as a fallback for credentials
+func loadCcxtApiKeys(exchangeId string) map[string]string {
+	result := map[string]string{}
+	raw := os.Getenv("CCXT_APIKEYS")
+	if raw == "" {
+		return result
+	}
+	var parsed map[string]interface{}
+	// UseNumber keeps numeric values as json.Number so they print verbatim
+	// (plain Unmarshal yields float64, turning 1234567 into 1.234567e+06)
+	dec := json.NewDecoder(strings.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(&parsed); err != nil {
+		fmt.Println("CCXT_APIKEYS env var is not valid JSON, ignoring it")
+		return result
+	}
+	exchangeKeys, ok := parsed[exchangeId].(map[string]interface{})
+	if !ok {
+		return result
+	}
+	for k, v := range exchangeKeys {
+		if v == nil {
+			continue
+		}
+		if s, ok := v.(string); ok {
+			result[k] = s
+		} else {
+			result[k] = fmt.Sprintf("%v", v)
+		}
+	}
+	return result
+}
+
 func SetCredentials(instance ccxt.ICoreExchange) {
 	credentials := instance.GetRequiredCredentials()
+	ccxtApiKeys := loadCcxtApiKeys(instance.GetId())
 
 	for key, value := range credentials {
 		valBool := value.(bool)
@@ -408,6 +444,9 @@ func SetCredentials(instance ccxt.ICoreExchange) {
 			parsedKey := strings.ToUpper(instance.GetId()) + "_" + strings.ToUpper(key)
 
 			res := os.Getenv(parsedKey)
+			if res == "" {
+				res = ccxtApiKeys[key]
+			}
 			if res != "" {
 				SetCredential(instance, key, res)
 			}

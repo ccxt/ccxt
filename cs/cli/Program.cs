@@ -100,6 +100,30 @@ public static class Program
         // keys.json / keys.local.json are applied through the constructor (LoadSettings),
         // this only fills credentials still missing from environment variables
         var credentials = instance.requiredCredentials as dict;
+        // CCXT_APIKEYS is an optional JSON object env var keyed by exchange id, e.g. {"binance":{"apiKey":"...","secret":"..."}}
+        var ccxtApiKeys = new Dictionary<string, string>();
+        var ccxtApiKeysRaw = Environment.GetEnvironmentVariable("CCXT_APIKEYS");
+        if (!string.IsNullOrEmpty(ccxtApiKeysRaw))
+        {
+            try
+            {
+                var parsed = JObject.Parse(ccxtApiKeysRaw);
+                if (parsed[instance.id] is JObject exchangeKeys)
+                {
+                    foreach (var prop in exchangeKeys.Properties())
+                    {
+                        if (prop.Value.Type != JTokenType.Null)
+                        {
+                            ccxtApiKeys[prop.Name] = prop.Value.ToString();
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("CCXT_APIKEYS env var is not valid JSON, ignoring it");
+            }
+        }
         foreach (var credential in credentials)
         {
             var key = credential.Key;
@@ -119,6 +143,10 @@ public static class Program
                 }
                 var parsedKey = instance.id.ToUpper() + "_" + key.ToUpper();
                 var credentialValue = Environment.GetEnvironmentVariable(parsedKey);
+                if (string.IsNullOrEmpty(credentialValue))
+                {
+                    credentialValue = ccxtApiKeys.TryGetValue(key, out var fallbackValue) ? fallbackValue : null;
+                }
                 if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
                 {
                     credentialValue = credentialValue.Replace("\\n", "\n");

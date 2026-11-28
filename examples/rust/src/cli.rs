@@ -165,11 +165,27 @@ fn load_credentials(id: &str) -> HashMap<String, String> {
             if !dir.pop() { break; }
         }
     }
+    // CCXT_APIKEYS is an optional JSON object env var keyed by exchange id, e.g. {"binance":{"apiKey":"...","secret":"..."}}
+    let mut ccxt_api_keys: HashMap<String, String> = HashMap::new();
+    if let Ok(raw) = env::var("CCXT_APIKEYS") {
+        if !raw.is_empty() {
+            match ccxt::runtime::json_parse(&Value::Str(raw.into())) {
+                Value::Dict(top) => {
+                    if let Some(Value::Dict(ex_obj)) = top.get(id) {
+                        for (k, v) in ex_obj.iter() {
+                            if let Value::Str(s) = v { ccxt_api_keys.insert(k.clone(), s.to_string()); }
+                        }
+                    }
+                }
+                _ => eprintln!("CCXT_APIKEYS env var is not valid JSON, ignoring it"),
+            }
+        }
+    }
     for &cred in CRED_KEYS {
         let env_name = format!("{}_{}", id.to_uppercase(), cred.to_uppercase());
-        if let Ok(v) = env::var(&env_name) {
-            if !v.is_empty() { creds.insert(cred.to_string(), v); }
-        }
+        let value = env::var(&env_name).ok().filter(|v| !v.is_empty())
+            .or_else(|| ccxt_api_keys.get(cred).cloned().filter(|v| !v.is_empty()));
+        if let Some(v) = value { creds.insert(cred.to_string(), v); }
     }
     creds
 }
