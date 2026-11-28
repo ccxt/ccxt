@@ -640,12 +640,12 @@ export default class bitfinex extends Exchange {
             type = 'spot';
         }
         const swap = type === 'swap';
-        let baseId = '';
-        let quoteId = '';
+        let baseId: Str = undefined;
+        let quoteId: Str = undefined;
         if ((id as string).indexOf (':') >= 0) {
             const parts = (id as string).split (':');
-            baseId = this.safeString (parts, 0, '');
-            quoteId = this.safeString (parts, 1, '');
+            baseId = this.safeString (parts, 0);
+            quoteId = this.safeString (parts, 1);
         } else {
             baseId = (id as string).slice (0, 3);
             quoteId = (id as string).slice (3, 6);
@@ -865,7 +865,7 @@ export default class bitfinex extends Exchange {
     parseCurrenciesCustom (ids: any[], indexed: Dict, indexedNetworks: Dict): Dict {
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = this.safeString (ids, i, '');
+            const id: string = this.safeString (ids, i, '');
             if (id.endsWith ('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
@@ -877,10 +877,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    parseCurrencyCustom (id: Str, indexed: Dict, indexedNetworks: Dict): Currency {
-        if (id === undefined) {
-            return undefined;
-        }
+    parseCurrencyCustom (id: string, indexed: Dict, indexedNetworks: Dict): Currency {
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);

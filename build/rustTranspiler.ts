@@ -4486,6 +4486,9 @@ function rustStrParamCopyDrop (content: string): string {
                 if (!(/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\(&?$/.test (lead) && after.startsWith (','))) ok = false;
                 continue;
             }
+            // borrowed map-key lookup already expects `&str` / `Option<&str>`, not a boxed `Value`
+            const pre = body.slice (Math.max (0, u.index - 20), u.index);
+            if ((!opt && kind === 'str' && /\.contains_key\($/.test (pre) && after.startsWith (')')) || (opt && kind === 'str' && /matches!\($/.test (pre) && /^, Some\(__k\) if \w+\.contains_key\(__k\)\)/.test (after))) continue;
             // a whole argument or element re-boxes from the borrow, the same `Str` / `Null` the copy held
             if (/(?:\(|\[|, |\(&|\[&|, &)$/.test (body.slice (Math.max (0, u.index - 3), u.index)) && /^[,);\]]/.test (after)) local.push ({ start: at, end: at + name.length, text: `Value::from(${name})` });
             else if (kind === 'str' && (r = /^\.as_str\(\)\.unwrap_or_default\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? `${name}.unwrap_or_default()` : name });

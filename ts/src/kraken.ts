@@ -2721,10 +2721,9 @@ export default class kraken extends Exchange {
             //    }
             //
         } catch (e) {
-            const lastHttpResponse: Str = this.last_http_response;
-            if ((lastHttpResponse !== undefined) && (lastHttpResponse !== '')) {
-                if (lastHttpResponse.indexOf ('EOrder:Unknown order') >= 0) {
-                    throw new OrderNotFound (this.id + ' cancelOrder() error ' + lastHttpResponse);
+            if ((this.last_http_response !== undefined) && (this.last_http_response !== '')) {
+                if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
+                    throw new OrderNotFound (this.id + ' cancelOrder() error ' + this.last_http_response);
                 }
             }
             throw e;
