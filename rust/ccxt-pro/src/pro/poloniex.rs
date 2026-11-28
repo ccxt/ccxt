@@ -1100,7 +1100,7 @@ impl Poloniex {
         // snapshot was in flight are not overwritten; the free/used/total
         // aggregates are rebuilt from the merged currencies by safeBalance
         let reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into())]);
-        let keys: Vec<Value> = object_keys(&response).as_array().cloned().unwrap_or_default();
+        let keys: Vec<Value> = Value::Array(response.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;

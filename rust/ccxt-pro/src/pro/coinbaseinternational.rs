@@ -1461,7 +1461,10 @@ impl Coinbaseinternational {
                 let m = indexmap::IndexMap::new();
                 m
             });
-            result.insert(crate::runtime::stringify_param(&(crate::value::get_value_k(&ticker, "symbol"))), ticker.clone());
+            let tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
+            if (tickerSymbol.is_some()) {
+                result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
+            }
             return Value::Map(result);
         }
         return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), &symbolsResolved));

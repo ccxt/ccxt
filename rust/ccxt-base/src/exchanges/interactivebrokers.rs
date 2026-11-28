@@ -3726,11 +3726,22 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let cmeSymbols: Value = Value::Array(cryptoCmeFutureSymbols.keys().cloned().map(Value::from).collect());
         let cfeSymbols: Value = Value::Array(cryptoCboeFutureSymbols.keys().cloned().map(Value::from).collect());
         let targetSymbols: Value = self.arrays_concat(Value::from(vec![Value::Arr(coinbaseDerivSymbols), cmeSymbols, cfeSymbols]));
-        let symbols: Value = self.unique(targetSymbols);
-        let joined: Value = Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()); // c# fix, todo investigate
+        let mut symbols: crate::value::List = std::sync::Arc::new(Vec::new());
+        let targetSymbolsLength: i64 = targetSymbols.len() as i64;
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_19: bool = true;
+            while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < targetSymbolsLength } {
+            let targetSymbol: String = self.safe_string(&targetSymbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if !self.in_array(&targetSymbol, &symbols) {
+                std::sync::Arc::make_mut(&mut symbols).push(Value::from(targetSymbol));
+            }
+        }
+        }
+        let joined: String = symbols.iter().map(Value::to_string).collect::<Vec<String>>().join(",");
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), joined);
+                m.insert("symbols".to_string(), Value::from(joined));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -3761,13 +3772,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_20: bool = true;
-            while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (symbols.len() as i64) } {
-            let contracts: crate::value::List = self.safe_list_t(&response, symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut __for_first_21: bool = true;
+            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (symbols.len() as i64) } {
+            let contracts: crate::value::List = self.safe_list_t(&response, symbols.get(i as usize).cloned().unwrap_or(Value::Null));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_19: bool = true;
-                while { if !__for_first_19 { j += 1; } __for_first_19 = false; j < (contracts.len() as i64) } {
+                let mut __for_first_20: bool = true;
+                while { if !__for_first_20 { j += 1; } __for_first_20 = false; j < (contracts.len() as i64) } {
                 let contract: Value = contracts.get(j as usize).cloned().unwrap_or(Value::Null);
                 let conid: Option<String> = self.safe_string_k_opt(&contract, "conid", &[]);
                 if (conid.is_some()) {
@@ -3784,8 +3795,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut detailMarkets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_21: bool = true;
-            while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (details.len() as i64) } {
+            let mut __for_first_22: bool = true;
+            while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (details.len() as i64) } {
             let venue: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::read(&&details, &Value::Int(i)), "listingExchange", &[]);
             if self.in_array(&venue, &allowedVenues) {
                 detailMarkets.push(self.safe_dict(&details, Value::Int(i), &[]));
@@ -3798,8 +3809,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_22: bool = true;
-            while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (markets.len() as i64) } {
+            let mut __for_first_23: bool = true;
+            while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (markets.len() as i64) } {
             let market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let parsedType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             if withSwaps && (parsedType.as_deref() == Some("swap")) {
@@ -3837,8 +3848,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut promises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_23: bool = true;
-            while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (cfdExchanges.len() as i64) } {
+            let mut __for_first_24: bool = true;
+            while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (cfdExchanges.len() as i64) } {
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("exchange".to_string(), self.safe_string(&cfdExchanges, Value::Int(i), &[Value::Str("".into())]));
@@ -3851,13 +3862,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let responses: crate::value::List = promise_all(&Value::from(promises)).await;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_25: bool = true;
-            while { if !__for_first_25 { i += 1; } __for_first_25 = false; i < (responses.len() as i64) } {
+            let mut __for_first_26: bool = true;
+            while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < (responses.len() as i64) } {
             let cfds: crate::value::List = self.safe_list_t(&responses, Value::Int(i));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_24: bool = true;
-                while { if !__for_first_24 { j += 1; } __for_first_24 = false; j < (cfds.len() as i64) } {
+                let mut __for_first_25: bool = true;
+                while { if !__for_first_25 { j += 1; } __for_first_25 = false; j < (cfds.len() as i64) } {
                 let cfd: Value = cfds.get(j as usize).cloned().unwrap_or(Value::Null);
                 let conid: Option<String> = self.safe_string_k_opt(&cfd, "conid", &[]);
                 entries.insert(conid.as_deref().unwrap_or("null").to_string(), cfd);
@@ -3871,13 +3882,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let detailMarketsLength: i64 = detailMarkets.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_27: bool = true;
-            while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (cfdExchanges.len() as i64) } {
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (cfdExchanges.len() as i64) } {
             let cfdExchange: String = self.safe_string(&cfdExchanges, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_26: bool = true;
-                while { if !__for_first_26 { j += 1; } __for_first_26 = false; j < detailMarketsLength } {
+                let mut __for_first_27: bool = true;
+                while { if !__for_first_27 { j += 1; } __for_first_27 = false; j < detailMarketsLength } {
                 let listingExchange: String = self.safe_string_k(detailMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), "listingExchange", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (listingExchange == cfdExchange) {
                     result.push(self.safe_dict(&detailMarkets, Value::Int(j), &[]));
@@ -3917,8 +3928,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut searchPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (bondSymbols.len() as i64) } {
+            let mut __for_first_29: bool = true;
+            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (bondSymbols.len() as i64) } {
             let searchRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), self.safe_string(&bondSymbols, Value::Int(i), &[Value::Str("".into())]));
@@ -3935,8 +3946,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut filterParts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_29: bool = true;
-            while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (filterIds.len() as i64) } {
+            let mut __for_first_30: bool = true;
+            while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (filterIds.len() as i64) } {
             let filterId: Option<&str> = filterIds.get(i as usize).and_then(Value::as_str);
             let filterValue: String = self.safe_string(&bondFilters, Value::from(filterId.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             filterParts.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", filterId.as_deref().unwrap_or("null"), ":").into()), filterValue).into()));
@@ -3946,18 +3957,18 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut contractPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_32: bool = true;
-            while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (searchResults.len() as i64) } {
+            let mut __for_first_33: bool = true;
+            while { if !__for_first_33 { i += 1; } __for_first_33 = false; i < (searchResults.len() as i64) } {
             let searchResult: crate::value::List = self.safe_list_t(&searchResults, Value::Int(i));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_31: bool = true;
-                while { if !__for_first_31 { j += 1; } __for_first_31 = false; j < (searchResult.len() as i64) } {
+                let mut __for_first_32: bool = true;
+                while { if !__for_first_32 { j += 1; } __for_first_32 = false; j < (searchResult.len() as i64) } {
                 let issuers: crate::value::List = self.safe_list_k_t(searchResult.get(j as usize).cloned().unwrap_or(Value::Null), "issuers");
                 {
                                         let mut k: i64 = 0;
-                    let mut __for_first_30: bool = true;
-                    while { if !__for_first_30 { k += 1; } __for_first_30 = false; k < (issuers.len() as i64) } {
+                    let mut __for_first_31: bool = true;
+                    while { if !__for_first_31 { k += 1; } __for_first_31 = false; k < (issuers.len() as i64) } {
                     let mut contractsRequest: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("sectype".to_string(), Value::Str("BOND".into()));
@@ -3977,13 +3988,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let contractResults: crate::value::List = promise_all(&Value::from(contractPromises)).await;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_34: bool = true;
-            while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (contractResults.len() as i64) } {
+            let mut __for_first_35: bool = true;
+            while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (contractResults.len() as i64) } {
             let contracts: crate::value::List = self.safe_list_t(&contractResults, Value::Int(i));
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_33: bool = true;
-                while { if !__for_first_33 { j += 1; } __for_first_33 = false; j < (contracts.len() as i64) } {
+                let mut __for_first_34: bool = true;
+                while { if !__for_first_34 { j += 1; } __for_first_34 = false; j < (contracts.len() as i64) } {
                 let contract: Value = contracts.get(j as usize).cloned().unwrap_or(Value::Null);
                 let conid: Option<String> = self.safe_string_k_opt(&contract, "conid", &[]);
                 if (conid.is_some()) {
@@ -4003,8 +4014,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_35: bool = true;
-            while { if !__for_first_35 { i += 1; } __for_first_35 = false; i < (markets.len() as i64) } {
+            let mut __for_first_36: bool = true;
+            while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (markets.len() as i64) } {
             let mut market: Value = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -4048,8 +4059,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let stockExchanges: crate::value::List = self.safe_list_k_t(&exchangesDict, "STK");
         {
                         let mut j: i64 = 0;
-            let mut __for_first_37: bool = true;
-            while { if !__for_first_37 { j += 1; } __for_first_37 = false; j < (stockExchanges.len() as i64) } {
+            let mut __for_first_38: bool = true;
+            while { if !__for_first_38 { j += 1; } __for_first_38 = false; j < (stockExchanges.len() as i64) } {
             let exchange: String = self.safe_string(&stockExchanges, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let stockRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4061,8 +4072,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let stocks: Value = self.markets_endpoint_call(__ws_arg_8, "webapiGetV1ApiTrsrvAllConids", &[Value::from(vec![])]).await;
             {
                                 let mut k: i64 = 0;
-                let mut __for_first_36: bool = true;
-                while { if !__for_first_36 { k += 1; } __for_first_36 = false; k < (stocks.len() as i64) } {
+                let mut __for_first_37: bool = true;
+                while { if !__for_first_37 { k += 1; } __for_first_37 = false; k < (stocks.len() as i64) } {
                 let stock: Value = stocks.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null);
                 let stockConid: Option<String> = self.safe_string_k_opt(&stock, "conid", &[]);
                 if (stockConid.is_some()) {
@@ -4086,8 +4097,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut retryDelay: i64 = self.safe_integer_k(&opts, "retryDelay", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_38: bool = true;
-            while { if !__for_first_38 { i += 1; } __for_first_38 = false; i < retries } {
+            let mut __for_first_39: bool = true;
+            while { if !__for_first_39 { i += 1; } __for_first_39 = false; i < retries } {
             let isLastRetry: bool = i >= ((retries - 1));
             let mut data: Value = Value::Null;
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -4187,8 +4198,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut conids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_39: bool = true;
-            while { if !__for_first_39 { i += 1; } __for_first_39 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_40: bool = true;
+            while { if !__for_first_40 { i += 1; } __for_first_40 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             conids.push(Value::from((market).id.as_deref().unwrap_or("")));
         }
@@ -4205,8 +4216,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_40: bool = true;
-            while { if !__for_first_40 { i += 1; } __for_first_40 = false; i <= retries } {
+            let mut __for_first_41: bool = true;
+            while { if !__for_first_41 { i += 1; } __for_first_41 = false; i <= retries } {
             let __ws_arg_9 = self.extend(&request, &[&params]);
             response = self.webapi_get_v1_api_iserver_marketdata_snapshot(&[&__ws_arg_9]).await.unwrap_or_default();
             if self.ibkr_snapshot_ready(&response, readyFields).as_bool() == Some(true) {
@@ -4231,13 +4242,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let numFields: i64 = fieldIds.len() as i64;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_42: bool = true;
-            while { if !__for_first_42 { i += 1; } __for_first_42 = false; i < numItems } {
+            let mut __for_first_43: bool = true;
+            while { if !__for_first_43 { i += 1; } __for_first_43 = false; i < numItems } {
             let mut found: bool = false;
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_41: bool = true;
-                while { if !__for_first_41 { j += 1; } __for_first_41 = false; j < numFields } {
+                let mut __for_first_42: bool = true;
+                while { if !__for_first_42 { j += 1; } __for_first_42 = false; j < numFields } {
                 if (self.safe_string(response.get(i as usize).cloned().unwrap_or(Value::Null), fieldIds.get(j as usize).cloned().unwrap_or(Value::Null), &[]) != Value::Null) {
                     found = true;
                     break;
@@ -4378,8 +4389,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_43: bool = true;
-            while { if !__for_first_43 { i += 1; } __for_first_43 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_44: bool = true;
+            while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(market).contract {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOpenInterests() supports contract markets only, ").into()), (market).symbol).into()), " is not a contract market")));
@@ -4622,8 +4633,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut accounts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_44: bool = true;
-            while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < (portfolioAccounts.len() as i64) } {
+            let mut __for_first_45: bool = true;
+            while { if !__for_first_45 { i += 1; } __for_first_45 = false; i < (portfolioAccounts.len() as i64) } {
             let __ws_arg_11 = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -4889,8 +4900,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let queryKeys: Vec<Value> = Value::Array(query.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_45: bool = true;
-            while { if !__for_first_45 { i += 1; } __for_first_45 = false; i < (queryKeys.len() as i64) } {
+            let mut __for_first_46: bool = true;
+            while { if !__for_first_46 { i += 1; } __for_first_46 = false; i < (queryKeys.len() as i64) } {
             let key: Option<&str> = queryKeys.get(i as usize).and_then(Value::as_str);
             request.insert(key.as_deref().unwrap_or("null").to_string(), query.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
         }
@@ -4915,8 +4926,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut current: Value = response;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_46: bool = true;
-            while { if !__for_first_46 { i += 1; } __for_first_46 = false; i <= maxReplies } {
+            let mut __for_first_47: bool = true;
+            while { if !__for_first_47 { i += 1; } __for_first_47 = false; i <= maxReplies } {
             if !(matches!(&current, Value::Arr(_))) {
                 //
                 // advanced order reject
@@ -5280,8 +5291,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_47: bool = true;
-            while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_48: bool = true;
+            while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (parsed.len() as i64) } {
             let status: Option<String> = self.safe_string_k_opt(parsed.get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
                 result.push(parsed.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -5706,8 +5717,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_48: bool = true;
-            while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (positions.len() as i64) } {
+            let mut __for_first_49: bool = true;
+            while { if !__for_first_49 { i += 1; } __for_first_49 = false; i < (positions.len() as i64) } {
             let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&positions, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5747,8 +5758,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut parts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_49: bool = true;
-            while { if !__for_first_49 { i += 1; } __for_first_49 = false; i < (keys.len() as i64) } {
+            let mut __for_first_50: bool = true;
+            while { if !__for_first_50 { i += 1; } __for_first_50 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let value: String = self.safe_string(&sorted, Value::from(key.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             parts.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=\"").into()), value).into()), "\"").into()));
@@ -5784,8 +5795,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut imploded: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_50: bool = true;
-            while { if !__for_first_50 { i += 1; } __for_first_50 = false; i < (segments.len() as i64) } {
+            let mut __for_first_51: bool = true;
+            while { if !__for_first_51 { i += 1; } __for_first_51 = false; i < (segments.len() as i64) } {
             let segment: Option<String> = segments.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (segment.as_deref().unwrap_or_default().starts_with(":")) {
                 let name: Option<String> = (if let Some(__s) = segment.as_deref() { Some(__s.chars().skip(1).collect::<String>()) } else { None });
@@ -5812,8 +5823,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut pathParams: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_51: bool = true;
-            while { if !__for_first_51 { i += 1; } __for_first_51 = false; i < (segments.len() as i64) } {
+            let mut __for_first_52: bool = true;
+            while { if !__for_first_52 { i += 1; } __for_first_52 = false; i < (segments.len() as i64) } {
             let segment: Option<String> = segments.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (segment.as_deref().unwrap_or_default().starts_with(":")) {
                 pathParams.push((if let Some(__s) = segment.as_deref() { Some(__s.chars().skip(1).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null));
@@ -5936,8 +5947,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let retryDelay: i64 = self.safe_integer_k(&options, "retryDelay", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_52: bool = true;
-            while { if !__for_first_52 { i += 1; } __for_first_52 = false; i <= retries } {
+            let mut __for_first_53: bool = true;
+            while { if !__for_first_53 { i += 1; } __for_first_53 = false; i <= retries } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 return self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), config.clone()]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;

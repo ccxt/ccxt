@@ -1610,7 +1610,7 @@ impl Kraken {
                     let currentAskLength: i64 = currentAsk.len() as i64;
                     let mut formattedAsk: String = "".to_string();
                     if currentAskLength > 1 {
-                        formattedAsk = format!("{}{}", self.format_number(currentAsk.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentAsk.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+                        formattedAsk = format!("{}{}", self.format_number(self.safe_string(&currentAsk, Value::Int(0), &[Value::Str("".into())])).map(Value::from).unwrap_or(Value::Null), self.format_number(self.safe_string(&currentAsk, Value::Int(1), &[Value::Str("".into())])).map(Value::from).unwrap_or(Value::Null));
                     }
                     payloadArray.push(Value::from(formattedAsk));
                 }
@@ -1623,7 +1623,7 @@ impl Kraken {
                     let currentBidLength: i64 = currentBid.len() as i64;
                     let mut formattedBid: String = "".to_string();
                     if currentBidLength > 1 {
-                        formattedBid = format!("{}{}", self.format_number(currentBid.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentBid.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+                        formattedBid = format!("{}{}", self.format_number(self.safe_string(&currentBid, Value::Int(0), &[Value::Str("".into())])).map(Value::from).unwrap_or(Value::Null), self.format_number(self.safe_string(&currentBid, Value::Int(1), &[Value::Str("".into())])).map(Value::from).unwrap_or(Value::Null));
                     }
                     payloadArray.push(Value::from(formattedBid));
                 }

@@ -2363,7 +2363,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         results = self.sort_by2(results, Value::Str("timestamp".into()), Value::Str("id".into()), &[]);
         let outcomeHandle: Option<String> = self.safe_string_k_opt(outcomeObj, "outcome", &[]);
-        return self.filter_by_value_since_limit(&results, Value::Str("outcome".into()), outcomeHandle.map(Value::from).unwrap_or(Value::Null), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(false)]);
+        return self.filter_by_value_since_limit(&results, Value::Str("outcome".into()), outcomeHandle.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(false)]);
 }
 
 /*
@@ -2448,7 +2448,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let since = get_arg(optional_args, 1, Value::Null);
         let limit = get_arg(optional_args, 2, Value::Null);
         let tail = get_arg(optional_args, 3, Value::Bool(false));
-        return Value::Arr(self.filter_by_value_since_limit(array, Value::Str("outcome".into()), outcome, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]));
+        return Value::Arr(self.filter_by_value_since_limit(array, Value::Str("outcome".into()), outcome.as_str(), since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]));
 
     Value::Null
 }

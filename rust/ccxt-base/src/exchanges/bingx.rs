@@ -8270,7 +8270,7 @@ impl Bingx {
                     if j > 0 {
                         arrStr.push_str(",");
                     }
-                    arrStr.push_str(&(to_string_val(&arrayElement)).to_string());
+                    arrStr.push_str(&format!("{}", arrayElement));
                 }
                 }
                 arrStr.push_str("]");
@@ -8889,9 +8889,9 @@ impl Bingx {
                         }
                     }  else {
                         if j > 0 {
-                            arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(",".into()), to_string_val(&arrayElement)).into())).into());
+                            arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(",".into()), Value::Str(format!("{}", arrayElement).into())).into())).into());
                         }  else {
-                            arrStr = to_string_val(&arrayElement);
+                            arrStr = Value::Str(format!("{}", arrayElement).into());
                         }
                     }
                 }

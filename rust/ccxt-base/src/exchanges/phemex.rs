@@ -351,8 +351,10 @@ impl crate::exchange::DerivedExchange for Phemex {
             let amountIndex: i64 = (tradeLength - 1);
             priceString = self.safe_string_opt(&trade, Value::from(priceIndex), &[]);
             amountString = self.safe_string_opt(&trade, Value::from(amountIndex), &[]);
-            let priceAmount: Value = get_value(&trade, &Value::from(priceIndex));
-            if matches!(&priceAmount, Value::Int(_) | Value::Float(_)) {
+            // v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            let tradeSettle: Option<String> = self.safe_string_k_opt(&marketResolved, "settle", &[]);
+            let isStableSettled: bool = (tradeSettle.as_deref() == Some("USDT")) || (tradeSettle.as_deref() == Some("USDC"));
+            if !isStableSettled {
                 priceString = self.from_ep(self.safe_string(&trade, Value::from(priceIndex), &[]).as_str(), &[&crate::Value::from(&marketResolved)]);
                 amountString = self.from_ev(self.safe_string(&trade, Value::from(amountIndex), &[]).as_str(), &[&crate::Value::from(&marketResolved)]);
             }

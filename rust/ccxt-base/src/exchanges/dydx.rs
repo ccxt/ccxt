@@ -2101,8 +2101,8 @@ impl Dydx {
         }
         credentials = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("privateKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "privateKey"), &[])));
-                m.insert("publicKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[])));
+                m.insert("privateKey".to_string(), Value::from(self.binary_to_base16(credentials.as_map().and_then(|__m| __m.get("privateKey")).cloned().unwrap_or(Value::Null), &[])));
+                m.insert("publicKey".to_string(), Value::from(self.binary_to_base16(credentials.as_map().and_then(|__m| __m.get("publicKey")).cloned().unwrap_or(Value::Null), &[])));
             m
         });
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials); }

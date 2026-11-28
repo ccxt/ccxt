@@ -2151,7 +2151,7 @@ impl Bithumb {
             if (marketIdsLength == 0) {
                 return Value::Map(result);
             }
-            let mut marketIdsChunks: crate::value::List = std::sync::Arc::new(Vec::new());
+            let mut singleMarketIds: crate::value::List = std::sync::Arc::new(Vec::new());
             let mut promises: Vec<Value> = Vec::new();
             // the exchange rejects more than 200 market ids per request
             let maxMarketIdsOption: i64 = self.safe_integer_k(&self.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", &[Value::Int(200)]).as_i64().unwrap_or(200);
@@ -2159,20 +2159,24 @@ impl Bithumb {
             if (true) && (maxMarketIdsOption >= 1) {
                 maxMarketIdsPerRequest = self.parse_to_int(Value::from(maxMarketIdsOption));
             }
-            let mut marketIdsChunk: Value = Value::from(vec![]);
+            let mut marketIdsChunk: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_8: bool = true;
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < marketIdsLength } {
-                if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get(i as usize).cloned().unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut marketIdsChunk).push(marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
                 let marketIdsChunkLength: i64 = marketIdsChunk.len() as i64;
                 let isLastMarketId: bool = i == ((marketIdsLength - 1));
                 if ((maxMarketIdsPerRequest.is_some() && Some(marketIdsChunkLength) >= maxMarketIdsPerRequest)) || isLastMarketId {
-                    std::sync::Arc::make_mut(&mut marketIdsChunks).push(marketIdsChunk.clone());
-                    request.insert("markets".into(), Value::Str(marketIdsChunk.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                    if (marketIdsChunkLength == 1) {
+                        std::sync::Arc::make_mut(&mut singleMarketIds).push(marketIds.get(i as usize).cloned().unwrap_or(Value::Null));
+                    }  else {
+                        std::sync::Arc::make_mut(&mut singleMarketIds).push(Value::Str("".into()));
+                    }
+                    request.insert("markets".into(), Value::Str(marketIdsChunk.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                     let __ws_arg_5 = self.extend(&request, &[&paramsGeneration]);
                     promises.push(self.call_method(Value::Str("public_get_v1_ticker".into()), &[&__ws_arg_5]).await);
-                    marketIdsChunk = Value::from(vec![]);
+                    marketIdsChunk = std::sync::Arc::new(Vec::new());
                 }
             }
             }
@@ -2218,12 +2222,7 @@ impl Bithumb {
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(&response, "data", &[]) != Value::Null) {
                     response = self.safe_value_k(&response, "data", &[]);
                 }
-                let mut expectedMarketId: Option<String> = None;
-                let requestedMarketIds: crate::value::List = self.safe_list_t(&marketIdsChunks, Value::Int(i));
-                let mut firstMarketId: Option<String> = self.safe_string_opt(&requestedMarketIds, Value::Int(0), &[]);
-                if (firstMarketId.is_some()) && (self.safe_string(&requestedMarketIds, Value::Int(1), &[]) == Value::Null) {
-                    expectedMarketId = firstMarketId.take();
-                }
+                let expectedMarketId: Option<String> = self.safe_string_opt(&singleMarketIds, Value::Int(i), &[]);
                 let mut tickers: crate::value::List = std::sync::Arc::new(Vec::new());
                 if let Value::Arr(__a) = response {
                     tickers = __a;

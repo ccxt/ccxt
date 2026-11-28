@@ -2886,7 +2886,7 @@ impl Paradex {
                     result.push(Value::from(&summary));
                 }  else {
                     let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-                    if (crate::value::KeyRead::key_read(&&market, "type").as_str() == marketType) {
+                    if (self.safe_string_k(&market, "type", &[]).as_str() == marketType) {
                         result.push(Value::Dict(summary));
                     }
                 }

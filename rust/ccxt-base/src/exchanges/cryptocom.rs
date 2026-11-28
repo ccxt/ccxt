@@ -4851,7 +4851,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let maxLevel: i64 = 3;
         let depth: Option<i64> = self.parse_to_int(level);
         if (depth >= Some(maxLevel)) || (matches!(&object, Value::Str(_))) {
-            return to_string_val(&object).as_str().unwrap_or_default().to_owned();
+            return Value::Str(format!("{}", object).into()).as_str().unwrap_or_default().to_owned();
         }
         let mut returnString: String = "".to_string();
         let mut paramsKeys: Value = Value::Null;
@@ -4883,7 +4883,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 }
             }  else {
-                returnString.push_str(&(to_string_val(&value)).to_string());
+                returnString.push_str(&format!("{}", value));
             }
         }
         }

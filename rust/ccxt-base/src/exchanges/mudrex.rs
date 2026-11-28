@@ -2092,7 +2092,7 @@ impl Mudrex {
         let mut rebateKeys: Value = Value::from(vec![]);
         let mut rebateAmounts: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut transactions: Vec<Value> = Vec::new();
-        let mut transactionKeys: Vec<Value> = Vec::new();
+        let mut transactionKeys: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
@@ -2102,7 +2102,7 @@ impl Mudrex {
             let pairKey: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&entry, "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&entry, "created_at", &[Value::Str("".into())])).into()), ":").into()), self.safe_string_k(&entry, "transaction_amount", &[Value::Str("".into())]));
             if (feeType.as_deref() == Some("TRANSACTION")) {
                 transactions.push(Value::from(&entry));
-                transactionKeys.push(Value::from(pairKey.as_str()));
+                std::sync::Arc::make_mut(&mut transactionKeys).push(Value::from(pairKey.as_str()));
             }  else if (feeType.as_deref() == Some("REBATE")) {
                 if let Value::Arr(__a) = &mut rebateKeys { std::sync::Arc::make_mut(__a).push(Value::from(pairKey)); }
                 std::sync::Arc::make_mut(&mut rebateAmounts).push(self.safe_string_k(&entry, "fee_amount", &[Value::Str("0".into())]));
@@ -2115,11 +2115,12 @@ impl Mudrex {
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (transactions.len() as i64) } {
             let mut rebate: Option<String> = None;
+            let transactionKey: Option<String> = self.safe_string_opt(&transactionKeys, Value::Int(i), &[]);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_7: bool = true;
                 while { if !__for_first_7 { j += 1; } __for_first_7 = false; j < (rebateKeys.len() as i64) } {
-                if (rebateKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get(i as usize).cloned().unwrap_or(Value::Null).as_str()) {
+                if ((transactionKey.as_deref() == self.safe_string(&rebateKeys, Value::Int(j), &[]).as_str())) {
                     rebate = self.safe_string_opt(&rebateAmounts, Value::Int(j), &[]);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     add_element_to_object(&mut rebateKeys, &Value::Int(j), Value::Str("".into()));

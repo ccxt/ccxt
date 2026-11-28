@@ -726,11 +726,14 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let __ws_arg_21 = self.urls.get("api").cloned().unwrap_or(Value::Null);
+        let __ws_arg_21 = self.safe_dict_k(self.urls.get("api").cloned().unwrap_or(Value::Null), "rest", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
         let restUrls: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[crate::value::get_value_k(&__ws_arg_21, "rest")]);
+        }), &[__ws_arg_21]);
         if !(matches!(apiName.as_deref(), Some(__k) if restUrls.contains_key(__k))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }

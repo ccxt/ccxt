@@ -364,8 +364,8 @@ impl Interactivebrokers {
  */
     pub async fn ibkr_keep_alive_session(&mut self, mut client: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let current: Value = self.safe_value(self.clients.clone(), client.url(), &[]);
-        if !is_equal(&current, &client) {
+        let current: bool = __ch.is_current();
+        if (!current) {
             return Value::Null;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -953,7 +953,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         self.ibkr_unsubscribe(&client.as_value(), subHashes.as_array().map(Vec::as_slice).unwrap_or_default(), Value::Null, &[Value::Map(subscription)]).await;
-        self.ibkr_unsubscribe_market_data(&client.as_value(), (Value::from((market).id.as_deref())).as_str()).await;
+        self.ibkr_unsubscribe_market_data(&client.as_value(), Some(historyMarketId.as_str())).await;
         return Value::Bool(true);
         Value::Null
         }).await?))
@@ -1150,12 +1150,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let timestamp: Value = (match delta.get("_updated") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64),
             _ => Value::Int(self.milliseconds()) } }, _ => Value::Int(self.milliseconds()) });
-        let timeframes: Vec<Value> = object_keys(&ohlcvsBySymbol).as_array().cloned().unwrap_or_default();
+        let timeframes: Vec<&str> = ohlcvsBySymbol.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (timeframes.len() as i64) } {
-            let timeframe: Option<&str> = timeframes.get(i as usize).and_then(Value::as_str);
+            let timeframe: Option<&str> = timeframes.get(i as usize).copied();
             let mut stored: Value = (if let (Some(__m), Some(__k)) = (ohlcvsBySymbol.as_map(), timeframe.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let duration: i64 = ((self.parse_timeframe(Value::from(timeframe.as_deref()))) * 1000);
             let candleTimestamp: Option<i64> = (if let Some(__l) = (self.parse_to_int((match ((timestamp).as_f64(), (Value::from(duration)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))) { Some(__l * duration) } else { None });

@@ -3843,37 +3843,33 @@ impl Krakenfutures {
 }
 
     pub fn verify_order_action_success(&self, status: Option<&str>, method: &str, optional_args: &[&Value]) {
-        let status: Value = status.into();
-        let method: Value = method.into();
         let omit = get_arg(optional_args, 0, Value::from(vec![]));
-        let errors: indexmap::IndexMap<String, Value> = ({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("invalidOrderType".to_string(), Value::Str("InvalidOrder".into()));
-                m.insert("invalidSide".to_string(), Value::Str("InvalidOrder".into()));
-                m.insert("invalidSize".to_string(), Value::Str("InvalidOrder".into()));
-                m.insert("invalidPrice".to_string(), Value::Str("InvalidOrder".into()));
-                m.insert("insufficientAvailableFunds".to_string(), Value::Str("InsufficientFunds".into()));
-                m.insert("selfFill".to_string(), Value::Str("ExchangeError".into()));
-                m.insert("tooManySmallOrders".to_string(), Value::Str("ExchangeError".into()));
-                m.insert("maxPositionViolation".to_string(), Value::Str("BadRequest".into()));
-                m.insert("marketSuspended".to_string(), Value::Str("ExchangeNotAvailable".into()));
-                m.insert("marketInactive".to_string(), Value::Str("ExchangeNotAvailable".into()));
-                m.insert("clientOrderIdAlreadyExist".to_string(), Value::Str("DuplicateOrderId".into()));
-                m.insert("clientOrderIdTooLong".to_string(), Value::Str("BadRequest".into()));
-                m.insert("outsidePriceCollar".to_string(), Value::Str("InvalidOrder".into()));
-                m.insert("postWouldExecute".to_string(), Value::Str("OrderImmediatelyFillable".into()));
-                m.insert("iocWouldNotExecute".to_string(), Value::Str("OrderNotFillable".into()));
-                m.insert("wouldNotReducePosition".to_string(), Value::Str("ExchangeError".into()));
-                m.insert("orderForEditNotFound".to_string(), Value::Str("OrderNotFound".into()));
-                m.insert("orderForEditNotAStop".to_string(), Value::Str("InvalidOrder".into()));
-                m.insert("filled".to_string(), Value::Str("OrderNotFound".into()));
-                m.insert("notFound".to_string(), Value::Str("OrderNotFound".into()));
-            m
-        });
-        if (status != Value::Null) {
-            if (matches!(&status, Value::Str(__k) if errors.contains_key(__k.as_ref()))) && !self.in_array(status.clone(), omit) {
-                panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(errors.get(status.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null))), &crate::runtime::stringify_param(&(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, ": ").into()),
-                    method).into()), " failed due to ").into()), status).into())))));
+        if (status.is_some()) {
+            if !self.in_array(Value::from(status), omit) {
+                self.throw_exactly_matched_exception(Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("invalidOrderType".to_string(), Value::Str("InvalidOrder".into()));
+                        m.insert("invalidSide".to_string(), Value::Str("InvalidOrder".into()));
+                        m.insert("invalidSize".to_string(), Value::Str("InvalidOrder".into()));
+                        m.insert("invalidPrice".to_string(), Value::Str("InvalidOrder".into()));
+                        m.insert("insufficientAvailableFunds".to_string(), Value::Str("InsufficientFunds".into()));
+                        m.insert("selfFill".to_string(), Value::Str("ExchangeError".into()));
+                        m.insert("tooManySmallOrders".to_string(), Value::Str("ExchangeError".into()));
+                        m.insert("maxPositionViolation".to_string(), Value::Str("BadRequest".into()));
+                        m.insert("marketSuspended".to_string(), Value::Str("ExchangeNotAvailable".into()));
+                        m.insert("marketInactive".to_string(), Value::Str("ExchangeNotAvailable".into()));
+                        m.insert("clientOrderIdAlreadyExist".to_string(), Value::Str("DuplicateOrderId".into()));
+                        m.insert("clientOrderIdTooLong".to_string(), Value::Str("BadRequest".into()));
+                        m.insert("outsidePriceCollar".to_string(), Value::Str("InvalidOrder".into()));
+                        m.insert("postWouldExecute".to_string(), Value::Str("OrderImmediatelyFillable".into()));
+                        m.insert("iocWouldNotExecute".to_string(), Value::Str("OrderNotFillable".into()));
+                        m.insert("wouldNotReducePosition".to_string(), Value::Str("ExchangeError".into()));
+                        m.insert("orderForEditNotFound".to_string(), Value::Str("OrderNotFound".into()));
+                        m.insert("orderForEditNotAStop".to_string(), Value::Str("InvalidOrder".into()));
+                        m.insert("filled".to_string(), Value::Str("OrderNotFound".into()));
+                        m.insert("notFound".to_string(), Value::Str("OrderNotFound".into()));
+                    m
+                }), Value::from(status), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, ": ").into()), Value::from(method)).into()), " failed due to ").into()), Value::from(status)).into()));
             }
         }
 }

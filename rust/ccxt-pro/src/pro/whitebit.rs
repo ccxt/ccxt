@@ -107,7 +107,7 @@ impl Whitebit {
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -1454,7 +1454,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let id: Option<i64> = (match __pro_message.get("id") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
         if (id.is_some()) {
-            self.handle_subscription_status(&client.as_value(), message, Value::from(id));
+            self.handle_subscription_status(&client.as_value(), message);
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -1477,8 +1477,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_subscription_status(&self, client: &Value, message: &crate::value::Dict, mut id: Value) {
+    pub fn handle_subscription_status(&self, client: &Value, message: &crate::value::Dict) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let id: Option<i64> = (match __pro_message.get("id") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
 
         let values: Vec<Value> = __ch.subscription_values();
         {
@@ -1488,7 +1490,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let subscription: Value = values.get(i as usize).cloned().unwrap_or(Value::Null);
             if !(match &(subscription) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 let subId: Option<i64> = self.safe_integer_k(&subscription, "id", &[]).as_i64();
-                if (subId.is_some()) && ((Value::from(subId).as_f64() == id.as_f64())) {
+                if (subId.is_some()) && (subId == id) {
                     let method: bool = self.safe_value_k(&subscription, "method", &[]) != Value::Null;
                     if (method) {
                         self.handle_authenticate(client, message);

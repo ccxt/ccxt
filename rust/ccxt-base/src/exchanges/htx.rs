@@ -9847,6 +9847,7 @@ impl Htx {
             }
             let mut clientOrderIds: Value = self.safe_value2(&query, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
             clientOrderIds = self.safe_value2(&query, Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
+            let clientOrderIdsString: Option<String> = self.safe_string_n_opt(&query, Value::from(vec![Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]);
             query = self.omit_t(query, &["client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"], &[]);
             if !matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
@@ -9864,8 +9865,8 @@ impl Htx {
                 if (clientOrderIds == Value::Null) {
                     request.insert("order_id".into(), ids);
                 }  else {
-                    if matches!(&clientOrderIds, Value::Str(_)) {
-                        request.insert("client_order_id".into(), Value::Array(if let Some(__s) = clientOrderIds.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() }));
+                    if (clientOrderIdsString.is_some()) {
+                        request.insert("client_order_id".into(), Value::Array(if let Some(__s) = clientOrderIdsString.as_deref() { __s.split(",").map(Value::from).collect() } else { Vec::new() }));
                     }  else {
                         request.insert("client_order_id".into(), clientOrderIds);
                     }

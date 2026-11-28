@@ -1236,7 +1236,7 @@ impl std::ops::DerefMut for Digifinex {
 
 impl Digifinex {
     pub fn describe(&self) -> crate::value::Dict {
-        return if let Value::Dict(__m) = self.deep_extend(Value::Dict(self.super_describe()), &[Value::Map({
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("digifinex".into()));
         m.insert("name".to_string(), Value::Str("DigiFinex".into()));
@@ -2007,62 +2007,54 @@ impl Digifinex {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
         m.insert("exceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("exact".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("10001".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Wrong request method, please check it's a GET ot POST request".into())]));
-        m.insert("10002".to_string(), Value::from(vec![Value::Str("AuthenticationError".into()), Value::Str("Invalid ApiKey".into())]));
-        m.insert("10003".to_string(), Value::from(vec![Value::Str("AuthenticationError".into()), Value::Str("Sign doesn't match".into())]));
-        m.insert("10004".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Illegal request parameters".into())]));
-        m.insert("10005".to_string(), Value::from(vec![Value::Str("DDoSProtection".into()), Value::Str("Request frequency exceeds the limit".into())]));
-        m.insert("10006".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Unauthorized to execute this request".into())]));
-        m.insert("10007".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("IP address Unauthorized".into())]));
-        m.insert("10008".to_string(), Value::from(vec![Value::Str("InvalidNonce".into()), Value::Str("Timestamp for this request is invalid, timestamp must within 1 minute".into())]));
-        m.insert("10009".to_string(), Value::from(vec![Value::Str("NetworkError".into()), Value::Str("Unexist endpoint, please check endpoint URL".into())]));
-        m.insert("10011".to_string(), Value::from(vec![Value::Str("AccountSuspended".into()), Value::Str("ApiKey expired. Please go to client side to re-create an ApiKey".into())]));
-        m.insert("20001".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Trade is not open for this trading pair".into())]));
-        m.insert("20002".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Trade of this trading pair is suspended".into())]));
-        m.insert("20003".to_string(), Value::from(vec![Value::Str("InvalidOrder".into()), Value::Str("Invalid price or amount".into())]));
-        m.insert("20007".to_string(), Value::from(vec![Value::Str("InvalidOrder".into()), Value::Str("Price precision error".into())]));
-        m.insert("20008".to_string(), Value::from(vec![Value::Str("InvalidOrder".into()), Value::Str("Amount precision error".into())]));
-        m.insert("20009".to_string(), Value::from(vec![Value::Str("InvalidOrder".into()), Value::Str("Amount is less than the minimum requirement".into())]));
-        m.insert("20010".to_string(), Value::from(vec![Value::Str("InvalidOrder".into()), Value::Str("Cash Amount is less than the minimum requirement".into())]));
-        m.insert("20011".to_string(), Value::from(vec![Value::Str("InsufficientFunds".into()), Value::Str("Insufficient balance".into())]));
-        m.insert("20012".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Invalid trade type, valid value: buy/sell)".into())]));
-        m.insert("20013".to_string(), Value::from(vec![Value::Str("InvalidOrder".into()), Value::Str("No order info found".into())]));
-        m.insert("20014".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Invalid date, Valid format: 2018-07-25)".into())]));
-        m.insert("20015".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Date exceeds the limit".into())]));
-        m.insert("20018".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Your trading rights have been banned by the system".into())]));
-        m.insert("20019".to_string(), Value::from(vec![Value::Str("BadSymbol".into()), Value::Str("Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front".into())]));
-        m.insert("20020".to_string(), Value::from(vec![Value::Str("DDoSProtection".into()), Value::Str("You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.".into())]));
-        m.insert("50000".to_string(), Value::from(vec![Value::Str("ExchangeError".into()), Value::Str("Exception error".into())]));
-        m.insert("20021".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Invalid currency".into())]));
-        m.insert("20022".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("The ending timestamp must be larger than the starting timestamp".into())]));
-        m.insert("20023".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Invalid transfer type".into())]));
-        m.insert("20024".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Invalid amount".into())]));
-        m.insert("20025".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("This currency is not transferable at the moment".into())]));
-        m.insert("20026".to_string(), Value::from(vec![Value::Str("InsufficientFunds".into()), Value::Str("Transfer amount exceed your balance".into())]));
-        m.insert("20027".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Abnormal account status".into())]));
-        m.insert("20028".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Blacklist for transfer".into())]));
-        m.insert("20029".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Transfer amount exceed your daily limit".into())]));
-        m.insert("20030".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("You have no position on this trading pair".into())]));
-        m.insert("20032".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Withdrawal limited".into())]));
-        m.insert("20033".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Wrong Withdrawal ID".into())]));
-        m.insert("20034".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Withdrawal service of this crypto has been closed".into())]));
-        m.insert("20035".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Withdrawal limit".into())]));
-        m.insert("20036".to_string(), Value::from(vec![Value::Str("ExchangeError".into()), Value::Str("Withdrawal cancellation failed".into())]));
-        m.insert("20037".to_string(), Value::from(vec![Value::Str("InvalidAddress".into()), Value::Str("The withdrawal address, Tag or chain type is not included in the withdrawal management list".into())]));
-        m.insert("20038".to_string(), Value::from(vec![Value::Str("InvalidAddress".into()), Value::Str("The withdrawal address is not on the white list".into())]));
-        m.insert("20039".to_string(), Value::from(vec![Value::Str("ExchangeError".into()), Value::Str("Can't be canceled in current status".into())]));
-        m.insert("20040".to_string(), Value::from(vec![Value::Str("RateLimitExceeded".into()), Value::Str("Withdraw too frequently; limitation: 3 times a minute, 100 times a day".into())]));
-        m.insert("20041".to_string(), Value::from(vec![Value::Str("PermissionDenied".into()), Value::Str("Beyond the daily withdrawal limit".into())]));
-        m.insert("20042".to_string(), Value::from(vec![Value::Str("BadSymbol".into()), Value::Str("Current trading pair does not support API trading".into())]));
-        m.insert("400002".to_string(), Value::from(vec![Value::Str("BadRequest".into()), Value::Str("Invalid Parameter".into())]));
-    m
-}));
-        m.insert("broad".to_string(), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        m.insert("10001".to_string(), Value::Str("BadRequest".into()));
+        m.insert("10002".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("10003".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("10004".to_string(), Value::Str("BadRequest".into()));
+        m.insert("10005".to_string(), Value::Str("DDoSProtection".into()));
+        m.insert("10006".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("10007".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("10008".to_string(), Value::Str("InvalidNonce".into()));
+        m.insert("10009".to_string(), Value::Str("NetworkError".into()));
+        m.insert("10011".to_string(), Value::Str("AccountSuspended".into()));
+        m.insert("20001".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20002".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20003".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("20007".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("20008".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("20009".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("20010".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("20011".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("20012".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20013".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("20014".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20015".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20018".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20019".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("20020".to_string(), Value::Str("DDoSProtection".into()));
+        m.insert("50000".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("20021".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20022".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20023".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20024".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20025".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20026".to_string(), Value::Str("InsufficientFunds".into()));
+        m.insert("20027".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20028".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20029".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20030".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20032".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20033".to_string(), Value::Str("BadRequest".into()));
+        m.insert("20034".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20035".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20036".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("20037".to_string(), Value::Str("InvalidAddress".into()));
+        m.insert("20038".to_string(), Value::Str("InvalidAddress".into()));
+        m.insert("20039".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("20040".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("20041".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("20042".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("400002".to_string(), Value::Str("BadRequest".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
@@ -2133,7 +2125,7 @@ impl Digifinex {
     m
 }));
     m
-})]) { __m } else { crate::value::Dict::default() }
+})]);
 }
 
 /*
@@ -6334,10 +6326,59 @@ impl Digifinex {
         if (codeError.is_none()) {
             panic!("{}", crate::exchange_errors::bad_response(feedback));
         }
-        let unknownError: Value = Value::from(vec![Value::Str("ExchangeError".into()), Value::from(feedback)]);
-        let ExceptionClassmessageVariable = self.safe_value(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), &[unknownError]);
-        let ExceptionClass: Value = get_value(&ExceptionClassmessageVariable, &Value::Int(0));
-        let message: Value = get_value(&ExceptionClassmessageVariable, &Value::Int(1));
-        panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(ExceptionClass)), &crate::runtime::stringify_param(&(message))));
+        let message: Value = self.safe_string(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("10001".to_string(), Value::Str("Wrong request method, please check it's a GET ot POST request".into()));
+                m.insert("10002".to_string(), Value::Str("Invalid ApiKey".into()));
+                m.insert("10003".to_string(), Value::Str("Sign doesn't match".into()));
+                m.insert("10004".to_string(), Value::Str("Illegal request parameters".into()));
+                m.insert("10005".to_string(), Value::Str("Request frequency exceeds the limit".into()));
+                m.insert("10006".to_string(), Value::Str("Unauthorized to execute this request".into()));
+                m.insert("10007".to_string(), Value::Str("IP address Unauthorized".into()));
+                m.insert("10008".to_string(), Value::Str("Timestamp for this request is invalid, timestamp must within 1 minute".into()));
+                m.insert("10009".to_string(), Value::Str("Unexist endpoint, please check endpoint URL".into()));
+                m.insert("10011".to_string(), Value::Str("ApiKey expired. Please go to client side to re-create an ApiKey".into()));
+                m.insert("20001".to_string(), Value::Str("Trade is not open for this trading pair".into()));
+                m.insert("20002".to_string(), Value::Str("Trade of this trading pair is suspended".into()));
+                m.insert("20003".to_string(), Value::Str("Invalid price or amount".into()));
+                m.insert("20007".to_string(), Value::Str("Price precision error".into()));
+                m.insert("20008".to_string(), Value::Str("Amount precision error".into()));
+                m.insert("20009".to_string(), Value::Str("Amount is less than the minimum requirement".into()));
+                m.insert("20010".to_string(), Value::Str("Cash Amount is less than the minimum requirement".into()));
+                m.insert("20011".to_string(), Value::Str("Insufficient balance".into()));
+                m.insert("20012".to_string(), Value::Str("Invalid trade type, valid value: buy/sell)".into()));
+                m.insert("20013".to_string(), Value::Str("No order info found".into()));
+                m.insert("20014".to_string(), Value::Str("Invalid date, Valid format: 2018-07-25)".into()));
+                m.insert("20015".to_string(), Value::Str("Date exceeds the limit".into()));
+                m.insert("20018".to_string(), Value::Str("Your trading rights have been banned by the system".into()));
+                m.insert("20019".to_string(), Value::Str("Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front".into()));
+                m.insert("20020".to_string(), Value::Str("You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate.".into()));
+                m.insert("50000".to_string(), Value::Str("Exception error".into()));
+                m.insert("20021".to_string(), Value::Str("Invalid currency".into()));
+                m.insert("20022".to_string(), Value::Str("The ending timestamp must be larger than the starting timestamp".into()));
+                m.insert("20023".to_string(), Value::Str("Invalid transfer type".into()));
+                m.insert("20024".to_string(), Value::Str("Invalid amount".into()));
+                m.insert("20025".to_string(), Value::Str("This currency is not transferable at the moment".into()));
+                m.insert("20026".to_string(), Value::Str("Transfer amount exceed your balance".into()));
+                m.insert("20027".to_string(), Value::Str("Abnormal account status".into()));
+                m.insert("20028".to_string(), Value::Str("Blacklist for transfer".into()));
+                m.insert("20029".to_string(), Value::Str("Transfer amount exceed your daily limit".into()));
+                m.insert("20030".to_string(), Value::Str("You have no position on this trading pair".into()));
+                m.insert("20032".to_string(), Value::Str("Withdrawal limited".into()));
+                m.insert("20033".to_string(), Value::Str("Wrong Withdrawal ID".into()));
+                m.insert("20034".to_string(), Value::Str("Withdrawal service of this crypto has been closed".into()));
+                m.insert("20035".to_string(), Value::Str("Withdrawal limit".into()));
+                m.insert("20036".to_string(), Value::Str("Withdrawal cancellation failed".into()));
+                m.insert("20037".to_string(), Value::Str("The withdrawal address, Tag or chain type is not included in the withdrawal management list".into()));
+                m.insert("20038".to_string(), Value::Str("The withdrawal address is not on the white list".into()));
+                m.insert("20039".to_string(), Value::Str("Can't be canceled in current status".into()));
+                m.insert("20040".to_string(), Value::Str("Withdraw too frequently; limitation: 3 times a minute, 100 times a day".into()));
+                m.insert("20041".to_string(), Value::Str("Beyond the daily withdrawal limit".into()));
+                m.insert("20042".to_string(), Value::Str("Current trading pair does not support API trading".into()));
+                m.insert("400002".to_string(), Value::Str("Invalid Parameter".into()));
+            m
+        }), Value::from(codeError.as_deref()), &[Value::from(feedback)]);
+        self.throw_exactly_matched_exception(&self.exceptions, &codeError, &message);
+        panic!("{}", crate::exchange_errors::exchange_error(message));
 }
 }

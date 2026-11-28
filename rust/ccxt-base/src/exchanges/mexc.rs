@@ -4773,19 +4773,19 @@ impl Mexc {
         if (type_var.as_str() != Some("limit")) && (type_var.as_str() != Some("market")) && (!self.in_array(type_var.clone(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5), Value::Int(6)]))) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")));
         }
-        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var.as_str() == Some("market")), ((match &(type_var) { Value::Int(__x) => *__x == 2, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }),
-            _ => None }), Some(__y) if __y == 2.0) })), &[params]);
-        let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
-        let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
         let mut orderType: Option<i64> = Some(0); // typed seed, every branch below assigns it
-        if postOnly {
-            orderType = Some(2);
-        }  else if (type_var.as_str() == Some("limit")) {
+        if (type_var.as_str() == Some("limit")) {
             orderType = Some(1);
         }  else if (type_var.as_str() == Some("market")) {
             orderType = Some(6);
         }  else {
-            orderType = self.parse_to_int(type_var);
+            orderType = self.parse_to_int(&type_var);
+        }
+        let postOnlyparamsPostOnlyVariable = self.handle_post_only((type_var.as_str() == Some("market")), (orderType == Some(2)), &[params]);
+        let postOnly: bool = postOnlyparamsPostOnlyVariable.0.as_bool() == Some(true);
+        let paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.1;
+        if postOnly {
+            orderType = Some(2);
         }
         let mut volString: Option<String> = self.amount_to_precision(Some(symbol.as_str()), Value::from(amount));
         if (volString.is_none()) {

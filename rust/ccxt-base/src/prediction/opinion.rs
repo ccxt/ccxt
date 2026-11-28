@@ -2918,7 +2918,7 @@ if _try_result.is_err() {
         let messageHash: String = "orders".to_string();
         let orders: Option<crate::pro::cache::Cache> = self.subscribe_opinion_channel(messageHash.as_str(), "trade.order.update", marketId).await.into();
         let sym: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
-        return Value::Arr(self.filter_by_value_since_limit(&orders, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_value_since_limit(&orders, Value::Str("outcome".into()), sym.as_deref(), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -3057,7 +3057,7 @@ if _try_result.is_err() {
         let messageHash: String = "myTrades".to_string();
         let trades: Option<crate::pro::cache::Cache> = self.subscribe_opinion_channel(messageHash.as_str(), "trade.record.new", marketId).await.into();
         let sym: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
-        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.as_deref(), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

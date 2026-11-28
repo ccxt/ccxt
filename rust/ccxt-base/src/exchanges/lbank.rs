@@ -4289,7 +4289,7 @@ impl Lbank {
                     m.insert("10702".to_string(), Value::Str("not allowed deposit".into()));
                 m
             }), Value::from(errorCode.as_deref()), &[json_stringify(&response)]);
-            let ErrorClass: Value = self.safe_value(Value::Map({
+            self.throw_exactly_matched_exception(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("10001".to_string(), Value::Str("BadRequest".into()));
                     m.insert("10002".to_string(), Value::Str("AuthenticationError".into()));
@@ -4341,8 +4341,8 @@ impl Lbank {
                     m.insert("10701".to_string(), Value::Str("BadSymbol".into()));
                     m.insert("10702".to_string(), Value::Str("PermissionDenied".into()));
                 m
-            }), errorCode.map(Value::from).unwrap_or(Value::Null), &[Value::Str("ExchangeError".into())]);
-            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(ErrorClass)), &crate::runtime::stringify_param(&(message))));
+            }), &errorCode, &message);
+            panic!("{}", crate::exchange_errors::exchange_error(message));
         }
         return None;
 }

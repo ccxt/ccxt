@@ -563,7 +563,7 @@ impl Backpack {
                 if (messageHash == "unsubscribe:orders") {
                     let mut cache: Value = Value::from(&self.orders);
                     if (self.orders.is_some()) {
-                        let keys: Vec<Value> = object_keys(&cache).as_array().cloned().unwrap_or_default();
+                        let keys: Vec<Value> = Value::Array(cache.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
                             let mut __for_first_1: bool = true;

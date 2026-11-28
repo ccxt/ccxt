@@ -2050,7 +2050,7 @@ impl Indodax {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchDepositAddresses() missing networkId")));
                     }
                     if networkId.as_deref().unwrap_or_default().contains(",") {
-                        network = Value::from(vec![]);
+                        let mut networkCodes: crate::value::List = std::sync::Arc::new(Vec::new());
                         if (networkId.is_none()) {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchDepositAddresses() missing networkId")));
                         }
@@ -2061,10 +2061,11 @@ impl Indodax {
                             while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (networkIds.len() as i64) } {
                             let _netIdTmp: Value = Value::from(self.network_id_to_code(Value::from(networkIds.get(j as usize).cloned().unwrap_or(Value::Null)).as_text().as_deref(), code.as_deref()));
                             if (_netIdTmp != Value::Null) {
-                                if let Value::Arr(__a) = &mut network { std::sync::Arc::make_mut(__a).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })); };
+                                std::sync::Arc::make_mut(&mut networkCodes).push((if let Some(__s) = _netIdTmp.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                             }
                         }
                         }
+                        network = Value::Arr(networkCodes);
                     }  else {
                         let _netIdTmp: Value = Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref()));
                         if (_netIdTmp != Value::Null) {

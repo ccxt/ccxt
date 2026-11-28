@@ -5710,7 +5710,7 @@ impl Aster {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut value: Value = values.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let isObj: bool = (matches!(&value, Value::Arr(_))) || value.is_map();
-            let valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
+            let valueJsonified: Value = (if isObj { json_stringify(&value) } else { Value::Str(format!("{}", value).into()) });
             let encoded: Option<String> = self.encode_uri_component(valueJsonified).as_str().map(str::to_owned);
             encodedString.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), encoded.as_deref().unwrap_or("null")).into()), "&"));
         }

@@ -10025,19 +10025,20 @@ impl Binance {
     m
 }));
         let mut promisesRaw: Vec<Value> = Vec::new();
-        let mut rawFetchMarkets: Value = Value::Null;
+        let mut rawFetchMarkets: Option<crate::value::List> = None;
         let defaultTypes: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into())]);
         let fetchMarketsOptions: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "fetchMarkets");
         if (fetchMarketsOptions.is_some()) {
-            rawFetchMarkets = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultTypes.clone()]);
+            rawFetchMarkets = self.safe_list_k_or_o(&fetchMarketsOptions, "types", &defaultTypes);
         }  else {
             // for backward-compatibility
-            rawFetchMarkets = self.safe_list_k(&self.options, "fetchMarkets", &[defaultTypes]);
+            rawFetchMarkets = self.safe_list_k_or_o(&self.options, "fetchMarkets", defaultTypes);
         }
         let loadAllOptions: Option<bool> = self.handle_option(Value::Str("fetchMarkets".into()), Value::Str("loadAllOptions".into()), &[Value::Bool(false)]).as_bool();
+        let mut appendOption: bool = false;
         if (loadAllOptions == Some(true)) {
             if !self.in_array(Value::Str("option".into()), &rawFetchMarkets) {
-                if let Value::Arr(__a) = &mut rawFetchMarkets { std::sync::Arc::make_mut(__a).push(Value::Str("option".into())); };
+                appendOption = true;
             }
         }
         let sandboxMode: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
@@ -10047,13 +10048,16 @@ impl Binance {
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
-            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawFetchMarkets.len() as i64) } {
+            while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawFetchMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let type_var: Option<String> = self.safe_string_opt(&rawFetchMarkets, Value::Int(i), &[]);
             if (type_var.as_deref() == Some("option")) && (isDemoEnv) {
                 continue;
             }
             std::sync::Arc::make_mut(&mut fetchMarkets).push(type_var.map(Value::from).unwrap_or(Value::Null));
         }
+        }
+        if appendOption && (!isDemoEnv) {
+            std::sync::Arc::make_mut(&mut fetchMarkets).push(Value::Str("option".into()));
         }
         let fetchMargins: bool = self.safe_bool_k_opt(&self.options, "fetchMargins", &[Value::Bool(false)]).unwrap_or(false);
         {
@@ -19572,7 +19576,7 @@ if _try_result.is_err() {
             }
             if (symbols.is_none()) || (self.in_array(&symbol, &symbols)) {
                 if (symbol.is_some()) {
-                    tradingLimits.insert(symbol.as_deref().unwrap_or("null").to_string(), crate::value::get_value_k(&crate::value::get_value_k(&market, "limits"), "amount"));
+                    tradingLimits.insert(symbol.as_deref().unwrap_or("null").to_string(), self.safe_dict(self.safe_dict_k(&market, "limits", &[]), Value::Str("amount".into()), &[]));
                 }
             }
         }

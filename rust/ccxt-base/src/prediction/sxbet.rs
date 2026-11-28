@@ -2247,7 +2247,7 @@ impl Sxbet {
         // the venue serves the tape newest-first - the unified contract is ascending by timestamp
         trades = self.sort_by_t(Value::Arr(trades), Value::Str("timestamp".into()), &[]);
         let sym: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
-        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.as_deref(), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2306,7 +2306,7 @@ impl Sxbet {
         }
         trades = self.sort_by_t(Value::Arr(trades), Value::Str("timestamp".into()), &[]);
         let sym: Option<String> = (if (outcomeObj.is_some()) { self.safe_string_k_opt(&outcomeObj, "outcome", &[]) } else { None });
-        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.as_deref(), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

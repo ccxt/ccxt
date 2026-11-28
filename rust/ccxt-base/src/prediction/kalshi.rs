@@ -1582,7 +1582,7 @@ impl Kalshi {
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        let mut entryMarkets: Value = crate::value::get_value_k(&eventEntry, "markets");
+                        let mut entryMarkets: Value = eventEntry.as_map().and_then(|__m| __m.get("markets")).cloned().unwrap_or(Value::Null);
                         if let Value::Arr(__a) = &mut entryMarkets { std::sync::Arc::make_mut(__a).push(m); }
                         add_element_to_object(&mut eventEntry, &Value::Str("markets".into()), entryMarkets);
                     }

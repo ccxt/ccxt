@@ -2974,7 +2974,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             trades.push(self.order_to_trade(&order));
         }
         }
-        return Value::Arr(self.filter_by_value_since_limit(Value::from(trades), Value::Str("outcome".into()), outcome, since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_value_since_limit(Value::from(trades), Value::Str("outcome".into()), outcome.as_str(), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -4610,7 +4610,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "trades:", networkId).into()), ":").into()), marketId);
         let messageHash: String = "myTrades".to_string();
         let trades: Option<crate::pro::cache::Cache> = self.subscribe_myriad_channel(messageHash.as_str(), channel.as_str(), &[&Value::Dict(params)]).await.into();
-        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.map(Value::from).unwrap_or(Value::Null), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_value_since_limit(&trades, Value::Str("outcome".into()), sym.as_deref(), since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

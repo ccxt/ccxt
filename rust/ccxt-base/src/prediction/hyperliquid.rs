@@ -1107,7 +1107,7 @@ impl Hyperliquid {
         let active: bool = true;
         let outcomePrecision: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[Value::Str(format!("{}", szDecimals).into())]), &[]));
+                m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[Value::from(self.number_to_string(Value::from(szDecimals)))]), &[]));
                 m.insert("price".to_string(), Value::Float(0.0001));
             m
         });

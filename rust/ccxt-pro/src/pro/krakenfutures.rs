@@ -2032,7 +2032,7 @@ impl Krakenfutures {
         let __seenKeys_empty = indexmap::IndexMap::new();
         let seenKeys = seenKeys.as_map().unwrap_or(&__seenKeys_empty);
         let reserved: crate::value::List = std::sync::Arc::new(vec![Value::Str("info".into()), Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);
-        let keys: Vec<Value> = object_keys(&balanceObject).as_array().cloned().unwrap_or_default();
+        let keys: Vec<Value> = Value::Array(balanceObject.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;

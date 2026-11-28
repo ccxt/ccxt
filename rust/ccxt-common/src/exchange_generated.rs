@@ -1026,10 +1026,10 @@ pub trait ExchangeBase:
         return self.filter_by_limit(result, &[Value::from(limit), key, shouldFilterFromStart]);
 }
 
-    fn filter_by_value_since_limit(&self, array: impl Rows, mut field: Value, mut value: Value, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
+    fn filter_by_value_since_limit(&self, array: impl Rows, mut field: Value, value: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let key = get_arg(optional_args, 0, Value::Str("timestamp".into()));
         let tail = get_arg(optional_args, 1, Value::Bool(false));
-        let valueIsDefined: bool = self.value_is_defined(value.clone());
+        let mut valueIsDefined: bool = self.value_is_defined(Value::from(value));
         let mut sinceIsDefined: bool = (Value::from(since) != Value::Null) && (Value::from(since) != Value::Null);
         let parsedArray: crate::value::List = self.to_array_t(Rows::rows(array));
         let mut result: Value = Value::from(&parsedArray);
@@ -1041,10 +1041,10 @@ pub trait ExchangeBase:
                 let mut __for_first_79: bool = true;
                 while { if !__for_first_79 { i += 1; } __for_first_79 = false; i < (parsedArray.len() as i64) } {
                 let entry: Value = crate::value::KeyRead::read(&&parsedArray, &Value::Int(i));
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                let entryFiledEqualValue: bool = is_equal(&self.safe_value(&entry, &field, &[]), &value);
-                let firstCondition: bool = !valueIsDefined || entryFiledEqualValue;
+                let entryFiledEqualValue: bool = (self.safe_string(&entry, &field, &[]).as_str() == value);
+                let firstCondition: bool = (!(valueIsDefined) || entryFiledEqualValue);
                 let entryKeyValue: Option<i64> = self.safe_integer(&entry, &key, &[]).as_i64();
                 let entryKeyGESince: bool = (entryKeyValue.is_some()) && (entryKeyValue != Some(0)) && (Value::from(since) != Value::Null) && ((entryKeyValue.is_some() && since.is_some() && entryKeyValue >= since));
                 let secondCondition: bool = !(sinceIsDefined) || entryKeyGESince;
@@ -2273,8 +2273,9 @@ pub trait ExchangeBase:
     fn is_round_number(&self, mut value: Value) -> Value {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        let res: Value = self.parse_to_numeric(((match (&(value), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })));
-        return Value::Bool(res.as_f64() == Some(0.0));
+        let remainder: Option<String> = self.number_to_string((match (&(value), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
+            Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }));
+        return Value::Bool((remainder.as_deref() == Some("0")) || (remainder.as_deref() == Some("-0")));
 
     Value::Null
 }
@@ -2995,7 +2996,7 @@ pub trait ExchangeBase:
         self.ids = Value::Array(marketsSortedById.keys().cloned().map(Value::from).collect());
         let mut numCurrencies: i64 = 0;
         if (currencies != Value::Null) {
-            let keys: Vec<Value> = object_keys(&currencies).as_array().cloned().unwrap_or_default();
+            let keys: Vec<Value> = Value::Array(currencies.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             numCurrencies = keys.len() as i64;
         }
         if numCurrencies > 0 {
@@ -3793,12 +3794,12 @@ pub trait ExchangeBase:
 
     fn add_key_in_array_items(&self, mut obj: Value, mut keyName: Value) -> crate::value::List {
         let mut result: Vec<Value> = Vec::new();
-        let keys: Vec<Value> = object_keys(&obj).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<&str> = obj.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_102: bool = true;
             while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let key: Option<&str> = keys.get(i as usize).copied();
             let item: Value = get_value(&obj, key.as_deref());
             if (item == Value::Null) {
                 continue;
@@ -3890,15 +3891,16 @@ pub trait ExchangeBase:
         //         { 'currency': 'USDT', 'cost': 12.3456 },
         //     ]
         //
-        let mut reduced: Value = Value::Map({
+        let mut reduced: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
+        let feesList: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(fees));
         {
                         let mut i: i64 = 0;
             let mut __for_first_104: bool = true;
-            while { if !__for_first_104 { i += 1; } __for_first_104 = false; (i as f64) < get_array_length(&fees).as_f64().unwrap_or(f64::NAN) } {
-            let fee: Value = get_value(&fees, &Value::Int(i));
+            while { if !__for_first_104 { i += 1; } __for_first_104 = false; i < (feesList.len() as i64) } {
+            let fee: crate::value::Dict = feesList.get(i as usize).cloned().unwrap_or_default();
             let code: Option<String> = self.safe_string_k_opt(&fee, "currency", &[]);
             let feeCurrencyCode: Value = (if (code.is_some()) { Value::from(code.as_deref()) } else { Value::Str(format!("{}", i).into()) });
             if (feeCurrencyCode != Value::Null) {
@@ -3907,15 +3909,16 @@ pub trait ExchangeBase:
                 if (cost.is_none()) {
                     continue;
                 }
-                if !(matches!((&reduced, &feeCurrencyCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut reduced { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&feeCurrencyCode), Value::Map({
+                if !(matches!(&feeCurrencyCode, Value::Str(__k) if reduced.contains_key(__k.as_ref()))) {
+                    reduced.insert(crate::runtime::stringify_param(&feeCurrencyCode), Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})); }
+}));
                 }
                 let rateKey: Value = (if (rate.is_none()) { Value::Str("".into()) } else { Value::from(rate.as_deref()) });
-                if ((if let (Some(__m), Some(__k)) = (reduced.as_map(), feeCurrencyCode.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().is_some_and(|__m| rateKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                    { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::get_value_k(&get_value(&reduced.as_map().and_then(|__m| feeCurrencyCode.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &rateKey), "cost"), &cost); add_element_to_object(get_value_mut(get_value_mut(&mut reduced, &feeCurrencyCode), &rateKey), &Value::Str("cost".into()), __be_tmp); }
+                if (reduced.get(feeCurrencyCode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null).as_map().is_some_and(|__m| rateKey.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+                    let previousCost: Option<String> = self.safe_string_k_opt(get_value(&reduced.get(feeCurrencyCode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &rateKey), "cost", &[]);
+                    add_element_to_object(get_value_mut(reduced.entry(crate::runtime::stringify_param(&feeCurrencyCode)).or_default(), &rateKey), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&previousCost, &cost));
                 }  else {
                     let mut newRateFee: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -3926,13 +3929,13 @@ pub trait ExchangeBase:
                     if (rate.is_some()) {
                         newRateFee.insert("rate".into(), rate.map(Value::from).unwrap_or(Value::Null));
                     }
-                    if let Value::Dict(__rda) = &mut reduced { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry(crate::runtime::stringify_param(&feeCurrencyCode)).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert(crate::runtime::stringify_param(&rateKey), Value::Map(newRateFee)); } }
+                    if let Value::Dict(__d) = reduced.entry(crate::runtime::stringify_param(&feeCurrencyCode)).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&rateKey), Value::Map(newRateFee)); }
                 }
             }
         }
         }
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
-        let feeValues: Vec<Value> = Value::Array(reduced.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let feeValues: Vec<Value> = Value::Array(reduced.values().cloned().collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_105: bool = true;
@@ -4542,12 +4545,12 @@ pub trait ExchangeBase:
             while { if !__for_first_112 { i += 1; } __for_first_112 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if sameTypeOnly.as_bool() == Some(true) && (marketType.is_some()) {
-                if ((Some((market).market_type.as_str()) != marketType.as_deref())) {
+                if ((marketType.as_deref() != Some((market).market_type.as_str()))) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " symbols must be of the same type, either ").into()), marketType.as_deref().unwrap_or("null")).into()), " or ").into()), (market).market_type).into()), ".")));
                 }
             }
             if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType.is_some()) {
-                if (((market).linear != isLinearSubType)) {
+                if ((isLinearSubType != crate::value::KeyRead::key_read(&&market, "linear").as_bool())) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " symbols must be of the same subType, either linear or inverse.")));
                 }
             }
@@ -4730,7 +4733,7 @@ pub trait ExchangeBase:
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (aliasKeys.len() as i64) } {
             let mut alias: Option<&str> = aliasKeys.get(i as usize).copied();
-            if ((if let (Some(__m), Some(__k)) = (aliases.as_map(), alias.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_str() == unifiedCode.as_str()) && (matches!(alias.as_deref(), Some(__k) if networkIdsByCodes.contains_key(__k))) {
+            if (self.safe_string(&aliases, Value::from(alias.as_deref()), &[]).as_str() == unifiedCode.as_str()) && (matches!(alias.as_deref(), Some(__k) if networkIdsByCodes.contains_key(__k))) {
                 return crate::value::KeyRead::read(&&networkIdsByCodes, &Value::from(alias));
             }
         }
@@ -4929,12 +4932,12 @@ pub trait ExchangeBase:
             }
             }
         }  else {
-            let keys: Vec<Value> = object_keys(&response).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_120: bool = true;
                 while { if !__for_first_120 { i += 1; } __for_first_120 = false; i < (keys.len() as i64) } {
-                let marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                let marketId: Option<&str> = keys.get(i as usize).copied();
                 let item: Value = self.safe_value(&response, Value::from(marketId.as_deref()), &[]);
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::Str("swap".into())]);
                 let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -5718,8 +5721,7 @@ pub trait ExchangeBase:
         let indexed = get_arg(optional_args, 0, Value::Bool(true));
         let objectsValue: crate::value::List = self.to_array_t(Rows::rows(objects));
         // return all of them if no values were passed
-        if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 0.0) })) || ((match &(values) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
+        if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if indexed.as_bool() == Some(true) {
                 return Value::Dict(self.index_by(Value::from(&objectsValue), key.clone()));
@@ -5751,8 +5753,7 @@ pub trait ExchangeBase:
         let indexed = get_arg(optional_args, 1, Value::Bool(true));
         let objectsValue: crate::value::List = self.to_array_t(objects);
         // return all of them if no values were passed
-        if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
-            Some(__y) if __y == 0.0) })) || ((match &(values) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
+        if (values == Value::Null) || (values == Value::Null) || ((match &(values) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) || (values.as_str() == Some("")) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if indexed.as_bool() == Some(true) {
                 return Value::Dict(self.index_by(Value::from(&objectsValue), key.clone()));
@@ -5851,8 +5852,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (i as f64) < retriesMaxRetriesOnFailure.as_f64().unwrap_or(f64::NAN) {
                         if self.verbose.as_bool() == Some(true) {
                             let index: i64 = (i + 1);
-                            self.log(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Request failed with the error: ".into()), to_string_val(&e)).into()), ", retrying ").into()), Value::Str(format!("{}", index).into())).into()),
-                                " of ").into()), Value::Str(format!("{}", retriesMaxRetriesOnFailure).into())).into()), "...").into()));
+                            self.log(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Request failed with the error: ".into()), Value::Str(format!("{}", e).into())).into()), ", retrying ").into()), Value::Str(format!("{}",
+                                index).into())).into()), " of ").into()), Value::Str(format!("{}", retriesMaxRetriesOnFailure).into())).into()), "...").into()));
                         }
                         if (retryDelayMaxRetriesOnFailureDelay.is_some()) && (retryDelayMaxRetriesOnFailureDelay != Some(0)) {
                             self.sleep(Value::from(retryDelayMaxRetriesOnFailureDelay)).await;
@@ -7998,12 +7999,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn filter_by_symbol_since_limit(&self, array: impl Rows, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let tail = get_arg(optional_args, 0, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), Value::from(symbol), since, limit, &[Value::Str("timestamp".into()), tail]);
+        return self.filter_by_value_since_limit(array, Value::Str("symbol".into()), symbol, since, limit, &[Value::Str("timestamp".into()), tail]);
 }
 
     fn filter_by_currency_since_limit(&self, array: impl Rows, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let tail = get_arg(optional_args, 0, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("currency".into()), Value::from(code), since, limit, &[Value::Str("timestamp".into()), tail]);
+        return self.filter_by_value_since_limit(array, Value::Str("currency".into()), code, since, limit, &[Value::Str("timestamp".into()), tail]);
 }
 
     fn filter_by_symbols_since_limit(&self, array: impl Rows, symbols: impl Into<crate::Value>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
@@ -8934,7 +8935,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             dictResponse = response.clone();
         }
-        let keys: Vec<Value> = object_keys(&dictResponse).as_array().cloned().unwrap_or_default();
+        let keys: Vec<Value> = Value::Array(dictResponse.as_map().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         if !(isArray) {
             let keysLength: i64 = keys.len() as i64;
             numEntries = keysLength;
@@ -9013,7 +9014,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        let networkKeys: Vec<Value> = object_keys(&fee.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        let networkKeys: Vec<Value> = Value::Array(fee.as_map().and_then(|__m| __m.get("networks")).and_then(Value::as_map).into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let numNetworks: i64 = networkKeys.len() as i64;
         let currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         {
@@ -9479,7 +9480,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 let mut response: Value = Value::Null;
                 if (method.as_str() == Some("fetchAccounts")) {
-                    response = self.call_dynamic_checked(method.clone(), vec![(paramsOmitted).clone()]).await;
+                    response = crate::types::IntoRaw::into_raw(self.fetch_accounts(paramsOmitted.clone()).await);
                 }  else if (method.as_str() == Some("getLeverageTiersPaginated")) || (method.as_str() == Some("fetchPositions")) {
                     response = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paramsOmitted).clone()]).await;
                 }  else if (method.as_str() == Some("fetchOpenInterestHistory")) {
@@ -13542,7 +13543,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "filter_by_symbol" => self.filter_by_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_by_symbol_since_limit" => Value::Arr(self.filter_by_symbol_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..])),
             "filter_by_symbols_since_limit" => Value::Arr(self.filter_by_symbols_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..])),
-            "filter_by_value_since_limit" => Value::Arr(self.filter_by_value_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64), &args[5.min(args.len())..])),
+            "filter_by_value_since_limit" => Value::Arr(self.filter_by_value_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_i64), args.get(4).and_then(crate::Value::as_i64), &args[5.min(args.len())..])),
             "filter_out_by_array" => self.filter_out_by_array(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "find_broadly_matched_key" => self.find_broadly_matched_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "find_message_hashes" => crate::Value::Arr(self.find_message_hashes(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),

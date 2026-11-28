@@ -6706,8 +6706,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // the client may have been replaced by a reconnect while the
         // snapshot was in flight: a stale snapshot must not overwrite
         // the fresh one loaded for the new client
-        let currentClient: Value = self.safe_value(self.clients.clone(), client.url(), &[]);
-        if !is_equal(&currentClient, client) {
+        let currentClient: bool = __ch.is_current();
+        if (!currentClient) {
             return;
         }
         CacheStore::put(&mut self.positionsByType, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));

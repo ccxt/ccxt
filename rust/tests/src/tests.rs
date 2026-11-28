@@ -1986,8 +1986,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
             // typed core hits constantly (its Num fields are real doubles, so an unset
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
-            let newOutputString: Value = (if (sanitizedNewOutput != Value::Null) { to_string_val(&sanitizedNewOutput) } else { Value::Str("undefined".into()) });
-            let storedOutputString: Value = (if (sanitizedStoredOutput != Value::Null) { to_string_val(&sanitizedStoredOutput) } else { Value::Str("undefined".into()) });
+            let newOutputString: Value = (if (sanitizedNewOutput != Value::Null) { Value::Str(format!("{}", sanitizedNewOutput).into()) } else { Value::Str("undefined".into()) });
+            let storedOutputString: Value = (if (sanitizedStoredOutput != Value::Null) { Value::Str(format!("{}", sanitizedStoredOutput).into()) } else { Value::Str("undefined".into()) });
             let messageError: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "output value mismatch:", newOutputString).into()), " != ").into()), storedOutputString);
             if strictTypeCheck.as_bool() == Some(true) && (self.lang.as_str() != Some("C#")) {
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -4664,7 +4664,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
-        let brokerId: Value = to_string_val(&(get_value(&get_value(&request.as_map().and_then(|__m| __m.get("action")).cloned().unwrap_or(Value::Null), &Value::Str("builder".into())), &Value::Str("b".into()))));
+        let brokerId: Value = Value::Str(format!("{}", (get_value(&get_value(&request.as_map().and_then(|__m| __m.get("action")).cloned().unwrap_or(Value::Null), &Value::Str("builder".into())), &Value::Str("b".into())))).into());
         assert(Value::Bool(is_equal(&brokerId, &id)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "hyperliquid - brokerId: ", brokerId).into()), " does not start with id: ").into()), id).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;

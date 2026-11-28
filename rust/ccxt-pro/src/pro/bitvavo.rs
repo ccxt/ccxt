@@ -873,6 +873,9 @@ impl Bitvavo {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolAndTimeframe, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let timeframeString: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let interval: Value = self.safe_string(&self.timeframes, Value::from(timeframeString.as_str()), &[Value::from(timeframeString)]);
+            if (interval == Value::Null) {
+                continue;
+            }
             if !(matches!(&interval, Value::Str(__k) if marketIdsByInterval.contains_key(__k.as_ref()))) {
                 marketIdsByInterval.insert(crate::runtime::stringify_param(&interval), Value::from(vec![]));
             }
@@ -981,6 +984,9 @@ impl Bitvavo {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolAndTimeframe, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let timeframeString: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let interval: Value = self.safe_string(&self.timeframes, Value::from(timeframeString.as_str()), &[Value::from(timeframeString)]);
+            if (interval == Value::Null) {
+                continue;
+            }
             if !(matches!(&interval, Value::Str(__k) if marketIdsByInterval.contains_key(__k.as_ref()))) {
                 marketIdsByInterval.insert(crate::runtime::stringify_param(&interval), Value::from(vec![]));
             }
