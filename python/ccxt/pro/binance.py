@@ -5202,26 +5202,29 @@ class binance(ccxt.async_support.binance):
                         fee = self.safe_dict(order, 'fee')
                         if (fees is not None) and not self.is_empty(fees):
                             insertNewFeeCurrency = True
+                            newFees = []
                             for i in range(0, len(fees)):
-                                orderFee = fees[i]
-                                if self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
+                                orderFee = self.extend({}, fees[i])
+                                if insertNewFeeCurrency and self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                     feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
                                     feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                     if feeCostString is None:
                                         feeCostString = '0'
-                                    order['fees'][i]['cost'] = float(feeCostString)
+                                    orderFee['cost'] = float(feeCostString)
                                     insertNewFeeCurrency = False
-                                    break
+                                newFees.append(orderFee)
                             if insertNewFeeCurrency:
-                                order['fees'].append(tradeFee)
+                                newFees.append(tradeFee)
+                            order['fees'] = newFees
                         elif fee is not None:
                             if self.safe_string(fee, 'currency') == self.safe_string(tradeFee, 'currency'):
                                 feeCost = self.sum(fee['cost'], tradeFee['cost'])
                                 feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
                                 if feeCostString is None:
                                     feeCostString = '0'
-                                fee['cost'] = float(feeCostString)
-                                order['fee'] = fee
+                                newFee = self.extend({}, fee)
+                                newFee['cost'] = float(feeCostString)
+                                order['fee'] = newFee
                             elif self.safe_string(fee, 'currency') is None:
                                 order['fee'] = tradeFee
                             else:
