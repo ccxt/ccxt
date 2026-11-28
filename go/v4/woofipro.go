@@ -12,7 +12,6 @@ type Woofipro struct {
 
 func newWoofipro() *Woofipro {
 	p := &Woofipro{}
-	setDefaults(p)
 	return p
 }
 

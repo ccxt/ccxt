@@ -11,7 +11,6 @@ type Hashkey struct {
 
 func newHashkey() *Hashkey {
 	p := &Hashkey{}
-	setDefaults(p)
 	return p
 }
 

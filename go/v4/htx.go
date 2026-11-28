@@ -11,7 +11,6 @@ type Htx struct {
 
 func newHtx() *Htx {
 	p := &Htx{}
-	setDefaults(p)
 	return p
 }
 

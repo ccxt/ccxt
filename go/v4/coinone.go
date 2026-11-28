@@ -11,7 +11,6 @@ type Coinone struct {
 
 func newCoinone() *Coinone {
 	p := &Coinone{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Ndax struct {
 
 func newNdax() *Ndax {
 	p := &Ndax{}
-	setDefaults(p)
 	return p
 }
 

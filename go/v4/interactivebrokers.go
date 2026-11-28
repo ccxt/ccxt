@@ -14,7 +14,6 @@ type Interactivebrokers struct {
 
 func newInteractivebrokers() *Interactivebrokers {
 	p := &Interactivebrokers{}
-	setDefaults(p)
 	return p
 }
 

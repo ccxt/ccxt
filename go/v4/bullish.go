@@ -12,7 +12,6 @@ type Bullish struct {
 
 func newBullish() *Bullish {
 	p := &Bullish{}
-	setDefaults(p)
 	return p
 }
 

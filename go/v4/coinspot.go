@@ -11,7 +11,6 @@ type Coinspot struct {
 
 func newCoinspot() *Coinspot {
 	p := &Coinspot{}
-	setDefaults(p)
 	return p
 }
 

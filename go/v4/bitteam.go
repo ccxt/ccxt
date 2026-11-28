@@ -11,7 +11,6 @@ type Bitteam struct {
 
 func newBitteam() *Bitteam {
 	p := &Bitteam{}
-	setDefaults(p)
 	return p
 }
 

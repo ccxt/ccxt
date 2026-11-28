@@ -9,7 +9,6 @@ type Kucoinfutures struct {
 
 func newKucoinfutures() *Kucoinfutures {
 	p := &Kucoinfutures{}
-	setDefaults(p)
 	return p
 }
 

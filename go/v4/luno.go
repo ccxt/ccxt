@@ -11,7 +11,6 @@ type Luno struct {
 
 func newLuno() *Luno {
 	p := &Luno{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Polymarket struct {
 
 func newPolymarket() *Polymarket {
 	p := &Polymarket{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Bitso struct {
 
 func newBitso() *Bitso {
 	p := &Bitso{}
-	setDefaults(p)
 	return p
 }
 

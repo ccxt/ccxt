@@ -12,7 +12,6 @@ type Alpaca struct {
 
 func newAlpaca() *Alpaca {
 	p := &Alpaca{}
-	setDefaults(p)
 	return p
 }
 

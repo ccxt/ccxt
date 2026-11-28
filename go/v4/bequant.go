@@ -9,7 +9,6 @@ type Bequant struct {
 
 func newBequant() *Bequant {
 	p := &Bequant{}
-	setDefaults(p)
 	return p
 }
 

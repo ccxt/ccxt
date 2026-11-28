@@ -1940,17 +1940,16 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var timestamp *int64 = this.SafeInteger2(trade, "t", "T")
 	var side *string = this.SafeStringLower(trade, "S")
 	var takerOrMaker any = nil
-	var m any = this.SafeValue(trade, "m")
 	if side == nil {
 		sideStr := "sell"
 		side = &sideStr
-		if m == true {
+		if *this.SafeBool(trade, "m", false) {
 			sideStr2 := "buy"
 			side = &sideStr2
 		}
 	} else {
 		// spot private
-		takerOrMaker = m
+		takerOrMaker = this.SafeValue(trade, "m")
 	}
 	var price *string = this.SafeString(trade, "p")
 	var amount *string = this.SafeString2(trade, "q", "v")
@@ -2749,7 +2748,7 @@ func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs .
 		sideStr2 := "buy"
 		side = &sideStr2
 	}
-	var literal190437 map[string]any = map[string]any{
+	var literal190337 map[string]any = map[string]any{
 		"info":         liquidation,
 		"symbol":       marketResolved["symbol"],
 		"contracts":    this.SafeNumber2(liquidation, "size", "v"),
@@ -2762,9 +2761,9 @@ func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs .
 		"datetime":     this.Iso8601(timestamp),
 	}
 	if side != nil {
-		literal190437["side"] = *side
+		literal190337["side"] = *side
 	}
-	return this.SafeLiquidation(literal190437)
+	return this.SafeLiquidation(literal190337)
 }
 
 /**
@@ -3031,11 +3030,11 @@ func (this *Bybit) HandleOrder(client ccxt.ClientInterface, message map[string]a
 	var rawOrders, _ = message["data"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(rawOrders); i++ {
-		rawOrdersDict211444, _ := rawOrders[i].(map[string]any)
-		if rawOrdersDict211444 == nil {
-			rawOrdersDict211444 = map[string]any{}
+		rawOrdersDict211344, _ := rawOrders[i].(map[string]any)
+		if rawOrdersDict211344 == nil {
+			rawOrdersDict211344 = map[string]any{}
 		}
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211444))
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211344))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol == nil {
 			continue
@@ -3328,11 +3327,11 @@ func (this *Bybit) HandleBalance(client ccxt.ClientInterface, message map[string
 		}
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		rawBalancesDict236233, _ := rawBalances[i].(map[string]any)
-		if rawBalancesDict236233 == nil {
-			rawBalancesDict236233 = map[string]any{}
+		rawBalancesDict236133, _ := rawBalances[i].(map[string]any)
+		if rawBalancesDict236133 == nil {
+			rawBalancesDict236133 = map[string]any{}
 		}
-		this.ParseWsBalance(rawBalancesDict236233, account)
+		this.ParseWsBalance(rawBalancesDict236133, account)
 	}
 	if account != nil {
 		if this.SafeDictMap(this.Balance, account) == nil {

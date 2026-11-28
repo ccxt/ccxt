@@ -12,7 +12,6 @@ type Bit2me struct {
 
 func newBit2me() *Bit2me {
 	p := &Bit2me{}
-	setDefaults(p)
 	return p
 }
 

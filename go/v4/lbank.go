@@ -12,7 +12,6 @@ type Lbank struct {
 
 func newLbank() *Lbank {
 	p := &Lbank{}
-	setDefaults(p)
 	return p
 }
 

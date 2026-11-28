@@ -13,7 +13,6 @@ type Xt struct {
 
 func newXt() *Xt {
 	p := &Xt{}
-	setDefaults(p)
 	return p
 }
 

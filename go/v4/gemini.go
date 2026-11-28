@@ -12,7 +12,6 @@ type Gemini struct {
 
 func newGemini() *Gemini {
 	p := &Gemini{}
-	setDefaults(p)
 	return p
 }
 

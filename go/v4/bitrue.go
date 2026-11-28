@@ -12,7 +12,6 @@ type Bitrue struct {
 
 func newBitrue() *Bitrue {
 	p := &Bitrue{}
-	setDefaults(p)
 	return p
 }
 

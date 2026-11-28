@@ -12,7 +12,6 @@ type Aster struct {
 
 func newAster() *Aster {
 	p := &Aster{}
-	setDefaults(p)
 	return p
 }
 

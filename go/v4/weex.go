@@ -11,7 +11,6 @@ type Weex struct {
 
 func newWeex() *Weex {
 	p := &Weex{}
-	setDefaults(p)
 	return p
 }
 

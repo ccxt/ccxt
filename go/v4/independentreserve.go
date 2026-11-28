@@ -12,7 +12,6 @@ type Independentreserve struct {
 
 func newIndependentreserve() *Independentreserve {
 	p := &Independentreserve{}
-	setDefaults(p)
 	return p
 }
 

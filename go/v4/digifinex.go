@@ -12,7 +12,6 @@ type Digifinex struct {
 
 func newDigifinex() *Digifinex {
 	p := &Digifinex{}
-	setDefaults(p)
 	return p
 }
 

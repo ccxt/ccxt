@@ -11,7 +11,6 @@ type Cryptomus struct {
 
 func newCryptomus() *Cryptomus {
 	p := &Cryptomus{}
-	setDefaults(p)
 	return p
 }
 

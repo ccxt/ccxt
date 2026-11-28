@@ -13,7 +13,6 @@ type Poloniex struct {
 
 func newPoloniex() *Poloniex {
 	p := &Poloniex{}
-	setDefaults(p)
 	return p
 }
 

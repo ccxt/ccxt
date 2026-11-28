@@ -12,7 +12,6 @@ type Coinmate struct {
 
 func newCoinmate() *Coinmate {
 	p := &Coinmate{}
-	setDefaults(p)
 	return p
 }
 

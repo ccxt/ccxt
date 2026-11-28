@@ -12,7 +12,6 @@ type Btse struct {
 
 func newBtse() *Btse {
 	p := &Btse{}
-	setDefaults(p)
 	return p
 }
 

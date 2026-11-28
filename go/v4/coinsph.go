@@ -11,7 +11,6 @@ type Coinsph struct {
 
 func newCoinsph() *Coinsph {
 	p := &Coinsph{}
-	setDefaults(p)
 	return p
 }
 

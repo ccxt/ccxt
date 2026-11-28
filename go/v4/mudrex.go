@@ -11,7 +11,6 @@ type Mudrex struct {
 
 func newMudrex() *Mudrex {
 	p := &Mudrex{}
-	setDefaults(p)
 	return p
 }
 

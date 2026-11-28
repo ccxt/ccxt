@@ -11,7 +11,6 @@ type Bit2c struct {
 
 func newBit2c() *Bit2c {
 	p := &Bit2c{}
-	setDefaults(p)
 	return p
 }
 

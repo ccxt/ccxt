@@ -11,7 +11,6 @@ type P2b struct {
 
 func newP2b() *P2b {
 	p := &P2b{}
-	setDefaults(p)
 	return p
 }
 

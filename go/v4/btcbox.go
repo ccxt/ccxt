@@ -11,7 +11,6 @@ type Btcbox struct {
 
 func newBtcbox() *Btcbox {
 	p := &Btcbox{}
-	setDefaults(p)
 	return p
 }
 

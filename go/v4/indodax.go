@@ -14,7 +14,6 @@ type Indodax struct {
 
 func newIndodax() *Indodax {
 	p := &Indodax{}
-	setDefaults(p)
 	return p
 }
 

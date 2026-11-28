@@ -9,7 +9,6 @@ type Okxus struct {
 
 func newOkxus() *Okxus {
 	p := &Okxus{}
-	setDefaults(p)
 	return p
 }
 

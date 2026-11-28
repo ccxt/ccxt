@@ -11,7 +11,6 @@ type Nado struct {
 
 func newNado() *Nado {
 	p := &Nado{}
-	setDefaults(p)
 	return p
 }
 

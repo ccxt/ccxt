@@ -11,7 +11,6 @@ type Bingx struct {
 
 func newBingx() *Bingx {
 	p := &Bingx{}
-	setDefaults(p)
 	return p
 }
 

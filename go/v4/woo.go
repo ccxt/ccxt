@@ -12,7 +12,6 @@ type Woo struct {
 
 func newWoo() *Woo {
 	p := &Woo{}
-	setDefaults(p)
 	return p
 }
 

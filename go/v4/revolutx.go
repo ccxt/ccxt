@@ -14,7 +14,6 @@ type Revolutx struct {
 
 func newRevolutx() *Revolutx {
 	p := &Revolutx{}
-	setDefaults(p)
 	return p
 }
 

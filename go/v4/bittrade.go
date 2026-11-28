@@ -11,7 +11,6 @@ type Bittrade struct {
 
 func newBittrade() *Bittrade {
 	p := &Bittrade{}
-	setDefaults(p)
 	return p
 }
 

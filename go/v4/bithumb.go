@@ -11,7 +11,6 @@ type Bithumb struct {
 
 func newBithumb() *Bithumb {
 	p := &Bithumb{}
-	setDefaults(p)
 	return p
 }
 

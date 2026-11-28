@@ -11,7 +11,6 @@ type Derive struct {
 
 func newDerive() *Derive {
 	p := &Derive{}
-	setDefaults(p)
 	return p
 }
 

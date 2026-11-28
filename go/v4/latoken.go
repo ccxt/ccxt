@@ -11,7 +11,6 @@ type Latoken struct {
 
 func newLatoken() *Latoken {
 	p := &Latoken{}
-	setDefaults(p)
 	return p
 }
 

@@ -11,7 +11,6 @@ type Coincheck struct {
 
 func newCoincheck() *Coincheck {
 	p := &Coincheck{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Modetrade struct {
 
 func newModetrade() *Modetrade {
 	p := &Modetrade{}
-	setDefaults(p)
 	return p
 }
 

@@ -14,7 +14,6 @@ type Gate struct {
 
 func newGate() *Gate {
 	p := &Gate{}
-	setDefaults(p)
 	return p
 }
 

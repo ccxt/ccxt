@@ -13,7 +13,6 @@ type Btcturk struct {
 
 func newBtcturk() *Btcturk {
 	p := &Btcturk{}
-	setDefaults(p)
 	return p
 }
 

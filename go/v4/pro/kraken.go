@@ -2484,16 +2484,30 @@ func (this *Kraken) HandleErrorMessage(client ccxt.ClientInterface, message map[
 	var errorMessage *string = this.SafeString2(message, "errorMessage", "error")
 	if errorMessage != nil {
 		var requestId *string = this.SafeString2(message, "reqid", "req_id")
-		var broad any = this.ExceptionsWs["broad"]
-		var broadKey any = this.FindBroadlyMatchedKey(broad, errorMessage)
-		var exception any = nil
-		if broadKey == nil {
-			exception = ccxt.ExchangeError(errorMessage) // c# requirement to convert the errorMessage to string
-		} else {
-			exception = ccxt.CallDynamically(ccxt.GetValue(broad, broadKey), errorMessage)
-		}
 		if requestId != nil {
-			client.Reject(exception, requestId)
+			var broad any = this.ExceptionsWs["broad"]
+
+			{
+				func(this *Kraken) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *Kraken) any {
+								// catch block:
+								client.Reject(e, requestId)
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+					this.ThrowBroadlyMatchedException(broad, errorMessage, errorMessage)
+					panic(ccxt.ExchangeError(errorMessage))
+
+				}(this)
+
+			}
 		}
 		return false
 	}

@@ -14,7 +14,6 @@ type Grvt struct {
 
 func newGrvt() *Grvt {
 	p := &Grvt{}
-	setDefaults(p)
 	return p
 }
 

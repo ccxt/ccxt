@@ -9,7 +9,6 @@ type Binanceus struct {
 
 func newBinanceus() *Binanceus {
 	p := &Binanceus{}
-	setDefaults(p)
 	return p
 }
 

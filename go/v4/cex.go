@@ -12,7 +12,6 @@ type Cex struct {
 
 func newCex() *Cex {
 	p := &Cex{}
-	setDefaults(p)
 	return p
 }
 

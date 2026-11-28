@@ -11,7 +11,6 @@ type Krakenfutures struct {
 
 func newKrakenfutures() *Krakenfutures {
 	p := &Krakenfutures{}
-	setDefaults(p)
 	return p
 }
 

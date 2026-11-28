@@ -12,7 +12,6 @@ type Paymium struct {
 
 func newPaymium() *Paymium {
 	p := &Paymium{}
-	setDefaults(p)
 	return p
 }
 

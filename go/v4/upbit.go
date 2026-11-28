@@ -13,7 +13,6 @@ type Upbit struct {
 
 func newUpbit() *Upbit {
 	p := &Upbit{}
-	setDefaults(p)
 	return p
 }
 

@@ -11,7 +11,6 @@ type Hibachi struct {
 
 func newHibachi() *Hibachi {
 	p := &Hibachi{}
-	setDefaults(p)
 	return p
 }
 

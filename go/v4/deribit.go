@@ -12,7 +12,6 @@ type Deribit struct {
 
 func newDeribit() *Deribit {
 	p := &Deribit{}
-	setDefaults(p)
 	return p
 }
 

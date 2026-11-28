@@ -12,7 +12,6 @@ type Zebpay struct {
 
 func newZebpay() *Zebpay {
 	p := &Zebpay{}
-	setDefaults(p)
 	return p
 }
 

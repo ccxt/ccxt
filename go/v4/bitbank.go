@@ -11,7 +11,6 @@ type Bitbank struct {
 
 func newBitbank() *Bitbank {
 	p := &Bitbank{}
-	setDefaults(p)
 	return p
 }
 

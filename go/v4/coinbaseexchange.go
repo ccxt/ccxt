@@ -12,7 +12,6 @@ type Coinbaseexchange struct {
 
 func newCoinbaseexchange() *Coinbaseexchange {
 	p := &Coinbaseexchange{}
-	setDefaults(p)
 	return p
 }
 

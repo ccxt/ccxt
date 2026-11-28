@@ -14,7 +14,6 @@ type Bybit struct {
 
 func newBybit() *Bybit {
 	p := &Bybit{}
-	setDefaults(p)
 	return p
 }
 

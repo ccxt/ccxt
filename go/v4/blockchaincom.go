@@ -11,7 +11,6 @@ type Blockchaincom struct {
 
 func newBlockchaincom() *Blockchaincom {
 	p := &Blockchaincom{}
-	setDefaults(p)
 	return p
 }
 

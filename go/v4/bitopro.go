@@ -13,7 +13,6 @@ type Bitopro struct {
 
 func newBitopro() *Bitopro {
 	p := &Bitopro{}
-	setDefaults(p)
 	return p
 }
 

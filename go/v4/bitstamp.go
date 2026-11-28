@@ -14,7 +14,6 @@ type Bitstamp struct {
 
 func newBitstamp() *Bitstamp {
 	p := &Bitstamp{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Blofin struct {
 
 func newBlofin() *Blofin {
 	p := &Blofin{}
-	setDefaults(p)
 	return p
 }
 

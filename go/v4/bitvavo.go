@@ -11,7 +11,6 @@ type Bitvavo struct {
 
 func newBitvavo() *Bitvavo {
 	p := &Bitvavo{}
-	setDefaults(p)
 	return p
 }
 

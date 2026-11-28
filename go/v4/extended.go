@@ -13,7 +13,6 @@ type Extended struct {
 
 func newExtended() *Extended {
 	p := &Extended{}
-	setDefaults(p)
 	return p
 }
 

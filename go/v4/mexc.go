@@ -12,7 +12,6 @@ type Mexc struct {
 
 func newMexc() *Mexc {
 	p := &Mexc{}
-	setDefaults(p)
 	return p
 }
 

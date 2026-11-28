@@ -12,7 +12,6 @@ type Toobit struct {
 
 func newToobit() *Toobit {
 	p := &Toobit{}
-	setDefaults(p)
 	return p
 }
 

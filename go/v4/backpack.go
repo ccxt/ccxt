@@ -11,7 +11,6 @@ type Backpack struct {
 
 func newBackpack() *Backpack {
 	p := &Backpack{}
-	setDefaults(p)
 	return p
 }
 

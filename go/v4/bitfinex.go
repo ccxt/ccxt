@@ -12,7 +12,6 @@ type Bitfinex struct {
 
 func newBitfinex() *Bitfinex {
 	p := &Bitfinex{}
-	setDefaults(p)
 	return p
 }
 

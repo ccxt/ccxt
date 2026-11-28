@@ -11,7 +11,6 @@ type Zaif struct {
 
 func newZaif() *Zaif {
 	p := &Zaif{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Hollaex struct {
 
 func newHollaex() *Hollaex {
 	p := &Hollaex{}
-	setDefaults(p)
 	return p
 }
 

@@ -11,7 +11,6 @@ type Bitget struct {
 
 func newBitget() *Bitget {
 	p := &Bitget{}
-	setDefaults(p)
 	return p
 }
 

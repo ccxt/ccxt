@@ -14,7 +14,6 @@ type Whitebit struct {
 
 func newWhitebit() *Whitebit {
 	p := &Whitebit{}
-	setDefaults(p)
 	return p
 }
 

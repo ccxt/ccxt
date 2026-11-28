@@ -14,7 +14,6 @@ type Apex struct {
 
 func newApex() *Apex {
 	p := &Apex{}
-	setDefaults(p)
 	return p
 }
 

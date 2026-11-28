@@ -11,7 +11,6 @@ type Onetrading struct {
 
 func newOnetrading() *Onetrading {
 	p := &Onetrading{}
-	setDefaults(p)
 	return p
 }
 

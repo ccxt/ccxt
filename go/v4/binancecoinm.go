@@ -9,7 +9,6 @@ type Binancecoinm struct {
 
 func newBinancecoinm() *Binancecoinm {
 	p := &Binancecoinm{}
-	setDefaults(p)
 	return p
 }
 

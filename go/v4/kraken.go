@@ -12,7 +12,6 @@ type Kraken struct {
 
 func newKraken() *Kraken {
 	p := &Kraken{}
-	setDefaults(p)
 	return p
 }
 

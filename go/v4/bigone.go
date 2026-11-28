@@ -11,7 +11,6 @@ type Bigone struct {
 
 func newBigone() *Bigone {
 	p := &Bigone{}
-	setDefaults(p)
 	return p
 }
 

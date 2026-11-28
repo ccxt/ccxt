@@ -11,7 +11,6 @@ type Okx struct {
 
 func newOkx() *Okx {
 	p := &Okx{}
-	setDefaults(p)
 	return p
 }
 

@@ -9,7 +9,6 @@ type Deepcoin struct {
 
 func newDeepcoin() *Deepcoin {
 	p := &Deepcoin{}
-	setDefaults(p)
 	return p
 }
 

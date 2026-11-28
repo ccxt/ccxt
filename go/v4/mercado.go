@@ -9,7 +9,6 @@ type Mercado struct {
 
 func newMercado() *Mercado {
 	p := &Mercado{}
-	setDefaults(p)
 	return p
 }
 

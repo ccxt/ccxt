@@ -12,7 +12,6 @@ type Pacifica struct {
 
 func newPacifica() *Pacifica {
 	p := &Pacifica{}
-	setDefaults(p)
 	return p
 }
 

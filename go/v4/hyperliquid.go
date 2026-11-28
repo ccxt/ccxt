@@ -13,7 +13,6 @@ type Hyperliquid struct {
 
 func newHyperliquid() *Hyperliquid {
 	p := &Hyperliquid{}
-	setDefaults(p)
 	return p
 }
 

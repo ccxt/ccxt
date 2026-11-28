@@ -14,7 +14,6 @@ type Phemex struct {
 
 func newPhemex() *Phemex {
 	p := &Phemex{}
-	setDefaults(p)
 	return p
 }
 

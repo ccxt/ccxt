@@ -12,7 +12,6 @@ type Binance struct {
 
 func newBinance() *Binance {
 	p := &Binance{}
-	setDefaults(p)
 	return p
 }
 

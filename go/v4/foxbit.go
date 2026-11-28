@@ -12,7 +12,6 @@ type Foxbit struct {
 
 func newFoxbit() *Foxbit {
 	p := &Foxbit{}
-	setDefaults(p)
 	return p
 }
 

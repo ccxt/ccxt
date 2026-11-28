@@ -9,7 +9,6 @@ type Bybiteu struct {
 
 func newBybiteu() *Bybiteu {
 	p := &Bybiteu{}
-	setDefaults(p)
 	return p
 }
 

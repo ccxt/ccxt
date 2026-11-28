@@ -11,7 +11,6 @@ type Bitbns struct {
 
 func newBitbns() *Bitbns {
 	p := &Bitbns{}
-	setDefaults(p)
 	return p
 }
 

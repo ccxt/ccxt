@@ -12,7 +12,6 @@ type Lighter struct {
 
 func newLighter() *Lighter {
 	p := &Lighter{}
-	setDefaults(p)
 	return p
 }
 

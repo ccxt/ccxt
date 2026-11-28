@@ -12,7 +12,6 @@ type Btcmarkets struct {
 
 func newBtcmarkets() *Btcmarkets {
 	p := &Btcmarkets{}
-	setDefaults(p)
 	return p
 }
 

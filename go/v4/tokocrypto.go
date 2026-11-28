@@ -12,7 +12,6 @@ type Tokocrypto struct {
 
 func newTokocrypto() *Tokocrypto {
 	p := &Tokocrypto{}
-	setDefaults(p)
 	return p
 }
 

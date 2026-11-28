@@ -997,12 +997,11 @@ func (this *Whitebit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var messageHash string = "wallet:"
-	var method string
+	var method string = "balanceMargin_subscribe"
 	if typeVar != nil && *typeVar == "spot" {
 		method = "balanceSpot_subscribe"
 		messageHash += "spot"
 	} else {
-		method = "balanceMargin_subscribe"
 		messageHash += "margin"
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
@@ -1154,17 +1153,15 @@ func (this *Whitebit) HandleBalance(client ccxt.ClientInterface, message map[str
 	}
 	client.Resolve(this.Balance, messageHash)
 }
-func (this *Whitebit) WatchPublicAsync(messageHash string, method string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Whitebit) WatchPublicAsync(messageHash string, method string, reqParams []any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
-	go this.watchPublicBody(ch, messageHash, method, optionalArgs...)
+	go this.watchPublicBody(ch, messageHash, method, reqParams, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, optionalArgs ...any) any {
+func (this *Whitebit) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHash string, method string, reqParams []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var reqParams []any = ccxt.GetArgAnySlice(optionalArgs, 0, []any{})
-	_ = reqParams
-	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var id int64 = this.IncrementingNonce()
@@ -1284,17 +1281,15 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan ccxt.AsyncResult[any
 		}
 	}
 }
-func (this *Whitebit) WatchPrivateAsync(messageHash string, method any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Whitebit) WatchPrivateAsync(messageHash string, method string, reqParams []any, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
-	go this.watchPrivateBody(ch, messageHash, method, optionalArgs...)
+	go this.watchPrivateBody(ch, messageHash, method, reqParams, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) watchPrivateBody(ch chan ccxt.AsyncResult[map[string]any], messageHash string, method any, optionalArgs ...any) any {
+func (this *Whitebit) watchPrivateBody(ch chan ccxt.AsyncResult[map[string]any], messageHash string, method string, reqParams []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var reqParams []any = ccxt.GetArgAnySlice(optionalArgs, 0, []any{})
-	_ = reqParams
-	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
 

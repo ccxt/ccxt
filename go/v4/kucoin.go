@@ -14,7 +14,6 @@ type Kucoin struct {
 
 func newKucoin() *Kucoin {
 	p := &Kucoin{}
-	setDefaults(p)
 	return p
 }
 

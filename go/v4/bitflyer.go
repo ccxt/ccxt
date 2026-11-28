@@ -12,7 +12,6 @@ type Bitflyer struct {
 
 func newBitflyer() *Bitflyer {
 	p := &Bitflyer{}
-	setDefaults(p)
 	return p
 }
 

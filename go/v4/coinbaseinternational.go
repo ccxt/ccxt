@@ -12,7 +12,6 @@ type Coinbaseinternational struct {
 
 func newCoinbaseinternational() *Coinbaseinternational {
 	p := &Coinbaseinternational{}
-	setDefaults(p)
 	return p
 }
 

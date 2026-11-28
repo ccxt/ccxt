@@ -9,7 +9,6 @@ type Binanceusdm struct {
 
 func newBinanceusdm() *Binanceusdm {
 	p := &Binanceusdm{}
-	setDefaults(p)
 	return p
 }
 

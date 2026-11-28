@@ -12,7 +12,6 @@ type Hitbtc struct {
 
 func newHitbtc() *Hitbtc {
 	p := &Hitbtc{}
-	setDefaults(p)
 	return p
 }
 

@@ -12,7 +12,6 @@ type Delta struct {
 
 func newDelta() *Delta {
 	p := &Delta{}
-	setDefaults(p)
 	return p
 }
 

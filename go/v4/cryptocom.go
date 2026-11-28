@@ -13,7 +13,6 @@ type Cryptocom struct {
 
 func newCryptocom() *Cryptocom {
 	p := &Cryptocom{}
-	setDefaults(p)
 	return p
 }
 

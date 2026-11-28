@@ -11,7 +11,6 @@ type Paradex struct {
 
 func newParadex() *Paradex {
 	p := &Paradex{}
-	setDefaults(p)
 	return p
 }
 

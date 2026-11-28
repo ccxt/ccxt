@@ -9,7 +9,6 @@ type Fmfwio struct {
 
 func newFmfwio() *Fmfwio {
 	p := &Fmfwio{}
-	setDefaults(p)
 	return p
 }
 

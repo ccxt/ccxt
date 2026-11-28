@@ -13,7 +13,6 @@ type Dydx struct {
 
 func newDydx() *Dydx {
 	p := &Dydx{}
-	setDefaults(p)
 	return p
 }
 
