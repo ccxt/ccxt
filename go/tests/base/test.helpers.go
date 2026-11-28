@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -636,7 +637,26 @@ func PanicOnError(msg interface{}) interface{} {
 }
 
 func setDefaults(p interface{}) {
-	ccxt.SetDefaults(p)
+	val := reflect.ValueOf(p).Elem()
+	typ := val.Type()
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		fieldType := typ.Field(i)
+		if value, ok := fieldType.Tag.Lookup("default"); ok {
+			switch field.Kind() {
+			case reflect.String:
+				if field.String() == "" {
+					field.SetString(value)
+				}
+			case reflect.Int:
+				if field.Int() == 0 {
+					if intValue, err := strconv.Atoi(value); err == nil {
+						field.SetInt(int64(intValue))
+					}
+				}
+			}
+		}
+	}
 }
 
 func Print(v ...interface{}) {

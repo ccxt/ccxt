@@ -11988,8 +11988,7 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         // `content` already ends with a newline and publicCtor opens with an empty line, so the
         content = this.createGeneratedHeader().join('\n') + '\n' + content + (content.endsWith('\n') ? '' : '\n') + publicCtor + initMethod + typedSection;
-        content = goTypedMiscNative (content);
-        return goImports + content;
+        return goTypedMiscNative (goImports + content);
     }
 
     transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws: boolean | 'prediction' = false, typedSection = '') {
@@ -15522,9 +15521,13 @@ function gvListSelfTest (ok: SelfTestOk): void {
 function goTypedMiscSetDefaults (content: string): string {
     const struct = /\ntype \w+ struct \{([^}]*)\n\}/.exec (content);
     if ((struct === null) || struct[1].includes ('`') || ((content.match (/^type \w+ struct \{/gm) || []).length !== 1)) { return content; }
-    const out = content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?SetDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
-    // keep the call when it was the file's only use of the imported ccxt package (unused import)
-    return (content.includes ('ccxt.SetDefaults(p)') && !/(?<![\w.])ccxt\./.test (out)) ? content : out;
+    let out = content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?[Ss]etDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
+    if (content.includes ('ccxt.SetDefaults(p)') && !/(?<![\w.])ccxt\./.test (out)) {
+        out = out.replace (/\nimport ccxt "github\.com\/ccxt\/ccxt\/go\/v4"\n+/, '\n')
+            .replace (/\nimport \(\n\tccxt "github\.com\/ccxt\/ccxt\/go\/v4"\n\)\n+/, '\n')
+            .replace (/\n\tccxt "github\.com\/ccxt\/ccxt\/go\/v4"/, '');
+    }
+    return out;
 }
 
 // ParseInt of a decimal literal is that int64; StringArg of a declared `string` is the value itself;
@@ -15544,8 +15547,12 @@ export function goTypedMiscNative (content: string): string { return goTypedMisc
 function goTypedMiscSelfTest (ok: SelfTestOk): void {
     const ctor = (fields: string) => 'package p\n\ntype X struct {\n\t*ccxt.X\n' + fields + '}\n\nfunc newX() *X {\n\tp := &X{}\n\tbase := &ccxt.X{}\n\tp.base = base\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
     ok (!goTypedMiscNative (ctor ('\tbase *ccxt.X\n')).includes ('SetDefaults'), 'untagged struct drops SetDefaults');
+    ok (!goTypedMiscNative (ctor ('\tExchange\n').replace ('ccxt.SetDefaults(p)', 'setDefaults(p)')).includes ('setDefaults'), 'untagged REST struct drops setDefaults');
     const onlyUse = 'package p\n\nimport (\n\tccxt "github.com/ccxt/ccxt/go/v4"\n)\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
-    ok (goTypedMiscNative (onlyUse).includes ('ccxt.SetDefaults(p)'), 'sole ccxt use keeps SetDefaults');
+    const onlyUseOut = goTypedMiscNative (onlyUse);
+    ok (!onlyUseOut.includes ('SetDefaults') && !onlyUseOut.includes ('import'), 'sole ccxt use drops SetDefaults and unused import');
+    const singleImp = 'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n// header\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
+    ok (goTypedMiscNative (singleImp).startsWith ('package ccxtpro\n\n// header\n'), 'sole single-line ccxt import drops cleanly');
     ok (goTypedMiscNative (ctor ('\tA bool `default:"true"`\n')).includes ('ccxt.SetDefaults(p)'), 'tagged struct keeps SetDefaults');
     const f = (sig: string, body: string) => goTypedMiscNative ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
     ok (f ('', '\tm := map[string]any{\"a\": ParseInt(\"08\")}\n').includes ('"a": int64(8)}'), 'literal ParseInt');

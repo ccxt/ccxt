@@ -2027,10 +2027,6 @@ func (this *BaseExchange) IsDictionary(value any) bool {
 	}
 }
 
-func SetDefaults(p any) {
-	setDefaults(p)
-}
-
 // NewMapArray converts a generated-code result (usually a []any of map[string]any
 // entries) into a typed []map[string]any; used by the typed wrappers
 func NewMapArray(res any) []map[string]any {
@@ -2051,33 +2047,6 @@ func NewMapArray(res any) []map[string]any {
 		}
 	}
 	return out
-}
-
-func setDefaults(p any) {
-	// Get the value of the pointer to struct
-	val := reflect.ValueOf(p).Elem()
-	typ := val.Type()
-
-	// Iterate over the fields of the struct using reflection
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		fieldType := typ.Field(i)
-		if value, ok := fieldType.Tag.Lookup("default"); ok {
-			switch field.Kind() {
-			case reflect.String:
-				if field.String() == "" {
-					field.SetString(value)
-				}
-			case reflect.Int:
-				if field.Int() == 0 {
-					if intValue, err := strconv.Atoi(value); err == nil {
-						field.SetInt(int64(intValue))
-					}
-				}
-				// Add other types as necessary
-			}
-		}
-	}
 }
 
 // suffix carried by every transpiled channel-returning (async) method; the plain

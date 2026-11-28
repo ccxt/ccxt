@@ -1326,15 +1326,14 @@ export default class bybit extends bybitRest {
         const timestamp = this.safeInteger2 (trade, 't', 'T');
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker: Str = undefined;
-        const m = this.safeValue (trade, 'm');
         if (side === undefined) {
             side = 'sell';
-            if (m === true) {
+            if (this.safeBool (trade, 'm', false)) {
                 side = 'buy';
             }
         } else {
             // spot private
-            takerOrMaker = m;
+            takerOrMaker = this.safeValue (trade, 'm');
         }
         const price = this.safeString (trade, 'p');
         const amount = this.safeString2 (trade, 'q', 'v');

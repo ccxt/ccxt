@@ -1535,7 +1535,7 @@ export default class hitbtc extends hitbtcRest {
             if (clientOrderId !== undefined) {
                 this.handleOrderRequest (client, message);
             }
-            if ((result === true) && !('id' in message)) {
+            if (this.safeBool (message, 'result', false) && !('id' in message)) {
                 this.handleAuthenticate (client, message);
             }
             const rows = this.safeList (message, 'result');
