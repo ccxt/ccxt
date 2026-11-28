@@ -222,6 +222,7 @@
         "unWatchOHLCVForSymbols": [
             {
                 "description": "spot and swap 1m kline unsubscribe with nothing subscribed: no frame is sent and the call resolves true",
+                "disabledPHP": "the php __call camelCase to snake_case fallback looks unWatchOHLCVForSymbols up as un_watch_ohlcvfor_symbols instead of the transpiled un_watch_ohlcv_for_symbols - pre-existing harness limitation, see blofin.json",
                 "input": [
                     [
                         [
