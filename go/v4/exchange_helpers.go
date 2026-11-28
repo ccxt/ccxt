@@ -1856,43 +1856,6 @@ func mathMin(a, b any) any {
 
 }
 
-func ParseFloat(input any) any {
-	input = derefScalar(input)
-	switch v := input.(type) {
-	case float32:
-		return float64(v)
-	case float64:
-		return v
-	case int:
-		return float64(v)
-	case int8:
-		return float64(v)
-	case int16:
-		return float64(v)
-	case int32:
-		return float64(v)
-	case int64:
-		return float64(v)
-	case uint:
-		return float64(v)
-	case uint8:
-		return float64(v)
-	case uint16:
-		return float64(v)
-	case uint32:
-		return float64(v)
-	case uint64:
-		return float64(v)
-	case string:
-		if result, err := strconv.ParseFloat(v, 64); err == nil {
-			return result
-		}
-		return nil
-	default:
-		return nil
-	}
-}
-
 func ParseJSON(input any) any {
 	input = derefScalar(input) // generated callers pass *string from the typed Safe* accessors
 	jsonString, ok := input.(string)

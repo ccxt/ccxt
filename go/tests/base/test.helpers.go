@@ -603,10 +603,6 @@ func parseInt(input interface{}) interface{} {
 	return ccxt.ParseInt(input)
 }
 
-func ParseFloat(input interface{}) interface{} {
-	return ccxt.ParseFloat(input)
-}
-
 func ParseJSON(input interface{}) interface{} {
 	return ccxt.ParseJSON(input)
 }

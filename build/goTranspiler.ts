@@ -9633,6 +9633,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goLateTypedMapRowReads (content) : content;  // SafeMapTyped on a map local the passes above typed
     content = path.endsWith ('.go') ? goNativeKeysAndRemove (content) : content;  // ObjectKeys of the late-typed map locals
     content = path.endsWith ('.go') ? goTypedLenNative (content) : content;  // list locals typed only by the late passes
+    content = path.endsWith ('.go') ? goNativeParseFloat (path, content) : content;  // ParseFloat on typed string/*string -> strconv.ParseFloat
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
     if (path.endsWith ('.go')) {
@@ -12422,7 +12423,7 @@ async function runMain () {
             [ 'go-typed-deref-self-test-maplist: ', goTypedMaplistSelfTest ], [ '', goTypedIsEqualSelfTest ],
             [ 'go-typed-deref-self-test-str: ', goTypedStrSelfTest ], [ 'go-typed-deref-self-test-len: ', goTypedLenSelfTest ],
             [ 'go-typed-deref-self-test-inop: ', goTypedInopSelfTest ], [ 'w8-futures-pair: ', w8FuturesPairSelfTest ], [ 'gv-list: ', gvListSelfTest ],
-            [ 'go-typed-deref-self-test-misc: ', goTypedMiscSelfTest ], goErrSelfTest, goStructReturnsSelfTest, goChan3SelfTest,
+            [ 'go-typed-deref-self-test-misc: ', goTypedMiscSelfTest ], [ 'go-native-parse-float: ', goNativeParseFloatSelfTest ], goErrSelfTest, goStructReturnsSelfTest, goChan3SelfTest,
             [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ], [ 'go omit of guarded urls: ', goUrlsKeyGuardedSelfTest ],
             [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], [ 'go self map rebind self: ', goSelfMapRebindSelfTest, true ], [ 'go annotated return self test: ', goAnnotatedReturnSelfTest, true ],
             [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ], [ 'go async map pair holders: ', goAsyncMapPairHoldersCheck ],
@@ -15599,6 +15600,149 @@ function goTypedMiscSelfTest (ok: SelfTestOk): void {
     ok (f ('', '\tif EvalTruthy(this.SafeBool(this.SafeDict(m, \"info\"), \"hip3\", false)) {\n\t}\n').includes ('if *this.SafeBool(this.SafeDict(m, "info"), "hip3", false) {'), 'defaulted SafeBool');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\")) {\n\t}\n').includes ('EvalTruthy(this.SafeBool(m, "k"))'), 'nullable SafeBool kept');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\", d)) {\n\t}\n').includes ('EvalTruthy('), 'non-literal default kept');
+}
+
+// ===== native strconv.ParseFloat on typed string/*string locals and numeric literals =====
+function goParseFloatLocalKind (fn: string, name: string): 'string' | '*string' | undefined {
+    const nl = fn.indexOf ('\n');
+    const header = (nl < 0) ? fn : fn.slice (0, nl);
+    const body = (nl < 0) ? '' : fn.slice (nl + 1);
+    const esc = goAccessEscape (name);
+    const shadow = new RegExp ('(?<![.\\w])' + esc + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + esc + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + esc + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + esc + ' ').test (body);
+    if (shadow) { return undefined; }
+    const param = header.match (new RegExp ('[(,]\\s*' + esc + ' (\\*?string)\\s*[,)]'));
+    const allDecls = body.match (new RegExp ('\\bvar ' + esc + ' ([\\w*.\\[\\]]+)(?= =|\\n)', 'g')) || [];
+    if (param !== null) { return (allDecls.length === 0) ? (param[1] as 'string' | '*string') : undefined; }
+    if (allDecls.length === 0) { return undefined; }
+    const types = new Set (allDecls.map ((d) => d.replace (/^var \w+ /, '')));
+    if (types.size !== 1) { return undefined; }
+    const only = [ ...types ][0];
+    return ((only === 'string') || (only === '*string')) ? only : undefined;
+}
+
+function goParseFloatSafePtrLocal (maskedLines: string[], declLine: number, dst: string): boolean {
+    const esc = goAccessEscape (dst);
+    const wordRe = new RegExp ('\\b' + esc + '\\b', 'g');
+    const shimRe = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(?:ParseInt|ToFloat64)\\(' + esc + '\\)', 'g');
+    let uses = 0;
+    for (let k = 1; k < maskedLines.length; k++) {
+        if (k === declLine) { continue; }
+        if (goTextWritesName (maskedLines[k], dst)) { return false; }
+        const total = (maskedLines[k].match (wordRe) || []).length;
+        if (total === 0) { continue; }
+        const safe = (maskedLines[k].match (shimRe) || []).length;
+        if (safe !== total) { return false; }
+        uses += safe;
+    }
+    return uses > 0;
+}
+
+function goNativeParseFloatRewriteFunc (fn: string, pkgs: Set<string>): string {
+    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?ParseFloat\((\d+(?:\.\d+)?)\)/g, 'float64($1)');
+    if (!/\bParseFloat\(/.test (fn)) { return fn; }
+    const masked = goMaskGoCode (fn);
+    if (/\bstrconv\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\bstrconv\.\w/g, ''))) { return fn; }
+    const lines = fn.split ('\n');
+    const maskedLines = masked.split ('\n');
+    const out: string[] = [];
+    const varRe = /^(\t+)var (\w+) any = (?:ccxt\.)?ParseFloat\((\w+)\)$/;
+    const retRe = /^(\t+)return (?:ccxt\.)?ParseFloat\((\w+)\)$/;
+    const mapRe = /^(\t+)(\w+\["[^"\n]+"\]) = (?:ccxt\.)?ParseFloat\((\w+)\)$/;
+    const prevGuards = (prev: string, s: string): boolean => new RegExp ('^\\t*if (?:\\()?' + goAccessEscape (s) + ' != nil(?:\\))?(?: && .*)? \\{$').test (prev);
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const prev = (i > 0) ? maskedLines[i - 1] : '';
+        const vm = varRe.exec (line);
+        if (vm !== null) {
+            const [ , ind, dst, s ] = vm;
+            const kind = goParseFloatLocalKind (fn, s);
+            if ((kind !== undefined) && goParseFloatSafePtrLocal (maskedLines, i, dst)) {
+                pkgs.add ('strconv');
+                out.push (ind + 'var ' + dst + ' *float64 = nil');
+                if (kind === 'string') {
+                    out.push (ind + 'if parsedFloat, parseErr := strconv.ParseFloat(' + s + ', 64); parseErr == nil {');
+                    out.push (ind + '\t' + dst + ' = &parsedFloat');
+                    out.push (ind + '}');
+                } else {
+                    out.push (ind + 'if ' + s + ' != nil {');
+                    out.push (ind + '\tif parsedFloat, parseErr := strconv.ParseFloat(*' + s + ', 64); parseErr == nil {');
+                    out.push (ind + '\t\t' + dst + ' = &parsedFloat');
+                    out.push (ind + '\t}');
+                    out.push (ind + '}');
+                }
+                continue;
+            }
+        }
+        const rm = retRe.exec (line);
+        if (rm !== null) {
+            const [ , ind, s ] = rm;
+            const kind = goParseFloatLocalKind (fn, s);
+            if (kind !== undefined) {
+                pkgs.add ('strconv');
+                const expr = (kind === 'string') ? s : ('*' + s);
+                if ((kind === 'string') || prevGuards (prev, s)) {
+                    out.push (ind + 'if parsedFloat, parseErr := strconv.ParseFloat(' + expr + ', 64); parseErr == nil {');
+                    out.push (ind + '\treturn parsedFloat');
+                    out.push (ind + '}');
+                    out.push (ind + 'return nil');
+                } else {
+                    out.push (ind + 'if ' + s + ' != nil {');
+                    out.push (ind + '\tif parsedFloat, parseErr := strconv.ParseFloat(*' + s + ', 64); parseErr == nil {');
+                    out.push (ind + '\t\treturn parsedFloat');
+                    out.push (ind + '\t}');
+                    out.push (ind + '}');
+                    out.push (ind + 'return nil');
+                }
+                continue;
+            }
+        }
+        const mm = mapRe.exec (line);
+        if (mm !== null) {
+            const [ , ind, target, s ] = mm;
+            const kind = goParseFloatLocalKind (fn, s);
+            if (kind !== undefined) {
+                pkgs.add ('strconv');
+                const expr = (kind === 'string') ? s : ('*' + s);
+                if ((kind === 'string') || prevGuards (prev, s)) {
+                    out.push (ind + 'if parsedFloat, parseErr := strconv.ParseFloat(' + expr + ', 64); parseErr == nil {');
+                    out.push (ind + '\t' + target + ' = parsedFloat');
+                    out.push (ind + '} else {');
+                    out.push (ind + '\t' + target + ' = nil');
+                    out.push (ind + '}');
+                } else {
+                    out.push (ind + 'if ' + s + ' != nil {');
+                    out.push (ind + '\tif parsedFloat, parseErr := strconv.ParseFloat(*' + s + ', 64); parseErr == nil {');
+                    out.push (ind + '\t\t' + target + ' = parsedFloat');
+                    out.push (ind + '\t} else {');
+                    out.push (ind + '\t\t' + target + ' = nil');
+                    out.push (ind + '\t}');
+                    out.push (ind + '} else {');
+                    out.push (ind + '\t' + target + ' = nil');
+                    out.push (ind + '}');
+                }
+                continue;
+            }
+        }
+        out.push (line);
+    }
+    return out.join ('\n');
+}
+
+function goNativeParseFloat (filePath: string, content: string): string {
+    return goStringHelperFilePass (filePath, content, /\bParseFloat\(/, (part) => part, (part, pkgs) => goNativeParseFloatRewriteFunc (part, pkgs));
+}
+
+function goNativeParseFloatSelfTest (ok: SelfTestOk): void {
+    const wrap = (body: string) => 'package ccxt\n\n' + GO_CONTRIBUTING_HEADER () + '\n\nfunc (this *X) F(p any) any {\n' + body + '}\n';
+    const run = (body: string) => goNativeParseFloat ('x/ex.go', wrap (body));
+    ok (run ('\t_ = ccxt.ParseFloat(1)\n\treturn nil\n').includes ('float64(1)'), 'numeric literal ParseFloat folds to float64');
+    const varOut = run ('\tvar s *string = this.SafeString(p, "a")\n\tvar v any = ParseFloat(s)\n\treturn ParseInt(v)\n');
+    ok (varOut.includes ('import "strconv"') && varOut.includes ('var v *float64 = nil') && varOut.includes ('strconv.ParseFloat(*s, 64)'), 'var *string ParseFloat -> *float64 + strconv import');
+    const retOut = run ('\tvar s *string = this.SafeString(p, "a")\n\tif s != nil && strings.Index(*s, ".") >= 0 {\n\t\treturn ParseFloat(s)\n\t}\n\treturn nil\n');
+    ok (retOut.includes ('strconv.ParseFloat(*s, 64)') && !retOut.includes ('ParseFloat(s)'), 'guarded return *string ParseFloat');
+    const mapOut = run ('\tvar m map[string]any = map[string]any{}\n\tvar s *string = this.SafeString(p, "a")\n\tif s != nil {\n\t\tm["k"] = ccxt.ParseFloat(s)\n\t}\n\treturn m\n');
+    ok (mapOut.includes ('m["k"] = parsedFloat') && !mapOut.includes ('ParseFloat(s)'), 'guarded map write *string ParseFloat');
+    ok (run ('\tvar a any = p\n\treturn ParseFloat(a)\n').includes ('ParseFloat(a)'), 'any operand keeps ParseFloat');
 }
 
 // ===== ErrorParents map for hierarchy-aware IsInstance =====

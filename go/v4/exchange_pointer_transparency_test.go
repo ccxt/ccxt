@@ -150,7 +150,6 @@ func unaryShims() []unaryShim {
 		{"IsArray", func(v any) any { return IsArray(v) }},
 		{"ToString", func(v any) any { return ToString(v) }},
 		{"ParseInt", func(v any) any { return ParseInt(v) }},
-		{"ParseFloat", func(v any) any { return ParseFloat(v) }},
 		// exchange_precise.go
 		{"StringAbs", func(v any) any { return StringAbs(v) }},
 		{"StringNeg", func(v any) any { return StringNeg(v) }},

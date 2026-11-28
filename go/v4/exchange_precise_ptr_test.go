@@ -139,9 +139,6 @@ func TestPreciseStringResultFlowsThroughShims(t *testing.T) {
 	if ToString(ptr) != ToString(plain) {
 		t.Errorf("ToString(ptr) = %q, want %q", ToString(ptr), ToString(plain))
 	}
-	if ParseFloat(ptr) != ParseFloat(plain) {
-		t.Errorf("ParseFloat(ptr) = %v, want %v", ParseFloat(ptr), ParseFloat(plain))
-	}
 	if !IsEqual(ptr, plain) {
 		t.Error("IsEqual(ptr, \"12\") = false, want true")
 	}
