@@ -1427,10 +1427,8 @@ impl Bitflyer {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.private_get_getchildorders(&[&__ws_arg_6]).await.unwrap_or_default();
-        if (symbol != Value::Null) {
-            return Value::Arr(self.filter_by(Value::Arr(self.parse_orders(&response, Some(&market), &[&Value::from(since), &limit])), Value::Str("symbol".into()), symbol, &[]));
-        }
-        return Value::Arr(self.parse_orders(&response, Some(&market), &[&Value::from(since), &limit]));
+        let marketSymbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+        return Value::Arr(self.filter_by(Value::Arr(self.parse_orders(&response, Some(&market), &[&Value::from(since), &limit])), Value::Str("symbol".into()), marketSymbol.map(Value::from).unwrap_or(Value::Null), &[]));
         Value::Null
         }).await?))
     }

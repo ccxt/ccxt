@@ -10626,19 +10626,14 @@ impl Bybit {
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".into()), &[&symbols, &Value::Null, &Value::Null, &Value::from(&paramsPaginate), &Value::Str("nextPageCursor".into()), &Value::Str("cursor".into()), &Value::Null, &Value::Int(200)]).await;
         }
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let mut symbol: Option<String> = None;
-        let mut symbolsNormalized: Value = Value::Null;
-        if (symbols != Value::Null) && (matches!(&symbols, Value::Arr(_))) {
-            let symbolsLength: i64 = symbols.len() as i64;
+        if (symbolsNormalized.is_some()) {
+            let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             if symbolsLength > 1 {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchPositions() does not accept an array with more than one symbol")));
-            }  else if (symbolsLength == 1) {
-                symbol = symbols.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
             }
-            symbolsNormalized = self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr);
-        }  else if (symbols != Value::Null) {
-            symbol = None;
-            symbolsNormalized = Value::from(vec![Value::from(self.symbol(symbol.as_deref()))]);
+            symbol = self.safe_string_opt(&symbolsNormalized, Value::Int(0), &[]);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -10648,7 +10643,7 @@ impl Bybit {
         if (symbol.is_some()) {
             let symbolMarket: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             market = Some(crate::types::Market::clone(&symbolMarket));
-            symbol = Some((symbolMarket).symbol.clone());
+            symbol = Value::from((symbolMarket).symbol.clone()).as_str().map(str::to_owned);
             request.insert("symbol".into(), Value::from((symbolMarket).id.as_deref()));
         }
         let type_varparamsValueVariable = self.get_bybit_type("fetchPositions", market.as_ref(), &[&Value::Dict(paramsPaginate)]);
@@ -10732,7 +10727,7 @@ impl Bybit {
             }
         }
         }
-        return self.filter_by_array_positions(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array_positions(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

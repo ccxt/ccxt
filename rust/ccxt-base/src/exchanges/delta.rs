@@ -2049,7 +2049,7 @@ impl Delta {
         let delimiter = get_arg(optional_args, 0, Value::Null);
         let marketType = get_arg(optional_args, 1, Value::Null);
         let isOption: bool = (marketId.is_some()) && ((marketId.unwrap_or("").ends_with("-C")) || (marketId.unwrap_or("").ends_with("-P")) || (marketId.unwrap_or("").starts_with("C-")) || (marketId.unwrap_or("").starts_with("P-")));
-        if isOption && ((self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
+        if (marketId.is_some()) && isOption && ((self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             return <crate::types::Market as crate::types::FromRaw>::from_raw(self.create_expired_option_market(Value::from(marketId)));
         }
         return self.super_safe_market(marketId, market, delimiter, marketType);

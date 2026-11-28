@@ -6152,12 +6152,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < (universe.len() as i64) } {
             let asset: crate::value::Dict = universe.get(i as usize).cloned().unwrap_or_default();
             // the coin name resolves to the unified symbol, delisted assets have no market
-            let symbol: Value = self.coin_to_market_id(self.safe_string_k(&asset, "name", &[]).as_str()).map(Value::from).unwrap_or(Value::Null);
-            let market: Value = self.safe_dict(&self.markets, symbol.clone(), &[]);
+            let marketId: Option<String> = self.coin_to_market_id(self.safe_string_k(&asset, "name", &[]).as_str());
+            let market: Value = self.safe_dict(&self.markets, marketId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (market == Value::Null) {
                 continue;
             }
-            if (symbolsLength > 0) && !self.in_array(symbol.clone(), &symbolsNormalized) {
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (symbolsLength > 0) && !self.in_array(&symbol, &symbolsNormalized) {
                 continue;
             }
             let assetTable: crate::value::Dict = self.safe_dict_t(&tablesById, self.safe_string_k(&asset, "marginTableId", &[]));
@@ -6176,7 +6177,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("marginTiers".to_string(), marginTiers.map_or(Value::Null, Value::Arr));
     m
 })]);
-            tiers.insert(crate::runtime::stringify_param(&symbol), <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, __ws_arg_34, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).map_or(Value::Null, Value::Arr));
+            tiers.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, __ws_arg_34, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref()).map_or(Value::Null, Value::Arr));
         }
         }
         return Value::Map(tiers);
@@ -8332,7 +8333,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (hip3Dict.is_some()) {
             let quote: String = self.safe_string_k(&hip3Dict, "quote", &[Value::Str("USDC".into())]).as_str().unwrap_or("USDC").to_string();
             let code: Option<String> = self.safe_string_k_opt(&hip3Dict, "code", &[&coin]);
-            return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_deref().unwrap_or("null"), "/").into()), quote).into()), ":").into()), quote));
+            if (code.is_some()) {
+                return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", code.as_deref().unwrap_or("null"), "/").into()), quote).into()), ":").into()), quote));
+            }
+            return None;
         }
         if coin.unwrap_or("").contains("/") || coin.unwrap_or("").contains("@") {
             return coin.map(str::to_owned);
@@ -8342,7 +8346,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if coin.unwrap_or("").contains(":") {
             coinId = (if let Some(__s) = coin.map(str::to_owned).as_deref() { Some(__s.replace(":", "-")) } else { None });
         }
-        return Some(format!("{}{}", self.safe_currency_code(coinId.as_deref(), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/USDC:USDC".into())));
+        let currencyCode: Option<String> = self.safe_currency_code(coinId.as_deref(), None);
+        if (currencyCode.is_some()) {
+            return Some(format!("{}{}", currencyCode.as_deref().unwrap_or("null"), "/USDC:USDC"));
+        }
+        return None;
 }
 
     pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {

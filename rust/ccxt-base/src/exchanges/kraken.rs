@@ -3138,7 +3138,7 @@ impl Kraken {
             let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let parsedAmount: Option<String> = self.amount_to_precision((crate::value::KeyRead::key_read(&&market, "symbol")).as_str(), amount);
+            let parsedAmount: Option<String> = self.amount_to_precision(self.safe_string_k(&market, "symbol", &[]).as_str(), amount);
             let req: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), side.map(Value::from).unwrap_or(Value::Null));

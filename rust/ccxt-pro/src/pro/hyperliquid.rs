@@ -673,7 +673,8 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: crate::types::Market = (match self.market((self.single_bid_ask_symbol("watchBidsAsks", &[symbols]).map(Value::from).unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let bidAskSymbol: Option<String> = self.single_bid_ask_symbol("watchBidsAsks", &[symbols]);
+        let mut market: crate::types::Market = (match self.market(bidAskSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "bidask:", symbol);
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
@@ -724,7 +725,8 @@ impl Hyperliquid {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: crate::types::Market = (match self.market((self.single_bid_ask_symbol("unWatchBidsAsks", &[symbols]).map(Value::from).unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let bidAskSymbol: Option<String> = self.single_bid_ask_symbol("unWatchBidsAsks", &[symbols]);
+        let mut market: crate::types::Market = (match self.market(bidAskSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let subMessageHash: String = format!("{}{}", "bidask:", symbol);
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);

@@ -272,11 +272,13 @@ impl Coinbase {
         let mut watchMessageHash: String = name.to_string();
         let mut unWatchMessageHash: String = format!("{}{}", "unsubscribe:", Value::from(name));
         let mut productIds: Value = Value::from(vec![]);
+        let mut subscriptionSymbols: Vec<Value> = Vec::new();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             watchMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::from(name), "::").into()), symbol);
             unWatchMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", Value::from(name)).into()), "::").into()), symbol);
             productIds = Value::from(vec![self.safe_string_k(&market, "id", &[])]);
+            subscriptionSymbols.push(crate::value::KeyRead::key_read(&&market, "symbol"));
         }
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -293,7 +295,7 @@ impl Coinbase {
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(watchMessageHash)]));
                 m.insert("topic".to_string(), Value::from(topic));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("symbols".to_string(), Value::from(vec![symbol]));
+                m.insert("symbols".to_string(), Value::from(subscriptionSymbols));
             m
         });
         if isPrivate {

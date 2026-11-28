@@ -3647,7 +3647,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (orderLegs.len() as i64) } {
             let leg: crate::value::Dict = orderLegs.get(i as usize).cloned().unwrap_or_default();
-            let mut market: crate::types::Market = (match self.market((crate::value::KeyRead::key_read(&&leg, "instrument")).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let instrument: Option<String> = self.safe_string_k_opt(&leg, "instrument", &[]);
+            let mut market: crate::types::Market = (match self.market(instrument.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let precisionValue: i64 = self.precision_from_string(self.safe_string_k(crate::value::KeyRead::key_read(&&market, "precision"), "base", &[]));
             let sizeMultiplier: f64 = f64::powf(10.0, (precisionValue as f64));
             let size: Option<String> = self.safe_string_k_opt(&leg, "size", &[]);

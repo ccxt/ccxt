@@ -2967,13 +2967,12 @@ impl Okx {
     m
 })]).await;
         let mut market: Option<crate::types::Market> = None;
-        let mut symbolResolved: Option<String> = None;
         let mut type_var: Option<String> = typeOption;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
             type_var = self.safe_string_k_opt(&market, "type", &[]);
         }
+        let symbolResolved: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         if (type_var.as_deref() == Some("future")) {
             type_var = Some("futures".to_string());
         }

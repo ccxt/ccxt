@@ -3542,7 +3542,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) && matches!((self.safe_bool_k(&market, "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             exchangeAmount = crate::precise::Precise::stringMul(&exchangeAmount, &self.safe_string_k(&market, "contractSize", &[])).as_str().map(str::to_owned);
         }
-        return Value::from(self.amount_to_precision((crate::value::KeyRead::key_read(&market, "symbol")).as_str(), exchangeAmount.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+        return Value::from(self.amount_to_precision(self.safe_string_k(&market, "symbol", &[]).as_str(), exchangeAmount.map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
 }
 
 /*

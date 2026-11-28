@@ -3933,17 +3933,18 @@ impl Hitbtc {
         let triggerPrice: Option<f64> = self.safe_number_n(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]).as_f64();
         let isPostOnly: bool = self.is_post_only((type_var == "market"), false, &[&params]);
         let resolvedMarketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
+        let marketSymbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::from(type_var));
                 m.insert("side".to_string(), Value::from(side));
-                m.insert("quantity".to_string(), Value::from(self.amount_to_precision((market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).as_str(), Value::from(amount))));
+                m.insert("quantity".to_string(), Value::from(self.amount_to_precision(marketSymbol.as_deref(), Value::from(amount))));
                 m.insert("symbol".to_string(), self.safe_string_k(&market, "id", &[]));
             m
         });
         if (reduceOnly.is_some()) {
             if (resolvedMarketType.as_deref() != Some("swap")) && (resolvedMarketType.as_deref() != Some("margin")) {
-                let marketTypeString: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let marketTypeString: String = self.safe_string_k(market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support reduce_only for ").into()), marketTypeString).into()), " orders, reduce_only orders are supported for swap and margin markets only")));
             }
         }
@@ -3960,7 +3961,7 @@ impl Hitbtc {
             if (price.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " createOrder() requires a price argument for limit orders")));
             }
-            request.insert("price".into(), Value::from(self.price_to_precision((market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).as_str(), Value::from(price))));
+            request.insert("price".into(), Value::from(self.price_to_precision(marketSymbol.as_deref(), Value::from(price))));
         }
         if (timeInForce.as_deref() == Some("GTD")) {
             let expireTime: Option<String> = self.safe_string_k_opt(&params, "expire_time", &[]);
@@ -3969,7 +3970,7 @@ impl Hitbtc {
             }
         }
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), Value::from(self.price_to_precision((market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).as_str(), triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(marketSymbol.as_deref(), triggerPrice)));
             if isLimit {
                 request.insert("type".into(), Value::Str("stopLimit".into()));
             }  else if (type_var == "market") {

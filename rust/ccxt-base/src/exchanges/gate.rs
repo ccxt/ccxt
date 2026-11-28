@@ -5181,7 +5181,7 @@ if _try_result.is_err() {
         let delimiter = get_arg(optional_args, 0, Value::Null);
         let marketType = get_arg(optional_args, 1, Value::Null);
         let isOption: bool = (marketId.is_some()) && ((marketId.unwrap_or("").contains("-C")) || (marketId.unwrap_or("").contains("-P")));
-        if isOption && ((self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
+        if (marketId.is_some()) && isOption && ((self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, &Value::from(marketId)), (Some(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
             return <crate::types::Market as crate::types::FromRaw>::from_raw(self.create_expired_option_market(Value::from(marketId)));
         }
         return self.super_safe_market(marketId, market, delimiter, marketType);
@@ -9158,6 +9158,7 @@ if _try_result.is_err() {
         }
         if isSpot {
             let mut ordersRequests: Vec<Value> = Vec::new();
+            let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_23: bool = true;
@@ -9166,7 +9167,7 @@ if _try_result.is_err() {
                 let orderItem: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), Value::from(id));
-                        m.insert("symbol".to_string(), symbol.clone());
+                        m.insert("symbol".to_string(), Value::from(marketSymbol.as_str()));
                     m
                 });
                 ordersRequests.push(Value::Map(orderItem));

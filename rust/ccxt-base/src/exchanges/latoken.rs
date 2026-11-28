@@ -277,17 +277,13 @@ impl crate::exchange::DerivedExchange for Latoken {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         let mut symbol: Option<String> = None;
-        let mut symbolKnown: bool = false;
+        let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (base.is_some()) && (quote.is_some()) {
             let knownSymbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             if (self.markets.is_some()) && (matches!((&self.markets, Some(knownSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
-                symbolKnown = true;
+                marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, knownSymbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
             symbol = Some(knownSymbol);
-        }
-        let mut marketResolved: Option<crate::types::Market> = market.cloned();
-        if symbolKnown {
-            marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let orderSide: Option<String> = self.safe_string_k_opt(order, "side", &[]);
         let mut side: Option<String> = None;
