@@ -61,12 +61,12 @@ func (this *Bit2me) Describe() map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the resolved value of the subscription
  */
-func (this *Bit2me) SubscribePublicAsync(name string, symbol any, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bit2me) SubscribePublicAsync(name string, symbol string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePublicBody(ch, name, symbol, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name string, symbol any, messageHash string, optionalArgs ...any) any {
+func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name string, symbol string, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -76,7 +76,7 @@ func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"event":  "subscribe",
@@ -170,7 +170,7 @@ func (this *Bit2me) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var messageHash string = "orderbook:" + market.Symbol
 
 	r1 := <-this.SubscribePublicAsync("order-book", symbol, messageHash, params)
@@ -232,12 +232,12 @@ func (this *Bit2me) HandleOrderBook(client ccxt.ClientInterface, message map[str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *Bit2me) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bit2me) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -251,7 +251,7 @@ func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var messageHash string = "trades:" + market.Symbol
 
 	r1 := <-this.SubscribePublicAsync("public-trades", symbol, messageHash, params)
@@ -711,7 +711,7 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var restRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var orderType *string = this.SafeString(restRequest, "orderType")
 	if orderType != nil && *orderType == "oco" {

@@ -893,7 +893,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 		var tierObject map[string]any
 		if market.Spot {
 			tierObject = firstSpotTier
@@ -992,7 +992,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 		var makerFee *string
 		if market.Spot {
 			makerFee = spotMakerFee
@@ -1120,7 +1120,7 @@ func (this *Onetrading) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 	}
@@ -1255,7 +1255,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"instrument_code": nil,
 	}
@@ -1411,7 +1411,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var periodUnit *string = this.SafeString(this.Timeframes, timeframe)
 	if periodUnit == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing periodUnit"))
@@ -1786,14 +1786,14 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[Order], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var uppercaseType string = strings.ToUpper(typeVar)
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 		"type":            uppercaseType,
 		"side":            strings.ToUpper(side),
-		"amount":          this.AmountToPrecision(symbol, amount),
+		"amount":          this.AmountToPrecision(&symbol, amount),
 	}
 	var priceIsRequired bool = false
 	if (uppercaseType == "LIMIT") || (uppercaseType == "STOP") {
@@ -1804,13 +1804,13 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		if uppercaseType == "MARKET" {
 			panic(BadRequest(this.Id + " createOrder() cannot place stop market orders, only stop limit"))
 		}
-		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["trigger_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		request["type"] = "STOP"
 	} else if uppercaseType == "STOP" {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice param for " + typeVar + " orders"))
 	}
 	if priceIsRequired {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	if clientOrderId != nil {

@@ -119,7 +119,7 @@ func (this *Mexc) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	if *this.SafeBool(market, "spot", false) {
@@ -519,7 +519,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var symbolsLength int = len(symbolsNormalized)
 	var firstMarket map[string]any = nil
 	if symbolsLength > 0 {
-		firstMarket = this.Market(symbolsNormalized[0])
+		firstMarket = this.Market(&symbolsNormalized[0])
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
@@ -530,7 +530,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		if isSpot {
-			var market map[string]any = this.Market(symbolsNormalized[i])
+			var market map[string]any = this.Market(&symbolsNormalized[i])
 			topics = append(topics, "spot@public.aggre.bookTicker.v3.api.pb@100ms@"+*this.SafeString(market, "id", ""))
 		}
 		messageHashes = append(messageHashes, "bidask:"+symbolsNormalized[i])
@@ -778,7 +778,7 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
@@ -1018,7 +1018,7 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
 	if *this.SafeBool(market, "spot", false) {
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
@@ -1264,12 +1264,12 @@ func (this *Mexc) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Mexc) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Mexc) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1285,7 +1285,7 @@ func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + *symbolValue
 	var trades any = nil
@@ -2109,7 +2109,7 @@ func (this *Mexc) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var messageHash string = "fundingRate:" + market.Symbol
 	var channel string = "sub.funding.rate"
 	var requestParams map[string]any = map[string]any{
@@ -2153,7 +2153,7 @@ func (this *Mexc) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol 
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var messageHash string = "unsubscribe:fundingRate:" + market.Symbol
 	var channel string = "unsub.funding.rate"
 	var requestParams map[string]any = map[string]any{
@@ -2221,7 +2221,7 @@ func (this *Mexc) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "unsubscribe:ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var url *string = nil
@@ -2336,7 +2336,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var symbolsLength int = len(symbolsNormalized)
 	var firstMarket map[string]any = nil
 	if symbolsLength > 0 {
-		firstMarket = this.Market(symbolsNormalized[0])
+		firstMarket = this.Market(&symbolsNormalized[0])
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	var isSpot bool = (marketType != nil && *marketType == "spot")
@@ -2347,7 +2347,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		if isSpot {
-			var market map[string]any = this.Market(symbolsNormalized[i])
+			var market map[string]any = this.Market(&symbolsNormalized[i])
 			topics = append(topics, "spot@public.aggre.bookTicker.v3.api.pb@100ms@"+*this.SafeString(market, "id", ""))
 		}
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+symbolsNormalized[i])
@@ -2393,7 +2393,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash string = "unsubscribe:candles:" + *this.SafeString(market, "symbol", "") + ":" + timeframe
@@ -2445,7 +2445,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "unsubscribe:orderbook:" + *this.SafeString(market, "symbol", "")
 	var url *string = nil
 	if *this.SafeBool(market, "spot", false) {
@@ -2496,7 +2496,7 @@ func (this *Mexc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "unsubscribe:trades:" + *this.SafeString(market, "symbol", "")
 	var url *string = nil
 	if *this.SafeBool(market, "spot", false) {

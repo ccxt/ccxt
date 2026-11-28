@@ -544,7 +544,7 @@ func (this *Bithumb) SafeMarket(optionalArgs ...any) map[string]any {
 	_ = marketType
 	return this.Exchange.SafeMarket(marketId, market, delimiter, "spot")
 }
-func (this *Bithumb) AmountToPrecision(symbol any, amount any) *string {
+func (this *Bithumb) AmountToPrecision(symbol *string, amount any) *string {
 	var market map[string]any = this.Market(symbol)
 	retStrVal := this.DecimalToPrecision(amount, TRUNCATE, this.SafeInteger(market["precision"], "amount"), DECIMAL_PLACES)
 	return &retStrVal
@@ -937,7 +937,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "generation", 2)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var data map[string]any = nil
 	var timestamp *int64 = nil
@@ -1204,7 +1204,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		}
 		var symbolsForMarketIdsLength int = len(symbolsForMarketIds)
 		for i := 0; i < symbolsForMarketIdsLength; i++ {
-			var market map[string]any = this.Market(symbolsForMarketIds[i])
+			var market map[string]any = this.Market(&symbolsForMarketIds[i])
 			marketIds = append(marketIds, this.GetGen2MarketId(market))
 		}
 		var marketIdsLength int = len(marketIds)
@@ -1341,7 +1341,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < len(symbols); i++ {
 				var symbol string = symbols[i]
-				var market map[string]any = this.Market(symbol)
+				var market map[string]any = this.Market(&symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if quoteId != nil {
 					if _, ok := quoteCurrencies[*quoteId]; ok {
@@ -1434,7 +1434,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTicker", "generation", 2)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var data map[string]any = map[string]any{}
 	if generation == 2 {
@@ -1604,7 +1604,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOHLCV", "generation", 2)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var data any = []any{}
@@ -1929,7 +1929,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchTrades", "generation", 2)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		request["count"] = *limit
@@ -2056,7 +2056,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(symbols[0])
+	var market map[string]any = this.Market(&symbols[0])
 	var request map[string]any = map[string]any{
 		"batch_orders": ordersRequests,
 	}
@@ -2107,7 +2107,7 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": this.GetGen2MarketId(market),
 	}
@@ -2147,8 +2147,8 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 		request["time_in_force"] = "ioc"
 	}
 	if typeVar == "limit" {
-		request["price"] = this.PriceToPrecision(symbol, price)
-		request["volume"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
+		request["volume"] = this.AmountToPrecision(&symbol, amount)
 		request["order_type"] = "limit"
 	} else {
 		var typeRequest string
@@ -2171,9 +2171,9 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 				}
 				cost = Precise.StringMul(amountString, this.NumberToString(price))
 			}
-			request["price"] = this.PriceToPrecision(symbol, cost)
+			request["price"] = this.PriceToPrecision(&symbol, cost)
 		} else {
-			request["volume"] = this.AmountToPrecision(symbol, amount)
+			request["volume"] = this.AmountToPrecision(&symbol, amount)
 			typeRequest = "market"
 		}
 		request["order_type"] = typeRequest
@@ -2234,7 +2234,7 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createOrder", "generation", 2)
 	var request map[string]any = map[string]any{}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response map[string]any = nil
 	if generation == 2 {
 		request = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsGeneration)
@@ -2247,9 +2247,9 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	} else {
 		request["order_currency"] = market["base"]
 		request["payment_currency"] = market["quote"]
-		request["units"] = this.AmountToPrecision(symbol, amount)
+		request["units"] = this.AmountToPrecision(&symbol, amount)
 		if typeVar == "limit" {
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 			var typeRequest string
 			if side == "buy" {
 				typeRequest = "bid"
@@ -2373,7 +2373,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol stri
 	if generation != 2 {
 		panic(BadRequest(this.Id + " createTwapOrder() is only supported for the generation 2 API"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var durationString *string = this.NumberToString(duration)
 	var durationSeconds *string = Precise.StringDiv(durationString, "1000")
 	var request map[string]any = map[string]any{
@@ -2381,7 +2381,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol stri
 		"duration": durationSeconds,
 	}
 	if true {
-		request["volume"] = this.AmountToPrecision(symbol, amount) // required for sale
+		request["volume"] = this.AmountToPrecision(&symbol, amount) // required for sale
 	}
 	var sideRequest string
 	if side == "buy" {

@@ -801,7 +801,7 @@ func (this *Bit2me) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -912,7 +912,7 @@ func (this *Bit2me) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -969,7 +969,7 @@ func (this *Bit2me) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1132,7 +1132,7 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	var maxLimit int = 1000
 	if paginate {
@@ -1305,7 +1305,7 @@ func (this *Bit2me) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostV1TradingOrder(request)
@@ -1376,7 +1376,7 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var isMarketOrder bool = (typeVar == "market")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
@@ -1414,9 +1414,9 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 			panic(InvalidOrder(this.Id + " createOrder() OCO legs are limit orders, use the limit type"))
 		}
 		request["orderType"] = "oco"
-		request["amount"] = this.AmountToPrecision(symbol, amount)
-		request["takeProfitPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
-		request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
+		request["takeProfitPrice"] = this.PriceToPrecision(&symbol, takeProfitPrice)
+		request["stopPrice"] = this.PriceToPrecision(&symbol, stopLossPrice)
 		var stopLossLimit *string = stopLimitPrice
 		if stopLossLimit == nil {
 			if price != nil {
@@ -1425,31 +1425,31 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 				stopLossLimit = stopLossPrice
 			}
 		}
-		request["stopLimitPrice"] = this.PriceToPrecision(symbol, stopLossLimit)
+		request["stopLimitPrice"] = this.PriceToPrecision(&symbol, stopLossLimit)
 	} else if isMarketOrder {
 		if triggerPrice != nil {
 			panic(InvalidOrder(this.Id + " createOrder() does not support stop-market orders, use a limit price to place a stop-limit order"))
 		}
 		if cost != nil {
-			request["amount"] = this.CostToPrecision(symbol, cost)
+			request["amount"] = this.CostToPrecision(&symbol, cost)
 			request["amountInQuote"] = true
 		} else if (side == "buy") && (price != nil) {
 			// the unified convention for market buy orders, the cost to spend is amount * price
 			var quoteAmount *string = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
-			request["amount"] = this.CostToPrecision(symbol, quoteAmount)
+			request["amount"] = this.CostToPrecision(&symbol, quoteAmount)
 			request["amountInQuote"] = true
 		} else {
-			request["amount"] = this.AmountToPrecision(symbol, amount)
+			request["amount"] = this.AmountToPrecision(&symbol, amount)
 		}
 	} else {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
-		request["amount"] = this.AmountToPrecision(symbol, amount)
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 		if triggerPrice != nil {
 			request["orderType"] = "stop-limit"
-			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
 	}
 	if postOnly {

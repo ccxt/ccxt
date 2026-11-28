@@ -904,7 +904,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1491,7 +1491,7 @@ func (this *Poloniex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
-			market = this.Market(symbolsNormalized[0])
+			market = this.Market(&symbolsNormalized[0])
 			if symbolsLength == 1 {
 				request["symbol"] = market["id"]
 			}
@@ -1705,7 +1705,7 @@ func (this *Poloniex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1921,7 +1921,7 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2650,7 +2650,7 @@ func (this *Poloniex) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   strings.ToUpper(side),
@@ -2729,7 +2729,7 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 	for i := 0; i < len(orders); i++ {
 		var rawOrder map[string]any = orders[i]
 		var symbol string = *this.SafeString(rawOrder, "symbol", "")
-		var marketInner map[string]any = this.Market(symbol)
+		var marketInner map[string]any = this.Market(&symbol)
 		var marketInnerType *string = this.SafeString(marketInner, "type")
 		var marketType *string = this.SafeString(market, "type")
 		if market == nil {
@@ -2825,7 +2825,7 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 	_ = params
 	var result map[string]any = this.Extend(map[string]any{}, request)
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var isContract bool = (market["contract"] == true)
 	marginMode, paramsMarginMode := this.HandleParamString(params, "marginMode")
 	hedged, paramsHedged := this.HandleParamString(paramsMarginMode, "hedged")
@@ -2879,7 +2879,7 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 			var cost *float64 = this.SafeNumber(queryOmitted, "cost")
 			queryOmitted = this.Omit(queryOmitted, "cost")
 			if cost != nil {
-				quoteAmount = this.CostToPrecision(symbol, cost)
+				quoteAmount = this.CostToPrecision(&symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice && (*this.SafeBool(market, "spot", false)) {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
@@ -2887,10 +2887,10 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var costRequest *string = Precise.StringMul(amountString, priceString)
-					quoteAmount = this.CostToPrecision(symbol, costRequest)
+					quoteAmount = this.CostToPrecision(&symbol, costRequest)
 				}
 			} else {
-				quoteAmount = this.CostToPrecision(symbol, amount)
+				quoteAmount = this.CostToPrecision(&symbol, amount)
 			}
 			var amountKey string = "sz"
 			if *this.SafeBool(market, "spot", false) {
@@ -2902,19 +2902,19 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 			if *this.SafeBool(market, "spot", false) {
 				amountKey = "quantity"
 			}
-			result[amountKey] = this.AmountToPrecision(symbol, amount)
+			result[amountKey] = this.AmountToPrecision(&symbol, amount)
 		}
 	} else {
 		var amountKey string = "sz"
 		if *this.SafeBool(market, "spot", false) {
 			amountKey = "quantity"
 		}
-		result[amountKey] = this.AmountToPrecision(symbol, amount)
+		result[amountKey] = this.AmountToPrecision(&symbol, amount)
 		var priceKey string = "px"
 		if *this.SafeBool(market, "spot", false) {
 			priceKey = "price"
 		}
-		result[priceKey] = this.PriceToPrecision(symbol, price)
+		result[priceKey] = this.PriceToPrecision(&symbol, price)
 	}
 	var clientOrderId *string = this.SafeString2(queryOmitted, "clientOrderId", "clOrdId")
 	if clientOrderId != nil {
@@ -2966,7 +2966,7 @@ func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "spot", false)) {
 		panic(NotSupported(this.Id + " editOrder() does not support " + *this.SafeString(market, "type", "") + " orders, only spot orders are accepted"))
 	}
@@ -3741,7 +3741,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3856,7 +3856,7 @@ func (this *Poloniex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
@@ -5034,7 +5034,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5393,8 +5393,8 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var amountResolved *string = this.AmountToPrecision(symbol, amount)
+	var market map[string]any = this.Market(&symbol)
+	var amountResolved *string = this.AmountToPrecision(&symbol, amount)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"amt":    Precise.StringAbs(amountResolved),

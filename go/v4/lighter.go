@@ -1116,7 +1116,7 @@ func (this *Lighter) SetSandboxMode(enable bool) {
 		return 304
 	}()
 }
-func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) []any {
+func (this *Lighter) CreateOrderRequest(symbol *string, typeVar string, side string, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1502,7 +1502,7 @@ func (this *Lighter) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	txType := txTypetxInfoorderVariable[0]
 	txInfo := txTypetxInfoorderVariable[1]
 	order := txTypetxInfoorderVariable[2]
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": txInfo,
@@ -1577,24 +1577,24 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		panic(r1.Err)
 	}
 	signer := r1.Value
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketInfo, _ = market["info"].(map[string]any)
 	var amountScale *string = this.Pow("10", marketInfo["size_decimals"])
 	var priceScale *string = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPrice *string = this.SafeStringN(paramsAccountIndex, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	var paramsOmitted map[string]any = this.OmitDict(paramsAccountIndex, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	var amountStr *string = nil
-	var priceStr *string = this.PriceToPrecision(symbol, price)
+	var priceStr *string = this.PriceToPrecision(&symbol, price)
 	var triggerPriceStr any = "0" // default is 0
 	if triggerPrice != nil {
 		amountStr = this.NumberToString(amount)
-		if derefPtr := this.PriceToPrecision(symbol, triggerPrice); derefPtr != nil {
+		if derefPtr := this.PriceToPrecision(&symbol, triggerPrice); derefPtr != nil {
 			triggerPriceStr = *derefPtr
 		} else {
 			triggerPriceStr = nil
 		}
 	} else {
-		amountStr = this.AmountToPrecision(symbol, amount)
+		amountStr = this.AmountToPrecision(&symbol, amount)
 	}
 
 	r2 := <-this.FetchNonceAsync(accountIndex, apiKeyIndex, paramsOmitted)
@@ -2073,7 +2073,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market_id": nil,
 		"limit":     100,
@@ -2251,7 +2251,7 @@ func (this *Lighter) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market_id": market["id"],
 	}
@@ -2439,7 +2439,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var now int64 = this.Milliseconds()
@@ -4239,7 +4239,7 @@ func (this *Lighter) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market_id": market["id"],
 		"limit":     100,
@@ -5117,7 +5117,7 @@ func (this *Lighter) setMarginBody(ch chan AsyncResult[MarginModification], symb
 		panic(r1.Err)
 	}
 	signer := r1.Value
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r2 := <-this.FetchNonceAsync(accountIndex, apiKeyIndex, paramsAccountIndex)
 	if r2.Err != nil {

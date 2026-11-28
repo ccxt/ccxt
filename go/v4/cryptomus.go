@@ -607,7 +607,7 @@ func (this *Cryptomus) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -690,7 +690,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"currencyPair": nil,
 	}
@@ -777,7 +777,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
 	}
@@ -957,7 +957,7 @@ func (this *Cryptomus) createOrderBody(ch chan AsyncResult[Order], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
 		"direction": side,

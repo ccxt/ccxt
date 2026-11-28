@@ -127,7 +127,7 @@ func TestPosition(exchange ccxt.ICoreExchange, skippedProperties any, method any
 			}
 			var market any = nil
 			if (symbolForMarket != nil) && (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
-				market = exchange.Market(symbolForMarket)
+				market = exchange.Market(SafeStringPtr(symbolForMarket))
 			}
 			var isInverse bool = (!IsEqual(market, nil)) && EvalTruthy(exchange.SafeBool(market, "inverse", false))
 			var priceDiff *string = nil

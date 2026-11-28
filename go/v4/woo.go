@@ -1208,7 +1208,7 @@ func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1384,7 +1384,7 @@ func (this *Woo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1737,7 +1737,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -1777,7 +1777,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
@@ -1934,7 +1934,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1978,7 +1978,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		request["reduceOnly"] = reduceOnly
 	}
 	if !isMarket && (price != nil) {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var isMarketNotConditional bool = isMarket && !isConditional
 	var paramsCost map[string]any = paramsMarginMode
@@ -1992,19 +1992,19 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		if (*this.SafeBool(market, "spot", false)) && (isPriceProvided || (cost != nil)) {
 			var quoteAmount *string = nil
 			if cost != nil {
-				quoteAmount = this.CostToPrecision(symbol, cost)
+				quoteAmount = this.CostToPrecision(&symbol, cost)
 			} else {
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var costRequest *string = Precise.StringMul(amountString, priceString)
-				quoteAmount = this.CostToPrecision(symbol, costRequest)
+				quoteAmount = this.CostToPrecision(&symbol, costRequest)
 			}
 			request["amount"] = quoteAmount
 		} else {
-			request["quantity"] = this.AmountToPrecision(symbol, amount)
+			request["quantity"] = this.AmountToPrecision(&symbol, amount)
 		}
 	} else if algoType == nil || *algoType != "POSITIONAL_TP_SL" {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var clientOrderId *string = this.SafeStringN(paramsCost, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	if clientOrderId != nil {
@@ -2014,7 +2014,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		if trailingTriggerPrice == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a trailingTriggerPrice parameter for trailing orders"))
 		}
-		request["activatedPrice"] = this.PriceToPrecision(symbol, trailingTriggerPrice)
+		request["activatedPrice"] = this.PriceToPrecision(&symbol, trailingTriggerPrice)
 		request["algoType"] = "TRAILING_STOP"
 		if isTrailingAmountOrder {
 			request["callbackValue"] = trailingAmount
@@ -2024,7 +2024,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		}
 	} else if triggerPrice != nil {
 		if algoType == nil || *algoType != "TRAILING_STOP" {
-			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 			request["algoType"] = "STOP"
 		}
 	} else if hasStopLoss || hasTakeProfit {
@@ -2039,7 +2039,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			var stopLossOrder map[string]any = map[string]any{
 				"side":         closeSide,
 				"algoType":     "STOP_LOSS",
-				"triggerPrice": this.PriceToPrecision(symbol, stopLossPrice),
+				"triggerPrice": this.PriceToPrecision(&symbol, stopLossPrice),
 				"type":         "CLOSE_POSITION",
 				"reduceOnly":   true,
 			}
@@ -2050,7 +2050,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			var takeProfitOrder map[string]any = map[string]any{
 				"side":         closeSide,
 				"algoType":     "TAKE_PROFIT",
-				"triggerPrice": this.PriceToPrecision(symbol, takeProfitPrice),
+				"triggerPrice": this.PriceToPrecision(&symbol, takeProfitPrice),
 				"type":         "CLOSE_POSITION",
 				"reduceOnly":   true,
 			}
@@ -2141,20 +2141,20 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if amount != nil {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var clientOrderIdUnified *string = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var clientOrderIdExchangeSpecific *string = this.SafeString(params, "client_order_id", clientOrderIdUnified)
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 	if triggerPrice != nil {
-		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	var trailingTriggerPrice *string = this.SafeString2(params, "trailingTriggerPrice", "activatedPrice", this.NumberToString(price))
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "callbackValue")
@@ -2164,7 +2164,7 @@ func (this *Woo) editOrderBody(ch chan AsyncResult[Order], id string, symbol str
 	var isTrailing bool = isTrailingAmountOrder || isTrailingPercentOrder
 	if isTrailing {
 		if trailingTriggerPrice != nil {
-			request["activatedPrice"] = this.PriceToPrecision(symbol, trailingTriggerPrice)
+			request["activatedPrice"] = this.PriceToPrecision(&symbol, trailingTriggerPrice)
 		}
 		if isTrailingAmountOrder {
 			request["callbackValue"] = trailingAmount
@@ -2959,7 +2959,7 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -3081,7 +3081,7 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(NotSupported(this.Id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint"))
 	}
@@ -3173,7 +3173,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 			// BadRequest, so callers (and the live test harness) can tell "wrong market
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
-			var firstMarket MarketInterface = MarketInterfaceFromMap(this.Market(symbols[0]))
+			var firstMarket MarketInterface = MarketInterfaceFromMap(this.Market(&symbols[0]))
 			if !firstMarket.Swap {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
@@ -3257,7 +3257,7 @@ func (this *Woo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -5002,7 +5002,7 @@ func (this *Woo) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5302,7 +5302,7 @@ func (this *Woo) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 
@@ -5521,7 +5521,7 @@ func (this *Woo) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], sym
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol":        nil,
 		"adjust_token":  "USDT",
@@ -5566,7 +5566,7 @@ func (this *Woo) fetchPositionBody(ch chan AsyncResult[Position], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5655,7 +5655,7 @@ func (this *Woo) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbolsNormalized[0]))
 			request["symbol"] = nil
 			if market.Id != nil {
 				request["symbol"] = *market.Id
@@ -6283,7 +6283,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbolsNormalized[0]))
 			request["symbol"] = nil
 			if market.Id != nil {
 				request["symbol"] = *market.Id

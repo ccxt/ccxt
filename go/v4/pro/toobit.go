@@ -192,12 +192,12 @@ func (this *Toobit) HandleIncomingPong(client ccxt.ClientInterface, pongTimestam
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Toobit) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Toobit) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Toobit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Toobit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -424,7 +424,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = symbolsAndTimeframes[i]
 		var symbolStr string = *this.SafeString(data, 0, "")
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolStr))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolStr))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -569,7 +569,7 @@ func (this *Toobit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {

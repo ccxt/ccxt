@@ -689,7 +689,7 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response map[string]any = nil
 	var data map[string]any = nil
 	var request map[string]any = map[string]any{
@@ -853,7 +853,7 @@ func (this *Zebpay) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -930,7 +930,7 @@ func (this *Zebpay) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1066,7 +1066,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1191,7 +1191,7 @@ func (this *Zebpay) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1538,7 +1538,7 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var upperCaseType string = strings.ToUpper(typeVar)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -1560,16 +1560,16 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		var marginAsset *string = this.SafeString(query, "marginAsset", "INR")
 		var formType *string = this.SafeStringUpper(query, "formType", "ORDER_FORM")
 		request["formType"] = formType
-		request["amount"] = this.ParseToNumeric(this.AmountToPrecision(market["id"], amount))
+		request["amount"] = this.ParseToNumeric(this.AmountToPrecision(this.SafeString(market, "id"), amount))
 		request["marginAsset"] = marginAsset
 		var hasTP bool = (takeProfitPrice != nil)
 		var hasSL bool = (stopLossPrice != nil)
 		if hasTP || hasSL {
 			if hasTP {
-				request["takeProfitPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice))
+				request["takeProfitPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, takeProfitPrice))
 			}
 			if hasSL {
-				request["stopLossPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice))
+				request["stopLossPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, stopLossPrice))
 			}
 
 			r2 := <-this.PrivateSwapPostV1TradeOrderAddTPSL(this.Extend(request, query))
@@ -1583,7 +1583,7 @@ func (this *Zebpay) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				if price == nil {
 					panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit orders"))
 				}
-				request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
+				request["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, price))
 			}
 
 			r3 := <-this.PrivateSwapPostV1TradeOrder(this.Extend(request, query))
@@ -1627,13 +1627,13 @@ func (this *Zebpay) SpotOrderBody(symbol string, typeVar string, amount any, req
 		if quoteOrderQty == nil {
 			panic(ExchangeError(this.Id + " spot market orders require cost in params"))
 		}
-		request["quoteOrderAmount"] = this.CostToPrecision(symbol, quoteOrderQty)
+		request["quoteOrderAmount"] = this.CostToPrecision(&symbol, quoteOrderQty)
 	} else {
 		if triggerPrice != nil {
-			request["stopLossPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopLossPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
-		request["amount"] = this.AmountToPrecision(symbol, amount)
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	return this.Extend(request, paramsOmitted)
 }
@@ -2055,7 +2055,7 @@ func (this *Zebpay) closePositionBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2157,7 +2157,7 @@ func (this *Zebpay) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeStringUpper(market, "id"),
 	}
@@ -2327,7 +2327,7 @@ func (this *Zebpay) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"amount": amount,
@@ -2398,7 +2398,7 @@ func (this *Zebpay) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"amount": amount,

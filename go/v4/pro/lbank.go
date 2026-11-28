@@ -171,7 +171,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "fetchOHLCVWs")
 	var url *string = this.UrlsApiStrings["ws"]
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
@@ -238,7 +238,7 @@ func (this *Lbank) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "watchOHLCV")
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
 	var timeframes, _ = watchOHLCVOptions["timeframes"].(map[string]any)
@@ -297,7 +297,7 @@ func (this *Lbank) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "unWatchOHLCV")
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
 	var timeframes, _ = watchOHLCVOptions["timeframes"].(map[string]any)
@@ -455,7 +455,7 @@ func (this *Lbank) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "fetchTickerWs")
 	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "fetchTicker:" + market["symbol"].(string)
@@ -502,7 +502,7 @@ func (this *Lbank) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "watchTicker")
 	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "ticker:" + market["symbol"].(string)
@@ -639,7 +639,7 @@ func (this *Lbank) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "fetchTradesWs")
 	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "fetchTrades:" + market["symbol"].(string)
@@ -678,12 +678,12 @@ func (this *Lbank) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lbank) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Lbank) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lbank) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Lbank) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -699,7 +699,7 @@ func (this *Lbank) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "watchTrades")
 	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "trades:" + market["symbol"].(string)
@@ -748,7 +748,7 @@ func (this *Lbank) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "unWatchTrades")
 	var request map[string]any = map[string]any{
 		"action":    "unsubscribe",
@@ -1224,7 +1224,7 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "fetchOrderBookWs")
 	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "fetchOrderbook:" + market["symbol"].(string)
@@ -1282,7 +1282,7 @@ func (this *Lbank) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckContractMarket(market, "watchOrderBook")
 	var url *string = this.UrlsApiStrings["ws"]
 	messageHashStr := "orderbook:" + market["symbol"].(string)

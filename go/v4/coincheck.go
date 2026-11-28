@@ -619,7 +619,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -706,7 +706,7 @@ func (this *Coincheck) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -942,7 +942,7 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1035,7 +1035,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var fee map[string]any = this.SafeDictMap(fees, market["id"], map[string]any{})
 		result[symbol] = map[string]any{
 			"info":       fee,
@@ -1083,7 +1083,7 @@ func (this *Coincheck) createOrderBody(ch chan AsyncResult[Order], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}

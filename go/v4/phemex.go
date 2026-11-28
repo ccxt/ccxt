@@ -1574,7 +1574,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1763,7 +1763,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var userLimit *int64 = limit
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
@@ -1982,7 +1982,7 @@ func (this *Phemex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2168,7 +2168,7 @@ func (this *Phemex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3315,7 +3315,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var requestSide string = this.Capitalize(side)
 	var typeValue string = this.Capitalize(typeVar)
 	var request map[string]any = map[string]any{
@@ -3342,7 +3342,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var triggerPrice *string = this.SafeStringN(paramsOmitted, []any{"stopPx", "stopPrice", "triggerPrice"})
 	if triggerPrice != nil {
 		if isStableSettled {
-			request["stopPxRp"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPxRp"] = this.PriceToPrecision(&symbol, triggerPrice)
 		} else {
 			request["stopPxEp"] = this.ToEp(triggerPrice, market)
 		}
@@ -3386,10 +3386,10 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					panic(ArgumentsRequired(this.Id + " createOrder() " + *qtyType + " requires a price argument or a cost parameter"))
 				}
 			}
-			var costString *string = this.CostToPrecision(symbol, cost)
+			var costString *string = this.CostToPrecision(&symbol, cost)
 			request["quoteQtyEv"] = this.ToEv(costString, market)
 		} else {
-			var amountString *string = this.AmountToPrecision(symbol, amount)
+			var amountString *string = this.AmountToPrecision(&symbol, amount)
 			request["baseQtyEv"] = this.ToEv(amountString, market)
 		}
 	} else if *this.SafeBool(market, "swap", false) {
@@ -3428,9 +3428,9 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		var posSideCapitalized string = this.Capitalize(posSide)
 		request["posSide"] = posSideCapitalized
 		if isStableSettled {
-			request["orderQtyRq"] = this.AmountToPrecision(symbol, amount)
+			request["orderQtyRq"] = this.AmountToPrecision(&symbol, amount)
 		} else {
-			request["orderQty"] = this.ParseToInt(this.AmountToPrecision(symbol, amount))
+			request["orderQty"] = this.ParseToInt(this.AmountToPrecision(&symbol, amount))
 		}
 		if triggerPrice != nil {
 			var triggerType *string = this.SafeString(orderParams, "triggerType", "ByMarkPrice")
@@ -3479,7 +3479,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					panic(InvalidOrder(this.Id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order"))
 				}
 				if isStableSettled {
-					request["stopLossRp"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
+					request["stopLossRp"] = this.PriceToPrecision(&symbol, stopLossTriggerPrice)
 				} else {
 					request["stopLossEp"] = this.ToEp(stopLossTriggerPrice, market)
 				}
@@ -3489,7 +3489,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				}
 				var slLimitPrice *string = this.SafeString(stopLoss, "price")
 				if slLimitPrice != nil {
-					request["slPxRp"] = this.PriceToPrecision(symbol, slLimitPrice)
+					request["slPxRp"] = this.PriceToPrecision(&symbol, slLimitPrice)
 				}
 			}
 			if hasTakeProfit {
@@ -3498,7 +3498,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					panic(InvalidOrder(this.Id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order"))
 				}
 				if isStableSettled {
-					request["takeProfitRp"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
+					request["takeProfitRp"] = this.PriceToPrecision(&symbol, takeProfitTriggerPrice)
 				} else {
 					request["takeProfitEp"] = this.ToEp(takeProfitTriggerPrice, market)
 				}
@@ -3508,14 +3508,14 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				}
 				var tpLimitPrice *string = this.SafeString(takeProfit, "price")
 				if tpLimitPrice != nil {
-					request["tpPxRp"] = this.PriceToPrecision(symbol, tpLimitPrice)
+					request["tpPxRp"] = this.PriceToPrecision(&symbol, tpLimitPrice)
 				}
 			}
 		}
 	}
 	if (typeValue == "Limit") || (typeValue == "StopLimit") || (typeValue == "LimitIfTouched") {
 		if isStableSettled {
-			request["priceRp"] = this.PriceToPrecision(symbol, price)
+			request["priceRp"] = this.PriceToPrecision(&symbol, price)
 		} else {
 			var priceString *string = this.NumberToString(price)
 			request["priceEp"] = this.ToEp(priceString, market)
@@ -3524,7 +3524,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var takeProfitPrice *string = this.SafeString(orderParams, "takeProfitPrice")
 	if takeProfitPrice != nil {
 		if isStableSettled {
-			request["takeProfitRp"] = this.PriceToPrecision(symbol, takeProfitPrice)
+			request["takeProfitRp"] = this.PriceToPrecision(&symbol, takeProfitPrice)
 		} else {
 			request["takeProfitEp"] = this.ToEp(takeProfitPrice, market)
 		}
@@ -3533,7 +3533,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var stopLossPrice *string = this.SafeString(orderParams, "stopLossPrice")
 	if stopLossPrice != nil {
 		if isStableSettled {
-			request["stopLossRp"] = this.PriceToPrecision(symbol, stopLossPrice)
+			request["stopLossRp"] = this.PriceToPrecision(&symbol, stopLossPrice)
 		} else {
 			request["stopLossEp"] = this.ToEp(stopLossPrice, market)
 		}
@@ -3684,7 +3684,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3700,7 +3700,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	}
 	if price != nil {
 		if isStableSettled {
-			request["priceRp"] = this.PriceToPrecision(precisionSymbol, price)
+			request["priceRp"] = this.PriceToPrecision(&precisionSymbol, price)
 		} else {
 			request["priceEp"] = this.ToEp(price, market)
 		}
@@ -3712,7 +3712,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request["baseQtyEV"] = finalQty
 	} else if amount != nil {
 		if isStableSettled {
-			request["orderQtyRq"] = this.AmountToPrecision(precisionSymbol, amount)
+			request["orderQtyRq"] = this.AmountToPrecision(&precisionSymbol, amount)
 		} else {
 			request["baseQtyEV"] = this.ToEv(amount, market)
 		}
@@ -3720,7 +3720,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var triggerPrice *string = this.SafeStringN(paramsOmitted2, []any{"triggerPrice", "stopPx", "stopPrice"})
 	if triggerPrice != nil {
 		if isStableSettled {
-			request["stopPxRp"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPxRp"] = this.PriceToPrecision(&symbol, triggerPrice)
 		} else {
 			request["stopPxEp"] = this.ToEp(triggerPrice, market)
 		}
@@ -5134,7 +5134,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var request map[string]any = map[string]any{
 		"symbol": nil,
@@ -5530,7 +5530,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
@@ -5677,7 +5677,7 @@ func (this *Phemex) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"posBalanceEv": this.ToEv(amount, market),
@@ -6747,7 +6747,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest is only supported for contract markets."))
 	}

@@ -607,7 +607,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   nil,
 		"secondaryCurrencyCode": nil,
@@ -705,7 +705,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[Ticker], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   market["baseId"],
 		"secondaryCurrencyCode": market["quoteId"],
@@ -1195,7 +1195,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":            market["baseId"],
 		"secondaryCurrencyCode":          market["quoteId"],
@@ -1274,7 +1274,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan AsyncResult[map[str
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 		var baseCode string = market.BaseCurrency
 		var fee, _ = fees[baseCode].(map[string]any)
 		result[symbol] = map[string]any{
@@ -1322,7 +1322,7 @@ func (this *Independentreserve) createOrderBody(ch chan AsyncResult[Order], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderType string = this.Capitalize(typeVar)
 	var branchValue string
 	if side == "sell" {

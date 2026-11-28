@@ -923,7 +923,7 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"marketId":   market["id"],
 		"timeWindow": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -981,7 +981,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"marketId": nil,
 	}
@@ -1095,7 +1095,7 @@ func (this *Btcmarkets) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 	}
@@ -1141,7 +1141,7 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan AsyncResult[Ticker], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"id": market["id"],
 	}
@@ -1263,7 +1263,7 @@ func (this *Btcmarkets) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
 	}
@@ -1318,14 +1318,14 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var ternaryStr97420 string = "Ask"
 	if side == "buy" {
 		ternaryStr97420 = "Bid"
 	}
 	var request map[string]any = map[string]any{
 		"marketId": market["id"],
-		"amount":   this.AmountToPrecision(symbol, amount),
+		"amount":   this.AmountToPrecision(&symbol, amount),
 		"side":     ternaryStr97420,
 	}
 	var lowercaseType string = strings.ToLower(typeVar)
@@ -1353,7 +1353,7 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + "order"))
 		} else {
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 		}
 	}
 	if triggerPriceIsRequired {
@@ -1361,7 +1361,7 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		if triggerPrice == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter for a " + typeVar + "order"))
 		} else {
-			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -1546,19 +1546,19 @@ func (this *Btcmarkets) CalculateFee(symbol string, typeVar string, side string,
 	_ = takerOrMaker
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var currency *string = nil
 	var cost *string = nil
 	if market["quote"] == "AUD" {
 		currency = this.SafeString(market, "quote")
-		cost = this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
+		cost = this.CostToPrecision(&symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
 	} else {
 		currency = this.SafeString(market, "base")
-		cost = this.AmountToPrecision(symbol, amount)
+		cost = this.AmountToPrecision(&symbol, amount)
 	}
 	var rate any = this.SafeValue(market, takerOrMaker)
 	var rateCost *string = Precise.StringMul(this.NumberToString(rate), cost)
-	var feeCost *string = this.FeeToPrecision(symbol, rateCost)
+	var feeCost *string = this.FeeToPrecision(&symbol, rateCost)
 	if feeCost == nil {
 		feeCostValue := "0"
 		feeCost = &feeCostValue

@@ -56,12 +56,12 @@ func (this *Dydx) Describe() map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
  */
-func (this *Dydx) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Dydx) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Dydx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Dydx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -78,7 +78,7 @@ func (this *Dydx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "trade:" + *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
@@ -127,7 +127,7 @@ func (this *Dydx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "trade:" + *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
@@ -261,7 +261,7 @@ func (this *Dydx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"type":    "subscribe",
@@ -306,7 +306,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
@@ -430,7 +430,7 @@ func (this *Dydx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "ohlcv:" + *this.SafeString(market, "symbol", "")
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
@@ -484,7 +484,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 		}
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "ohlcv:" + *this.SafeString(market, "symbol", "")
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{

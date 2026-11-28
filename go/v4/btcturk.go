@@ -558,7 +558,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pairSymbol": nil,
 	}
@@ -830,7 +830,7 @@ func (this *Btcturk) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	// let maxCount = 50;
 	var request map[string]any = map[string]any{
 		"pairSymbol": market["id"],
@@ -923,7 +923,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1086,15 +1086,15 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"orderType":   side,
 		"orderMethod": typeVar,
 		"pairSymbol":  market["id"],
-		"quantity":    this.AmountToPrecision(symbol, amount),
+		"quantity":    this.AmountToPrecision(&symbol, amount),
 	}
 	if typeVar != "market" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if _, ok := params["clientOrderId"]; ok {
 		request["newClientOrderId"] = params["clientOrderId"]

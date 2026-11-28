@@ -97,7 +97,7 @@ func (this *Mudrex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var messageHash string = "ticker:" + *symbolValue
 	var url *string = this.UrlsApiStrings["ws"]
@@ -151,7 +151,7 @@ func (this *Mudrex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var assets []any = []any{}
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
 			messageHashes = append(messageHashes, "ticker:"+market.Symbol)
 			var baseIdString string = ""
 			if market.BaseId != nil {
@@ -218,7 +218,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var priceType *string = this.SafeString(params, "price")
 	var paramsOmitted map[string]any = this.OmitDict(params, "price")

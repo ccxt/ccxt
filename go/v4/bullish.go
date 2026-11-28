@@ -1167,7 +1167,7 @@ func (this *Bullish) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1257,7 +1257,7 @@ func (this *Bullish) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1582,7 +1582,7 @@ func (this *Bullish) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1855,7 +1855,7 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var maxLimit int = 100
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
@@ -2568,12 +2568,12 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		panic(r2.Err)
 	}
 	var tradingAccountId *string = r2.Value
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"commandType":      "V3CreateOrder",
 		"symbol":           market["id"],
 		"side":             strings.ToUpper(side),
-		"quantity":         this.AmountToPrecision(symbol, amount),
+		"quantity":         this.AmountToPrecision(&symbol, amount),
 		"tradingAccountId": tradingAccountId,
 	}
 	var isMarketOrder bool = ((typeVar == "market") || (typeVar == "MARKET"))
@@ -2587,14 +2587,14 @@ func (this *Bullish) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"timeInForce": strings.ToUpper(*timeInForce),
 	})
 	if !isMarketOrder {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var triggerPrice *string = this.SafeString(paramsTimeInForce, "triggerPrice")
 	if triggerPrice != nil {
 		if isMarketOrder {
 			panic(NotSupported(this.Id + " createOrder() does not support market trigger orders"))
 		}
-		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		orderType = "STOP_LIMIT"
 	}
 	var paramsOmitted map[string]any
@@ -2670,7 +2670,7 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		panic(r2.Err)
 	}
 	var tradingAccountId *string = r2.Value
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"commandType":      "V1AmendOrder",
 		"symbol":           market["id"],
@@ -2688,10 +2688,10 @@ func (this *Bullish) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		request["type"] = "POST_ONLY"
 	}
 	if amount != nil {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var paramsOmitted map[string]any
 	if postOnly != nil && *postOnly {
@@ -4135,7 +4135,7 @@ func (this *Bullish) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

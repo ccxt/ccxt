@@ -685,7 +685,7 @@ func (this *Coinmate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"currencyPair":      nil,
 		"groupByPriceLimit": "False",
@@ -736,7 +736,7 @@ func (this *Coinmate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
 	}
@@ -837,7 +837,7 @@ func (this *Coinmate) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var market map[string]any = this.Market(keys[i])
+		var market map[string]any = this.Market(&keys[i])
 		dataDict58945, _ := data[keys[i]].(map[string]any)
 		if dataDict58945 == nil {
 			dataDict58945 = map[string]any{}
@@ -1375,7 +1375,7 @@ func (this *Coinmate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currencyPair":       market["id"],
 		"minutesIntoHistory": 10,
@@ -1438,7 +1438,7 @@ func (this *Coinmate) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
 	}
@@ -1723,20 +1723,20 @@ func (this *Coinmate) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 	}
 	var method string = "privatePost" + this.Capitalize(side)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"currencyPair": market["id"],
 	}
 	if typeVar == "market" {
 		if side == "buy" {
-			request["total"] = this.AmountToPrecision(symbol, amount) // amount in fiat
+			request["total"] = this.AmountToPrecision(&symbol, amount) // amount in fiat
 		} else {
-			request["amount"] = this.AmountToPrecision(symbol, amount) // amount in fiat
+			request["amount"] = this.AmountToPrecision(&symbol, amount) // amount in fiat
 		}
 		method += "Instant"
 	} else {
-		request["amount"] = this.AmountToPrecision(symbol, amount) // amount in crypto
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["amount"] = this.AmountToPrecision(&symbol, amount) // amount in crypto
+		request["price"] = this.PriceToPrecision(&symbol, price)
 		method += this.Capitalize(typeVar)
 	}
 	var requestParams map[string]any = this.Extend(request, params)

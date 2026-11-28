@@ -511,7 +511,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -597,7 +597,7 @@ func (this *Zaif) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -700,7 +700,7 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -773,7 +773,7 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if typeVar != "limit" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var ternaryStr57922 string = "ask"
 	if side == "buy" {
 		ternaryStr57922 = "bid"

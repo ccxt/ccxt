@@ -198,7 +198,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 	}
 	var length int = len(symbolsValue)
 	if length == 1 {
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsValue[0]))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsValue[0]))
 		messageHash = ccxt.Add(messageHash, ":"+market.Symbol)
 	}
 	subscribe["product_ids"] = marketIds
@@ -287,7 +287,7 @@ func (this *Krakenfutures) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -402,12 +402,12 @@ func (this *Krakenfutures) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Krakenfutures) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Krakenfutures) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Krakenfutures) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -2189,9 +2189,9 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], u
 	var messageHashes []string = []string{}
 	var rawSubs []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var messageHash string = this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i]))
+		var messageHash string = this.GetMessageHash(unifiedName, nil, this.Symbol(&symbolsNormalized[i]))
 		messageHashes = append(messageHashes, messageHash)
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		if !this.SubscriptionExistsForHash(url, messageHash) {
 			rawSubs = append(rawSubs, market["id"])
 		}

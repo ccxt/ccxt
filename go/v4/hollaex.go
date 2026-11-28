@@ -761,7 +761,7 @@ func (this *Hollaex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -823,7 +823,7 @@ func (this *Hollaex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1017,7 +1017,7 @@ func (this *Hollaex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1176,7 +1176,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var makerString *string = this.SafeString(makerFees, market["id"])
 		var takerString *string = this.SafeString(takerFees, market["id"])
 		result[symbol] = map[string]any{
@@ -1229,7 +1229,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1804,11 +1804,11 @@ func (this *Hollaex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   side,
-		"size":   this.AmountToPrecision(symbol, amount),
+		"size":   this.AmountToPrecision(&symbol, amount),
 		"type":   typeVar,
 	}
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
@@ -1817,10 +1817,10 @@ func (this *Hollaex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var isMarketOrder bool = (typeVar == "market")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, (exchangeSpecificParam != nil && *exchangeSpecificParam == true), params)
 	if !isMarketOrder {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if triggerPrice != nil {
-		request["stop"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	if postOnly {
 		request["meta"] = map[string]any{

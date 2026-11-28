@@ -189,7 +189,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		kind = "ticker"
 	}
 	for i := 0; i < len(normalized); i++ {
-		var market map[string]any = this.Market(normalized[i])
+		var market map[string]any = this.Market(&normalized[i])
 		if (symbols == nil) && ((stock != nil && *stock) || (explicitSource != nil && *explicitSource == "External") || (channel != nil)) && (market["stock"] != true) {
 			continue
 		}
@@ -498,7 +498,7 @@ func (this *Backpack) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	}
 	tickers := r.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, this.Symbol(symbol)))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(ccxt.GetValue(tickers, this.Symbol(&symbol)))}
 	return nil
 }
 
@@ -1243,12 +1243,12 @@ func (this *Backpack) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
  * @param {string} [params.source] Venue only
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Backpack) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Backpack) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Backpack) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Backpack) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1357,7 +1357,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		this.WsVenueMarketId("watchTradesForSymbols", market, query)
 		topics = append(topics, "trade."+*this.SafeString(market, "id", ""))
 		messageHashes = append(messageHashes, "trades:"+symbol)
@@ -1429,7 +1429,7 @@ func (this *Backpack) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		this.WsVenueMarketId("watchTradesForSymbols", market, query)
 		topics = append(topics, "trade."+*this.SafeString(market, "id", ""))
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+symbol)
@@ -1646,7 +1646,7 @@ func (this *Backpack) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "orderbook:"+symbol)
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		this.WsVenueMarketId("watchOrderBookForSymbols", market, query)
 		topics = append(topics, "depth."+*this.SafeString(market, "id", ""))
 		if !(this.Orderbooks[symbol] != nil) {
@@ -1739,7 +1739,7 @@ func (this *Backpack) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bo
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+symbol)
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		this.WsVenueMarketId("watchOrderBookForSymbols", market, query)
 		topics = append(topics, "depth."+*this.SafeString(market, "id", ""))
 	}
@@ -2432,7 +2432,7 @@ func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "positions"+":"+symbol)
-			var marketId string = *this.SafeString(this.Market(symbol), "id", "")
+			var marketId string = *this.SafeString(this.Market(&symbol), "id", "")
 			topics = append(topics, "account.positionUpdate."+marketId)
 		}
 	} else {
@@ -2500,7 +2500,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optio
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "unsubscribe:positions"+":"+symbol)
-			var marketId string = *this.SafeString(this.Market(symbol), "id", "")
+			var marketId string = *this.SafeString(this.Market(&symbol), "id", "")
 			topics = append(topics, "account.positionUpdate."+marketId)
 		}
 	} else {

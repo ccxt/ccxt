@@ -759,7 +759,7 @@ func (this *Polymarket) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolResolved *string = &market.Symbol
 	// the tickers and statistics endpoints ignore the documented
 	// instrument_id filter and always answer with every instrument, so
@@ -1034,7 +1034,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"instrument_id": nil,
 	}
@@ -1098,7 +1098,7 @@ func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_id": market["id"],
 	}
@@ -1256,7 +1256,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_id": market["id"],
 		"interval":      this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1345,7 +1345,7 @@ func (this *Polymarket) fetchFundingRateBody(ch chan AsyncResult[FundingRate], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolResolved *string = &market.Symbol
 	// the tickers endpoint ignores the documented instrument_id filter
 	// and always answers with every instrument, so the single-market call
@@ -1574,7 +1574,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolResolved *string = &market.Symbol
 	// the tickers endpoint ignores the documented instrument_id filter
 	// and always answers with every instrument, so the single-market call
@@ -2322,14 +2322,14 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	if (amount == nil) || (price == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires both the amount and the price arguments"))
 	}
 	var orderId int64 = this.ParseToInt(id)
-	var priceString *string = this.PriceToPrecision(precisionSymbol, price)
-	var quantity *string = this.AmountToPrecision(precisionSymbol, amount)
+	var priceString *string = this.PriceToPrecision(&precisionSymbol, price)
+	var quantity *string = this.AmountToPrecision(&precisionSymbol, amount)
 	var signable []any = []any{"modifyOrders", []any{[]any{orderId, priceString, quantity}}}
 	var bodyOp map[string]any = map[string]any{
 		"type": "modifyOrders",
@@ -3517,7 +3517,7 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_id": market["id"],
 	}
@@ -3748,7 +3748,7 @@ func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]an
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var instrumentId int64 = this.ParseToInt(market["id"])
 	var collateral, _ = this.Options["collateral"].(map[string]any)
 	var decimals *string = this.SafeString(collateral, "decimals", "6")
@@ -4107,7 +4107,7 @@ func (this *Polymarket) CompactSignable(row []any) []any {
 	}
 	return result
 }
-func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
+func (this *Polymarket) PriceToPrecision(symbol *string, price any) *string {
 	if IsEqual(price, nil) {
 		return nil
 	}
@@ -4123,7 +4123,7 @@ func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	}
 	return &result
 }
-func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
+func (this *Polymarket) AmountToPrecision(symbol *string, amount any) *string {
 	if IsEqual(amount, nil) {
 		return nil
 	}

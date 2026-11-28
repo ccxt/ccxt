@@ -506,7 +506,7 @@ func (this *Nado) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, params)
 	if r1.Err != nil {
@@ -575,7 +575,7 @@ func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], sy
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if typeVar != "limit" {
 		panic(InvalidOrder(this.Id + " createOrder() supports limit orders only"))
 	}
@@ -583,8 +583,8 @@ func (this *Nado) createOrderRequestBody(ch chan AsyncResult[map[string]any], sy
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
 	var productId int64 = this.ParseToInt(market["id"])
-	var priceString *string = this.PriceToPrecision(symbol, price)
-	var amountString *string = this.AmountToPrecision(symbol, amount)
+	var priceString *string = this.PriceToPrecision(&symbol, price)
+	var amountString *string = this.AmountToPrecision(&symbol, amount)
 	var priceX18 *string = this.ConvertToX18(priceString)
 	var amountX18 *string = this.ConvertToX18(amountString)
 	if side == "sell" {
@@ -738,7 +738,7 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, params)
 	if r1.Err != nil {
@@ -802,7 +802,7 @@ func (this *Nado) editOrderRequestBody(ch chan AsyncResult[map[string]any], id s
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if typeVar != "limit" {
 		panic(InvalidOrder(this.Id + " editOrder() supports limit orders only"))
 	}
@@ -817,8 +817,8 @@ func (this *Nado) editOrderRequestBody(ch chan AsyncResult[map[string]any], id s
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a price argument"))
 	}
 	var productId int64 = this.ParseToInt(market["id"])
-	var priceString *string = this.PriceToPrecision(symbol, price)
-	var amountString *string = this.AmountToPrecision(symbol, amount)
+	var priceString *string = this.PriceToPrecision(&symbol, price)
+	var amountString *string = this.AmountToPrecision(&symbol, amount)
 	var priceX18 *string = this.ConvertToX18(priceString)
 	var amountX18 *string = this.ConvertToX18(amountString)
 	if side == "sell" {
@@ -2621,7 +2621,7 @@ func (this *Nado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
@@ -2665,7 +2665,7 @@ func (this *Nado) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
@@ -2900,7 +2900,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
@@ -3047,7 +3047,7 @@ func (this *Nado) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
@@ -3115,7 +3115,7 @@ func (this *Nado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
@@ -3182,7 +3182,7 @@ func (this *Nado) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	var candlesticks map[string]any = map[string]any{

@@ -395,7 +395,7 @@ func (this *Deepcoin) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "ticker" + "::" + *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.WatchPublicAsync(market, messageHash, "7", params)
@@ -432,7 +432,7 @@ func (this *Deepcoin) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "ticker" + "::" + *this.SafeString(market, "symbol", "")
 	var subscription map[string]any = map[string]any{
 		"topic": "ticker",
@@ -576,12 +576,12 @@ func (this *Deepcoin) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Deepcoin) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Deepcoin) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Deepcoin) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -597,7 +597,7 @@ func (this *Deepcoin) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "trades" + "::" + *this.SafeString(market, "symbol", "")
 
 	r1 := <-this.WatchPublicAsync(market, messageHash, "2", params)
@@ -640,7 +640,7 @@ func (this *Deepcoin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "trades" + "::" + *this.SafeString(market, "symbol", "")
 	var subscription map[string]any = map[string]any{
 		"topic": "trades",
@@ -814,7 +814,7 @@ func (this *Deepcoin) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
@@ -864,7 +864,7 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var interval *string = this.SafeString(timeframes, timeframe, timeframe)
@@ -996,7 +996,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "orderbook" + "::" + *this.SafeString(market, "symbol", "")
 	suffix, paramsValue := this.OrderBookSuffix(market, "watchOrderBook", params)
 
@@ -1037,7 +1037,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "orderbook" + "::" + *this.SafeString(market, "symbol", "")
 	suffix, paramsValue := this.OrderBookSuffix(market, "unWatchOrderBook", params)
 	var subscription map[string]any = map[string]any{

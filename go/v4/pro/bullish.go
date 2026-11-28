@@ -357,12 +357,12 @@ func (this *Bullish) unsubscribePrivateBody(ch chan ccxt.AsyncResult[any], topic
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bullish) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bullish) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -378,7 +378,7 @@ func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "trades::" + *this.SafeString(market, "symbol", "")
 	var url string = "/trading-api/v1/market-data/trades"
 	var request map[string]any = map[string]any{
@@ -426,7 +426,7 @@ func (this *Bullish) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var messageHash string = "trades::" + marketSymbol
@@ -522,7 +522,7 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "public")
 	if wsUrl == nil {
@@ -630,7 +630,7 @@ func (this *Bullish) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var url string = "/trading-api/v1/market-data/orderbook"
 	var messageHash string = "orderbook::" + *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
@@ -674,7 +674,7 @@ func (this *Bullish) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var messageHash string = "orderbook::" + marketSymbol

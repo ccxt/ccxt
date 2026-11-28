@@ -374,7 +374,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var priceType *string = this.SafeString(params, "price")
 	// the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
 	var baseIdString string = *this.SafeString(market, "baseId", "")
@@ -518,7 +518,7 @@ func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"asset_id":  market["id"],
 		"is_symbol": 1,
@@ -906,7 +906,7 @@ func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"asset_id":  nil,
 		"is_symbol": 1,
@@ -1030,7 +1030,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	// standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
 	// an existing position through the riskorder endpoint, so a positionId is required
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -1046,11 +1046,11 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		if takeProfitPrice != nil {
 			riskRequest["is_takeprofit"] = true
-			riskRequest["takeprofit_price"] = this.PriceToPrecision(symbol, takeProfitPrice)
+			riskRequest["takeprofit_price"] = this.PriceToPrecision(&symbol, takeProfitPrice)
 		}
 		if stopLossPrice != nil {
 			riskRequest["is_stoploss"] = true
-			riskRequest["stoploss_price"] = this.PriceToPrecision(symbol, stopLossPrice)
+			riskRequest["stoploss_price"] = this.PriceToPrecision(&symbol, stopLossPrice)
 		}
 
 		riskResponseReply := <-this.PrivatePostFuturesPositionsPositionIdRiskorder(this.Extend(riskRequest, paramsOmitted))
@@ -1083,8 +1083,8 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"asset_id":     market["id"],
 		"is_symbol":    1,
 		"leverage":     this.NumberToString(lev),
-		"quantity":     this.AmountToPrecision(symbol, amount),
-		"order_price":  this.PriceToPrecision(symbol, price),
+		"quantity":     this.AmountToPrecision(&symbol, amount),
+		"order_price":  this.PriceToPrecision(&symbol, price),
 		"order_type":   ternaryStr74526,
 		"trigger_type": ternaryStr74628,
 		"reduce_only":  this.SafeBool(params, "reduceOnly", false),
@@ -1094,11 +1094,11 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var stopLoss, _ = params["stopLoss"].(map[string]any)
 	if takeProfit != nil {
 		request["is_takeprofit"] = true
-		request["takeprofit_price"] = this.PriceToPrecision(symbol, this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "price"}))
+		request["takeprofit_price"] = this.PriceToPrecision(&symbol, this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "price"}))
 	}
 	if stopLoss != nil {
 		request["is_stoploss"] = true
-		request["stoploss_price"] = this.PriceToPrecision(symbol, this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice", "price"}))
+		request["stoploss_price"] = this.PriceToPrecision(&symbol, this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice", "price"}))
 	}
 	var orderParams map[string]any = this.OmitDict(params, []any{"leverage", "reduceOnly", "takeProfit", "stopLoss"})
 
@@ -1161,16 +1161,16 @@ func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	}
 	var market map[string]any = nil
 	if true {
-		market = this.Market(symbol)
+		market = this.Market(&symbol)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 	if amount != nil {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if price != nil {
-		request["order_price"] = this.PriceToPrecision(symbol, price)
+		request["order_price"] = this.PriceToPrecision(&symbol, price)
 	}
 
 	responseReply := <-this.PrivatePatchFuturesOrdersOrderId(this.Extend(request, params))
@@ -1814,7 +1814,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var positionId *string = this.SafeString(params, "position_id")
 	var amount *string = this.SafeString(params, "amount")
 	if positionId == nil {
@@ -1843,7 +1843,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	if amount != nil {
 		var orderType *string = this.SafeStringUpper(params, "order_type", "LIMIT")
 		request["order_type"] = orderType
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 		var lp *string = this.SafeString(params, "limit_price")
 		if (orderType != nil && *orderType == "LIMIT") && (lp != nil) {
 			request["limit_price"] = lp
@@ -1929,7 +1929,7 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 	}
 	var request map[string]any = map[string]any{
 		"position_id": positionId,
-		"margin":      this.CostToPrecision(symbol, amount),
+		"margin":      this.CostToPrecision(&symbol, amount),
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"position_id"})
 

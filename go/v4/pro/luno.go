@@ -57,12 +57,12 @@ func (this *Luno) Describe() map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Luno) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Luno) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -79,7 +79,7 @@ func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -136,7 +136,7 @@ func (this *Luno) HandleTrades(client ccxt.ClientInterface, message map[string]a
 		return
 	}
 	var symbol string = *this.SafeString(subscription, "symbol", "")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + symbolValue
 	var stored ccxt.WsArrayCache = this.Trades[symbolValue]
@@ -216,7 +216,7 @@ func (this *Luno) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -512,7 +512,7 @@ func (this *Luno) IsOrderBookDeltaInSequence(client ccxt.ClientInterface, messag
 		// watchOrderBook calls stay live: clearing its nonce discards
 		// deltas until the fresh snapshot resets the book in place
 		ccxt.AddElementToObject(orderbook, "nonce", nil)
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var symbolValue string = market.Symbol
 		var marketId string = ""
 		if market.Id != nil {

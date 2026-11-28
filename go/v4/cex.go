@@ -838,7 +838,7 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -946,7 +946,7 @@ func (this *Cex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -1028,7 +1028,7 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair":       market["id"],
 		"resolution": this.Timeframes[timeframe],
@@ -1172,7 +1172,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		if _, ok := result[symbol]; !ok {
-			var market map[string]any = this.Market(symbol)
+			var market map[string]any = this.Market(&symbol)
 			result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(response, market))
 		}
 	}
@@ -1780,7 +1780,7 @@ func (this *Cex) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"clientOrderId": this.Uuid(),
@@ -1790,11 +1790,11 @@ func (this *Cex) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		"orderType":     this.Capitalize(strings.ToLower(typeVar)),
 		"side":          strings.ToUpper(side),
 		"timestamp":     this.Milliseconds(),
-		"amountCcy1":    this.AmountToPrecision(symbol, amount),
+		"amountCcy1":    this.AmountToPrecision(&symbol, amount),
 	}
 	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC")
 	if typeVar == "limit" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 		request["timeInForce"] = timeInForce
 	}
 	triggerPrice, paramsTriggerPrice := this.HandleParamString(paramsTimeInForce, "triggerPrice")

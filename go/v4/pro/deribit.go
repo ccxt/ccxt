@@ -218,7 +218,7 @@ func (this *Deribit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var url *string = this.UrlsApiStrings["ws"]
 	var interval string = *this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
@@ -308,7 +308,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		channels = append(channels, "ticker."+*this.SafeString(market, "id", "")+"."+interval)
 	}
 	var message map[string]any = map[string]any{
@@ -418,7 +418,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var url *string = this.UrlsApiStrings["ws"]
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		channels = append(channels, "quote."+*this.SafeString(market, "id", ""))
 	}
 	var message map[string]any = map[string]any{
@@ -513,12 +513,12 @@ func (this *Deribit) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) m
  * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Deribit) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Deribit) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Deribit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Deribit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1167,7 +1167,7 @@ func (this *Deribit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchOHLCVForSymbolsAsync([][]any{[]any{symbolValue, timeframe}}, since, limit, params)
 	if r1.Err != nil {

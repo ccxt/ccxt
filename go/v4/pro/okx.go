@@ -183,12 +183,12 @@ func (this *Okx) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], access str
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Okx) SubscribeAsync(access string, messageHash string, channel string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Okx) SubscribeAsync(access string, messageHash string, channel string, symbol *string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, access, messageHash, channel, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, messageHash string, channel string, symbol any, optionalArgs ...any) any {
+func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, messageHash string, channel string, symbol *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -205,7 +205,7 @@ func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, mes
 		"channel": channel,
 	}
 	var messageHashResolved string = messageHash
-	if !ccxt.IsEqual(symbol, nil) {
+	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		messageHashResolved = messageHash + ":" + *this.SafeString(market, "id", "")
 		firstArgument["instId"] = market["id"]
@@ -235,12 +235,12 @@ func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, mes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Okx) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Okx) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Okx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -534,7 +534,7 @@ func (this *Okx) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate]
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchFundingRatesAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -676,7 +676,7 @@ func (this *Okx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTicker", "channel", "tickers")
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, this.Extend(paramsChannel, map[string]any{
@@ -795,7 +795,7 @@ func (this *Okx) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchMarkPrice", "channel", "mark-price")
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 
 	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, this.Extend(paramsChannel, map[string]any{
@@ -1670,11 +1670,11 @@ func (this *Okx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candle" + *interval
 
-	r1 := <-this.SubscribeAsync("public", name, name, symbolValue, params)
+	r1 := <-this.SubscribeAsync("public", name, name, &symbolValue, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -3029,17 +3029,12 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		panic(r1.Err)
 	}
 	var market map[string]any = nil
-	var symbolResolved any = nil
 	var typeVar *string = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
 		typeVar = this.SafeString(market, "type")
 	}
+	var symbolResolved *string = this.SafeString(market, "symbol")
 	if typeVar != nil && *typeVar == "future" {
 		typeVarStr := "futures"
 		typeVar = &typeVarStr
@@ -3157,7 +3152,7 @@ func (this *Okx) HandleOrders(client ccxt.ClientInterface, message map[string]an
 			var order any = parsed[i]
 			stored.Append(order)
 			var symbol string = *this.SafeString(order, "symbol", "")
-			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 			var marketId string = ""
 			if market.Id != nil {
 				marketId = *market.Id
@@ -3325,7 +3320,7 @@ func (this *Okx) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	op, paramsOp := this.HandleOptionStringAndParams(params, "createOrderWs", "op", "batch-orders")
 	var args map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOp)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
 		delete(args, "instId")
@@ -3436,7 +3431,7 @@ func (this *Okx) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string
 	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	op, paramsOp := this.HandleOptionStringAndParams(params, "editOrderWs", "op", "amend-order")
 	var args map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, paramsOp)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
 		delete(args, "instId")

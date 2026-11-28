@@ -507,7 +507,7 @@ func (this *Bybit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "ticker:" + symbolValue
 
@@ -1415,7 +1415,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var marketId string = *this.SafeString(this.Market(symbol), "id", "")
+		var marketId string = *this.SafeString(this.Market(&symbol), "id", "")
 		var topic string = topicPrefix + marketId
 		topics = append(topics, topic)
 		var messageHash string = "orderbook:" + symbol
@@ -1470,7 +1470,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	}
 	var defaultLimit int = 500
 	if limitParam == nil {
-		var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+		var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[0]))
 		defaultLimit = func() int {
 			if firstMarket.Spot {
 				return 50
@@ -1490,7 +1490,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	var topics []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -1653,12 +1653,12 @@ func (this *Bybit) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Bybit) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bybit) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bybit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bybit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1724,7 +1724,7 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -1795,7 +1795,7 @@ func (this *Bybit) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	var subMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -2607,7 +2607,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liquida
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 
 	r1 := <-this.GetUrlByMarketTypeAsync(symbolValue, false, "watchLiquidations", params)

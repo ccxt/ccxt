@@ -1292,12 +1292,12 @@ func (this *Backpack) fetchSecuritiesBody(ch chan AsyncResult[any], optionalArgs
  * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
  * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
  */
-func (this *Backpack) FetchStockIndicativeQuoteAsync(symbol any, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Backpack) FetchStockIndicativeQuoteAsync(symbol *string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.fetchStockIndicativeQuoteBody(ch, symbol, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], symbol any, side string, amount any, optionalArgs ...any) any {
+func (this *Backpack) fetchStockIndicativeQuoteBody(ch chan AsyncResult[any], symbol *string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1445,6 +1445,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		panic(r.Err)
 	}
 	var market map[string]any = MapTyped(this.RfqConversionMarket(fromCode, toCode))
+	var marketSymbol *string = this.SafeString(market, "symbol")
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
 	var side string
 	if fromIsBase {
@@ -1454,7 +1455,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	}
 	if !fromIsBase {
 
-		r1 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, 1, map[string]any{
+		r1 := <-this.FetchStockIndicativeQuoteAsync(marketSymbol, side, 1, map[string]any{
 			"stock": true,
 		})
 		if r1.Err != nil {
@@ -1473,7 +1474,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 			panic(InvalidOrder(this.Id + " fetchConvertQuote() price must be positive"))
 		}
 		var rawQuantity *string = Precise.StringDiv(amountString, priceParam, 18)
-		var preciseQuantity *string = this.AmountToPrecision(market["symbol"], this.ParseNumber(rawQuantity))
+		var preciseQuantity *string = this.AmountToPrecision(marketSymbol, this.ParseNumber(rawQuantity))
 		if preciseQuantity == nil {
 			panic(InvalidOrder(this.Id + " fetchConvertQuote() could not determine a stock quantity"))
 		}
@@ -1483,7 +1484,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		}
 	}
 
-	r2 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, this.ParseNumber(amountString), map[string]any{
+	r2 := <-this.FetchStockIndicativeQuoteAsync(marketSymbol, side, this.ParseNumber(amountString), map[string]any{
 		"stock": true,
 	})
 	if r2.Err != nil {
@@ -1504,7 +1505,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 			}
 			amountString = reducedQuantity
 
-			r3 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, this.ParseNumber(amountString), map[string]any{
+			r3 := <-this.FetchStockIndicativeQuoteAsync(marketSymbol, side, this.ParseNumber(amountString), map[string]any{
 				"stock": true,
 			})
 			if r3.Err != nil {
@@ -1525,7 +1526,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
 	var toCurrency *string = this.SafeCurrencyCode(toCode)
 
-	var literal120515 map[string]any = map[string]any{
+	var literal120615 map[string]any = map[string]any{
 		"info":         quote,
 		"timestamp":    this.SafeInteger(quote, "publishedAt"),
 		"datetime":     this.Iso8601(this.SafeInteger(quote, "publishedAt")),
@@ -1536,16 +1537,16 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		"fee":          nil,
 	}
 	if fromIsBase {
-		literal120515["fromAmount"] = baseAmount
+		literal120615["fromAmount"] = baseAmount
 	} else {
-		literal120515["fromAmount"] = quoteAmount
+		literal120615["fromAmount"] = quoteAmount
 	}
 	if fromIsBase {
-		literal120515["toAmount"] = quoteAmount
+		literal120615["toAmount"] = quoteAmount
 	} else {
-		literal120515["toAmount"] = baseAmount
+		literal120615["toAmount"] = baseAmount
 	}
-	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120515)}
+	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120615)}
 	return nil
 }
 
@@ -1890,7 +1891,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(symbolsResolved); i++ {
 		var marketSymbol string = symbolsResolved[i]
-		var market map[string]any = this.Market(marketSymbol)
+		var market map[string]any = this.Market(&marketSymbol)
 		if stockOnly && (market["stock"] != true) {
 			continue
 		}
@@ -1947,7 +1948,7 @@ func (this *Backpack) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.StockDataRequest("fetchTicker", params, market)
 
 	r1 := <-this.PublicGetApiV1Ticker(request)
@@ -2056,7 +2057,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	_, query := this.HandleStockParams("fetchOrderBook", params, market)
 	var source string = *this.SafeString(query, "source", "Venue")
 	if (source != "Venue") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
@@ -2142,7 +2143,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var dataRequest map[string]any = this.StockDataRequest("fetchOHLCV", params, market)
@@ -2260,7 +2261,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support market " + symbol))
 	}
@@ -2348,7 +2349,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
@@ -2510,7 +2511,7 @@ func (this *Backpack) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	_, query := this.HandleStockParams("fetchTrades", params, market)
 	if (this.SafeString(query, "source", "Venue") == nil || *this.SafeString(query, "source", "Venue") != "Venue") || (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ") {
 		panic(NotSupported(this.Id + " fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills"))
@@ -3389,7 +3390,7 @@ func (this *Backpack) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	stock, query := this.HandleStockParams("createOrder", params, market)
 	var orderParams map[string]any = this.Extend(query, map[string]any{
 		"stock": stock,
@@ -3906,11 +3907,11 @@ func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 		}
 		var rfqResponse []any = r1.Value
 		for i := 0; i < len(rfqResponse); i++ {
-			rfqResponseDict286347, _ := rfqResponse[i].(map[string]any)
-			if rfqResponseDict286347 == nil {
-				rfqResponseDict286347 = map[string]any{}
+			rfqResponseDict286447, _ := rfqResponse[i].(map[string]any)
+			if rfqResponseDict286447 == nil {
+				rfqResponseDict286447 = map[string]any{}
 			}
-			var order map[string]any = OrderToMap(this.ParseOrder(rfqResponseDict286347, market))
+			var order map[string]any = OrderToMap(this.ParseOrder(rfqResponseDict286447, market))
 			if this.SafeString(order, "id") != nil && *this.SafeString(order, "id") == id {
 
 				ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -3995,11 +3996,11 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		response = responseRecv.Value
 	}
 	for i := 0; i < len(response); i++ {
-		responseDict291243, _ := response[i].(map[string]any)
-		if responseDict291243 == nil {
-			responseDict291243 = map[string]any{}
+		responseDict291343, _ := response[i].(map[string]any)
+		if responseDict291343 == nil {
+			responseDict291343 = map[string]any{}
 		}
-		var order map[string]any = OrderToMap(this.ParseOrder(responseDict291243, market))
+		var order map[string]any = OrderToMap(this.ParseOrder(responseDict291343, market))
 		if this.SafeString(order, "id") != nil && *this.SafeString(order, "id") == id {
 
 			ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -4503,7 +4504,7 @@ func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any
 	var unrealizedPnl *float64 = this.SafeNumber(position, "pnlUnrealized")
 	var realizedPnl *float64 = this.SafeNumber(position, "pnlRealized")
 	var liquidationPrice *float64 = this.SafeNumber(position, "estLiquidationPrice")
-	var literal329434 map[string]any = map[string]any{
+	var literal329534 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          id,
 		"symbol":                      symbol,
@@ -4534,9 +4535,9 @@ func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any
 		"takeProfitPrice":             nil,
 	}
 	if side != nil {
-		literal329434["side"] = *side
+		literal329534["side"] = *side
 	}
-	return this.SafePosition(literal329434)
+	return this.SafePosition(literal329534)
 }
 
 /**
@@ -4831,7 +4832,7 @@ func (this *Backpack) FetchSecurities(params ...any) ([]map[string]any, error) {
  * @param {boolean} [params.stock] selects tokenized stock data; inferred from symbol when omitted
  * @returns {object} indicative quote with availability, session constraints and non-guaranteed prices
  */
-func (this *Backpack) FetchStockIndicativeQuote(symbol string, side string, amount float64, options ...FetchStockIndicativeQuoteOptions) (map[string]any, error) {
+func (this *Backpack) FetchStockIndicativeQuote(symbol *string, side string, amount float64, options ...FetchStockIndicativeQuoteOptions) (map[string]any, error) {
 
 	opts := FetchStockIndicativeQuoteOptionsStruct{}
 

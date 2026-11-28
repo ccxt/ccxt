@@ -525,7 +525,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan AsyncResult[OrderBookL3]
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -564,7 +564,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan AsyncResult[OrderBook], 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -650,7 +650,7 @@ func (this *Blockchaincom) fetchTickerBody(ch chan AsyncResult[Ticker], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -810,7 +810,7 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[Order], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = strings.ToUpper(*orderType)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
@@ -820,7 +820,7 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[Order], symbol st
 		"ordType":  uppercaseOrderType,
 		"symbol":   market["id"],
 		"side":     strings.ToUpper(side),
-		"orderQty": this.AmountToPrecision(symbol, amount),
+		"orderQty": this.AmountToPrecision(&symbol, amount),
 		"clOrdId":  clientOrderId,
 	}
 	var triggerPrice *string = this.SafeStringN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
@@ -847,10 +847,10 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[Order], symbol st
 		stopPriceRequired = true
 	}
 	if priceRequired {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if stopPriceRequired {
-		request["stopPx"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stopPx"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))

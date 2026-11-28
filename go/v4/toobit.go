@@ -1327,7 +1327,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1409,7 +1409,7 @@ func (this *Toobit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1585,7 +1585,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1829,7 +1829,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbolsNormalized[0]))
 			request["symbol"] = nil
 			if market.Id != nil {
 				request["symbol"] = *market.Id
@@ -1903,7 +1903,7 @@ func (this *Toobit) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbolsNormalized[0]))
 			request["symbol"] = nil
 			if market.Id != nil {
 				request["symbol"] = *market.Id
@@ -1992,7 +1992,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Funding
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[0]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbolsNormalized[0]))
 			request["symbol"] = nil
 			if market.Id != nil {
 				request["symbol"] = *market.Id
@@ -2242,7 +2242,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response map[string]any = map[string]any{}
 	if *this.SafeBool(market, "spot", false) {
 		request, paramsRequest := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2296,7 +2296,7 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if false {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
@@ -2306,16 +2306,16 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 		"side":   strings.ToUpper(side),
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	cost, paramsCost := this.HandleParamString(params, "cost")
 	if (typeVar == "market") && (side == "buy") {
 		if cost == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires params[\"cost\"] for market buy order"))
 		}
-		request["quantity"] = this.CostToPrecision(symbol, cost)
+		request["quantity"] = this.CostToPrecision(&symbol, cost)
 	} else {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	isPostOnly, paramsPostOnly := this.HandlePostOnly((typeVar == "market"), false, paramsCost)
 	if isPostOnly {
@@ -2336,10 +2336,10 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol":   nil,
-		"quantity": this.AmountToPrecision(symbol, amount),
+		"quantity": this.AmountToPrecision(&symbol, amount),
 	}
 	if market.Id != nil {
 		request["symbol"] = *market.Id
@@ -2361,11 +2361,11 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		request["side"] = side
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if this.InArray(typeVar, []any{"limit", "LIMIT"}) {
 		request["type"] = strings.ToUpper(typeVar)
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	} else if typeVar == "market" {
 		request["type"] = "LIMIT" // weird, but exchange works this way
 		request["priceType"] = "MARKET"
@@ -2391,7 +2391,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		var limitPrice *string = this.SafeString(stopLoss, "price")
 		if limitPrice != nil {
 			request["slOrderType"] = "LIMIT"
-			request["slLimitPrice"] = this.PriceToPrecision(symbol, limitPrice)
+			request["slLimitPrice"] = this.PriceToPrecision(&symbol, limitPrice)
 		}
 		var triggerPriceType *string = this.SafeString(stopLoss, "triggerPriceType")
 		if triggerPriceType != nil {
@@ -2403,7 +2403,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 		var limitPrice *string = this.SafeString(takeProfit, "price")
 		if limitPrice != nil {
 			request["tpOrderType"] = "LIMIT"
-			request["tpLimitPrice"] = this.PriceToPrecision(symbol, limitPrice)
+			request["tpLimitPrice"] = this.PriceToPrecision(&symbol, limitPrice)
 		}
 		var triggerPriceType *string = this.SafeString(takeProfit, "triggerPriceType")
 		if triggerPriceType != nil {
@@ -3952,7 +3952,7 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

@@ -928,7 +928,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"book": nil,
 	}
@@ -1020,7 +1020,7 @@ func (this *Bitso) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"book": market["id"],
 	}
@@ -1087,7 +1087,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"book":        market["id"],
 		"time_bucket": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1306,7 +1306,7 @@ func (this *Bitso) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"book": market["id"],
 	}
@@ -1527,16 +1527,16 @@ func (this *Bitso) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"book":  market["id"],
 		"side":  side,
 		"type":  typeVar,
-		"major": this.AmountToPrecision(precisionSymbol, amount),
+		"major": this.AmountToPrecision(&precisionSymbol, amount),
 	}
 	if typeVar == "limit" {
-		request["price"] = this.PriceToPrecision(precisionSymbol, price)
+		request["price"] = this.PriceToPrecision(&precisionSymbol, price)
 	}
 
 	responseReply := <-this.PrivatePostOrders(this.Extend(request, params))

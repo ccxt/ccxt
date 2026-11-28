@@ -263,7 +263,7 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
@@ -628,7 +628,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	var messageHash string = "orderbook:" + symbol
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -689,7 +689,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "aggLevel", 1)
 	var subMessageHash string = "orderbook:" + symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -1216,12 +1216,12 @@ func (this *Pacifica) HandleMyTrades(client ccxt.ClientInterface, message map[st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Pacifica) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Pacifica) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1237,7 +1237,7 @@ func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + symbolValue
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -1300,7 +1300,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var subMessageHash string = "trade:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -1514,7 +1514,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var parsedTf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1582,7 +1582,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"

@@ -1776,7 +1776,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var maxLimit int
 	if *this.SafeBool(market, "inverse", false) {
 		maxLimit = 1000
@@ -1996,7 +1996,7 @@ func (this *Bingx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "inverse", false) {
 		panic(NotSupported(this.Id + " fetchTrades() is not supported for inverse swap markets"))
 	}
@@ -2326,7 +2326,7 @@ func (this *Bingx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2478,7 +2478,7 @@ func (this *Bingx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2930,7 +2930,7 @@ func (this *Bingx) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3068,7 +3068,7 @@ func (this *Bingx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3365,7 +3365,7 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMarkPrice", market, params, "linear")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -3862,7 +3862,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4027,7 +4027,7 @@ func (this *Bingx) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadRequest(this.Id + " fetchPosition() supports swap markets only"))
 	}
@@ -4325,7 +4325,7 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var cost *string = this.SafeString2(params, "cost", "quoteOrderQty")
 	if (*this.SafeBool(market, "inverse", false)) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() with cost or quoteOrderQty is not supported for inverse swap markets"))
@@ -4370,24 +4370,24 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 	if isSpot {
 		paramsOrder = this.Omit(paramsPostOnly, []any{"cost", "quoteOrderQty"})
 		if cost != nil {
-			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
+			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(&symbol, cost))
 		} else {
 			if isMarketOrder && (price != nil) {
 				// keep the legacy behavior, to avoid  breaking the old spot-market-buying code
 				var calculatedCost *string = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
 				request["quoteOrderQty"] = this.ParseToNumeric(calculatedCost)
 			} else {
-				request["quantity"] = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
+				request["quantity"] = this.ParseToNumeric(this.AmountToPrecision(&symbol, amount))
 			}
 		}
 		if !isMarketOrder {
-			request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
+			request["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, price))
 		}
 		if triggerPrice != nil {
 			if isMarketOrder && (side != nil && *side == "buy") && (this.SafeString(request, "quoteOrderQty") == nil) {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires the cost parameter (or the amount + price) for placing spot market-buy trigger orders"))
 			}
-			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 			if typeValue == "LIMIT" {
 				request["type"] = "TRIGGER_LIMIT"
 			} else if typeValue == "MARKET" {
@@ -4403,7 +4403,7 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 			} else if typeValue == "MARKET" {
 				request["type"] = "TAKE_STOP_MARKET"
 			}
-			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, stopTakePrice))
+			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, stopTakePrice))
 		}
 	} else {
 		if isTwapOrder {
@@ -4415,8 +4415,8 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 				"symbol":       request["symbol"],
 				"side":         request["side"],
 				"positionSide": ternaryStr334336,
-				"triggerPrice": this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice)),
-				"totalAmount":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
+				"triggerPrice": this.ParseToNumeric(this.PriceToPrecision(&symbol, triggerPrice)),
+				"totalAmount":  this.ParseToNumeric(this.AmountToPrecision(&symbol, amount)),
 			}
 			//     {
 			//         "symbol": "LTC-USDT",
@@ -4455,7 +4455,7 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 			paramsTakeProfit = this.OmitDict(paramsStopLoss, "takeProfit")
 		}
 		if ((typeValue == "LIMIT") || (typeValue == "TRIGGER_LIMIT") || (typeValue == "STOP") || (typeValue == "TAKE_PROFIT")) && !isTrailing {
-			request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
+			request["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, price))
 		}
 		var reduceOnlyParam *bool = this.SafeBool(paramsTakeProfit, "reduceOnly", false)
 		// stop loss / take profit price orders are always reduce only
@@ -4465,7 +4465,7 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 			request["workingType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 		}
 		if isTriggerOrder {
-			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice))
+			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, triggerPrice))
 			if isMarketOrder || (typeValue == "TRIGGER_MARKET") {
 				request["type"] = "TRIGGER_MARKET"
 			} else if (typeValue == "LIMIT") || (typeValue == "TRIGGER_LIMIT") {
@@ -4474,14 +4474,14 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		} else if isStopLossPriceOrder || isTakeProfitPriceOrder {
 			// This can be used to set the stop loss and take profit, but the position needs to be opened first
 			if isStopLossPriceOrder {
-				request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice))
+				request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, stopLossPrice))
 				if isMarketOrder || (typeValue == "STOP_MARKET") {
 					request["type"] = "STOP_MARKET"
 				} else if (typeValue == "LIMIT") || (typeValue == "STOP") {
 					request["type"] = "STOP"
 				}
 			} else if isTakeProfitPriceOrder {
-				request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice))
+				request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, takeProfitPrice))
 				if isMarketOrder || (typeValue == "TAKE_PROFIT_MARKET") {
 					request["type"] = "TAKE_PROFIT_MARKET"
 				} else if (typeValue == "LIMIT") || (typeValue == "TAKE_PROFIT") {
@@ -4497,7 +4497,7 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 				request["priceRate"] = this.ParseToNumeric(requestTrailingPercent)
 			}
 			if trailingTriggerPrice != nil {
-				request["activationPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, trailingTriggerPrice))
+				request["activationPrice"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, trailingTriggerPrice))
 			}
 		}
 		if hasStopLoss || hasTakeProfit {
@@ -4517,17 +4517,17 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 				}
 				var slType *string = this.SafeString(stopLossDict, "type", slDefaultType)
 				var slRequest map[string]any = map[string]any{
-					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, slTriggerPrice)),
+					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(&symbol, slTriggerPrice)),
 					"workingType": this.EncodeTriggerPriceType(*slWorkingType),
 					"type":        slType,
 				}
 				if slPrice != nil {
-					slRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, slPrice))
+					slRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, slPrice))
 				}
 				var slQuantity *string = this.SafeString(stopLossDict, "quantity", stringifiedAmount)
 				var slQuantityRequest any = this.ParseToNumeric(slQuantity)
 				if !(*this.SafeBool(market, "inverse", false)) {
-					slQuantityRequest = this.ParseToNumeric(this.AmountToPrecision(symbol, slQuantity))
+					slQuantityRequest = this.ParseToNumeric(this.AmountToPrecision(&symbol, slQuantity))
 				}
 				slRequest["quantity"] = slQuantityRequest
 				request["stopLoss"] = this.Json(slRequest)
@@ -4544,17 +4544,17 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 				}
 				var tpType *string = this.SafeString(takeProfitDict, "type", tpDefaultType)
 				var tpRequest map[string]any = map[string]any{
-					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, tkTriggerPrice)),
+					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(&symbol, tkTriggerPrice)),
 					"workingType": this.EncodeTriggerPriceType(*tkWorkingType),
 					"type":        tpType,
 				}
 				if tpPrice != nil {
-					tpRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, tpPrice))
+					tpRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, tpPrice))
 				}
 				var tkQuantity *string = this.SafeString(takeProfitDict, "quantity", stringifiedAmount)
 				var tkQuantityRequest any = this.ParseToNumeric(tkQuantity)
 				if !(*this.SafeBool(market, "inverse", false)) {
-					tkQuantityRequest = this.ParseToNumeric(this.AmountToPrecision(symbol, tkQuantity))
+					tkQuantityRequest = this.ParseToNumeric(this.AmountToPrecision(&symbol, tkQuantity))
 				}
 				tpRequest["quantity"] = tkQuantityRequest
 				request["takeProfit"] = this.Json(tpRequest)
@@ -4587,11 +4587,11 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		request["positionSide"] = positionSide
 		var closePosition *bool = this.SafeBool(paramsOrder, "closePosition", false)
 		if cost != nil {
-			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
+			request["quoteOrderQty"] = this.ParseToNumeric(this.CostToPrecision(&symbol, cost))
 		} else if !(closePosition != nil && *closePosition) {
 			var amountReq any = amount
 			if !(*this.SafeBool(market, "inverse", false)) {
-				amountReq = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
+				amountReq = this.ParseToNumeric(this.AmountToPrecision(&symbol, amount))
 			}
 			request["quantity"] = amountReq // precision not available for inverse contracts
 		}
@@ -4667,7 +4667,7 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var test *bool = this.SafeBool(params, "test", false)
 	if (test != nil && *test) && ((!(*this.SafeBool(market, "swap", false))) || (*this.SafeBool(market, "inverse", false))) {
 		panic(NotSupported(this.Id + " createOrder() only supports test orders for linear swap markets"))
@@ -4862,7 +4862,7 @@ func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 	}
 	var symbols []string = this.MarketSymbols(marketIds, nil, false, true, true)
 	var symbolsLength int = len(symbols)
-	var market map[string]any = this.Market(symbols[0])
+	var market map[string]any = this.Market(&symbols[0])
 	if *this.SafeBool(market, "inverse", false) {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}
@@ -7407,7 +7407,7 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var positionSide *string = this.SafeString(params, "positionSide")
 	if (market["inverse"] == true) && (positionSide == nil) {
@@ -7417,7 +7417,7 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if market["inverse"] == true {
 		amountString = this.CurrencyToPrecision(market["settle"], amount)
 	} else {
-		amountString = this.AmountToPrecision(precisionSymbol, amount)
+		amountString = this.AmountToPrecision(&precisionSymbol, amount)
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -7525,7 +7525,7 @@ func (this *Bingx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -8172,7 +8172,7 @@ func (this *Bingx) closePositionBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var positionId *string = this.SafeString(params, "positionId")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
@@ -8456,7 +8456,7 @@ func (this *Bingx) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "inverse", false) {
 		panic(NotSupported(this.Id + " editOrder() is not supported for inverse swap markets"))
 	}
@@ -8526,7 +8526,7 @@ func (this *Bingx) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -8600,7 +8600,7 @@ func (this *Bingx) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -8779,7 +8779,7 @@ func (this *Bingx) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports swap markets only"))
 	}

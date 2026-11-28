@@ -504,7 +504,7 @@ func (this *Bitbank) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -553,7 +553,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -656,7 +656,7 @@ func (this *Bitbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -834,7 +834,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair":       market["id"],
 		"candletype": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1054,15 +1054,15 @@ func (this *Bitbank) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair":   market["id"],
-		"amount": this.AmountToPrecision(symbol, amount),
+		"amount": this.AmountToPrecision(&symbol, amount),
 		"side":   side,
 		"type":   typeVar,
 	}
 	if typeVar == "limit" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 
 	r1 := <-this.PrivatePostUserSpotOrder(this.Extend(request, params))

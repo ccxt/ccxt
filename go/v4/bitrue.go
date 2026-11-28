@@ -1380,7 +1380,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response any = map[string]any{}
 	if *this.SafeBool(market, "swap", false) {
 		var request map[string]any = map[string]any{
@@ -1555,7 +1555,7 @@ func (this *Bitrue) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response any = nil
 	var data map[string]any = map[string]any{}
 	if *this.SafeBool(market, "swap", false) {
@@ -1672,7 +1672,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var response map[string]any = nil
 	var data []any = []any{}
@@ -2170,7 +2170,7 @@ func (this *Bitrue) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response []any = []any{}
 	if *this.SafeBool(market, "spot", false) {
 		var request map[string]any = map[string]any{
@@ -2371,7 +2371,7 @@ func (this *Bitrue) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Swap {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports swap orders only"))
 	}
@@ -2428,7 +2428,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var response map[string]any = nil
 	var data any = map[string]any{}
 	var uppercaseType string = strings.ToUpper(typeVar)
@@ -2440,7 +2440,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price argument"))
 		}
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if *this.SafeBool(market, "swap", false) {
 		var isMarket bool = (uppercaseType == "MARKET")
@@ -2472,8 +2472,8 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				if cost != nil {
 					requestAmount = cost
 				}
-				request["amount"] = this.CostToPrecision(symbol, requestAmount)
-				request["volume"] = this.CostToPrecision(symbol, requestAmount)
+				request["amount"] = this.CostToPrecision(&symbol, requestAmount)
+				request["volume"] = this.CostToPrecision(&symbol, requestAmount)
 			}
 		} else {
 			request["amount"] = this.ParseToNumeric(amount)
@@ -2507,7 +2507,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if *this.SafeBool(market, "spot", false) {
 		request["symbol"] = market["id"]
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 		var validOrderTypes []any = this.SafeListSlice(market["info"], "orderTypes", []any{})
 		if !this.InArray(uppercaseType, validOrderTypes) {
 			panic(InvalidOrder(this.Id + " " + typeVar + " is not a valid order type in market " + symbol))
@@ -2524,7 +2524,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}
 		var triggerPrice *float64 = this.SafeNumber2(paramsNoClientOrderId, "triggerPrice", "stopPrice")
 		if triggerPrice != nil {
-			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
 		var paramsSpot map[string]any
 		if triggerPrice != nil {
@@ -4048,7 +4048,7 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(NotSupported(this.Id + " setMargin only support swap markets"))
 	}

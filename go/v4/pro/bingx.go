@@ -201,7 +201,7 @@ func (this *Bingx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchTicker", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchTicker", market, paramsMarketType, "linear")
 	var url *string = this.SafeString(this.UrlsApi["ws"], marketType)
@@ -258,7 +258,7 @@ func (this *Bingx) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var dataType string = *this.SafeString(market, "id", "") + "@ticker"
 	var subMessageHash string = this.GetMessageHash("ticker", this.SafeString(market, "symbol"))
 	var messageHash string = "unsubscribe::" + subMessageHash
@@ -459,12 +459,12 @@ func (this *Bingx) GetMessageHash(unifiedChannel string, optionalArgs ...any) st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bingx) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -480,7 +480,7 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchTrades", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchTrades", market, paramsMarketType, "linear")
@@ -564,7 +564,7 @@ func (this *Bingx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var subMessageHash string = this.GetMessageHash("trade", this.SafeString(market, "symbol"))
 	var messageHash string = "unsubscribe::" + subMessageHash
 	var topic string = "trades"
@@ -724,7 +724,7 @@ func (this *Bingx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrderBook", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOrderBook", market, paramsMarketType, "linear")
 	var url *string = this.SafeString(this.UrlsApi["ws"], marketType)
@@ -798,7 +798,7 @@ func (this *Bingx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var depth string = *this.SafeString(options, "depth", "100")
 	var subMessageHash string = *this.SafeString(market, "id", "") + "@depth" + depth
@@ -1140,7 +1140,7 @@ func (this *Bingx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOHLCV", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOHLCV", market, paramsMarketType, "linear")
 	var url *string = this.SafeString(this.UrlsApi["ws"], marketType)
@@ -1216,7 +1216,7 @@ func (this *Bingx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, market["type"])
 	var timeframes, _ = options["timeframes"].(map[string]any)
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)

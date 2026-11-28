@@ -106,7 +106,7 @@ func (this *Alpaca) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var request map[string]any = map[string]any{
@@ -223,7 +223,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
@@ -316,7 +316,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook" + ":" + symbolValue
 	var request map[string]any = map[string]any{
@@ -407,12 +407,12 @@ func (this *Alpaca) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Alpaca) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Alpaca) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -434,7 +434,7 @@ func (this *Alpaca) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + symbolValue
 	var request map[string]any = map[string]any{

@@ -58,12 +58,12 @@ func (this *Gemini) Describe() map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Gemini) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Gemini) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Gemini) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -79,7 +79,7 @@ func (this *Gemini) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "trades:" + *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id")
 	if marketId == nil {
@@ -377,7 +377,7 @@ func (this *Gemini) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var timeframeId *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
@@ -503,7 +503,7 @@ func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id")
 	if marketId == nil {
@@ -742,7 +742,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 		panic(ccxt.NotSupported(this.Id + " watchMultiple requires at least one symbol"))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(symbolsNormalized[0])
+	var firstMarket map[string]any = this.Market(&symbolsNormalized[0])
 	if (!(*this.SafeBool(firstMarket, "spot", false))) && (!(*this.SafeBool(firstMarket, "linear", false))) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
@@ -752,7 +752,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 		var symbol string = symbolsNormalized[i]
 		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id

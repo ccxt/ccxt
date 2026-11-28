@@ -175,7 +175,7 @@ func (this *Htx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol")
 	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var topic *string = this.SafeString(options, "name", "market.{marketId}.detail")
@@ -223,7 +223,7 @@ func (this *Htx) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var topic string = "ticker"
 	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.detail")
@@ -311,12 +311,12 @@ func (this *Htx) HandleTicker(client ccxt.ClientInterface, message map[string]an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Htx) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Htx) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Htx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Htx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -332,7 +332,7 @@ func (this *Htx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol")
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".trade.detail"
@@ -381,7 +381,7 @@ func (this *Htx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var topic string = "trades"
 	var options, _ = this.Options["watchTrades"].(map[string]any)
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.trade.detail")
@@ -478,7 +478,7 @@ func (this *Htx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var marketId string = *this.SafeString(market, "id", "")
@@ -532,7 +532,7 @@ func (this *Htx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var marketId string = *this.SafeString(market, "id", "")
 	var subMessageHash string = "market." + marketId + ".kline." + *interval
@@ -626,7 +626,7 @@ func (this *Htx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol")
 	var allowedLimits []any = []any{5, 20, 150, 400}
 	// 2) 5-level/20-level incremental MBP is a tick by tick feed,
@@ -701,7 +701,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var topic string = "orderbook"
 	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var depth int64 = this.ParseToInt(this.SafeInteger(options, "depth", 150))

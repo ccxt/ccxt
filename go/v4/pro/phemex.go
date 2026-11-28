@@ -562,7 +562,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 	var isSwap bool = market.Swap
 	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
@@ -684,12 +684,12 @@ func (this *Phemex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Phemex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Phemex) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -705,7 +705,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -775,7 +775,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -846,7 +846,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -942,7 +942,7 @@ func (this *Phemex) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -1008,7 +1008,7 @@ func (this *Phemex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue string = market.Symbol
 	var marketId string = ""
 	if market.Id != nil {
@@ -1683,7 +1683,7 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 		var parsed any = parsedOrders[i]
 		stored.Append(parsed)
 		var symbol string = *this.SafeString(parsed, "symbol", "")
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		if typeVar == nil {
 			var isUsdt bool = (market["settle"] == "USDT")
 			if isUsdt {

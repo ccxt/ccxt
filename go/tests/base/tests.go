@@ -685,7 +685,7 @@ func (this *testMainClass) runPublicTestsBody(ch chan ccxt.AsyncResult[any], exc
 			"watchTradesForSymbols":    []any{symbols},
 		}
 	}
-	var market any = exchange.Market(primarySymbol)
+	var market any = exchange.Market(SafeStringPtr(primarySymbol))
 	var isSpot any = GetValue(market, "spot")
 	if !EvalTruthy(this.WsTests) {
 		if isSpot == true {
@@ -1058,7 +1058,7 @@ func (this *testMainClass) testExchangeBody(ch chan ccxt.AsyncResult[any], excha
 	var hasSpot bool = (!IsEqual(GetValue(exchange.GetHas(), "spot"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "spot"), false))
 	var hasSwap bool = (!IsEqual(GetValue(exchange.GetHas(), "swap"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "swap"), false))
 	if providedSymbol != nil {
-		var market any = exchange.Market(providedSymbol)
+		var market any = exchange.Market(SafeStringPtr(providedSymbol))
 		if IsEqual(GetValue(market, "spot"), true) {
 			spotSymbols = []any{providedSymbol}
 		} else {
@@ -1744,7 +1744,7 @@ func (this *testMainClass) runPrivateTestsBody(ch chan ccxt.AsyncResult[any], ex
 			"watchPositions": []any{symbol},
 		}
 	}
-	var market any = exchange.Market(symbol)
+	var market any = exchange.Market(SafeStringPtr(symbol))
 	var isSpot any = GetValue(market, "spot")
 	if !EvalTruthy(this.WsTests) {
 		if isSpot == true {

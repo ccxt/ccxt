@@ -1724,7 +1724,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(NotSupported(this.Id + " fetchMarkPrice() supports contract markets only"))
 	}
@@ -1843,7 +1843,7 @@ func (this *Weex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1933,7 +1933,7 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if market.Spot {
 
 		r1 := <-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params)
@@ -1999,7 +1999,7 @@ func (this *Weex) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2080,7 +2080,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 	historical, paramsHistorical := this.HandleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false)
 	var timeframeOption, _ = this.Options["timeframes"].(map[string]any)
 	var contractTimeframes, _ = timeframeOption["contract"].(map[string]any)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeString(contractTimeframes, timeframe, timeframe),
@@ -2216,7 +2216,7 @@ func (this *Weex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2418,7 +2418,7 @@ func (this *Weex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2913,7 +2913,7 @@ func (this *Weex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if market.Contract {
 
 		r1 := <-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params)
@@ -2971,7 +2971,7 @@ func (this *Weex) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response map[string]any = nil
 
@@ -3006,7 +3006,7 @@ func (this *Weex) CreateSpotOrderRequest(symbol string, typeVar string, side str
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if false {
 		panic(ArgumentsRequired(this.Id + " createSpotOrderRequest() requires a side argument"))
 	}
@@ -3014,13 +3014,13 @@ func (this *Weex) CreateSpotOrderRequest(symbol string, typeVar string, side str
 		"symbol":   nil,
 		"side":     strings.ToUpper(side),
 		"type":     strings.ToUpper(typeVar),
-		"quantity": this.AmountToPrecision(symbol, amount),
+		"quantity": this.AmountToPrecision(&symbol, amount),
 	}
 	if market.Id != nil {
 		request["symbol"] = *market.Id
 	}
 	if typeVar == "limit" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
@@ -3084,7 +3084,7 @@ func (this *Weex) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 	var triggerPrice *string = this.SafeString(request, "triggerPrice")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -3132,19 +3132,19 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if false {
 		panic(ArgumentsRequired(this.Id + " createContractOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   this.ToSandboxMarketId(market),
 		"side":     strings.ToUpper(side),
-		"quantity": this.AmountToPrecision(symbol, amount),
+		"quantity": this.AmountToPrecision(&symbol, amount),
 		"type":     strings.ToUpper(typeVar),
 	}
 	var isMarketOrder bool = (typeVar == "market")
 	if !isMarketOrder {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	triggerPrice, stopLossPrice, takeProfitPrice, query := this.HandleTriggerPricesAndParams(symbol, params)
 	var isTrigger bool = (triggerPrice != nil)
@@ -3192,7 +3192,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			panic(BadRequest(this.Id + " createOrder() cannot use the timeInForce parameter with trigger orders"))
 		}
 		request["clientAlgoId"] = clientOrderId
-		params["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		params["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		if isMarketOrder {
 			params["type"] = "STOP_MARKET"
 		} else {
@@ -3201,7 +3201,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 		// conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
 		if hasStopLoss {
 			var stopLossTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
-			request["presetStopLossPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
+			request["presetStopLossPrice"] = this.PriceToPrecision(&symbol, stopLossTriggerPrice)
 			var stopLossPriceType *string = this.SafeString(stopLoss, "triggerPriceType")
 			if stopLossPriceType != nil {
 				params["SlWorkingType"] = this.EncodeTriggerPriceType(*stopLossPriceType)
@@ -3209,7 +3209,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 		}
 		if hasTakeProfit {
 			var takeProfitTriggerPrice *float64 = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
-			request["presetTakeProfitPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
+			request["presetTakeProfitPrice"] = this.PriceToPrecision(&symbol, takeProfitTriggerPrice)
 			var takeProfitPriceType *string = this.SafeString(takeProfit, "triggerPriceType")
 			if takeProfitPriceType != nil {
 				params["TpWorkingType"] = this.EncodeTriggerPriceType(*takeProfitPriceType)
@@ -3234,7 +3234,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			if stopLossPriceType != nil {
 				params["SlWorkingType"] = this.EncodeTriggerPriceType(*stopLossPriceType)
 			}
-			params["triggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
+			params["triggerPrice"] = this.PriceToPrecision(&symbol, stopLossPrice)
 			if isMarketOrder {
 				params["type"] = "STOP_MARKET"
 			} else {
@@ -3245,7 +3245,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 			if takeProfitPriceType != nil {
 				params["TpWorkingType"] = this.EncodeTriggerPriceType(*takeProfitPriceType)
 			}
-			params["triggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
+			params["triggerPrice"] = this.PriceToPrecision(&symbol, takeProfitPrice)
 			if isMarketOrder {
 				params["type"] = "TAKE_PROFIT_MARKET"
 			} else {
@@ -3259,7 +3259,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 		request["newClientOrderId"] = clientOrderId
 		if hasStopLoss {
 			var stopLossTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
-			request["slTriggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
+			request["slTriggerPrice"] = this.PriceToPrecision(&symbol, stopLossTriggerPrice)
 			var stopLossPriceType *string = this.SafeString(stopLoss, "triggerPriceType")
 			if stopLossPriceType != nil {
 				params["SlWorkingType"] = this.EncodeTriggerPriceType(*stopLossPriceType)
@@ -3267,7 +3267,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 		}
 		if hasTakeProfit {
 			var takeProfitTriggerPrice *float64 = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
-			request["tpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
+			request["tpTriggerPrice"] = this.PriceToPrecision(&symbol, takeProfitTriggerPrice)
 			var takeProfitPriceType *string = this.SafeString(takeProfit, "triggerPriceType")
 			if takeProfitPriceType != nil {
 				params["TpWorkingType"] = this.EncodeTriggerPriceType(*takeProfitPriceType)
@@ -5091,7 +5091,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var marketSymbol string = market.Symbol
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if sandboxMode != nil && *sandboxMode {
@@ -5337,7 +5337,7 @@ func (this *Weex) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5385,7 +5385,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(NotSupported(this.Id + " fetchTradingFee() is not supported for spot markets"))
 	}
@@ -5457,7 +5457,7 @@ func (this *Weex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5635,7 +5635,7 @@ func (this *Weex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5921,10 +5921,10 @@ func (this *Weex) modifyMarginHelperBody(ch chan AsyncResult[MarginModification]
 		panic(ArgumentsRequired(this.Id + " modifyMarginHelper() requires a positionId parameter"))
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"positionId", "id"})
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"isolatedPositionId": isolatedPositionId,
-		"amount":             this.CostToPrecision(symbol, amount),
+		"amount":             this.CostToPrecision(&symbol, amount),
 		"type":               typeVar,
 	}
 	var parsedType string = "reduce"

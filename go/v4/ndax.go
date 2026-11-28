@@ -1054,7 +1054,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var limitValue int64
 	if limit == nil {
 		limitValue = 100
@@ -1269,7 +1269,7 @@ func (this *Ndax) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -1369,7 +1369,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -1640,7 +1640,7 @@ func (this *Ndax) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],
@@ -2148,14 +2148,14 @@ func (this *Ndax) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderSide int
 	if side == "buy" {
 		orderSide = 0
 	} else {
 		orderSide = 1
 	}
-	var amountString *string = this.AmountToPrecision(symbol, amount)
+	var amountString *string = this.AmountToPrecision(&symbol, amount)
 	var request map[string]any = map[string]any{
 		"InstrumentId": this.ParseToInt(market["id"]),
 		"omsId":        omsId,
@@ -2171,7 +2171,7 @@ func (this *Ndax) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {
-		request["LimitPrice"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
+		request["LimitPrice"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
 	}
 	if clientOrderId != nil {
 		request["ClientOrderId"] = clientOrderId
@@ -2242,14 +2242,14 @@ func (this *Ndax) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	var accountId *int64 = this.SafeInteger2(params, "accountId", "AccountId", defaultAccountId)
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderSide int
 	if side == "buy" {
 		orderSide = 0
 	} else {
 		orderSide = 1
 	}
-	var amountString *string = this.AmountToPrecision(symbol, amount)
+	var amountString *string = this.AmountToPrecision(&symbol, amount)
 	var request map[string]any = map[string]any{
 		"OrderIdToReplace": this.ParseToInt(id),
 		"InstrumentId":     this.ParseToInt(market["id"]),
@@ -2266,7 +2266,7 @@ func (this *Ndax) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if price != nil {
-		request["LimitPrice"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
+		request["LimitPrice"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
 	}
 	if clientOrderId != nil {
 		request["ClientOrderId"] = clientOrderId

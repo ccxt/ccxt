@@ -684,7 +684,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var marketIds []string = []string{}
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
-			var market map[string]any = this.Market(symbol)
+			var market map[string]any = this.Market(&symbol)
 			marketIds = append(marketIds, *this.SafeString(market, "id", ""))
 		}
 		request["symbols"] = strings.Join(marketIds, ",")
@@ -820,7 +820,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -919,7 +919,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeInteger(this.Timeframes, timeframe, 5),
@@ -1050,7 +1050,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	if market != nil {
 		request["symbol"] = market["id"]
@@ -1350,7 +1350,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -1377,17 +1377,17 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else if triggerPrice != nil {
 		var conditionalConfig map[string]any = map[string]any{}
 		if cost != nil {
-			conditionalConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+			conditionalConfig["quote_size"] = this.CostToPrecision(&symbol, cost)
 		} else {
-			conditionalConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+			conditionalConfig["base_size"] = this.AmountToPrecision(&symbol, amount)
 		}
 		if typeVar == "limit" {
 			if price == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
 			}
-			conditionalConfig["limit_price"] = this.PriceToPrecision(symbol, price)
+			conditionalConfig["limit_price"] = this.PriceToPrecision(&symbol, price)
 		}
-		conditionalConfig["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		conditionalConfig["trigger_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		orderConfiguration["conditional"] = conditionalConfig
 	} else if isTpsl {
 		if cost != nil {
@@ -1395,7 +1395,7 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		var singleLeg bool = !(hasStopLoss && hasTakeProfit)
 		var tpslConfig map[string]any = map[string]any{
-			"base_size": this.AmountToPrecision(symbol, amount),
+			"base_size": this.AmountToPrecision(&symbol, amount),
 		}
 		if hasTakeProfit {
 			tpslConfig["take_profit"] = this.CreateTriggerLegRequest(symbol, typeVar, price, takeProfitPrice, takeProfit, singleLeg)
@@ -1407,11 +1407,11 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else if typeVar == "limit" {
 		var limitConfig map[string]any = map[string]any{}
 		if cost != nil {
-			limitConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+			limitConfig["quote_size"] = this.CostToPrecision(&symbol, cost)
 		} else {
-			limitConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+			limitConfig["base_size"] = this.AmountToPrecision(&symbol, amount)
 		}
-		limitConfig["price"] = this.PriceToPrecision(symbol, price)
+		limitConfig["price"] = this.PriceToPrecision(&symbol, price)
 		if timeInForce != nil {
 			limitConfig["time_in_force"] = timeInForce
 		}
@@ -1428,9 +1428,9 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		}
 		var marketConfig map[string]any = map[string]any{}
 		if cost != nil {
-			marketConfig["quote_size"] = this.CostToPrecision(symbol, cost)
+			marketConfig["quote_size"] = this.CostToPrecision(&symbol, cost)
 		} else {
-			marketConfig["base_size"] = this.AmountToPrecision(symbol, amount)
+			marketConfig["base_size"] = this.AmountToPrecision(&symbol, amount)
 		}
 		orderConfiguration["market"] = marketConfig
 	} else {
@@ -1495,7 +1495,7 @@ func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, pri
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg"))
 	}
 	var result map[string]any = map[string]any{
-		"trigger_price": this.PriceToPrecision(symbol, legTriggerPrice),
+		"trigger_price": this.PriceToPrecision(&symbol, legTriggerPrice),
 	}
 	var legPrice *string = this.SafeString(leg, "price")
 	if (legPrice == nil) && (typeVar == "limit") {
@@ -1505,7 +1505,7 @@ func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, pri
 		legPrice = this.NumberToString(price)
 	}
 	if legPrice != nil {
-		result["limit_price"] = this.PriceToPrecision(symbol, legPrice)
+		result["limit_price"] = this.PriceToPrecision(&symbol, legPrice)
 	}
 	return result
 }
@@ -2096,7 +2096,7 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
 	var cost *string = this.SafeString2(params, "cost", "quote_size")
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
@@ -2106,12 +2106,12 @@ func (this *Revolutx) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		"venue_order_id":  id,
 	}
 	if cost != nil {
-		request["quote_size"] = this.CostToPrecision(symbol, cost)
+		request["quote_size"] = this.CostToPrecision(&symbol, cost)
 	} else if amount != nil {
-		request["base_size"] = this.AmountToPrecision(symbol, amount)
+		request["base_size"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if timeInForce != nil {
 		request["time_in_force"] = timeInForce

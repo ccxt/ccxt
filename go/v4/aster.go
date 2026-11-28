@@ -1590,7 +1590,7 @@ func (this *Aster) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	if since != nil {
 		request["startTime"] = *since
@@ -1797,7 +1797,7 @@ func (this *Aster) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1976,7 +1976,7 @@ func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -2151,7 +2151,7 @@ func (this *Aster) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2542,7 +2542,7 @@ func (this *Aster) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3020,7 +3020,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3597,7 +3597,7 @@ func (this *Aster) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if *this.SafeBool(market, "swap", false) {
@@ -3698,7 +3698,7 @@ func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var orderSymbolsResolved []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(orderSymbolsResolved[0])
+	var market map[string]any = this.Market(&orderSymbolsResolved[0])
 	if *this.SafeBool(market, "spot", false) {
 		panic(NotSupported(this.Id + " createOrders() does not support " + *this.SafeString(market, "type", "") + " orders"))
 	}
@@ -4519,8 +4519,8 @@ func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var amountValue *string = this.AmountToPrecision(symbol, amount)
+	var market map[string]any = this.Market(&symbol)
+	var amountValue *string = this.AmountToPrecision(&symbol, amount)
 	var request map[string]any = map[string]any{
 		"type":   addOrReduce,
 		"symbol": market["id"],

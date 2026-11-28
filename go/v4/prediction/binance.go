@@ -2213,7 +2213,7 @@ func (this *Binance) fetchQuoteBody(ch chan ccxt.AsyncResult[map[string]any], re
 	ch <- ccxt.AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Binance) PriceToPrecision(outcome any, price any) *string {
+func (this *Binance) PriceToPrecision(outcome *string, price any) *string {
 	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
@@ -2223,7 +2223,7 @@ func (this *Binance) PriceToPrecision(outcome any, price any) *string {
 	retStrVal := this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
 	return &retStrVal
 }
-func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
+func (this *Binance) AmountToPrecision(outcome *string, amount any) *string {
 	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
 	var decimals int = 2

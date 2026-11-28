@@ -586,7 +586,7 @@ func (this *Interactivebrokers) ibkrWatchMarketDataBody(ch chan ccxt.AsyncResult
 		futures = append(futures, client.ReusableFuture(messageHashes[i]))
 	}
 	for i := 0; i < len(marketSymbols); i++ {
-		var market map[string]any = this.Market(marketSymbols[i])
+		var market map[string]any = this.Market(&marketSymbols[i])
 		request, query := this.IbkrMarketDataRequest(*this.SafeString(market, "id", ""), params)
 		var subscription map[string]any = this.Extend(map[string]any{
 			"conid":  market["id"],
@@ -746,7 +746,7 @@ func (this *Interactivebrokers) ibkrUnWatchMarketDataBody(ch chan ccxt.AsyncResu
 		panic(r2.Err)
 	}
 	for i := 0; i < len(marketSymbols); i++ {
-		var market map[string]any = this.Market(marketSymbols[i])
+		var market map[string]any = this.Market(&marketSymbols[i])
 
 		r3 := <-this.IbkrUnsubscribeMarketDataAsync(client, market["id"])
 		if r3.Err != nil {
@@ -851,7 +851,7 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
 	var historyMarketId string = *this.SafeString(market, "id", "")
 
@@ -953,7 +953,7 @@ func (this *Interactivebrokers) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
 	var historyMarketId string = *this.SafeString(market, "id", "")
 
@@ -1242,7 +1242,7 @@ func (this *Interactivebrokers) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
 	accountIdqueryPair := <-this.LoadAccountIdAsync(params)
 	if accountIdqueryPair.Err != nil {
@@ -1310,7 +1310,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var unifiedSymbol string = market.Symbol
 	accountIdqueryPair := <-this.LoadAccountIdAsync(params)
 	if accountIdqueryPair.Err != nil {

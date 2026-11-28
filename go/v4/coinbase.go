@@ -3116,7 +3116,7 @@ func (this *Coinbase) fetchTickerV2Body(ch chan AsyncResult[Ticker], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.Extend(map[string]any{
 		"symbol": market["id"],
 	}, params)
@@ -3176,7 +3176,7 @@ func (this *Coinbase) fetchTickerV3Body(ch chan AsyncResult[Ticker], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 		"limit":      1,
@@ -4179,7 +4179,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -4241,7 +4241,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var id string = *this.SafeString(this.Options, "brokerId", "ccxt")
 	var request map[string]any = map[string]any{
 		"client_order_id": id + "-" + this.Uuid(),
@@ -4293,9 +4293,9 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 				}
 				request["order_configuration"] = map[string]any{
 					"stop_limit_stop_limit_gtd": map[string]any{
-						"base_size":      this.AmountToPrecision(symbol, amount),
-						"limit_price":    this.PriceToPrecision(symbol, price),
-						"stop_price":     this.PriceToPrecision(symbol, triggerPrice),
+						"base_size":      this.AmountToPrecision(&symbol, amount),
+						"limit_price":    this.PriceToPrecision(&symbol, price),
+						"stop_price":     this.PriceToPrecision(&symbol, triggerPrice),
 						"stop_direction": stopDirection,
 						"end_time":       endTime,
 					},
@@ -4303,9 +4303,9 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			} else {
 				request["order_configuration"] = map[string]any{
 					"stop_limit_stop_limit_gtc": map[string]any{
-						"base_size":      this.AmountToPrecision(symbol, amount),
-						"limit_price":    this.PriceToPrecision(symbol, price),
-						"stop_price":     this.PriceToPrecision(symbol, triggerPrice),
+						"base_size":      this.AmountToPrecision(&symbol, amount),
+						"limit_price":    this.PriceToPrecision(&symbol, price),
+						"stop_price":     this.PriceToPrecision(&symbol, triggerPrice),
 						"stop_direction": stopDirection,
 					},
 				}
@@ -4322,7 +4322,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 					}
 					stopDirection = &stopDirectionStr2
 				}
-				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
+				tpslPrice = this.PriceToPrecision(&symbol, stopLossPrice)
 			} else {
 				if stopDirection == nil {
 					var stopDirectionStr3 string
@@ -4333,12 +4333,12 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 					}
 					stopDirection = &stopDirectionStr3
 				}
-				tpslPrice = this.PriceToPrecision(symbol, takeProfitPrice)
+				tpslPrice = this.PriceToPrecision(&symbol, takeProfitPrice)
 			}
 			request["order_configuration"] = map[string]any{
 				"stop_limit_stop_limit_gtc": map[string]any{
-					"base_size":      this.AmountToPrecision(symbol, amount),
-					"limit_price":    this.PriceToPrecision(symbol, price),
+					"base_size":      this.AmountToPrecision(&symbol, amount),
+					"limit_price":    this.PriceToPrecision(&symbol, price),
 					"stop_price":     tpslPrice,
 					"stop_direction": stopDirection,
 				},
@@ -4350,8 +4350,8 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 				}
 				request["order_configuration"] = map[string]any{
 					"limit_limit_gtd": map[string]any{
-						"base_size":   this.AmountToPrecision(symbol, amount),
-						"limit_price": this.PriceToPrecision(symbol, price),
+						"base_size":   this.AmountToPrecision(&symbol, amount),
+						"limit_price": this.PriceToPrecision(&symbol, price),
 						"end_time":    endTime,
 						"post_only":   postOnly,
 					},
@@ -4359,22 +4359,22 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			} else if timeInForce != nil && *timeInForce == "IOC" {
 				request["order_configuration"] = map[string]any{
 					"sor_limit_ioc": map[string]any{
-						"base_size":   this.AmountToPrecision(symbol, amount),
-						"limit_price": this.PriceToPrecision(symbol, price),
+						"base_size":   this.AmountToPrecision(&symbol, amount),
+						"limit_price": this.PriceToPrecision(&symbol, price),
 					},
 				}
 			} else if timeInForce != nil && *timeInForce == "FOK" {
 				request["order_configuration"] = map[string]any{
 					"limit_limit_fok": map[string]any{
-						"base_size":   this.AmountToPrecision(symbol, amount),
-						"limit_price": this.PriceToPrecision(symbol, price),
+						"base_size":   this.AmountToPrecision(&symbol, amount),
+						"limit_price": this.PriceToPrecision(&symbol, price),
 					},
 				}
 			} else {
 				request["order_configuration"] = map[string]any{
 					"limit_limit_gtc": map[string]any{
-						"base_size":   this.AmountToPrecision(symbol, amount),
-						"limit_price": this.PriceToPrecision(symbol, price),
+						"base_size":   this.AmountToPrecision(&symbol, amount),
+						"limit_price": this.PriceToPrecision(&symbol, price),
 						"post_only":   postOnly,
 					},
 				}
@@ -4390,7 +4390,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 			paramsMarketBuy = this.Omit(paramsRequiresPrice, "cost")
 			if cost != nil {
-				total = this.CostToPrecision(symbol, cost)
+				total = this.CostToPrecision(&symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -4398,10 +4398,10 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var costRequest *string = Precise.StringMul(amountString, priceString)
-					total = this.CostToPrecision(symbol, costRequest)
+					total = this.CostToPrecision(&symbol, costRequest)
 				}
 			} else {
-				total = this.CostToPrecision(symbol, amount)
+				total = this.CostToPrecision(&symbol, amount)
 			}
 			request["order_configuration"] = map[string]any{
 				"market_market_ioc": map[string]any{
@@ -4411,7 +4411,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		} else {
 			request["order_configuration"] = map[string]any{
 				"market_market_ioc": map[string]any{
-					"base_size": this.AmountToPrecision(symbol, amount),
+					"base_size": this.AmountToPrecision(&symbol, amount),
 				},
 			}
 		}
@@ -4841,15 +4841,15 @@ func (this *Coinbase) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 	if amount != nil {
-		request["size"] = this.AmountToPrecision(symbol, amount)
+		request["size"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var preview *bool = this.SafeBool2(params, "preview", "test", false)
 	var response map[string]any = nil
@@ -5456,7 +5456,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_id":  market["id"],
 		"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -5576,7 +5576,7 @@ func (this *Coinbase) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 	}
@@ -5790,7 +5790,7 @@ func (this *Coinbase) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"product_id": nil,
 	}
@@ -6878,7 +6878,7 @@ func (this *Coinbase) closePositionBody(ch chan AsyncResult[Order], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 	var request map[string]any = map[string]any{
@@ -6996,7 +6996,7 @@ func (this *Coinbase) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 	}

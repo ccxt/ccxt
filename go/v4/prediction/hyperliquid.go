@@ -2679,7 +2679,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	}
 	return this.Extend(literal202128)
 }
-func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
+func (this *Hyperliquid) AmountToPrecision(outcome *string, amount any) *string {
 	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.0001)
 	// Convert precision to decimal places
@@ -2693,7 +2693,7 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	retStrVal := this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
 	return &retStrVal
 }
-func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
+func (this *Hyperliquid) PriceToPrecision(outcome *string, price any) *string {
 	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4

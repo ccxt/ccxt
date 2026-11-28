@@ -215,7 +215,7 @@ func (this *Woo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 		}
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId string = *this.SafeString(market, "id", "")
 	var topic string = marketId + "@" + *method
 	var urlUid string = ""
@@ -279,7 +279,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchOrderBook", "method", "orderbook")
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -528,7 +528,7 @@ func (this *Woo) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	var name string = "ticker"
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -574,7 +574,7 @@ func (this *Woo) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string
 		}
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "watchTicker", "method", "ticker")
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -987,7 +987,7 @@ func (this *Woo) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	if (timeframe != "1m") && (timeframe != "5m") && (timeframe != "15m") && (timeframe != "30m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
 		panic(ccxt.ExchangeError(this.Id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M"))
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -1045,7 +1045,7 @@ func (this *Woo) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -1124,12 +1124,12 @@ func (this *Woo) HandleOHLCV(client ccxt.ClientInterface, message map[string]any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Woo) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Woo) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Woo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Woo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1145,7 +1145,7 @@ func (this *Woo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol")
 	var marketId string = *this.SafeString(market, "id", "")
 	var topic string = marketId + "@trade"
@@ -1195,7 +1195,7 @@ func (this *Woo) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -2180,7 +2180,7 @@ func (this *Woo) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate]
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id

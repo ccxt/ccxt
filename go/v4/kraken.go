@@ -669,7 +669,7 @@ func (this *Kraken) Describe() map[string]any {
 		},
 	})
 }
-func (this *Kraken) FeeToPrecision(symbol any, fee any) *string {
+func (this *Kraken) FeeToPrecision(symbol *string, fee any) *string {
 	var market map[string]any = this.Market(symbol)
 	var marketPrecision, _ = market["precision"].(map[string]any)
 	retStrVal := this.DecimalToPrecision(fee, TRUNCATE, marketPrecision["amount"], this.PrecisionMode)
@@ -1132,7 +1132,7 @@ func (this *Kraken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair":     market["id"],
 		"fee-info": true,
@@ -1238,7 +1238,7 @@ func (this *Kraken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1369,7 +1369,7 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		var marketIds []string = []string{}
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
-			var market map[string]any = this.Market(symbol)
+			var market map[string]any = this.Market(&symbol)
 			if *this.SafeBool(market, "active", false) {
 				var marketId string = *this.SafeString(market, "id", "")
 				marketIds = append(marketIds, marketId)
@@ -1434,7 +1434,7 @@ func (this *Kraken) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1523,7 +1523,7 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var parsedTimeframe *int64 = this.SafeInteger(this.Timeframes, timeframe)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
@@ -2036,7 +2036,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var id *string = this.SafeString(market, "id")
 	var request map[string]any = map[string]any{
 		"pair": id,
@@ -2281,12 +2281,12 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair":      nil,
 		"type":      side,
 		"ordertype": typeVar,
-		"volume":    this.AmountToPrecision(symbol, amount),
+		"volume":    this.AmountToPrecision(&symbol, amount),
 	}
 	if market.Id != nil {
 		request["pair"] = *market.Id
@@ -2374,7 +2374,7 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		if orderParams == nil {
 			orderParams = map[string]any{}
 		}
-		var parsedAmount *string = this.AmountToPrecision(market["symbol"], amount)
+		var parsedAmount *string = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 		var req map[string]any = map[string]any{
 			"type":      side,
 			"ordertype": typeVar,
@@ -3026,7 +3026,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "spot", false)) {
 		panic(NotSupported(this.Id + " editOrder() does not support " + *this.SafeString(market, "type", "") + " orders, only spot orders are accepted"))
 	}
@@ -3051,14 +3051,14 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if amount != nil {
-		if ptrValue := this.AmountToPrecision(symbol, amount); ptrValue != nil {
+		if ptrValue := this.AmountToPrecision(&symbol, amount); ptrValue != nil {
 			request["order_qty"] = *ptrValue
 		} else {
 			request["order_qty"] = nil
 		}
 	}
 	if price != nil {
-		if ptrValue := this.PriceToPrecision(symbol, price); ptrValue != nil {
+		if ptrValue := this.PriceToPrecision(&symbol, price); ptrValue != nil {
 			request["limit_price"] = *ptrValue
 		} else {
 			request["limit_price"] = nil
@@ -3071,7 +3071,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		if offset != nil {
 			request["trigger_price"] = *offset + *allTriggerPrices
 		} else {
-			if ptrValue := this.PriceToPrecision(symbol, allTriggerPrices); ptrValue != nil {
+			if ptrValue := this.PriceToPrecision(&symbol, allTriggerPrices); ptrValue != nil {
 				request["trigger_price"] = *ptrValue
 			} else {
 				request["trigger_price"] = nil

@@ -730,7 +730,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"cointype": nil,
 	}
@@ -811,7 +811,7 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.PublicGetLatest(params)
 	if r1.Err != nil {
@@ -955,7 +955,7 @@ func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"cointype": market["id"],
 	}
@@ -1191,7 +1191,7 @@ func (this *Coinspot) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if typeVar == "market" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"cointype": nil,
 		"amount":   amount,

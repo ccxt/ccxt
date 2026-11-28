@@ -855,7 +855,7 @@ func (this *Dydx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -951,7 +951,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market":     market["id"],
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1741,7 +1741,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	}
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var orderType string = strings.ToUpper(typeVar)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if false {
 		panic(ArgumentsRequired(this.Id + " createOrderRequest() requires a side argument"))
 	}
@@ -1762,8 +1762,8 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringUpper(paramsSubAccountId, "timeInForce", "GTT")
 	var postOnly bool = this.IsPostOnly(isMarket, false, paramsSubAccountId)
-	var amountStr *string = this.AmountToPrecision(symbol, amount)
-	var priceStr *string = this.PriceToPrecision(symbol, price)
+	var amountStr *string = this.AmountToPrecision(&symbol, amount)
+	var priceStr *string = this.PriceToPrecision(&symbol, price)
 	var marketInfo, _ = market["info"].(map[string]any)
 	var atomicResolution any = marketInfo["atomicResolution"]
 	var quantumScale *string = this.Pow("10", Precise.StringNeg(atomicResolution))
@@ -1815,14 +1815,14 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		isShortTerm = false
 		if stopLossPrice != nil {
 			conditionalType = 1
-			if derefPtr := this.PriceToPrecision(symbol, stopLossPrice); derefPtr != nil {
+			if derefPtr := this.PriceToPrecision(&symbol, stopLossPrice); derefPtr != nil {
 				conditionalOrderTriggerSubticks = *derefPtr
 			} else {
 				conditionalOrderTriggerSubticks = nil
 			}
 		} else if takeProfitPrice != nil {
 			conditionalType = 2
-			if derefPtr := this.PriceToPrecision(symbol, takeProfitPrice); derefPtr != nil {
+			if derefPtr := this.PriceToPrecision(&symbol, takeProfitPrice); derefPtr != nil {
 				conditionalOrderTriggerSubticks = *derefPtr
 			} else {
 				conditionalOrderTriggerSubticks = nil
@@ -2362,7 +2362,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}

@@ -638,7 +638,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -727,7 +727,7 @@ func (this *Indodax) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -888,7 +888,7 @@ func (this *Indodax) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -953,7 +953,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var selectedTimeframe *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var now int64 = this.Seconds()
 	var until *int64 = this.SafeInteger(params, "until", now)
@@ -1341,7 +1341,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair":  market["id"],
 		"type":  side,
@@ -1361,7 +1361,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			var quoteAmount *string = nil
 			var cost *float64 = this.SafeNumber(params, "cost")
 			if cost != nil {
-				quoteAmount = this.CostToPrecision(symbol, cost)
+				quoteAmount = this.CostToPrecision(&symbol, cost)
 			} else {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price)."))
@@ -1369,7 +1369,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var costRequest *string = Precise.StringMul(amountString, priceString)
-				quoteAmount = this.CostToPrecision(symbol, costRequest)
+				quoteAmount = this.CostToPrecision(&symbol, costRequest)
 			}
 			request[quoteId] = quoteAmount
 		} else {
@@ -1379,7 +1379,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		priceIsRequired = true
 		quantityIsRequired = true
 		if side == "buy" {
-			request[quoteId] = this.ParseToNumeric(this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))))
+			request[quoteId] = this.ParseToNumeric(this.CostToPrecision(&symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))))
 		}
 	}
 	if priceIsRequired {
@@ -1389,7 +1389,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["price"] = *price
 	}
 	if quantityIsRequired {
-		request[baseId] = this.AmountToPrecision(symbol, amount)
+		request[baseId] = this.AmountToPrecision(&symbol, amount)
 	}
 
 	resultReply := <-this.PrivatePostTrade(this.Extend(request, paramsOmitted))

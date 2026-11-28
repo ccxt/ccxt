@@ -156,7 +156,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan ccxt.AsyncResult[any
 	var productIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		market = this.Market(symbol)
+		market = this.Market(&symbol)
 		var marketId *string = this.SafeString(market, "id", "")
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, *messageHashStart+":"+*this.SafeString(market, "symbol", ""))
@@ -283,12 +283,12 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan ccxt.AsyncResult[map[stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Coinbaseexchange) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinbaseexchange) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -304,7 +304,7 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 	var name string = "matches"
 
 	r1 := <-this.SubscribeAsync(name, symbolValue, name, params)
@@ -695,7 +695,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = name + ":" + *this.SafeString(market, "id", "")
 	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
@@ -863,7 +863,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[s
 		}
 	}
 	var parsedSymbol string = *this.SafeString(parsed, "symbol", "")
-	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(parsedSymbol))
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&parsedSymbol))
 	var feeCurrency *string
 	if marketResolved.QuoteCurrency != "" {
 		feeCurrency = &marketResolved.QuoteCurrency

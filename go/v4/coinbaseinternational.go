@@ -1188,7 +1188,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1512,7 +1512,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan AsyncResult[Ticker], 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
@@ -1656,7 +1656,7 @@ func (this *Coinbaseinternational) fetchOrderBookBody(ch chan AsyncResult[OrderB
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"instrument_name": nil,
 	}
@@ -2297,7 +2297,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan AsyncResult[Positio
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
@@ -2858,7 +2858,7 @@ func (this *Coinbaseinternational) GetOrderAmount(market map[string]any, amount 
 	if this.IsNativeDeribitCredentials() && (*this.SafeBool(market, "contract", false)) {
 		exchangeAmount = Precise.StringMul(exchangeAmount, this.SafeString(market, "contractSize"))
 	}
-	return this.AmountToPrecision(market["symbol"], exchangeAmount)
+	return this.AmountToPrecision(this.SafeString(market, "symbol"), exchangeAmount)
 }
 
 /**
@@ -2905,7 +2905,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var triggerPrice *float64 = this.SafeNumberN(paramsResolved, []any{"triggerPrice", "stopPrice", "stop_price"})
 	if false {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
@@ -2941,7 +2941,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 		}
 		request["price"] = *price
 		if this.IsNativeDeribitCredentials() {
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 		}
 	}
 	var postOnly *bool = this.SafeBool2(paramsResolved, "postOnly", "post_only")
@@ -3454,7 +3454,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
@@ -3462,7 +3462,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan AsyncResult[Order], id 
 		request["amount"] = this.GetOrderAmount(market, amount)
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var triggerPrice *float64 = this.SafeNumberN(paramsResolved, []any{"stopPrice", "stop_price", "triggerPrice"})
 	if triggerPrice != nil {
@@ -4040,7 +4040,7 @@ func (this *Coinbaseinternational) fetchLeverageBody(ch chan AsyncResult[Leverag
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}

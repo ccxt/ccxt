@@ -1319,7 +1319,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1357,7 +1357,7 @@ func (this *Gemini) fetchTickerV1Body(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1400,7 +1400,7 @@ func (this *Gemini) fetchTickerV2Body(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1788,7 +1788,7 @@ func (this *Gemini) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2305,9 +2305,9 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		clientOrderIdStr := strconv.FormatInt(this.Milliseconds(), 10)
 		clientOrderId = &clientOrderIdStr
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var amountString *string = this.AmountToPrecision(symbol, amount)
-	var priceString *string = this.PriceToPrecision(symbol, price)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
+	var amountString *string = this.AmountToPrecision(&symbol, amount)
+	var priceString *string = this.PriceToPrecision(&symbol, price)
 	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
 		"symbol":          nil,
@@ -2332,7 +2332,7 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *typeValue + " orders"))
 	}
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		request["type"] = "exchange stop limit"
 	} else {
 		// No options can be applied to stop-limit orders at this time.
@@ -3001,7 +3001,7 @@ func (this *Gemini) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var timeframeId *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"timeframe": timeframeId,
@@ -3051,7 +3051,7 @@ func (this *Gemini) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

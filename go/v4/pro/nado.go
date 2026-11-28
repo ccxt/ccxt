@@ -102,12 +102,12 @@ func (this *Nado) RequestId() int64 {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
  */
-func (this *Nado) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Nado) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Nado) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Nado) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -121,7 +121,7 @@ func (this *Nado) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "trade:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 
@@ -210,7 +210,7 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, "trade:"+market["symbol"].(string))
 	}
@@ -270,7 +270,7 @@ func (this *Nado) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, "trade:"+market["symbol"].(string))
 	}
@@ -311,7 +311,7 @@ func (this *Nado) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "orderbook:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	if !(this.Orderbooks[market["symbol"].(string)] != nil) {
@@ -408,7 +408,7 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		messageHashStr := "orderbook:" + market["symbol"].(string)
 		var messageHash *string = &messageHashStr
 		markets = append(markets, market)
@@ -472,7 +472,7 @@ func (this *Nado) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, "orderbook:"+market["symbol"].(string))
 	}
@@ -519,7 +519,7 @@ func (this *Nado) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "ohlcv:" + timeframe + ":" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var request map[string]any = map[string]any{
@@ -720,7 +720,7 @@ func (this *Nado) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -798,7 +798,7 @@ func (this *Nado) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var symbolMarket map[string]any = this.Market(symbolsNormalized[0])
+			var symbolMarket map[string]any = this.Market(&symbolsNormalized[0])
 			market = symbolMarket
 			messageHash = "ticker:" + *this.SafeString(symbolMarket, "symbol", "")
 			streamType = "best_bid_offer"
@@ -863,7 +863,7 @@ func (this *Nado) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var symbolMarket map[string]any = this.Market(symbolsNormalized[0])
+			var symbolMarket map[string]any = this.Market(&symbolsNormalized[0])
 			market = symbolMarket
 			messageHash = "ticker:" + *this.SafeString(symbolMarket, "symbol", "")
 			streamType = "best_bid_offer"
@@ -911,7 +911,7 @@ func (this *Nado) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var symbolMarket map[string]any = this.Market(symbolsNormalized[0])
+			var symbolMarket map[string]any = this.Market(&symbolsNormalized[0])
 			market = symbolMarket
 			messageHash = "bidask:" + *this.SafeString(symbolMarket, "symbol", "")
 			streamType = "best_bid_offer"
@@ -976,7 +976,7 @@ func (this *Nado) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var symbolMarket map[string]any = this.Market(symbolsNormalized[0])
+			var symbolMarket map[string]any = this.Market(&symbolsNormalized[0])
 			market = symbolMarket
 			messageHash = "bidask:" + *this.SafeString(symbolMarket, "symbol", "")
 			streamType = "best_bid_offer"
@@ -1319,7 +1319,7 @@ func (this *Nado) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
+			var market map[string]any = this.Market(&symbolsNormalized[0])
 			var marketSymbol *string = this.SafeString(market, "symbol")
 			if marketSymbol != nil {
 				messageHash += ":" + *marketSymbol
@@ -1390,7 +1390,7 @@ func (this *Nado) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optionalA
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(symbolsNormalized[0])
+			var market map[string]any = this.Market(&symbolsNormalized[0])
 			var marketSymbol *string = this.SafeString(market, "symbol")
 			if marketSymbol != nil {
 				messageHash += ":" + *marketSymbol
@@ -1455,7 +1455,7 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var paramsExtended map[string]any = this.Extend(map[string]any{
 		"id": this.RequestId(),
 	}, params)
@@ -1549,7 +1549,7 @@ func (this *Nado) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	// for cancel_and_place the request id is echoed from the nested place_order object
 	var paramsExtended map[string]any = this.Extend(map[string]any{
 		"id": this.RequestId(),

@@ -1450,7 +1450,7 @@ func (this *Whitebit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var fee map[string]any = this.SafeDictMap(response, market["baseId"], map[string]any{})
 		var makerFee *string = this.SafeString(fee, "maker_fee")
 		var takerFee *string = this.SafeString(fee, "taker_fee")
@@ -1828,7 +1828,7 @@ func (this *Whitebit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -2180,7 +2180,7 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
-			var market map[string]any = this.Market(symbol)
+			var market map[string]any = this.Market(&symbol)
 			if !(*this.SafeBool(market, "contract", false)) {
 				onlyContractSymbols = false
 				break
@@ -2337,7 +2337,7 @@ func (this *Whitebit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -2410,7 +2410,7 @@ func (this *Whitebit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -2674,7 +2674,7 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2942,7 +2942,7 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 		"side":   side,
@@ -2955,9 +2955,9 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		if (side != "buy") || (typeVar != "market") {
 			panic(InvalidOrder(this.Id + " createOrder() cost is only supported for market buy orders"))
 		}
-		request["amount"] = this.CostToPrecision(symbol, cost)
+		request["amount"] = this.CostToPrecision(&symbol, cost)
 	} else {
-		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var clientOrderId *string = this.SafeString2(paramsCost, "clOrdId", "clientOrderId")
 	if clientOrderId == nil {
@@ -3005,10 +3005,10 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var useCollateralEndpoint bool = (marginMode != nil) || (marketType != nil && *marketType == "swap")
 	var response map[string]any = nil
 	if isStopOrder {
-		request["activation_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["activation_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		if isLimitOrder {
 			// stop limit order
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 
 			r1 := <-this.V4PrivatePostOrderStopLimit(this.Extend(request, orderParams))
 			if r1.Err != nil {
@@ -3036,7 +3036,7 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else {
 		if isLimitOrder {
 			// limit order
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 			if useCollateralEndpoint {
 
 				r4 := <-this.V4PrivatePostOrderCollateralLimit(this.Extend(request, orderParams))
@@ -3120,7 +3120,7 @@ func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -3139,27 +3139,27 @@ func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	var isStopOrder bool = (triggerPrice != nil)
 	// Handle activation price for stop orders
 	if isStopOrder {
-		request["activation_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["activation_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	var isLimitOrder bool = (typeVar == "limit")
 	var total *float64 = this.SafeNumber(params, "total")
 	if total != nil {
-		request["total"] = this.AmountToPrecision(symbol, total)
+		request["total"] = this.AmountToPrecision(&symbol, total)
 	} else if amount != nil {
 		if isLimitOrder {
 			// Limit orders always use amount parameter
-			request["amount"] = this.AmountToPrecision(symbol, amount)
+			request["amount"] = this.AmountToPrecision(&symbol, amount)
 		} else if (typeVar == "market") && (side == "buy") {
 			// Market buy orders use total parameter
-			request["total"] = this.AmountToPrecision(symbol, amount)
+			request["total"] = this.AmountToPrecision(&symbol, amount)
 		} else {
 			// Market sell orders use amount parameter
-			request["amount"] = this.AmountToPrecision(symbol, amount)
+			request["amount"] = this.AmountToPrecision(&symbol, amount)
 		}
 	}
 	// Handle price parameter for limit orders
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	// Ensure at least one modifiable parameter is provided
 	var hasModifiableParam bool = (amount != nil) || (price != nil) || (triggerPrice != nil) || (total != nil)
@@ -5019,7 +5019,7 @@ func (this *Whitebit) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.FetchFundingRatesAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -5714,7 +5714,7 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -5850,7 +5850,7 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

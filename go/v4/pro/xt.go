@@ -506,7 +506,7 @@ func (this *Xt) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
@@ -547,7 +547,7 @@ func (this *Xt) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var options, _ = this.Options["unWatchTicker"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
@@ -712,7 +712,7 @@ func (this *Xt) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.SubscribeAsync("kline@"+*this.SafeString(market, "id", "")+","+timeframe, "public", "watchOHLCV", market, nil, params)
 	if r1.Err != nil {
@@ -758,7 +758,7 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var name string = "kline@" + *this.SafeString(market, "id", "") + "," + timeframe
 	var messageHash string = "unsubscribe::" + name
 	var symbolsAndTimeframes []any = []any{[]any{market["symbol"], timeframe}}
@@ -786,12 +786,12 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
-func (this *Xt) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Xt) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Xt) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Xt) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -807,7 +807,7 @@ func (this *Xt) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol a
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.SubscribeAsync("trade@"+*this.SafeString(market, "id", ""), "public", "watchTrades", market, nil, params)
 	if r1.Err != nil {
@@ -850,7 +850,7 @@ func (this *Xt) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var name string = "trade@" + *this.SafeString(market, "id", "")
 	var messageHash string = "unsubscribe::" + name
 
@@ -895,7 +895,7 @@ func (this *Xt) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterf
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var levels *string = this.SafeString(params, "levels")
 	var paramsOmitted map[string]any = this.OmitDict(params, "levels")
 	var marketId string = *this.SafeString(market, "id", "")
@@ -944,7 +944,7 @@ func (this *Xt) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var levels *string = this.SafeString(params, "levels")
 	var paramsOmitted map[string]any = this.OmitDict(params, "levels")
 	var marketId string = *this.SafeString(market, "id", "")
@@ -1214,7 +1214,7 @@ func (this *Xt) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate],
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " watchFundingRate() supports swap contracts only"))
 	}
@@ -1253,7 +1253,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " unWatchFundingRate() supports swap contracts only"))
 	}

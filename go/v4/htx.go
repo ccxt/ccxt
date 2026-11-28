@@ -2346,7 +2346,7 @@ func (this *Htx) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbols": market["id"],
 	}
@@ -2513,7 +2513,7 @@ func (this *Htx) ParseTradingLimits(limits map[string]any, optionalArgs ...any) 
 		},
 	}
 }
-func (this *Htx) CostToPrecision(symbol any, cost any) *string {
+func (this *Htx) CostToPrecision(symbol *string, cost any) *string {
 	var market map[string]any = this.Market(symbol)
 	retStrVal := this.DecimalToPrecision(cost, TRUNCATE, this.SafeValue(market["precision"], "cost"), this.PrecisionMode)
 	return &retStrVal
@@ -3181,7 +3181,7 @@ func (this *Htx) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "linear", false) {
@@ -3547,7 +3547,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"type": "step0",
 	}
@@ -4196,7 +4196,7 @@ func (this *Htx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	if true {
 		request["size"] = min(limit, 2000) // max 2000
@@ -4358,7 +4358,7 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -7032,7 +7032,7 @@ func (this *Htx) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], sy
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -7508,7 +7508,7 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
 	var stopLossTriggerPrice *float64 = this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price")
 	var takeProfitTriggerPrice *float64 = this.SafeNumber2(params, "takeProfitPrice", "tp_trigger_price")
@@ -10043,7 +10043,7 @@ func (this *Htx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"contract_code": market["id"],
 	}
@@ -11081,7 +11081,7 @@ func (this *Htx) fetchPositionBody(ch chan AsyncResult[Position], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("fetchPosition", params)
 	marketType, query := this.HandleMarketTypeAndParams("fetchPosition", market, paramsMarginMode)
 	var request map[string]any = map[string]any{}
@@ -11493,7 +11493,7 @@ func (this *Htx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 		"12h": "12hour",
 		"1d":  "1day",
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var amountType *int64 = this.SafeInteger2(params, "amount_type", "amountType", 2)
 	var request map[string]any = map[string]any{
 		"period":      timeframes[timeframe],
@@ -11702,7 +11702,7 @@ func (this *Htx) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
@@ -11919,7 +11919,7 @@ func (this *Htx) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbo
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   this.CurrencyToPrecision(code, amount),
@@ -12650,7 +12650,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var tradeType *int64 = this.SafeInteger2(params, "trade_type", "tradeType", 0)
 	var request map[string]any = map[string]any{}
 	if !(*this.SafeBool(market, "linear", false)) {
@@ -12813,7 +12813,7 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " closePosition() symbol supports contract markets only"))
@@ -12846,7 +12846,7 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " closePosition () requires an extra argument params[\"amount\"] for inverse markets"))
 		}
-		request["volume"] = this.AmountToPrecision(symbol, amount)
+		request["volume"] = this.AmountToPrecision(&symbol, amount)
 		request["direction"] = side
 		var paramsVolume map[string]any = this.OmitDict(paramsOmitted, []any{"volume", "amount"})
 		if *this.SafeBool(market, "swap", false) {

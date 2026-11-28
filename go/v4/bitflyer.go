@@ -686,7 +686,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"product_code": nil,
 	}
@@ -759,7 +759,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -873,7 +873,7 @@ func (this *Bitflyer) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -930,7 +930,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}
@@ -1141,7 +1141,7 @@ func (this *Bitflyer) FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[
 func (this *Bitflyer) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1170,13 +1170,9 @@ func (this *Bitflyer) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	if symbol != nil {
+	var marketSymbol *string = this.SafeString(market, "symbol")
 
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBy(this.ParseOrders(response, market, since, limit), "symbol", symbol))}
-		return nil
-	}
-
-	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBy(this.ParseOrders(response, market, since, limit), "symbol", marketSymbol))}
 	return nil
 }
 
@@ -1215,11 +1211,11 @@ func (this *Bitflyer) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes84615 []any = OrdersToList(r.Value)
-	if retRes84615 == nil {
+	var retRes84415 []any = OrdersToList(r.Value)
+	if retRes84415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes84615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes84415)}
 	}
 	return nil
 }
@@ -1259,11 +1255,11 @@ func (this *Bitflyer) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes86415 []any = OrdersToList(r.Value)
-	if retRes86415 == nil {
+	var retRes86215 []any = OrdersToList(r.Value)
+	if retRes86215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes86415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes86215)}
 	}
 	return nil
 }
@@ -1756,7 +1752,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"product_code": market["id"],
 	}

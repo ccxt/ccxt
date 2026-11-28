@@ -785,7 +785,7 @@ func (this *Bittrade) ParseTradingLimits(limits map[string]any, optionalArgs ...
 		},
 	}
 }
-func (this *Bittrade) CostToPrecision(symbol any, cost any) *string {
+func (this *Bittrade) CostToPrecision(symbol *string, cost any) *string {
 	var precision map[string]any = SafeMapTyped(this.Market(symbol), "precision")
 	retStrVal := this.DecimalToPrecision(cost, TRUNCATE, precision["cost"], this.PrecisionMode)
 	return &retStrVal
@@ -1076,7 +1076,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 		"type":   "step0",
@@ -1151,7 +1151,7 @@ func (this *Bittrade) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1485,7 +1485,7 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1589,7 +1589,7 @@ func (this *Bittrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2365,7 +2365,7 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -2415,7 +2415,7 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var account map[string]any = SafeMapTyped(this.Accounts, 0)
 	var request map[string]any = map[string]any{
 		"account-id": account["id"],
@@ -2437,7 +2437,7 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 		paramsOrder = this.OmitDict(paramsRequiresPrice, "cost")
 		if cost != nil {
-			quoteAmount = this.AmountToPrecision(symbol, cost)
+			quoteAmount = this.AmountToPrecision(&symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2450,17 +2450,17 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 				// we use amountToPrecision here because the exchange requires cost in base precision
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
-				quoteAmount = this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString))
+				quoteAmount = this.AmountToPrecision(&symbol, Precise.StringMul(amountString, priceString))
 			}
 		} else {
-			quoteAmount = this.AmountToPrecision(symbol, amount)
+			quoteAmount = this.AmountToPrecision(&symbol, amount)
 		}
 		request["amount"] = quoteAmount
 	} else {
-		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if (typeVar == "limit") || (typeVar == "ioc") || (typeVar == "limit-maker") || (typeVar == "stop-limit") || (typeVar == "stop-limit-fok") {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var method string = *this.SafeString(this.Options["createOrder"], "method", "privatePostOrderOrdersPlace")
 	var response map[string]any = nil

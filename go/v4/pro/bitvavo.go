@@ -99,7 +99,7 @@ func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var messageHash string = name + "@" + *this.SafeString(market, "id", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var request map[string]any = map[string]any{
@@ -139,7 +139,7 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[[]any], me
 	var messageHashes []string = []string{methodName}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		args = append(args, market["id"])
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
@@ -362,12 +362,12 @@ func (this *Bitvavo) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) m
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitvavo) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bitvavo) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitvavo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -383,7 +383,7 @@ func (this *Bitvavo) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchPublicAsync("trades", symbolValue, params)
 	if r1.Err != nil {
@@ -463,7 +463,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	var marketIds []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, name+"@"+*this.SafeString(market, "id", ""))
 	}
@@ -558,7 +558,7 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var marketIds []any = []any{}
 	var subMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		subMessageHashes = append(subMessageHashes, name+"@"+*this.SafeString(market, "id", ""))
 	}
@@ -612,7 +612,7 @@ func (this *Bitvavo) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var name string = "candles"
 	var marketId *string = this.SafeString(market, "id")
@@ -946,7 +946,7 @@ func (this *Bitvavo) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var name string = "book"
 	var messageHash string = name + "@" + *this.SafeString(market, "id", "")
@@ -1013,7 +1013,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var marketIds []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		messageHashes = append(messageHashes, name+"@"+*this.SafeString(market, "id", ""))
 	}
@@ -1104,7 +1104,7 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	var marketIds []any = []any{}
 	var subMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		marketIds = append(marketIds, market["id"])
 		subMessageHashes = append(subMessageHashes, name+"@"+*this.SafeString(market, "id", ""))
 	}

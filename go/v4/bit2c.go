@@ -482,7 +482,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -587,7 +587,7 @@ func (this *Bit2c) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -635,7 +635,7 @@ func (this *Bit2c) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var optionValue *string = this.SafeString(this.Options, "fetchTradesMethod")                                                            // kept here for backward compatibility #29154
 	var method *string = this.SafeString(TupleSlice(this.HandleOptionAndParams(map[string]any{}, "fetchTrades", "method", optionValue)), 0) // publicGetExchangesPairTrades or publicGetExchangesPairLasttrades
 	var request map[string]any = map[string]any{
@@ -795,7 +795,7 @@ func (this *Bit2c) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"Amount": amount,
 		"Pair":   market["id"],

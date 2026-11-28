@@ -123,7 +123,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	} else {
 		url = this.SafeString(wsUrls, "public", "")
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
@@ -218,7 +218,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
 		var symbol string = symbolsResolved[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var streamMarketId any = nil
 		if isGenerationTwo {
 			streamMarketId = this.GetGen2MarketId(market)
@@ -527,7 +527,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	} else {
 		url = this.SafeString(wsUrls, "public", "")
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook" + ":" + symbolValue
 	var request any = map[string]any{
@@ -718,12 +718,12 @@ func (this *Bithumb) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta an
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
  */
-func (this *Bithumb) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bithumb) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -749,7 +749,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	} else {
 		url = this.SafeString(wsUrls, "public", "")
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + symbolValue
 	var request any = map[string]any{

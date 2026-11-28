@@ -506,7 +506,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -894,7 +894,7 @@ func (this *Bitbns) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "t_rate"})
 	var targetRate *string = this.SafeString(params, "target_rate")
 	var trailRate *string = this.SafeString(params, "trail_rate")
@@ -903,21 +903,21 @@ func (this *Bitbns) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var request map[string]any = map[string]any{
 		"side":     strings.ToUpper(side),
 		"symbol":   market["uppercaseId"],
-		"quantity": this.AmountToPrecision(symbol, amount),
+		"quantity": this.AmountToPrecision(&symbol, amount),
 	}
 	if typeVar == "limit" {
-		request["rate"] = this.PriceToPrecision(symbol, price)
+		request["rate"] = this.PriceToPrecision(&symbol, price)
 	} else {
 		request["market"] = market["quoteId"]
 	}
 	if triggerPrice != nil {
-		request["t_rate"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["t_rate"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	if targetRate != nil {
-		request["target_rate"] = this.PriceToPrecision(symbol, targetRate)
+		request["target_rate"] = this.PriceToPrecision(&symbol, targetRate)
 	}
 	if trailRate != nil {
-		request["trail_rate"] = this.PriceToPrecision(symbol, trailRate)
+		request["trail_rate"] = this.PriceToPrecision(&symbol, trailRate)
 	}
 	var response map[string]any = nil
 	if typeVar == "limit" {
@@ -1428,7 +1428,7 @@ func (this *Bitbns) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"coin":   market["baseId"],
 		"market": market["quoteId"],

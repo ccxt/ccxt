@@ -315,7 +315,7 @@ func (this *Lighter) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"channel": "order_book/" + *this.SafeString(market, "id", ""),
@@ -358,7 +358,7 @@ func (this *Lighter) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"channel": "order_book/" + *this.SafeString(market, "id", ""),
@@ -492,7 +492,7 @@ func (this *Lighter) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " watchTicker() is only supported for swap markets"))
@@ -536,7 +536,7 @@ func (this *Lighter) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " unWatchTicker() is only supported for swap markets"))
@@ -921,12 +921,12 @@ func (this *Lighter) HandleTrades(client ccxt.ClientInterface, message map[strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Lighter) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Lighter) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -942,7 +942,7 @@ func (this *Lighter) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"channel": "trade/" + *this.SafeString(market, "id", ""),
 	}
@@ -984,7 +984,7 @@ func (this *Lighter) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"channel": "trade/" + *this.SafeString(market, "id", ""),
 	}
@@ -1462,7 +1462,7 @@ func (this *Lighter) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liqui
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"channel": "trade/" + *this.SafeString(market, "id", ""),
 	}
@@ -1835,7 +1835,7 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	txType := txTypetxInfoorderVariable[0]
 	txInfo := txTypetxInfoorderVariable[1]
 	order := txTypetxInfoorderVariable[2]
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var parsedTx any = this.ParseJson(txInfo)
 	var message map[string]any = map[string]any{
 		"type": "jsonapi/sendtx",

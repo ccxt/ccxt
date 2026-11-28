@@ -797,7 +797,7 @@ func TickerExceptionNeedsOhlcv(ex any, exchange ccxt.ICoreExchange, ticker any) 
 		var symbol any = GetValue(ticker, "symbol")
 		if symbol != nil {
 			if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbol)) {
-				if !IsEqual(exchange.FeatureValue(symbol, "fetchOHLCV"), nil) {
+				if !IsEqual(exchange.FeatureValue(StringArg(symbol), "fetchOHLCV"), nil) {
 					return true
 				}
 			}

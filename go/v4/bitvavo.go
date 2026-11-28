@@ -849,7 +849,7 @@ func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1022,7 +1022,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
 	if paginate {
 
@@ -1276,7 +1276,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1340,7 +1340,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -1468,7 +1468,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -1969,7 +1969,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market":    market["id"],
 		"side":      side,
@@ -2001,11 +2001,11 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 			var precision *float64 = this.SafeNumber(this.Currency(market["quote"]), "precision")
 			request["amountQuote"] = this.DecimalToPrecision(cost, TRUNCATE, precision, this.PrecisionMode)
 		} else {
-			request["amount"] = this.AmountToPrecision(symbol, amount)
+			request["amount"] = this.AmountToPrecision(&symbol, amount)
 		}
 	} else if isLimitOrder {
-		request["price"] = this.PriceToPrecision(symbol, price)
-		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var isTakeProfit bool = (takeProfitPrice != nil) || (typeVar == "takeProfit") || (typeVar == "takeProfitLimit")
 	var isStopLoss bool = (stopLossPrice != nil) || (triggerPrice != nil) && (!isTakeProfit) || (typeVar == "stopLoss") || (typeVar == "stopLossLimit")
@@ -2029,7 +2029,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 		}
 	}
 	if triggerPrice != nil {
-		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["triggerAmount"] = this.PriceToPrecision(&symbol, triggerPrice)
 		request["triggerType"] = "price"
 		request["triggerReference"] = "lastTrade" // 'bestBid', 'bestAsk', 'midPrice'
 	}
@@ -2099,7 +2099,7 @@ func (this *Bitvavo) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostOrder(request)
@@ -2159,21 +2159,21 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, 
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if amount != nil {
-		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if amountRemaining != nil {
-		request["amountRemaining"] = this.AmountToPrecision(symbol, amountRemaining)
+		request["amountRemaining"] = this.AmountToPrecision(&symbol, amountRemaining)
 	}
 	if triggerPrice != nil {
-		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["triggerAmount"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	request = this.Extend(request, paramsOmitted)
 	if this.IsEmpty(request) {
@@ -2231,7 +2231,7 @@ func (this *Bitvavo) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePutOrder(request)

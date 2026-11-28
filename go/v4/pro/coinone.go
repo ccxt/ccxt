@@ -89,7 +89,7 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "orderbook:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var url *string = this.UrlsApiStrings["ws"]
@@ -145,7 +145,8 @@ func (this *Coinone) HandleOrderBook(client ccxt.ClientInterface, message map[st
 	if (base == nil) || (quote == nil) {
 		return
 	}
-	var symbol string = this.Symbol(*base + "/" + *quote)
+	var marketSymbol string = *base + "/" + *quote
+	var symbol string = this.Symbol(&marketSymbol)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
@@ -203,7 +204,7 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var url *string = this.UrlsApiStrings["ws"]
@@ -304,7 +305,8 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) m
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbolText := this.Symbol(*base + "/" + *quote)
+		var marketSymbol string = *base + "/" + *quote
+		symbolText := this.Symbol(&marketSymbol)
 		symbol = &symbolText
 	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -342,12 +344,12 @@ func (this *Coinone) ParseWsTicker(ticker map[string]any, optionalArgs ...any) m
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Coinone) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinone) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -363,7 +365,7 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	messageHashStr := "trade:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var url *string = this.UrlsApiStrings["ws"]

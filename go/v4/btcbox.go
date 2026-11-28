@@ -517,7 +517,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
@@ -591,7 +591,7 @@ func (this *Btcbox) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
@@ -714,7 +714,7 @@ func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var numSymbols int = len(this.Symbols)
 	if numSymbols > 1 {
@@ -774,7 +774,7 @@ func (this *Btcbox) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"amount": amount,
 		"price":  price,
@@ -834,7 +834,7 @@ func (this *Btcbox) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	} else {
 		symbolResolved = *symbol
 	}
-	var market map[string]any = this.Market(symbolResolved)
+	var market map[string]any = this.Market(&symbolResolved)
 	var request map[string]any = map[string]any{
 		"id":   id,
 		"coin": market["baseId"],
@@ -962,7 +962,7 @@ func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	} else {
 		symbolResolved = *symbol
 	}
-	var market map[string]any = this.Market(symbolResolved)
+	var market map[string]any = this.Market(&symbolResolved)
 	var request map[string]any = this.Extend(map[string]any{
 		"id":   id,
 		"coin": market["baseId"],
@@ -1019,7 +1019,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 	} else {
 		symbolResolved = *symbol
 	}
-	var market map[string]any = this.Market(symbolResolved)
+	var market map[string]any = this.Market(&symbolResolved)
 	var request map[string]any = map[string]any{
 		"type": typeVar,
 		"coin": market["baseId"],

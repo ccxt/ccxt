@@ -999,7 +999,7 @@ func (this *Btse) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
@@ -1110,7 +1110,7 @@ func (this *Btse) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1564,7 +1564,7 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTie
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Contract {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
@@ -1649,7 +1649,7 @@ func (this *Btse) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1769,7 +1769,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
@@ -1880,7 +1880,7 @@ func (this *Btse) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "spot", false) {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support spot markets"))
 	}
@@ -2045,7 +2045,7 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2490,7 +2490,7 @@ func (this *Btse) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if market.Spot {
 
 		r1 := <-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)
@@ -2554,7 +2554,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var typeValue string = strings.ToUpper(typeVar)
 	var upperSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
@@ -2601,27 +2601,27 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 		var cost *string = this.SafeString(query, "cost")
 		query = this.OmitDict(query, "cost")
 		if cost != nil {
-			quoteAmount = this.CostToPrecision(symbol, cost)
+			quoteAmount = this.CostToPrecision(&symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
 			if price == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
-				quoteAmount = this.CostToPrecision(symbol, Precise.StringMul(amountString, priceString))
+				quoteAmount = this.CostToPrecision(&symbol, Precise.StringMul(amountString, priceString))
 			}
 		} else {
-			quoteAmount = this.CostToPrecision(symbol, this.NumberToString(amount))
+			quoteAmount = this.CostToPrecision(&symbol, this.NumberToString(amount))
 		}
 		request["quoteOrderSize"] = quoteAmount
 	} else {
-		request["orderSize"] = this.AmountToPrecision(symbol, amount)
+		request["orderSize"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var response []any = nil
 	if !isAlgoOrder {
 		request["orderType"] = typeValue
 		if isLimitOrder {
-			request["orderPrice"] = this.PriceToPrecision(symbol, price)
+			request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 		}
 		//
 		//     [
@@ -2680,10 +2680,10 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 				}
 			}
 			if isLimitOrder {
-				request["orderPrice"] = this.PriceToPrecision(symbol, price)
+				request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 			}
 			request["triggerOrderType"] = triggerOrderType
-			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPriceToSend)
+			request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPriceToSend)
 			var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
 			request["triggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 			query = this.OmitDict(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
@@ -2693,25 +2693,25 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 				// the price argument is the limit price of the take profit leg,
 				// the stopPrice param is the limit price of the stop loss leg
 				// and the triggerPrice param is where the stop loss leg fires
-				request["takeProfitOrderPrice"] = this.PriceToPrecision(symbol, price)
+				request["takeProfitOrderPrice"] = this.PriceToPrecision(&symbol, price)
 				var stopPrice *string = this.SafeString(query, "stopPrice")
 				if stopPrice != nil {
-					request["stopLossOrderPrice"] = this.PriceToPrecision(symbol, stopPrice)
+					request["stopLossOrderPrice"] = this.PriceToPrecision(&symbol, stopPrice)
 				}
 				if triggerPrice != nil {
-					request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+					request["stopLossTriggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
 				request["stopLossTriggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 				query = this.OmitDict(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
 			} else if typeValue == "PEG" {
 				// the required stealth and optional deviation params pass through
-				request["orderPrice"] = this.PriceToPrecision(symbol, price)
+				request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 			} else if typeValue == "TRAILING" {
 				var trailingAmount *string = this.SafeString(query, "trailingAmount")
 				var trailingPercent *string = this.SafeString(query, "trailingPercent")
 				if trailingAmount != nil {
-					request["trailValue"] = this.PriceToPrecision(symbol, trailingAmount)
+					request["trailValue"] = this.PriceToPrecision(&symbol, trailingAmount)
 					request["trailValueType"] = "DISTANCE"
 				} else if trailingPercent != nil {
 					request["trailValue"] = trailingPercent
@@ -2794,12 +2794,12 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var typeValue string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":    this.FuturesRequestId(market),
 		"orderSide": strings.ToUpper(side),
-		"orderSize": this.AmountToPrecision(symbol, amount),
+		"orderSize": this.AmountToPrecision(&symbol, amount),
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
@@ -2856,14 +2856,14 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
-			request["takeProfitTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
+			request["takeProfitTriggerPrice"] = this.PriceToPrecision(&symbol, takeProfitTriggerPrice)
 			var takeProfitTriggerPriceType *string = this.SafeString(takeProfit, "priceType")
 			if takeProfitTriggerPriceType != nil {
 				request["takeProfitTriggerType"] = this.EncodeTriggerPriceType(*takeProfitTriggerPriceType)
 			}
 		}
 		if stopLossTriggerPrice != nil {
-			request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
+			request["stopLossTriggerPrice"] = this.PriceToPrecision(&symbol, stopLossTriggerPrice)
 			var stopLossTriggerPriceType *string = this.SafeString(stopLoss, "priceType")
 			if stopLossTriggerPriceType != nil {
 				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(*stopLossTriggerPriceType)
@@ -2875,7 +2875,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	if !isAlgoOrder {
 		request["orderType"] = typeValue
 		if isLimitOrder {
-			request["orderPrice"] = this.PriceToPrecision(symbol, price)
+			request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 		}
 		//
 		//     {
@@ -2919,11 +2919,11 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			if triggerPriceToSend == nil {
 				triggerPriceToSend = stopLossPrice
 			}
-			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPriceToSend)
+			request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPriceToSend)
 			var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
 			request["triggerType"] = this.EncodeTriggerPriceType(*triggerPriceType)
 			if isLimitOrder {
-				request["orderPrice"] = this.PriceToPrecision(symbol, price)
+				request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 			}
 			query = this.OmitDict(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
 		} else {
@@ -2932,13 +2932,13 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 				// the price argument is the limit price of the take profit leg,
 				// the stopPrice param is the limit price of the stop loss leg
 				// and the triggerPrice param is where the stop loss leg fires
-				request["takeProfitOrderPrice"] = this.PriceToPrecision(symbol, price)
+				request["takeProfitOrderPrice"] = this.PriceToPrecision(&symbol, price)
 				var stopPrice *string = this.SafeString(query, "stopPrice")
 				if stopPrice != nil {
-					request["stopLossOrderPrice"] = this.PriceToPrecision(symbol, stopPrice)
+					request["stopLossOrderPrice"] = this.PriceToPrecision(&symbol, stopPrice)
 				}
 				if triggerPrice != nil {
-					request["stopLossTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+					request["stopLossTriggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
 				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(*triggerPriceType)
@@ -2947,13 +2947,13 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 				// the required deviation and stealth params pass through, the
 				// optional price argument becomes a worst-price bound
 				if price != nil {
-					request["orderPrice"] = this.PriceToPrecision(symbol, price)
+					request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 				}
 			} else if typeValue == "TRAILING" {
 				var trailingAmount *string = this.SafeString(query, "trailingAmount")
 				var trailingPercent *string = this.SafeString(query, "trailingPercent")
 				if trailingAmount != nil {
-					request["trailValue"] = this.PriceToPrecision(symbol, trailingAmount)
+					request["trailValue"] = this.PriceToPrecision(&symbol, trailingAmount)
 					request["trailValueType"] = "DISTANCE"
 				} else if trailingPercent != nil {
 					request["trailValue"] = trailingPercent
@@ -3104,7 +3104,7 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
@@ -3122,7 +3122,7 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	}
 	var triggerPrice *string = this.SafeString(paramsOmitted, "triggerPrice")
 	if triggerPrice != nil {
-		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	var query map[string]any
 	if triggerPrice != nil {
@@ -3131,10 +3131,10 @@ func (this *Btse) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 		query = paramsOmitted
 	}
 	if amount != nil {
-		request["orderSize"] = this.AmountToPrecision(symbol, amount)
+		request["orderSize"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if price != nil {
-		request["orderPrice"] = this.PriceToPrecision(symbol, price)
+		request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 	}
 	var isSlide *bool = this.SafeBool(query, "slide", false)
 	if (amount == nil) && (price == nil) && (triggerPrice == nil) && (!(isSlide != nil && *isSlide)) {
@@ -4242,7 +4242,7 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -4350,7 +4350,7 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var paramsExtended map[string]any = this.Extend(map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}, params)
@@ -4616,7 +4616,7 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}
@@ -4762,7 +4762,7 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var positionId *string = this.SafeString(params, "positionId")
 	if positionId == nil {
 		panic(ArgumentsRequired(this.Id + " closePosition() requires a positionId parameter"))
@@ -4778,7 +4778,7 @@ func (this *Btse) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " closePosition() requires a price parameter for limit orders"))
 		}
-		request["orderPrice"] = this.PriceToPrecision(symbol, price)
+		request["orderPrice"] = this.PriceToPrecision(&symbol, price)
 	}
 	var paramsOmitted map[string]any
 	if typeUpper == "LIMIT" {
@@ -4822,7 +4822,7 @@ func (this *Btse) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.FuturesRequestId(market),
 	}

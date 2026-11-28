@@ -64,7 +64,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	if symbolForMarket != nil {
 		if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
-			market = exchange.Market(symbolForMarket)
+			market = exchange.Market(SafeStringPtr(symbolForMarket))
 		} else {
 			isUnrecognizedSymbol = true
 		}

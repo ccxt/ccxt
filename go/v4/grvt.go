@@ -1260,7 +1260,7 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument": this.MarketId(&symbol),
 	}
@@ -1478,7 +1478,7 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument": market["id"],
 	}
@@ -1676,7 +1676,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument": market["id"],
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2840,13 +2840,13 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderLeg map[string]any = map[string]any{
 		"instrument": market["id"],
-		"size":       this.AmountToPrecision(symbol, amount),
+		"size":       this.AmountToPrecision(&symbol, amount),
 	}
 	if price != nil {
-		orderLeg["limit_price"] = this.PriceToPrecision(symbol, price)
+		orderLeg["limit_price"] = this.PriceToPrecision(&symbol, price)
 	} else {
 		orderLeg["limit_price"] = nil
 	}
@@ -3075,7 +3075,8 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 	var legs []any = []any{}
 	for i := 0; i < len(orderLegs); i++ {
 		var leg map[string]any = orderLegs[i]
-		var market map[string]any = this.Market(leg["instrument"])
+		var instrument *string = this.SafeString(leg, "instrument")
+		var market map[string]any = this.Market(instrument)
 		var precisionValue int = this.PrecisionFromString(this.SafeString(market["precision"], "base"))
 		var sizeMultiplier float64 = math.Pow(10, float64(precisionValue))
 		var size *string = this.SafeString(leg, "size")
@@ -3167,11 +3168,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes229619 []any = r1.Value
-		if retRes229619 == nil {
+		var retRes229719 []any = r1.Value
+		if retRes229719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes229619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes229719)}
 		}
 		return nil
 	}
@@ -3273,7 +3274,7 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		var quoteIds []any = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
-			var market map[string]any = this.Market(symbol)
+			var market map[string]any = this.Market(&symbol)
 			if !(*this.SafeBool(market, "contract", false)) {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
@@ -3650,11 +3651,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes263519 []any = r1.Value
-		if retRes263519 == nil {
+		var retRes263619 []any = r1.Value
+		if retRes263619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes263519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes263619)}
 		}
 		return nil
 	}
@@ -4213,7 +4214,7 @@ func (this *Grvt) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	var literal307131 map[string]any = map[string]any{
+	var literal307231 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "order_id"),
 		"clientOrderId":       this.SafeString(metadata, "client_order_id"),
 		"timestamp":           timestamp,
@@ -4239,18 +4240,18 @@ func (this *Grvt) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"info":                order,
 	}
 	if price != nil {
-		literal307131["price"] = *price
+		literal307231["price"] = *price
 	}
 	if avgPrice != nil {
-		literal307131["average"] = *avgPrice
+		literal307231["average"] = *avgPrice
 	}
 	if size != nil {
-		literal307131["amount"] = *size
+		literal307231["amount"] = *size
 	}
 	if filled != nil {
-		literal307131["filled"] = *filled
+		literal307231["filled"] = *filled
 	}
-	return this.SafeOrder(literal307131, marketResolved)
+	return this.SafeOrder(literal307231, marketResolved)
 }
 func (this *Grvt) ParseTimeInForce(typeVar *string) *string {
 	var types map[string]any = map[string]any{
@@ -4522,9 +4523,9 @@ func (this *Grvt) FormatSignatureRS(value string) string {
 func (this *Grvt) DefaultSignature() map[string]any {
 	var expirationSeconds int64 = *this.SafeInteger(this.Options, "expirationSeconds", 30)
 	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000*expirationSeconds)*1000
-	var ternaryStr331224 string = "325"
+	var ternaryStr331324 string = "325"
 	if this.IsSandboxModeEnabled {
-		ternaryStr331224 = "326"
+		ternaryStr331324 = "326"
 	}
 	return map[string]any{
 		"signer":     "",
@@ -4533,7 +4534,7 @@ func (this *Grvt) DefaultSignature() map[string]any {
 		"v":          0,
 		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
-		"chain_id":   ternaryStr331224,
+		"chain_id":   ternaryStr331324,
 	}
 }
 func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {

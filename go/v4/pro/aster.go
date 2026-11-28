@@ -236,7 +236,7 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@ticker")
 		messageHashes = append(messageHashes, "ticker:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -316,7 +316,7 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@ticker")
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -473,7 +473,7 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var messageHashes []string = []string{}
 	var use1sFreq *bool = this.SafeBool(paramsOmitted, "use1sFreq", true)
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		var suffix string = ""
 		if use1sFreq != nil && *use1sFreq {
 			suffix = "@1s"
@@ -558,7 +558,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 	var messageHashes []string = []string{}
 	var use1sFreq *bool = this.SafeBool(paramsOmitted, "use1sFreq", true)
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		var suffix string = ""
 		if use1sFreq != nil && *use1sFreq {
 			suffix = "@1s"
@@ -720,7 +720,7 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@bookTicker")
 		messageHashes = append(messageHashes, "bidask:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -797,7 +797,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@bookTicker")
 		messageHashes = append(messageHashes, "unsubscribe:bidask:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -885,12 +885,12 @@ func (this *Aster) ParseWsBidAsk(message map[string]any, market map[string]any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Aster) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Aster) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Aster) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Aster) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -991,7 +991,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		var marketId *string = this.SafeStringLower(market, "id")
 		if marketId == nil {
 			continue
@@ -1071,7 +1071,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	var subscriptionArgs []any = []any{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+"@aggTrade")
 		messageHashes = append(messageHashes, "unsubscribe:trade:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -1426,7 +1426,7 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Or
 		depthSuffix = "@depth10"
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+depthSuffix)
 		messageHashes = append(messageHashes, "orderbook:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -1500,7 +1500,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 		depthSuffix = "@depth10"
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		subscriptionArgs = append(subscriptionArgs, *this.SafeStringLower(market, "id", "")+depthSuffix)
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+*this.SafeString(market, "symbol", ""))
 	}
@@ -1709,7 +1709,7 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 	}
 	var symbols []any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketSymbols[0]))
+	var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&marketSymbols[0]))
 	var typeVar string = "swap"
 	if firstMarket.Type != nil {
 		typeVar = *firstMarket.Type
@@ -1791,7 +1791,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var symbols []any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketSymbols[0]))
+	var firstMarket ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&marketSymbols[0]))
 	var typeVar string = "swap"
 	if firstMarket.Type != nil {
 		typeVar = *firstMarket.Type

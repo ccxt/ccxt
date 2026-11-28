@@ -890,7 +890,7 @@ func (this *Luno) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -1346,7 +1346,7 @@ func (this *Luno) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1508,7 +1508,7 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1579,7 +1579,7 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"duration": this.SafeValue(this.Timeframes, timeframe, timeframe),
 		"pair":     market["id"],
@@ -1745,7 +1745,7 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -1810,7 +1810,7 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
@@ -1821,9 +1821,9 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		request["type"] = strings.ToUpper(side)
 		// todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
 		if side == "buy" {
-			request["counter_volume"] = this.AmountToPrecision(precisionSymbol, amount)
+			request["counter_volume"] = this.AmountToPrecision(&precisionSymbol, amount)
 		} else {
-			request["base_volume"] = this.AmountToPrecision(precisionSymbol, amount)
+			request["base_volume"] = this.AmountToPrecision(&precisionSymbol, amount)
 		}
 
 		r1 := <-this.PrivatePostMarketorder(this.Extend(request, params))
@@ -1832,8 +1832,8 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		}
 		response = r1.Value
 	} else {
-		request["volume"] = this.AmountToPrecision(precisionSymbol, amount)
-		request["price"] = this.PriceToPrecision(precisionSymbol, price)
+		request["volume"] = this.AmountToPrecision(&precisionSymbol, amount)
+		request["price"] = this.PriceToPrecision(&precisionSymbol, price)
 		if side == "buy" {
 			request["type"] = "BID"
 		} else {

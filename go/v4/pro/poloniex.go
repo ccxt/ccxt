@@ -366,7 +366,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var precisionSymbol string = market.Symbol
 	var uppercaseType string = strings.ToUpper(typeVar)
 	if false {
@@ -393,7 +393,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 		paramsOmitted = this.OmitDict(paramsRequiresPrice, "cost")
 		if cost != nil {
-			quoteAmount = this.CostToPrecision(symbol, cost)
+			quoteAmount = this.CostToPrecision(&symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
 			if price == nil {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
@@ -401,16 +401,16 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var costRequest *string = ccxt.Precise.StringMul(amountString, priceString)
-				quoteAmount = this.CostToPrecision(symbol, costRequest)
+				quoteAmount = this.CostToPrecision(&symbol, costRequest)
 			}
 		} else {
-			quoteAmount = this.CostToPrecision(symbol, amount)
+			quoteAmount = this.CostToPrecision(&symbol, amount)
 		}
 		request["amount"] = quoteAmount
 	} else {
-		request["quantity"] = this.AmountToPrecision(precisionSymbol, amount)
+		request["quantity"] = this.AmountToPrecision(&precisionSymbol, amount)
 		if price != nil {
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 		}
 	}
 
@@ -668,7 +668,7 @@ func (this *Poloniex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	if channel == nil {
 		panic(ccxt.BadRequest(this.Id + " unWatchOHLCV cannot take a timeframe of " + timeframe))
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var messageHash string = "unsubscribe:" + *channel + "::" + market.Symbol
 
 	r1 := <-this.UnSubscribeAsync(*channel, []string{market.Symbol}, []string{messageHash}, params)
@@ -705,7 +705,7 @@ func (this *Poloniex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -774,12 +774,12 @@ func (this *Poloniex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Poloniex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Poloniex) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Poloniex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1669,7 +1669,7 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var market map[string]any = this.Market(marketId)
+		var market map[string]any = this.Market(&marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
 		var messageHash string = "orders::" + *symbol
 		client.Resolve(orders, messageHash)

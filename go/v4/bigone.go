@@ -1003,7 +1003,7 @@ func (this *Bigone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	if typeVar != nil && *typeVar == "spot" {
 		var request map[string]any = map[string]any{
@@ -1215,7 +1215,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var response map[string]any = nil
 	if market.Contract {
 		var request map[string]any = map[string]any{
@@ -1536,7 +1536,7 @@ func (this *Bigone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "contract", false) {
 		panic(NotSupported(this.Id + " fetchTrades () can only fetch trades for spot markets"))
 	}
@@ -1631,7 +1631,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if *this.SafeBool(market, "contract", false) {
 		panic(NotSupported(this.Id + " fetchOHLCV () can only fetch ohlcvs for spot markets"))
 	}
@@ -1914,7 +1914,7 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order],
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -1968,7 +1968,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var isBuy bool = (side == "buy")
 	var requestSide string = "ASK"
 	if isBuy {
@@ -1984,10 +1984,10 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],
 		"side":            requestSide,
-		"amount":          this.AmountToPrecision(symbol, amount),
+		"amount":          this.AmountToPrecision(&symbol, amount),
 	}
 	if isLimit || (uppercaseType == "STOP_LIMIT") {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 		if isLimit {
 			var timeInForce *string = this.SafeString(query, "timeInForce")
 			if timeInForce != nil && *timeInForce == "IOC" {
@@ -1997,7 +1997,7 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 				request["post_only"] = true
 			}
 		}
-		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
 	} else {
 		if isBuy {
 			var createMarketBuyOrderRequiresPrice bool
@@ -2017,17 +2017,17 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					} else {
 						costRequest = quoteAmount
 					}
-					request["amount"] = this.CostToPrecision(symbol, costRequest)
+					request["amount"] = this.CostToPrecision(&symbol, costRequest)
 				}
 			} else {
-				request["amount"] = this.CostToPrecision(symbol, amount)
+				request["amount"] = this.CostToPrecision(&symbol, amount)
 			}
 		} else {
-			request["amount"] = this.AmountToPrecision(symbol, amount)
+			request["amount"] = this.AmountToPrecision(&symbol, amount)
 		}
 	}
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		if isBuy {
 			request["operator"] = "GTE"
 		} else {

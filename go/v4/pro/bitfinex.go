@@ -57,12 +57,12 @@ func (this *Bitfinex) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bitfinex) SubscribeAsync(channel string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitfinex) SubscribeAsync(channel string, symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, channel, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel string, symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel string, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -74,7 +74,7 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId *string = this.SafeString(market, "id", "")
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var client ccxt.ClientInterface = this.Client(url)
@@ -131,7 +131,7 @@ func (this *Bitfinex) unSubscribeBody(ch chan ccxt.AsyncResult[bool], channel st
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -239,7 +239,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var channel string = "candles"
@@ -299,7 +299,7 @@ func (this *Bitfinex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var channel string = "candles"
@@ -443,12 +443,12 @@ func (this *Bitfinex) HandleOHLCV(client ccxt.ClientInterface, message []any, su
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitfinex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bitfinex) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitfinex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1697,7 +1697,7 @@ func (this *Bitfinex) HandleOrders(client ccxt.ClientInterface, message []any, s
 	}
 	for i := 0; i < len(keys); i++ {
 		var symbol string = keys[i]
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id

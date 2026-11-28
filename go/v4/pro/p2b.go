@@ -147,7 +147,7 @@ func (this *P2b) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 	if channel == nil {
 		panic(ccxt.BadRequest(this.Id + " watchOHLCV cannot take a timeframe of " + timeframe))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request []any = []any{market["id"], channel}
 	messageHashStr := "kline::" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
@@ -197,7 +197,7 @@ func (this *P2b) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 	var watchTickerOptions, _ = this.Options["watchTicker"].(map[string]any)
 	var name string = *this.SafeString(watchTickerOptions, "name", "state") // or price
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTicker", "name", name)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	ccxt.AddElementToObject(this.Options["tickerSubs"], market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
 	var tickerSubs, _ = this.Options["tickerSubs"].(map[string]any)
 	var request []string = nil
@@ -253,7 +253,7 @@ func (this *P2b) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
 	var messageHashes []string = []string{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		messageHashes = append(messageHashes, *nameOption+"::"+*this.SafeString(market, "symbol", ""))
 		args = append(args, market["id"])
 	}
@@ -284,12 +284,12 @@ func (this *P2b) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticke
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *P2b) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *P2b) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *P2b) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *P2b) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -407,7 +407,7 @@ func (this *P2b) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var name string = "depth.subscribe"
 	messageHashStr := "orderbook::" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr

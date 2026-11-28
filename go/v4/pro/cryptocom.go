@@ -237,7 +237,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	})
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var limitString *string = this.NumberToString(limitResolved)
 		messageHashes = append(messageHashes, "orderbook:"+market["symbol"].(string))
 		topics = append(topics, "book."+*this.SafeString(market, "id", "")+"."+*limitString)
@@ -317,7 +317,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	})
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		subMessageHashes = append(subMessageHashes, "orderbook:"+market["symbol"].(string))
 		messageHashes = append(messageHashes, "unsubscribe:orderbook:"+market["symbol"].(string))
 		topics = append(topics, "book."+*this.SafeString(market, "id", "")+"."+strconv.FormatInt(limit, 10))
@@ -446,12 +446,12 @@ func (this *Cryptocom) HandleOrderBook(client ccxt.ClientInterface, message map[
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Cryptocom) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Cryptocom) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Cryptocom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -533,7 +533,7 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		topics = append(topics, "trade."+*this.SafeString(market, "id", ""))
 	}
 
@@ -590,7 +590,7 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var currentTopic string = "trade." + *this.SafeString(market, "id", "")
 		messageHashes = append(messageHashes, "unsubscribe:trades:"+market["symbol"].(string))
 		topics = append(topics, currentTopic)
@@ -745,7 +745,7 @@ func (this *Cryptocom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.WatchPublicAsync("ticker."+*this.SafeString(market, "id", ""), params)
 	if r1.Err != nil {
@@ -781,7 +781,7 @@ func (this *Cryptocom) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var subMessageHash string = "ticker." + *this.SafeString(market, "id", "")
 	messageHashStr := "unsubscribe:ticker:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
@@ -826,7 +826,7 @@ func (this *Cryptocom) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		messageHashes = append(messageHashes, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
+		messageHashes = append(messageHashes, "ticker."+*this.SafeString(this.Market(&symbol), "id", ""))
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
@@ -891,7 +891,7 @@ func (this *Cryptocom) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], option
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		subMessageHashes = append(subMessageHashes, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
+		subMessageHashes = append(subMessageHashes, "ticker."+*this.SafeString(this.Market(&symbol), "id", ""))
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+symbol)
 	}
 
@@ -1033,7 +1033,7 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		messageHashes = append(messageHashes, "bidask."+symbol)
-		topics = append(topics, "ticker."+*this.SafeString(this.Market(symbol), "id", ""))
+		topics = append(topics, "ticker."+*this.SafeString(this.Market(&symbol), "id", ""))
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var id int64 = this.IncrementingNonce()
@@ -1135,7 +1135,7 @@ func (this *Cryptocom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 
 	r1 := <-this.WatchPublicAsync("candlestick."+*interval+"."+*this.SafeString(market, "id", ""), params)
@@ -1181,7 +1181,7 @@ func (this *Cryptocom) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var subMessageHash string = "candlestick." + *interval + "." + *this.SafeString(market, "id", "")
 	messageHashStr := "unsubscribe:ohlcv:" + market["symbol"].(string) + ":" + timeframe

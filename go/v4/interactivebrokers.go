@@ -3667,7 +3667,7 @@ func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], 
 	_ = params
 	var conids []string = []string{}
 	for i := 0; i < len(symbols); i++ {
-		var market map[string]any = this.Market(symbols[i])
+		var market map[string]any = this.Market(&symbols[i])
 		conids = append(conids, *this.SafeString(market, "id", ""))
 	}
 	var options, _ = this.Options["fetchTickers"].(map[string]any)
@@ -3927,7 +3927,7 @@ func (this *Interactivebrokers) fetchOpenInterestsBody(ch chan AsyncResult[map[s
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
 		if !market.Contract {
 			panic(BadRequest(this.Id + " fetchOpenInterests() supports contract markets only, " + market.Symbol + " is not a contract market"))
 		}
@@ -4138,7 +4138,7 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var maxLimit int64 = 1000
 	var configuredLimit *int64 = this.SafeInteger(this.SafeDict(this.Options, "fetchOHLCV", map[string]any{}), "limit")
 	if configuredLimit != nil {
@@ -4590,7 +4590,7 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	accountIdparamsWithoutAccoundIdPair := <-this.LoadAccountIdAsync(params)
 	if accountIdparamsWithoutAccoundIdPair.Err != nil {
 		panic(accountIdparamsWithoutAccoundIdPair.Err)
@@ -4698,7 +4698,7 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar string
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var isMarket bool = (typeVar == "market")
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var trailingAmount *string = this.SafeString(params, "trailingAmount")
@@ -4713,7 +4713,7 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar string
 	var cost *string = this.SafeString2(params, "cost", "cashQty")
 	var isMarketByCost bool = isMarket && (cost != nil)
 	if !isMarketByCost {
-		request["quantity"] = this.ParseNumber(this.AmountToPrecision(symbol, amount))
+		request["quantity"] = this.ParseNumber(this.AmountToPrecision(&symbol, amount))
 	}
 	var orderType string
 	if (trailingAmount != nil) || (trailingPercent != nil) {
@@ -4727,33 +4727,33 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar string
 			request["trailingAmt"] = this.ParseNumber(trailingPercent)
 		} else {
 			request["trailingType"] = "amt"
-			request["trailingAmt"] = this.ParseNumber(this.PriceToPrecision(symbol, trailingAmount))
+			request["trailingAmt"] = this.ParseNumber(this.PriceToPrecision(&symbol, trailingAmount))
 		}
 		if triggerPrice != nil {
-			request["auxPrice"] = this.ParseNumber(this.PriceToPrecision(symbol, triggerPrice))
+			request["auxPrice"] = this.ParseNumber(this.PriceToPrecision(&symbol, triggerPrice))
 		}
 		if !isMarket {
-			request["price"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
+			request["price"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
 		}
 	} else if triggerPrice != nil {
 		if isMarket {
 			orderType = "STP"
-			request["price"] = this.ParseNumber(this.PriceToPrecision(symbol, triggerPrice))
+			request["price"] = this.ParseNumber(this.PriceToPrecision(&symbol, triggerPrice))
 		} else {
 			orderType = "STP LMT"
-			request["price"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
-			request["auxPrice"] = this.ParseNumber(this.PriceToPrecision(symbol, triggerPrice))
+			request["price"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
+			request["auxPrice"] = this.ParseNumber(this.PriceToPrecision(&symbol, triggerPrice))
 		}
 	} else if isMarket {
 		orderType = "MKT"
 		if isMarketByCost {
-			request["cashQty"] = this.ParseNumber(this.PriceToPrecision(symbol, cost))
+			request["cashQty"] = this.ParseNumber(this.PriceToPrecision(&symbol, cost))
 		} else if side == "buy" {
 			panic(InvalidOrder(this.Id + " createOrder() requires params[\"cost\"] for market buy orders"))
 		}
 	} else {
 		orderType = "LMT"
-		request["price"] = this.ParseNumber(this.PriceToPrecision(symbol, price))
+		request["price"] = this.ParseNumber(this.PriceToPrecision(&symbol, price))
 	}
 	request["orderType"] = orderType
 	var defaultTimeInForce string = "DAY"
@@ -4900,7 +4900,7 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	accountIdqueryPair := <-this.LoadAccountIdAsync(params)
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
@@ -6097,7 +6097,7 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	accountIdqueryPair := <-this.LoadAccountIdAsync(params)
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)

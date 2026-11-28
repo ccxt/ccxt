@@ -1364,7 +1364,7 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan AsyncResult[Ticker], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"id": market["id"],
 	}
@@ -1626,7 +1626,7 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan AsyncResult[[]Trade], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"id": market["id"],
 	}
@@ -1780,7 +1780,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var parsedTimeframe *int64 = this.SafeInteger(this.Timeframes, timeframe)
 	var request map[string]any = map[string]any{
 		"id": market["id"],
@@ -2271,7 +2271,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"type":       typeVar,
 		"side":       side,
@@ -2283,7 +2283,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 	}
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"})
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force")
 	if timeInForce != nil {
@@ -2301,15 +2301,15 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 		paramsCost = this.OmitDict(paramsOmitted, []any{"cost", "funds"})
 	}
 	if typeVar == "limit" {
-		request["price"] = this.PriceToPrecision(symbol, price)
-		request["size"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
+		request["size"] = this.AmountToPrecision(&symbol, amount)
 	} else if typeVar == "market" {
 		if costParam != nil {
-			request["funds"] = this.CostToPrecision(symbol, costParam)
+			request["funds"] = this.CostToPrecision(&symbol, costParam)
 		} else if price != nil {
-			request["funds"] = this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
+			request["funds"] = this.CostToPrecision(&symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
 		} else {
-			request["size"] = this.AmountToPrecision(symbol, amount)
+			request["size"] = this.AmountToPrecision(&symbol, amount)
 		}
 	}
 

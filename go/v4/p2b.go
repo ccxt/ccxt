@@ -567,7 +567,7 @@ func (this *P2b) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -699,7 +699,7 @@ func (this *P2b) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -788,7 +788,7 @@ func (this *P2b) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	if lastId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTrades () requires an extra parameter params[\"lastId\"]"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"lastId": lastId,
@@ -938,7 +938,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market":   market["id"],
 		"interval": timeframe,
@@ -1133,12 +1133,12 @@ func (this *P2b) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	if typeVar == "market" {
 		panic(BadRequest(this.Id + " createOrder () can only accept orders with type \"limit\""))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"side":   side,
-		"amount": this.AmountToPrecision(symbol, amount),
-		"price":  this.PriceToPrecision(symbol, price),
+		"amount": this.AmountToPrecision(&symbol, amount),
+		"price":  this.PriceToPrecision(&symbol, price),
 	}
 
 	r1 := <-this.PrivatePostOrderNew(this.Extend(request, params))

@@ -860,7 +860,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId *string = this.SafeString(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method string = *this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocTrades")
@@ -972,7 +972,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var id *string = market.Id
 	var loc *string = this.SafeString(params, "loc", "us")
 	var request map[string]any = map[string]any{
@@ -1077,7 +1077,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId *string = this.SafeString(market, "id")
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method string = *this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
@@ -1253,7 +1253,7 @@ func (this *Alpaca) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.FetchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -1579,7 +1579,7 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var id *string = this.SafeString(market, "id")
 	var request map[string]any = map[string]any{
 		"symbol": id,
@@ -1594,17 +1594,17 @@ func (this *Alpaca) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		} else {
 			panic(NotSupported(this.Id + " createOrder() does not support stop orders for " + typeVar + " orders, only stop_limit orders are supported"))
 		}
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 		request["type"] = newType
 	}
 	if strings.Index(typeVar, "limit") >= 0 {
-		request["limit_price"] = this.PriceToPrecision(symbol, price)
+		request["limit_price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		request["notional"] = this.CostToPrecision(symbol, cost)
+		request["notional"] = this.CostToPrecision(&symbol, cost)
 	} else {
-		request["qty"] = this.AmountToPrecision(symbol, amount)
+		request["qty"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var paramsCost map[string]any
 	if cost != nil {
@@ -2045,14 +2045,14 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	}
 	var market map[string]any = nil
 	if true {
-		market = this.Market(symbol)
+		market = this.Market(&symbol)
 	}
 	if amount != nil {
-		request["qty"] = this.AmountToPrecision(symbol, amount)
+		request["qty"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	var paramsTrigger map[string]any
 	if triggerPrice != nil {
@@ -2061,7 +2061,7 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		paramsTrigger = params
 	}
 	if price != nil {
-		request["limit_price"] = this.PriceToPrecision(symbol, price)
+		request["limit_price"] = this.PriceToPrecision(&symbol, price)
 	}
 	timeInForce, paramsTimeInForce := this.HandleOptionStringAndParams(paramsTrigger, "editOrder", "timeInForce", "gtc")
 	if timeInForce != nil {

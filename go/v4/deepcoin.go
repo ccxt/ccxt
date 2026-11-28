@@ -839,7 +839,7 @@ func (this *Deepcoin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var limitResolved int64
 	if limit == nil {
 		limitResolved = 400
@@ -925,7 +925,7 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	var price *string = this.SafeString(paramsPaginate, "price")
 	var maxLimit int = 300
@@ -1199,7 +1199,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -2115,7 +2115,7 @@ func (this *Deepcoin) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var request map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response map[string]any = nil
@@ -2175,7 +2175,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol string, typeVar string, side str
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	// const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
 	var isTriggerOrder bool = (triggerPrice != nil)
@@ -2223,7 +2223,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	orderType, paramsOrderType := this.HandleTypePostOnlyAndTimeInForce(typeVar, params)
 	var request map[string]any = map[string]any{
 		"instId":  nil,
@@ -2243,20 +2243,20 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 	var stopLossPrice *string = this.SafeString(stopLoss, "triggerPrice")
 	if stopLossPrice != nil {
 		keysToOmit = append(keysToOmit, "stopLoss")
-		request["slTriggerPx"] = this.PriceToPrecision(symbol, stopLossPrice)
+		request["slTriggerPx"] = this.PriceToPrecision(&symbol, stopLossPrice)
 	}
 	var takeProfit, _ = paramsOrderType["takeProfit"].(map[string]any)
 	var takeProfitPrice *string = this.SafeString(takeProfit, "triggerPrice")
 	if takeProfitPrice != nil {
 		keysToOmit = append(keysToOmit, "takeProfit")
-		request["tpTriggerPx"] = this.PriceToPrecision(symbol, takeProfitPrice)
+		request["tpTriggerPx"] = this.PriceToPrecision(&symbol, takeProfitPrice)
 	}
 	var isMarketOrder bool = (typeVar == "market")
 	if price != nil {
 		if isMarketOrder {
 			panic(BadRequest(this.Id + " createOrder() does not require a price argument for market orders"))
 		}
-		request["px"] = this.PriceToPrecision(symbol, price)
+		request["px"] = this.PriceToPrecision(&symbol, price)
 	} else if !isMarketOrder {
 		panic(BadRequest(this.Id + " createOrder() requires a price argument for limit orders"))
 	}
@@ -2268,17 +2268,17 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 				panic(BadRequest(this.Id + " createOrder() accepts a cost parameter for spot market orders only"))
 			}
 			keysToOmit = append(keysToOmit, "cost")
-			request["sz"] = this.CostToPrecision(symbol, cost)
+			request["sz"] = this.CostToPrecision(&symbol, cost)
 			request["tgtCcy"] = "quote_ccy"
 		} else {
-			request["sz"] = this.AmountToPrecision(symbol, amount)
+			request["sz"] = this.AmountToPrecision(&symbol, amount)
 			request["tgtCcy"] = "base_ccy"
 		}
 		request["side"] = side
 		request["tdMode"] = "cash"
 		paramsRequest = this.OmitDict(paramsOrderType, keysToOmit)
 	} else {
-		request["sz"] = this.AmountToPrecision(symbol, amount)
+		request["sz"] = this.AmountToPrecision(&symbol, amount)
 		var paramsOmitted map[string]any = this.OmitDict(paramsOrderType, keysToOmit)
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsOmitted, "cross")
 		request["tdMode"] = marginMode
@@ -2333,11 +2333,11 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol string, typeVar string, s
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId":       market["id"],
 		"productGroup": this.Capitalize(market["type"]),
-		"sz":           this.AmountToPrecision(symbol, amount),
+		"sz":           this.AmountToPrecision(&symbol, amount),
 		"side":         side,
 		"orderType":    typeVar,
 	}
@@ -2352,10 +2352,10 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol string, typeVar string, s
 	//         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
 	//     }
 	// } else {
-	request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+	request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	// }
 	if price != nil {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	} else if typeVar == "limit" {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for limit trigger orders"))
 	}
@@ -3278,18 +3278,13 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	var request map[string]any = map[string]any{
 		"OrderSysID": id,
 	}
-	var market map[string]any = nil
-	var symbolResolved any = nil
-	if true {
-		market = this.Market(symbol)
-		if *this.SafeBool(market, "spot", false) {
-			panic(NotSupported(this.Id + " editOrder() is not supported for spot markets"))
-		}
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
+	if market.Spot {
+		panic(NotSupported(this.Id + " editOrder() is not supported for spot markets"))
+	}
+	var symbolResolved *string
+	if market.Symbol != "" {
+		symbolResolved = &market.Symbol
 	}
 	var stopLossPrice *float64 = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitPrice *float64 = this.SafeNumber(params, "takeProfitPrice")
@@ -3300,14 +3295,14 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(BadRequest(this.Id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order."))
 		}
 		if stopLossPrice != nil {
-			if symbolResolved != "" {
+			if symbolResolved != nil {
 				request["slTriggerPx"] = this.PriceToPrecision(symbolResolved, stopLossPrice)
 			} else {
 				request["slTriggerPx"] = this.NumberToString(stopLossPrice)
 			}
 		}
 		if takeProfitPrice != nil {
-			if symbolResolved != "" {
+			if symbolResolved != nil {
 				request["tpTriggerPx"] = this.PriceToPrecision(symbolResolved, takeProfitPrice)
 			} else {
 				request["tpTriggerPx"] = this.NumberToString(takeProfitPrice)
@@ -3496,7 +3491,7 @@ func (this *Deepcoin) ParseOrder(order map[string]any, optionalArgs ...any) Orde
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 		}
 	}
-	var literal250831 map[string]any = map[string]any{
+	var literal250431 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "ordId"),
 		"clientOrderId":       this.SafeString(order, "clOrdId"),
 		"datetime":            this.Iso8601(timestamp),
@@ -3523,11 +3518,11 @@ func (this *Deepcoin) ParseOrder(order map[string]any, optionalArgs ...any) Orde
 		"info":                order,
 	}
 	if (orderType != nil) && (orderType == nil || *orderType != "") {
-		literal250831["postOnly"] = (orderType != nil && *orderType == "post_only")
+		literal250431["postOnly"] = (orderType != nil && *orderType == "post_only")
 	} else {
-		literal250831["postOnly"] = nil
+		literal250431["postOnly"] = nil
 	}
-	return this.SafeOrder(literal250831, marketResolved)
+	return this.SafeOrder(literal250431, marketResolved)
 }
 func (this *Deepcoin) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -3585,7 +3580,7 @@ func (this *Deepcoin) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var instrumentType *string = this.ConvertToInstrumentType(this.SafeString(market, "type"))
 	var request map[string]any = map[string]any{
@@ -3942,7 +3937,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
@@ -4167,11 +4162,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes299219 []any = r1.Value
-		if retRes299219 == nil {
+		var retRes298819 []any = r1.Value
+		if retRes298819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes299219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298819)}
 		}
 		return nil
 	}
@@ -4291,11 +4286,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes306815 []any = TradesToList(r1.Value)
-	if retRes306815 == nil {
+	var retRes306415 []any = TradesToList(r1.Value)
+	if retRes306415 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306815)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306415)}
 	}
 	return nil
 }
@@ -4332,7 +4327,7 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var productGroup string = this.GetProductGroupFromMarket(market)
 	var positionId *string = this.SafeString(params, "positionId")
 	var positionIds []any = SafeListTyped(params, "positionIds")
@@ -4368,14 +4363,14 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict310732 map[string]any
+	var dataDict310332 map[string]any
 	if len(data) > 0 {
-		dataDict310732, _ = data[0].(map[string]any)
+		dataDict310332, _ = data[0].(map[string]any)
 	}
-	if dataDict310732 == nil {
-		dataDict310732 = map[string]any{}
+	if dataDict310332 == nil {
+		dataDict310332 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict310732, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict310332, market)}
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
@@ -4419,16 +4414,16 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		privateHeaders["DC-ACCESS-SIGN"] = signature
-		var literal314419 map[string]any = map[string]any{
+		var literal314019 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
 			"body":    nil,
 			"headers": privateHeaders,
 		}
 		if requestBody != nil {
-			literal314419["body"] = *requestBody
+			literal314019["body"] = *requestBody
 		}
-		return literal314419
+		return literal314019
 	}
 	return map[string]any{
 		"url":     url,

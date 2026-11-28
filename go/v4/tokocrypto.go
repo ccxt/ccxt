@@ -1036,7 +1036,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.GetMarketIdByType(market),
 	}
@@ -1306,7 +1306,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{}
 	// the venue routes market data by the symbol type reported by fetchMarkets,
 	// not by the quote currency: type 1 markets are served by the binance host
@@ -1626,7 +1626,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if this.IsNativeMarket(market) {
 		panic(NotSupported(this.Id + " fetchTicker() does not support " + symbol + " yet, the venue serves 24hr ticker statistics only for its binance backed markets"))
 	}
@@ -1765,7 +1765,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
 	// the reality is that the time range wider than 500 candles won't work right
 	var defaultLimit int = 500
@@ -2184,7 +2184,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId")
 	var requestedType string = strings.ToUpper(typeVar)
 	var requestedTimeInForce *string = this.SafeStringUpper(params, "timeInForce")
@@ -2318,19 +2318,19 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		quantityIsRequired = true
 	}
 	if quantityIsRequired {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if priceIsRequired {
 		if price == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a price argument for a " + typeResolved + " order"))
 		}
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if triggerPriceIsRequired {
 		if triggerPrice == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice extra param for a " + typeResolved + " order"))
 		} else {
-			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
 	}
 	if timeInForceIsRequired {

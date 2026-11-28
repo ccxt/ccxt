@@ -888,7 +888,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"pairName":   market["id"],
@@ -982,7 +982,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -1449,18 +1449,18 @@ func (this *Bitteam) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pairId": this.SafeString(market, "numericId"),
 		"type":   typeVar,
 		"side":   side,
-		"amount": this.AmountToPrecision(symbol, amount),
+		"amount": this.AmountToPrecision(&symbol, amount),
 	}
 	if typeVar == "limit" {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		} else {
-			request["price"] = this.PriceToPrecision(symbol, price)
+			request["price"] = this.PriceToPrecision(&symbol, price)
 		}
 	}
 
@@ -1900,7 +1900,7 @@ func (this *Bitteam) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"name": market["id"],
 	}
@@ -2278,7 +2278,7 @@ func (this *Bitteam) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}

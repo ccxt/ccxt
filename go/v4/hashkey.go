@@ -1468,7 +1468,7 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1537,7 +1537,7 @@ func (this *Hashkey) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1849,7 +1849,7 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
@@ -1937,7 +1937,7 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3104,7 +3104,7 @@ func (this *Hashkey) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if market.Spot {
 
 		r1 := <-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params)
@@ -3156,7 +3156,7 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is supported for spot markets only"))
 	}
@@ -3214,7 +3214,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var isMarketBuy bool = (typeVar == "market") && (side == "buy")
 	var cost *string = this.SafeString(params, "cost")
 	if (!isMarketBuy) && (cost != nil) {
@@ -3445,7 +3445,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateSwapOrderRequest(&symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))
@@ -4504,7 +4504,7 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"timestamp": this.Milliseconds(),
@@ -4782,7 +4782,7 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position]
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var methodName string = "fetchPosition"
 	var methodNameOption *string = this.SafeString(params, "methodName", methodName)
 	var paramsMethodName map[string]any = this.OmitDict(params, "methodName")
@@ -4893,7 +4893,7 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5130,7 +5130,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan AsyncResult[MarginModificati
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(BadSymbol(this.Id + " modifyMarginHelper() supports swap markets only"))
 	}
@@ -5372,7 +5372,7 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var methodName string = "fetchTradingFee"
 	var response any = nil
 	if *this.SafeBool(market, "spot", false) {

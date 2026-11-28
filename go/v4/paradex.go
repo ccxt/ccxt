@@ -1161,14 +1161,14 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	}
 	return this.SafeMarketStructure(literal79041)
 }
-func (this *Paradex) CreateExpiredOptionMarket(symbol any) map[string]any {
+func (this *Paradex) CreateExpiredOptionMarket(symbol string) map[string]any {
 	//
 	// an option leaves the market list once it expires, while fills, orders and positions still name it
 	//
 	//     id      NEAR-USD-30OCT26-5_6-C
 	//     symbol  NEAR/USD:USDC-261030-5.6-C
 	//
-	var parts []string = Split(symbol, "-")
+	var parts []string = strings.Split(symbol, "-")
 	var partsLength int = len(parts)
 	var base string = ""
 	var quote string = ""
@@ -1176,14 +1176,11 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) map[string]any {
 	var expiryDate *string = nil
 	var strike string = ""
 	var optionType string = ""
-	if GetIndexOf(symbol, "/") > -1 {
+	if strings.Index(symbol, "/") > -1 {
 		if partsLength != 4 {
-			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
+			panic(BadSymbol(this.Id + " does not have market symbol " + symbol))
 		}
-		var pair *string = nil
-		if 0 >= 0 && 0 < len(parts) {
-			pair = &parts[0]
-		}
+		var pair *string = &parts[0]
 		var pairParts []string = strings.Split(*pair, "/")
 		base = *this.SafeString(pairParts, 0, "")
 		var quoteAndSettle string = *this.SafeString(pairParts, 1, "")
@@ -1195,7 +1192,7 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) map[string]any {
 		optionType = *this.SafeString(parts, 3, "")
 	} else {
 		if partsLength != 5 {
-			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
+			panic(BadSymbol(this.Id + " does not have market symbol " + symbol))
 		}
 		base = *this.SafeString(parts, 0, "")
 		quote = *this.SafeString(parts, 1, "")
@@ -1300,7 +1297,7 @@ func (this *Paradex) SafeMarket(optionalArgs ...any) map[string]any {
 			var marketIdParts []string = strings.Split(*marketId, "-")
 			var marketIdPartsLength int = len(marketIdParts)
 			if marketIdPartsLength == 5 {
-				return MarketTyped(this.CreateExpiredOptionMarket(marketId))
+				return MarketTyped(this.CreateExpiredOptionMarket(*marketId))
 			}
 		}
 	}
@@ -1373,7 +1370,7 @@ func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1540,7 +1537,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     market["id"],
@@ -1714,7 +1711,7 @@ func (this *Paradex) SummaryMarketId(optionalArgs ...any) string {
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			return *this.SafeString(this.Market(symbols[0]), "id", "")
+			return *this.SafeString(this.Market(&symbols[0]), "id", "")
 		}
 	}
 	return "ALL"
@@ -1782,7 +1779,7 @@ func (this *Paradex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1961,7 +1958,7 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var marketSymbol string = market.Symbol
 
 	r1 := <-this.FetchFundingRatesAsync([]any{marketSymbol}, params)
@@ -2074,7 +2071,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -2166,7 +2163,7 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -2308,7 +2305,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
@@ -3053,7 +3050,7 @@ func (this *Paradex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 
 	r2 := <-this.SignOrderRequestAsync(request)
@@ -3156,7 +3153,7 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	request = this.Omit(request, []any{"instruction", "client_id", "flags", "recv_window"})
 	var editRequest map[string]any = this.Extend(request, map[string]any{
@@ -4084,7 +4081,7 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r2 := <-this.PrivateGetPositions(params)
 	if r2.Err != nil {
@@ -4857,7 +4854,7 @@ func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -5010,7 +5007,7 @@ func (this *Paradex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol str
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -5148,7 +5145,7 @@ func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -5385,7 +5382,7 @@ func (this *Paradex) fetchOptionBody(ch chan AsyncResult[Option], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if market["option"] != true {
 		panic(BadSymbol(this.Id + " fetchOption() supports option markets only"))
 	}

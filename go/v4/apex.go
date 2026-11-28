@@ -988,7 +988,7 @@ func (this *Apex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1092,7 +1092,7 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":   this.SafeString(market, "id2"),
@@ -1169,7 +1169,7 @@ func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1256,7 +1256,7 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1369,7 +1369,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1452,7 +1452,7 @@ func (this *Apex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
@@ -1950,14 +1950,14 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderType string = strings.ToUpper(typeVar)
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var orderSide string = strings.ToUpper(side)
-	var orderSize *string = this.AmountToPrecision(symbol, amount)
+	var orderSize *string = this.AmountToPrecision(&symbol, amount)
 	var orderPrice any = "0"
 	if price != nil {
-		if derefPtr := this.PriceToPrecision(symbol, price); derefPtr != nil {
+		if derefPtr := this.PriceToPrecision(&symbol, price); derefPtr != nil {
 			orderPrice = *derefPtr
 		} else {
 			orderPrice = nil
@@ -2035,7 +2035,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"takerFeeRate": taker,
 	}
 	if triggerPrice != nil {
-		orderToSign["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		orderToSign["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 
 	r2 := <-this.GetZKContractSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign)
@@ -2056,7 +2056,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
 	}
 	if triggerPrice != nil {
-		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	request["signature"] = signature
 

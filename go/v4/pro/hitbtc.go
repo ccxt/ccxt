@@ -410,7 +410,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		nameStr2 := "orderbook/D" + depthValue + "/" + speedValue + "ms/batch"
 		name = &nameStr2
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
 			"symbols": []any{market["id"]},
@@ -906,12 +906,12 @@ func (this *Hitbtc) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) ma
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Hitbtc) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Hitbtc) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -927,7 +927,7 @@ func (this *Hitbtc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
 			"symbols": []any{market["id"]},
@@ -976,7 +976,7 @@ func (this *Hitbtc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var subscription map[string]any = map[string]any{
 		"topic":   "trades",
 		"symbols": []any{market.Symbol},
@@ -1149,7 +1149,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	_ = params
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candles/" + *period
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var subscribeParams map[string]any = map[string]any{
 		"symbols": []any{market["id"]},
 	}
@@ -1201,7 +1201,7 @@ func (this *Hitbtc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var name string = "candles/" + *period
 	var subscription map[string]any = map[string]any{
@@ -1690,7 +1690,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsMarketType)
 	orderRequest, paramsValue := this.CreateOrderRequest(market, marketType, typeVar, side, amount, price, marginMode, paramsMarginMode)

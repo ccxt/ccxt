@@ -1196,7 +1196,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	userAccount, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("fetchLeverage", params)
 	var settings any = nil
 	if userAccount != nil && *userAccount == this.WalletAddress {
@@ -1477,7 +1477,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	aggLevel, paramsAggLevel := this.HandleOptionIntegerAndParams(params, "fetchOrderBook", "aggLevel", 1)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
@@ -1684,7 +1684,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -1821,7 +1821,7 @@ func (this *Pacifica) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2799,7 +2799,7 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderId"})
 
@@ -2839,8 +2839,8 @@ func (this *Pacifica) EditOrderRequest(id *string, symbol string, typeVar string
 	}
 	var operationType string = "edit_order"
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var priceNormalized *string = this.PriceToPrecision(symbol, price)
-	var amountNormalized *string = this.AmountToPrecision(symbol, amount)
+	var priceNormalized *string = this.PriceToPrecision(&symbol, price)
+	var amountNormalized *string = this.AmountToPrecision(&symbol, amount)
 	var sigPayload map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id"),
 		"price":  priceNormalized,
@@ -4083,7 +4083,7 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 		}
 	}
 	userAddress, paramsOriginAndSingleAddress := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"account": userAddress,
 	}
@@ -4170,7 +4170,7 @@ func (this *Pacifica) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(data, this.Market(symbol)))
+		result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(data, this.Market(&symbol)))
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -4281,7 +4281,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 			panic(r.Err)
 		}
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.FetchOpenInterestsAsync([]any{symbolValue}, params)
 	if r1.Err != nil {

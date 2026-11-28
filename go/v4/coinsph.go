@@ -1121,7 +1121,7 @@ func (this *Coinsph) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	if symbols != nil {
 		var ids []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbols[i]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbols[i]))
 			var id *string = market.Id
 			ids = append(ids, id)
 		}
@@ -1186,7 +1186,7 @@ func (this *Coinsph) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1330,7 +1330,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -1402,7 +1402,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 	var until *int64 = this.SafeInteger(params, "until")
 	var request map[string]any = map[string]any{
@@ -1498,7 +1498,7 @@ func (this *Coinsph) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1857,7 +1857,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var testOrder *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var orderType *string = this.SafeString(paramsOmitted, "type", typeVar)
@@ -1879,22 +1879,22 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for a " + typeVar + " order"))
 		}
 		newOrderRespType = *this.SafeString(newOrderRespTypes, "limit", "FULL")
-		request["price"] = this.PriceToPrecision(symbol, price)
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 		if orderType == nil || *orderType != "LIMIT_MAKER" {
 			request["timeInForce"] = this.SafeString(options, "timeInForce", "GTC")
 		}
 	} else if (orderType != nil && *orderType == "MARKET") || (orderType != nil && *orderType == "STOP_LOSS") || (orderType != nil && *orderType == "TAKE_PROFIT") {
 		newOrderRespType = *this.SafeString(newOrderRespTypes, "market", "FULL")
 		if orderSide != nil && *orderSide == "SELL" {
-			request["quantity"] = this.AmountToPrecision(symbol, amount)
+			request["quantity"] = this.AmountToPrecision(&symbol, amount)
 		} else if orderSide != nil && *orderSide == "BUY" {
 			var quoteAmount *string = nil
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty")
 			paramsQuote = this.OmitDict(paramsRequiresPrice, "cost")
 			if cost != nil {
-				quoteAmount = this.CostToPrecision(symbol, cost)
+				quoteAmount = this.CostToPrecision(&symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -1902,10 +1902,10 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var costRequest *string = Precise.StringMul(amountString, priceString)
-					quoteAmount = this.CostToPrecision(symbol, costRequest)
+					quoteAmount = this.CostToPrecision(&symbol, costRequest)
 				}
 			} else {
-				quoteAmount = this.CostToPrecision(symbol, amount)
+				quoteAmount = this.CostToPrecision(&symbol, amount)
 			}
 			request["quoteOrderQty"] = quoteAmount
 		}
@@ -1915,7 +1915,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if triggerPrice == nil {
 			panic(InvalidOrder(this.Id + " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders"))
 		}
-		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	request["newOrderRespType"] = newOrderRespType
 	var paramsRequest map[string]any = this.OmitDict(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
@@ -2422,7 +2422,7 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

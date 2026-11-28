@@ -1297,7 +1297,7 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1443,7 +1443,7 @@ func (this *Woofipro) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1616,7 +1616,7 @@ func (this *Woofipro) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1795,7 +1795,7 @@ func (this *Woofipro) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2261,7 +2261,7 @@ func (this *Woofipro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -2345,7 +2345,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2732,7 +2732,7 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss, _ = params["stopLoss"].(map[string]any)
@@ -2894,13 +2894,13 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 	if triggerPrice != nil {
-		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["triggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (paramsChildOrders != nil)
@@ -2917,10 +2917,10 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		priceKey = "order_price"
 	}
 	if price != nil {
-		request[priceKey] = this.PriceToPrecision(symbol, price)
+		request[priceKey] = this.PriceToPrecision(&symbol, price)
 	}
 	if amount != nil {
-		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
+		request[orderQtyKey] = this.AmountToPrecision(&symbol, amount)
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
 	var response map[string]any = nil
@@ -4516,7 +4516,7 @@ func (this *Woofipro) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbo
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var marketSymbol string = market.Symbol
 
 	r1 := <-this.FetchMarginModesAsync([]any{marketSymbol}, params)
@@ -4649,7 +4649,7 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"amount": this.NumberToString(amount),
@@ -4775,7 +4775,7 @@ func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.V1PrivateGetClientInfo(params)
 	if r1.Err != nil {
@@ -4960,7 +4960,7 @@ func (this *Woofipro) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}

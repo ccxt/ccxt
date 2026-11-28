@@ -93,12 +93,12 @@ func (this *Blofin) Ping(client ccxt.ClientInterface) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Blofin) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Blofin) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blofin) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Blofin) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -450,7 +450,7 @@ func (this *Blofin) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	params["callerMethodName"] = "watchTicker"
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 
 	r := <-this.WatchTickersAsync([]any{symbolValue}, params)
@@ -570,7 +570,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		}
 	}
 	var symbolsList []string = this.MarketSymbols(symbols, nil, false)
-	var firstMarket map[string]any = this.Market(symbolsList[0])
+	var firstMarket map[string]any = this.Market(&symbolsList[0])
 	var channel string = "tickers"
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	var typeUrls map[string]any = ccxt.SafeMapTyped(this.UrlsApi["ws"], marketType)
@@ -578,7 +578,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsList); i++ {
-		var market map[string]any = this.Market(symbolsList[i])
+		var market map[string]any = this.Market(&symbolsList[i])
 		messageHashes = append(messageHashes, "bidask:"+market["symbol"].(string))
 		args = append(args, map[string]any{
 			"channel": channel,
@@ -1265,7 +1265,7 @@ func (this *Blofin) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRa
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchFundingRate", market, params)
 	messageHashStr := "fundingRate:" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
@@ -1369,11 +1369,11 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 			var market map[string]any = nil
 			var interval string = ""
 			if isOHLCV {
-				market = this.Market(current)
+				market = this.Market(&current)
 				var tf string = *this.SafeString(this.SafeList(symbolsArray, i), 1, "")
 				interval = *this.SafeString(this.Timeframes, tf, tf)
 			} else {
-				market = this.Market(current)
+				market = this.Market(&current)
 			}
 			var channel string = "" + channelName + interval
 			var topic map[string]any = map[string]any{

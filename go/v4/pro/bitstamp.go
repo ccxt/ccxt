@@ -92,7 +92,7 @@ func (this *Bitstamp) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + symbolValue
 	var url *string = this.UrlsApiStrings["ws"]
@@ -140,7 +140,7 @@ func (this *Bitstamp) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var channel string = "diff_order_book_" + *this.SafeString(market, "id", "")
 	var subHash string = "orderbook:" + symbolValue
@@ -312,12 +312,12 @@ func (this *Bitstamp) GetCacheIndex(orderbook map[string]any, deltas []any) int6
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Bitstamp) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Bitstamp) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Bitstamp) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -333,7 +333,7 @@ func (this *Bitstamp) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + symbolValue
 	var url *string = this.UrlsApiStrings["ws"]
@@ -385,7 +385,7 @@ func (this *Bitstamp) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var channel string = "live_trades_" + *this.SafeString(market, "id", "")
 	var subHash string = "trades:" + symbolValue
@@ -510,7 +510,7 @@ func (this *Bitstamp) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "fundingRate:" + symbolValue
 	var url *string = this.UrlsApiStrings["ws"]

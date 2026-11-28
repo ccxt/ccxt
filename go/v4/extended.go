@@ -966,7 +966,7 @@ func (this *Extended) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1053,7 +1053,7 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbolsNormalized != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(symbolsNormalized[i])
+			var market map[string]any = this.Market(&symbolsNormalized[i])
 			marketIds = append(marketIds, market["id"])
 		}
 		request["market"] = marketIds
@@ -1201,7 +1201,7 @@ func (this *Extended) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -1280,7 +1280,7 @@ func (this *Extended) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1718,7 +1718,7 @@ func (this *Extended) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var price *string = this.SafeString(params, "price")
 	var candleType *string = this.SafeString(params, "candleType")
 	if candleType == nil {
@@ -1971,7 +1971,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe)
 	if !this.InArray(interval, []any{"PT1H", "P1D"}) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only"))
@@ -3061,7 +3061,7 @@ func (this *Extended) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -3207,7 +3207,7 @@ func (this *Extended) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -4083,7 +4083,7 @@ func (this *Extended) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if data == nil {
 		data = map[string]any{}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
 	data["timestamp"] = now
 	data["status"] = "NEW"
@@ -4207,7 +4207,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	if responseData == nil {
 		responseData = map[string]any{}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
 	responseData["timestamp"] = now
 	responseData["status"] = "NEW"

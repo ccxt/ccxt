@@ -718,7 +718,7 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[OrderBook], sy
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -796,7 +796,7 @@ func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[Ticker], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1088,7 +1088,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan AsyncResult[map[string]T
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market map[string]any = this.Market(symbol)
+		var market map[string]any = this.Market(&symbol)
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule map[string]any = SafeMapTyped(schedulesByUid, uid)
 		if schedule == nil {
@@ -1178,7 +1178,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -1333,7 +1333,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1744,7 +1744,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 
 	r1 := <-this.PrivatePostSendorder(orderRequest)
@@ -4227,7 +4227,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Posit
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			market = this.Market(symbols[0])
+			market = this.Market(&symbols[0])
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -4616,7 +4616,7 @@ func (this *Krakenfutures) ParseKrakenAccountName(account string) string {
 		var accountName string = *this.SafeString(accountByType, account, "")
 		return accountName
 	} else if _, ok := this.Markets[account]; (this.Markets != nil) && ok {
-		var market map[string]any = this.Market(account)
+		var market map[string]any = this.Market(&account)
 		var marketId string = *this.SafeString(market, "id", "")
 		var splitId []string = strings.Split(marketId, "_")
 		var splitMarketId string = *this.SafeString(splitId, 1, "")
@@ -4871,7 +4871,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[Leverage], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketIdUpper *string = this.SafeString(market, "id")
 	if marketIdUpper == nil {
 		panic(ArgumentsRequired(this.Id + " marketId is required"))

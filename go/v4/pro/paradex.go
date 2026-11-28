@@ -732,12 +732,12 @@ func (this *Paradex) CleanUnsubscribed(client ccxt.ClientInterface, unsubHash st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Paradex) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Paradex) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -754,8 +754,8 @@ func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var messageHash string = "trades.ALL"
-	if !ccxt.IsEqual(symbol, nil) {
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	if true {
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -828,7 +828,7 @@ func (this *Paradex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	var channels []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -941,7 +941,7 @@ func (this *Paradex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var channels []string = []string{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -1003,7 +1003,7 @@ func (this *Paradex) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liqui
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id
@@ -1196,7 +1196,7 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	// an unwatch in flight decides which feed each market is on once acknowledged
 	var feeds []string = []string{}
 	for i := 0; i < symbolsLength; i++ {
-		var feedMarket map[string]any = this.Market(symbolsNormalized[i])
+		var feedMarket map[string]any = this.Market(&symbolsNormalized[i])
 		feeds = append(feeds, this.GetOrderBookChannel(*this.SafeString(feedMarket, "id", ""), true))
 		feeds = append(feeds, this.GetOrderBookChannel(*this.SafeString(feedMarket, "id", ""), false))
 	}
@@ -1209,7 +1209,7 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	var channels []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		var deltasChannel string = this.GetOrderBookChannel(*this.SafeString(market, "id", ""), true)
 		var snapshotChannel string = this.GetOrderBookChannel(*this.SafeString(market, "id", ""), false)
 		// one feed per market on a connection: both send BookEvent frames, which do not name their channel,
@@ -1315,7 +1315,7 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	var channels []string = []string{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
+		var market map[string]any = this.Market(&symbolsNormalized[i])
 		// the feed the market is on, a market is on one of them at a time
 		var deltasChannel string = this.GetOrderBookChannel(*this.SafeString(market, "id", ""), true)
 		var snapshotChannel string = this.GetOrderBookChannel(*this.SafeString(market, "id", ""), false)
@@ -1563,7 +1563,7 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var messageHash string = "markets_summary." + market.Symbol
 
 	r1 := <-this.SubscribeMarketsSummaryAsync([]string{market.Symbol}, []any{messageHash}, params)
@@ -1873,7 +1873,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var channel string = "markets_summary"
 	var pendingHashes []any = []any{channel, channel + ":scoped"}
 	for i := 0; i < len(symbols); i++ {
-		var market map[string]any = this.Market(symbols[i])
+		var market map[string]any = this.Market(&symbols[i])
 		var pendingId string = *this.SafeString(market, "id", "")
 		pendingHashes = append(pendingHashes, channel+"."+pendingId)
 	}
@@ -1901,7 +1901,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	var missingHashes []any = []any{}
 	// messageHashes[i] is the hash the summaries of symbols[i] resolve
 	for i := 0; i < len(symbols); i++ {
-		var market map[string]any = this.Market(symbols[i])
+		var market map[string]any = this.Market(&symbols[i])
 		var marketId string = *this.SafeString(market, "id", "")
 		var subscribeHash string = channel + "." + marketId
 		subscribeHashes = append(subscribeHashes, subscribeHash)
@@ -2050,9 +2050,9 @@ func (this *Paradex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var url string = this.GetWsUrl()
 	var channels []string = []string{}
 	var messageHashes []any = []any{}
-	if symbolsLength > 0 {
+	if (symbolsNormalized != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
 			var marketId string = ""
 			if market.Id != nil {
 				marketId = *market.Id
@@ -2119,9 +2119,9 @@ func (this *Paradex) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optiona
 	var channels []string = []string{}
 	var subMessageHashes []any = []any{}
 	var bidAskSymbols []any = []any{}
-	if symbolsLength > 0 {
+	if (symbolsNormalized != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbolsNormalized[i]))
 			var marketId string = ""
 			if market.Id != nil {
 				marketId = *market.Id
@@ -2804,7 +2804,7 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingR
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	// the per-market channel, the all-markets one sends every perpetual's funding
 	var marketId string = ""
 	if market.Id != nil {
@@ -2849,7 +2849,7 @@ func (this *Paradex) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symb
 			panic(r.Err)
 		}
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var marketId string = ""
 	if market.Id != nil {
 		marketId = *market.Id

@@ -1524,7 +1524,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -1640,7 +1640,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1983,7 +1983,7 @@ func (this *Bitstamp) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 		"time": "hour",
@@ -2068,7 +2068,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -2247,7 +2247,7 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}
@@ -2560,10 +2560,10 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair":   market["id"],
-		"amount": this.AmountToPrecision(symbol, amount),
+		"amount": this.AmountToPrecision(&symbol, amount),
 	}
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	if clientOrderId != nil {
@@ -2610,7 +2610,7 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			response = r4.Value
 		}
 	} else {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 		if capitalizedSide == "Buy" {
 
 			r5 := <-this.PrivatePostBuyPair(this.Extend(request, paramsOmitted))
@@ -2678,10 +2678,10 @@ func (this *Bitstamp) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
-		"amount": this.AmountToPrecision(symbol, amount),
-		"price":  this.PriceToPrecision(symbol, price),
+		"amount": this.AmountToPrecision(&symbol, amount),
+		"price":  this.PriceToPrecision(&symbol, price),
 	}
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	if clientOrderId != nil {
@@ -3750,7 +3750,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market_symbol": market["id"],
 	}

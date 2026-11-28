@@ -136,7 +136,7 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 		if price == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " limit orders require a price argument"))
 		}
-		orderParams["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
+		orderParams["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, price))
 	}
 	var isMarket bool = (typeVar == "market")
 	postOnly, paramsPostOnly := this.HandlePostOnly(isMarket, false, params)
@@ -149,7 +149,7 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 	}
 	var cost *string = this.SafeString(paramsPostOnly, "cost")
 	if cost != nil {
-		orderParams["order_qty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
+		orderParams["order_qty"] = this.ParseToNumeric(this.CostToPrecision(&symbol, cost))
 	}
 	var stopLoss, _ = paramsPostOnly["stopLoss"].(map[string]any)
 	var takeProfit, _ = paramsPostOnly["takeProfit"].(map[string]any)
@@ -222,28 +222,28 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 		if isPresetStopLoss || isPresetTakeProfit {
 			if isPresetStopLoss {
 				conditional["order_type"] = "stop-loss"
-				conditional["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, presetStopLoss))
+				conditional["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, presetStopLoss))
 			} else if isPresetTakeProfit {
 				conditional["order_type"] = "take-profit"
-				conditional["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, presetTakeProfit))
+				conditional["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, presetTakeProfit))
 			}
 			if presetStopLossLimit != nil {
 				conditional["order_type"] = "stop-loss-limit"
-				conditional["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, presetStopLossLimit))
+				conditional["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, presetStopLossLimit))
 			} else if presetTakeProfitLimit != nil {
 				conditional["order_type"] = "take-profit-limit"
-				conditional["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, presetTakeProfitLimit))
+				conditional["limit_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, presetTakeProfitLimit))
 			}
 		} else if isStopLossPriceOrder || isTakeProfitPriceOrder {
 			if isStopLossPriceOrder {
-				triggers["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice))
+				triggers["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, stopLossPrice))
 				if isLimitOrder {
 					orderParams["order_type"] = "stop-loss-limit"
 				} else {
 					orderParams["order_type"] = "stop-loss"
 				}
 			} else {
-				triggers["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice))
+				triggers["price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, takeProfitPrice))
 				if isLimitOrder {
 					orderParams["order_type"] = "take-profit-limit"
 				} else {
@@ -283,9 +283,9 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 		}
 		if isStopLossPriceOrder || isTakeProfitPriceOrder {
 			if isStopLossPriceOrder {
-				orderParams["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, stopLossPrice))
+				orderParams["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, stopLossPrice))
 			} else {
-				orderParams["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, takeProfitPrice))
+				orderParams["trigger_price"] = this.ParseToNumeric(this.PriceToPrecision(&symbol, takeProfitPrice))
 			}
 		} else if isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder {
 			orderParams["trigger_price_type"] = priceType
@@ -355,14 +355,14 @@ func (this *Kraken) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 		panic(r1.Err)
 	}
 	var token *string = r1.Value
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var url *string = this.UrlsApiSectionStrings["ws"]["privateV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash *string = this.NumberToString(requestId)
 	var orderParams map[string]any = map[string]any{
 		"order_type": typeVar,
 		"side":       side,
-		"order_qty":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
+		"order_qty":  this.ParseToNumeric(this.AmountToPrecision(&symbol, amount)),
 		"symbol":     market["symbol"],
 		"token":      token,
 	}
@@ -461,7 +461,7 @@ func (this *Kraken) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 	var messageHash *string = this.NumberToString(requestId)
 	var orderParams map[string]any = map[string]any{
 		"order_id":  id,
-		"order_qty": this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
+		"order_qty": this.ParseToNumeric(this.AmountToPrecision(&symbol, amount)),
 		"token":     token,
 	}
 	var request map[string]any = map[string]any{
@@ -876,7 +876,7 @@ func (this *Kraken) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var symbolValue string = this.Symbol(symbol)
+	var symbolValue string = this.Symbol(&symbol)
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, params)
 	if r1.Err != nil {
@@ -996,12 +996,12 @@ func (this *Kraken) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Kraken) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Kraken) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Kraken) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Kraken) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -1122,7 +1122,7 @@ func (this *Kraken) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
 	var unsubMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		unsubMessageHashes = append(unsubMessageHashes, "unsubscribe:"+this.GetMessageHash("trade", nil, this.Symbol(symbolsNormalized[i])))
+		unsubMessageHashes = append(unsubMessageHashes, "unsubscribe:"+this.GetMessageHash("trade", nil, this.Symbol(&symbolsNormalized[i])))
 	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
@@ -1264,7 +1264,7 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		panic(r.Err)
 	}
 	var name string = "ohlc"
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 	var requestId int64 = this.RequestId()
@@ -1321,7 +1321,7 @@ func (this *Kraken) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 	var symbolValue *string = &market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var unsubMessageHash string = "unsubscribe:" + this.GetMessageHash("ohlcv", interval, symbolValue)
@@ -1381,7 +1381,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 		if symbols != nil {
 			for i := 0; i < len(symbols); i++ {
 				var symbol string = symbols[i]
-				var market map[string]any = this.Market(symbol)
+				var market map[string]any = this.Market(&symbol)
 				var info, _ = market["info"].(map[string]any)
 				var wsName *string = this.SafeString(info, "wsname")
 				if marketsByWsName != nil && wsName != nil {
@@ -2251,9 +2251,9 @@ func (this *Kraken) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], unifiedN
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var eventTrigger *string = this.SafeString(params, "event_trigger")
 		if eventTrigger != nil {
-			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(symbolsNormalized[i])))
+			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(&symbolsNormalized[i])))
 		} else {
-			messageHashes = append(messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i])))
+			messageHashes = append(messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(&symbolsNormalized[i])))
 		}
 	}
 	var request map[string]any = map[string]any{

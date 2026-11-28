@@ -735,7 +735,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -901,7 +901,7 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -1136,7 +1136,7 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"quote_currency":  market["quote"],
 		"target_currency": market["base"],
@@ -1218,7 +1218,7 @@ func (this *Coinone) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	// the v1 order/limit_buy and order/limit_sell endpoints were retired by
 	// the exchange and return 404, the v2.1 order endpoint replaces them,
 	// see https://github.com/ccxt/ccxt/issues/23174
@@ -1227,8 +1227,8 @@ func (this *Coinone) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"target_currency": market["baseId"],
 		"type":            orderType,
 		"side":            orderSide,
-		"price":           this.PriceToPrecision(symbol, price),
-		"qty":             this.AmountToPrecision(symbol, amount),
+		"price":           this.PriceToPrecision(&symbol, price),
+		"qty":             this.AmountToPrecision(&symbol, amount),
 	}
 
 	r1 := <-this.V2_1PrivatePostOrderLimit(this.Extend(request, params))

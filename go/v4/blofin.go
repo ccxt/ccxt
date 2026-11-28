@@ -964,7 +964,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"instId": nil,
 	}
@@ -1109,7 +1109,7 @@ func (this *Blofin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1160,7 +1160,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1376,7 +1376,7 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	}
 	// the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
 	var paramsNoPaginate map[string]any = this.OmitDict(params, "paginate")
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -1458,7 +1458,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var paginate bool = false
 	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
@@ -1685,7 +1685,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
@@ -2178,7 +2178,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var isStopLossPriceDefined bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitPriceDefined bool = (this.SafeString(params, "takeProfitPrice") != nil)
 	var isTriggerOrder bool = (this.SafeString(params, "triggerPrice") != nil)
@@ -2251,7 +2251,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var positionSide string = "net"
 	if hedged != nil && *hedged {
@@ -2272,7 +2272,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
 		request["instId"] = *market.Id
 	}
 	if amount != nil {
-		request["size"] = this.AmountToPrecision(symbol, amount)
+		request["size"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var marginMode *string = this.SafeString(params, "marginMode", "cross") // cross or isolated
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
@@ -2281,7 +2281,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
-		request["slTriggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
+		request["slTriggerPrice"] = this.PriceToPrecision(&symbol, stopLossPrice)
 		if typeVar == "market" {
 			request["slOrderPrice"] = "-1"
 		} else {
@@ -2289,11 +2289,11 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
 			if slLimitPrice == nil {
 				panic(ArgumentsRequired(this.Id + " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market"))
 			}
-			request["slOrderPrice"] = this.PriceToPrecision(symbol, slLimitPrice)
+			request["slOrderPrice"] = this.PriceToPrecision(&symbol, slLimitPrice)
 		}
 	}
 	if takeProfitPrice != nil {
-		request["tpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
+		request["tpTriggerPrice"] = this.PriceToPrecision(&symbol, takeProfitPrice)
 		if typeVar == "market" {
 			request["tpOrderPrice"] = "-1"
 		} else {
@@ -2301,7 +2301,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol string, typeVar string, side s
 			if tpLimitPrice == nil {
 				panic(ArgumentsRequired(this.Id + " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market"))
 			}
-			request["tpOrderPrice"] = this.PriceToPrecision(symbol, tpLimitPrice)
+			request["tpOrderPrice"] = this.PriceToPrecision(&symbol, tpLimitPrice)
 		}
 	}
 	request["marginMode"] = marginMode
@@ -2517,7 +2517,7 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -2534,7 +2534,7 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request["orderId"] = id
 	}
 	if amount != nil {
-		request["newSize"] = this.AmountToPrecision(symbol, amount)
+		request["newSize"] = this.AmountToPrecision(&symbol, amount)
 	}
 	var query map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "tpsl", "TPSL", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopLossLimitPrice", "takeProfitLimitPrice"})
 	//
@@ -2554,22 +2554,22 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	if isTpsl != nil && *isTpsl {
 		var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 		if stopLossPrice != nil {
-			request["newSlTriggerPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
+			request["newSlTriggerPrice"] = this.PriceToPrecision(&symbol, stopLossPrice)
 			var slLimitPrice *string = this.SafeString(params, "stopLossLimitPrice")
 			if typeVar == "market" {
 				request["newSlOrderPrice"] = "-1"
 			} else if slLimitPrice != nil {
-				request["newSlOrderPrice"] = this.PriceToPrecision(symbol, slLimitPrice)
+				request["newSlOrderPrice"] = this.PriceToPrecision(&symbol, slLimitPrice)
 			}
 		}
 		var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 		if takeProfitPrice != nil {
-			request["newTpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
+			request["newTpTriggerPrice"] = this.PriceToPrecision(&symbol, takeProfitPrice)
 			var tpLimitPrice *string = this.SafeString(params, "takeProfitLimitPrice")
 			if typeVar == "market" {
 				request["newTpOrderPrice"] = "-1"
 			} else if tpLimitPrice != nil {
-				request["newTpOrderPrice"] = this.PriceToPrecision(symbol, tpLimitPrice)
+				request["newTpOrderPrice"] = this.PriceToPrecision(&symbol, tpLimitPrice)
 			}
 		}
 
@@ -2588,12 +2588,12 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	} else if isTrigger != nil && *isTrigger {
 		var triggerPrice *string = this.SafeString(params, "triggerPrice")
 		if triggerPrice != nil {
-			request["newTriggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["newTriggerPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
 		if typeVar == "market" {
 			request["newOrderPrice"] = "-1"
 		} else if price != nil {
-			request["newOrderPrice"] = this.PriceToPrecision(symbol, price)
+			request["newOrderPrice"] = this.PriceToPrecision(&symbol, price)
 		}
 
 		r2 := <-this.PrivatePostTradeAmendAlgo(this.Extend(request, query))
@@ -2610,7 +2610,7 @@ func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		return nil
 	} else {
 		if price != nil {
-			request["newPrice"] = this.PriceToPrecision(symbol, price)
+			request["newPrice"] = this.PriceToPrecision(&symbol, price)
 		}
 
 		r3 := <-this.PrivatePostTradeAmendOrder(this.Extend(request, query))
@@ -4174,7 +4174,7 @@ func (this *Blofin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
@@ -4287,7 +4287,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength > 0 {
-			market = this.Market(symbols[0])
+			market = this.Market(&symbols[0])
 			request["instId"] = market["id"]
 		}
 	}
@@ -4560,7 +4560,7 @@ func (this *Blofin) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageT
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marginMode, query := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "cross")
 	var request map[string]any = map[string]any{
 		"instId":     market["id"],
@@ -4730,7 +4730,7 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instId":     market["id"],
 		"marginMode": marginMode,
@@ -4874,7 +4874,7 @@ func (this *Blofin) closePositionBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("closePosition", params, "cross")
 	var request map[string]any = map[string]any{
@@ -5019,7 +5019,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.PrivateGetAccountMarginMode(params)
 	if r1.Err != nil {

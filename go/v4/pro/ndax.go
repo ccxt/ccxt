@@ -71,7 +71,7 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel1"
 	var messageHash string = name + ":" + marketId
@@ -153,12 +153,12 @@ func (this *Ndax) HandleTicker(client ccxt.ClientInterface, message map[string]a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Ndax) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Ndax) WatchTradesAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
+func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -175,7 +175,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeTrades"
@@ -261,7 +261,7 @@ func (this *Ndax) HandleTrades(client ccxt.ClientInterface, message map[string]a
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(&symbol))
 		var marketId string = ""
 		if market.Id != nil {
 			marketId = *market.Id
@@ -308,7 +308,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeTicker"
@@ -504,7 +504,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var name string = "SubscribeLevel2"

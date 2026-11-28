@@ -645,7 +645,7 @@ func (this *Bitopro) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -766,7 +766,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"pair": nil,
 	}
@@ -935,7 +935,7 @@ func (this *Bitopro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1121,7 +1121,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var resolution *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"pair":       market["id"],
@@ -1442,25 +1442,25 @@ func (this *Bitopro) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"type":      typeVar,
 		"pair":      market["id"],
 		"action":    side,
-		"amount":    this.AmountToPrecision(symbol, amount),
+		"amount":    this.AmountToPrecision(&symbol, amount),
 		"timestamp": this.Milliseconds(),
 	}
 	var orderType string = strings.ToUpper(typeVar)
 	if orderType == "LIMIT" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	if orderType == "STOP_LIMIT" {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 		var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 		if triggerPrice == nil {
 			panic(InvalidOrder(this.Id + " createOrder() requires a triggerPrice parameter for " + orderType + " orders"))
 		} else {
-			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
+			request["stopPrice"] = this.PriceToPrecision(&symbol, triggerPrice)
 		}
 		var condition *string = this.SafeString(params, "condition")
 		if condition == nil {

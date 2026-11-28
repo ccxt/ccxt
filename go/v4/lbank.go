@@ -1015,7 +1015,7 @@ func (this *Lbank) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	if *this.SafeBool(market, "swap", false) {
 
@@ -1107,7 +1107,7 @@ func (this *Lbank) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
-			market = this.Market(symbolsNormalized[0])
+			market = this.Market(&symbolsNormalized[0])
 		}
 	}
 	var request map[string]any = map[string]any{}
@@ -1215,7 +1215,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var limitResolved int64
 	if limit == nil {
 		limitResolved = 60
@@ -1462,7 +1462,7 @@ func (this *Lbank) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1571,7 +1571,7 @@ func (this *Lbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var limitResolved int64 = this.ParseToInt(func() any {
 		if limit == nil {
 			return 100
@@ -1834,7 +1834,7 @@ func (this *Lbank) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var marketSymbol string = market.Symbol
 
 	r1 := <-this.FetchFundingRatesAsync([]any{marketSymbol}, params)
@@ -2057,7 +2057,7 @@ func (this *Lbank) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r := <-this.FetchTradingFeesAsync(this.Extend(params, map[string]any{
 		"category": market["id"],
@@ -2147,7 +2147,7 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -2194,7 +2194,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var clientOrderId *string = this.SafeString2(params, "custom_id", "clientOrderId")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
@@ -2210,8 +2210,8 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	}
 	if typeVar == "limit" {
 		request["type"] = side
-		request["price"] = this.PriceToPrecision(symbol, price)
-		request["amount"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
+		request["amount"] = this.AmountToPrecision(&symbol, amount)
 		if ioc {
 			request["type"] = side + "_" + "ioc"
 		} else if fok {
@@ -2222,7 +2222,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	} else if typeVar == "market" {
 		if side == "sell" {
 			request["type"] = side + "_" + "market"
-			request["amount"] = this.AmountToPrecision(symbol, amount)
+			request["amount"] = this.AmountToPrecision(&symbol, amount)
 		} else if side == "buy" {
 			request["type"] = side + "_" + "market"
 			var quoteAmount *string = nil
@@ -2231,7 +2231,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			var cost *float64 = this.SafeNumber(paramsRequest, "cost")
 			paramsRequest = this.OmitDict(paramsRequest, "cost")
 			if cost != nil {
-				quoteAmount = this.CostToPrecision(symbol, cost)
+				quoteAmount = this.CostToPrecision(&symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2239,10 +2239,10 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var costRequest *string = Precise.StringMul(amountString, priceString)
-					quoteAmount = this.CostToPrecision(symbol, costRequest)
+					quoteAmount = this.CostToPrecision(&symbol, costRequest)
 				}
 			} else {
-				quoteAmount = this.CostToPrecision(symbol, amount)
+				quoteAmount = this.CostToPrecision(&symbol, amount)
 			}
 			// market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
 			request["price"] = quoteAmount

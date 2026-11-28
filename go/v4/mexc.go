@@ -1978,7 +1978,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2098,7 +2098,7 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2415,7 +2415,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var maxLimit int
 	if *this.SafeBool(market, "spot", false) {
 		maxLimit = 500
@@ -2701,7 +2701,7 @@ func (this *Mexc) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marketType, query := this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	var ticker any = nil
 	var request map[string]any = map[string]any{
@@ -3001,7 +3001,7 @@ func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
@@ -3044,7 +3044,7 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
@@ -3107,7 +3107,7 @@ func (this *Mexc) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	marginMode, query := this.HandleMarginModeAndParams("createOrder", params)
 	if *this.SafeBool(market, "spot", false) {
 
@@ -5083,7 +5083,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	if !market.Spot {
 		panic(NotSupported(this.Id + " fetchTradingFee() supports spot markets only"))
 	}
@@ -6022,7 +6022,7 @@ func (this *Mexc) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -6958,7 +6958,7 @@ func (this *Mexc) fetchPositionBody(ch chan AsyncResult[Position], symbol string
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 	}
@@ -8046,7 +8046,7 @@ func (this *Mexc) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -8204,7 +8204,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbols[0]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbols[0]))
 			request["symbol"] = nil
 			if market.Id != nil {
 				request["symbol"] = *market.Id

@@ -558,7 +558,7 @@ func (this *Upbit) fetchMarketBody(ch chan AsyncResult[MarketInterface], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 
 	r1 := <-this.FetchMarketByIdAsync(market["id"], params)
 	if r1.Err != nil {
@@ -1103,7 +1103,7 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		var quoteIds []any = []any{}
 		var marketSymbols []string = this.Symbols
 		for i := 0; i < len(marketSymbols); i++ {
-			var market MarketInterface = MarketInterfaceFromMap(this.Market(marketSymbols[i]))
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(&marketSymbols[i]))
 			var quoteId *string = market.QuoteId
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)
@@ -1337,7 +1337,7 @@ func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var limitResolved int64
 	if limit == nil {
 		limitResolved = 200
@@ -1408,7 +1408,7 @@ func (this *Upbit) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var request map[string]any = map[string]any{
 		"market": nil,
 	}
@@ -1579,7 +1579,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var timeframePeriod int64 = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var limitResolved int64
@@ -1661,7 +1661,7 @@ func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 	var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		if derefPtr := this.CostToPrecision(symbol, cost); derefPtr != nil {
+		if derefPtr := this.CostToPrecision(&symbol, cost); derefPtr != nil {
 			quoteAmount = *derefPtr
 		} else {
 			quoteAmount = nil
@@ -1673,7 +1673,7 @@ func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
 		var costRequest *string = Precise.StringMul(amountString, priceString)
-		if derefPtr := this.CostToPrecision(symbol, costRequest); derefPtr != nil {
+		if derefPtr := this.CostToPrecision(&symbol, costRequest); derefPtr != nil {
 			quoteAmount = *derefPtr
 		} else {
 			quoteAmount = nil
@@ -1682,7 +1682,7 @@ func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend."))
 		}
-		if derefPtr := this.CostToPrecision(symbol, amount); derefPtr != nil {
+		if derefPtr := this.CostToPrecision(&symbol, amount); derefPtr != nil {
 			quoteAmount = *derefPtr
 		} else {
 			quoteAmount = nil
@@ -1734,7 +1734,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
 	var postOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
@@ -1764,8 +1764,8 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(ArgumentsRequired(this.Id + " the limit type order in createOrder() is required price and amount."))
 		}
 		request["ord_type"] = "limit"
-		request["price"] = this.PriceToPrecision(symbol, price)
-		request["volume"] = this.AmountToPrecision(symbol, amount)
+		request["price"] = this.PriceToPrecision(&symbol, price)
+		request["volume"] = this.AmountToPrecision(&symbol, amount)
 	} else if typeVar == "market" {
 		if side == "buy" {
 			request["ord_type"] = "price"
@@ -1776,7 +1776,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 				panic(ArgumentsRequired(this.Id + " the market sell type order in createOrder() is required amount."))
 			}
 			request["ord_type"] = "market"
-			request["volume"] = this.AmountToPrecision(symbol, amount)
+			request["volume"] = this.AmountToPrecision(&symbol, amount)
 		}
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder() supports only limit or market types in the type argument."))
@@ -1792,7 +1792,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			if IsEqual(amount, nil) {
 				panic(ArgumentsRequired(this.Id + " the best sell type order in createOrder() is required amount."))
 			}
-			request["volume"] = this.AmountToPrecision(symbol, amount)
+			request["volume"] = this.AmountToPrecision(&symbol, amount)
 		}
 	}
 	if clientOrderId != nil {
@@ -1982,8 +1982,8 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 			panic(ArgumentsRequired(this.Id + " editOrder() is required price and amount to create limit type order."))
 		}
 		request["new_ord_type"] = "limit"
-		request["new_price"] = this.PriceToPrecision(symbol, price)
-		request["new_volume"] = this.AmountToPrecision(symbol, amount)
+		request["new_price"] = this.PriceToPrecision(&symbol, price)
+		request["new_volume"] = this.AmountToPrecision(&symbol, amount)
 	} else if typeVar == "market" {
 		if side == "buy" {
 			request["new_ord_type"] = "price"
@@ -1994,7 +1994,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 				panic(ArgumentsRequired(this.Id + " editOrder() is required amount to create market sell type order."))
 			}
 			request["new_ord_type"] = "market"
-			request["new_volume"] = this.AmountToPrecision(symbol, amount)
+			request["new_volume"] = this.AmountToPrecision(&symbol, amount)
 		}
 	} else {
 		panic(InvalidOrder(this.Id + " editOrder() supports only limit or market types in the type argument."))
@@ -2014,7 +2014,7 @@ func (this *Upbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 			if amount == nil {
 				panic(ArgumentsRequired(this.Id + " editOrder() is required amount to create best sell order."))
 			}
-			request["new_volume"] = this.AmountToPrecision(symbol, amount)
+			request["new_volume"] = this.AmountToPrecision(&symbol, amount)
 		}
 	}
 	if clientOrderId != nil {

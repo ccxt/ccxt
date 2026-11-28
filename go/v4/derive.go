@@ -1356,7 +1356,7 @@ func (this *Derive) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 	}
@@ -1430,7 +1430,7 @@ func (this *Derive) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "contract", false)) {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
@@ -1528,7 +1528,7 @@ func (this *Derive) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, 
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "option", false)) {
 		panic(BadRequest(this.Id + " fetchGreeks() supports option markets only"))
 	}
@@ -1644,7 +1644,7 @@ func (this *Derive) fetchOptionBody(ch chan AsyncResult[Option], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if !(*this.SafeBool(market, "option", false)) {
 		panic(BadRequest(this.Id + " fetchOption() supports option markets only"))
 	}
@@ -2031,7 +2031,7 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if true {
-		var symbolMarket map[string]any = this.Market(symbol)
+		var symbolMarket map[string]any = this.Market(&symbol)
 		market = symbolMarket
 		request["instrument_name"] = symbolMarket["id"]
 	}
@@ -2257,7 +2257,7 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		return nil
 	}
 	// todo: check active spot markets after launch of v3
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var period *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	priceType, paramsPrice := this.HandleOptionStringAndParams(params, "fetchOHLCV", "price")
 	var until *int64 = this.SafeInteger(paramsPrice, "until")
@@ -2704,7 +2704,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	if price == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument"))
 	}
@@ -2730,7 +2730,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	var paramsMaxFee map[string]any = this.SafeDictMap(maxFeeOptionAndParams, 1, map[string]any{})
 	var amountString *string = this.NumberToString(amount)
 	var marketInfo, _ = market["info"].(map[string]any)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(&symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{
@@ -2895,7 +2895,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("editOrder", params)
 	var reduceOnly *bool = this.SafeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only")
 	var timeInForce *string = this.SafeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force")
@@ -2911,7 +2911,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var maxFeeString *string = this.SafeString(paramsDeriveSubaccountId, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
 	var marketInfo, _ = market["info"].(map[string]any)
-	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
+	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(&symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
 	var request map[string]any = map[string]any{

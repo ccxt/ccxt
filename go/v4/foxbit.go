@@ -668,7 +668,7 @@ func (this *Foxbit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -871,7 +871,7 @@ func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(&symbol))
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
 		"market": nil,
@@ -952,7 +952,7 @@ func (this *Foxbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1022,7 +1022,7 @@ func (this *Foxbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"market":   market["id"],
@@ -1332,7 +1332,7 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	var typeValue string = strings.ToUpper(typeVar)
 	if (typeValue != "LIMIT") && (typeValue != "MARKET") && (typeValue != "STOP_MARKET") && (typeValue != "STOP_LIMIT") && (typeValue != "INSTANT") {
 		panic(InvalidOrder("Invalid order type: " + typeValue + ". Must be one of: limit, market, stop_market, stop_limit, instant."))
@@ -1362,15 +1362,15 @@ func (this *Foxbit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		request["post_only"] = true
 	}
 	if triggerPrice != nil {
-		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
+		request["stop_price"] = this.PriceToPrecision(&symbol, triggerPrice)
 	}
 	if typeValue == "INSTANT" {
-		request["amount"] = this.PriceToPrecision(symbol, amount)
+		request["amount"] = this.PriceToPrecision(&symbol, amount)
 	} else {
-		request["quantity"] = this.AmountToPrecision(symbol, amount)
+		request["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if (typeValue == "LIMIT") || (typeValue == "STOP_LIMIT") {
-		request["price"] = this.PriceToPrecision(symbol, price)
+		request["price"] = this.PriceToPrecision(&symbol, price)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId != nil {
@@ -2239,7 +2239,7 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market map[string]any = this.Market(&symbol)
 	this.CheckRequiredArgument("editOrder", side, "side")
 	var createRequest map[string]any = map[string]any{
 		"type":          typeValue,
@@ -2247,17 +2247,17 @@ func (this *Foxbit) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		"market_symbol": market["id"],
 	}
 	if (typeValue == "LIMIT") || (typeValue == "MARKET") {
-		createRequest["quantity"] = this.AmountToPrecision(symbol, amount)
+		createRequest["quantity"] = this.AmountToPrecision(&symbol, amount)
 		if typeValue == "LIMIT" {
-			createRequest["price"] = this.PriceToPrecision(symbol, price)
+			createRequest["price"] = this.PriceToPrecision(&symbol, price)
 		}
 	}
 	if typeValue == "STOP_MARKET" {
-		createRequest["stop_price"] = this.PriceToPrecision(symbol, price)
-		createRequest["quantity"] = this.AmountToPrecision(symbol, amount)
+		createRequest["stop_price"] = this.PriceToPrecision(&symbol, price)
+		createRequest["quantity"] = this.AmountToPrecision(&symbol, amount)
 	}
 	if typeValue == "INSTANT" {
-		createRequest["amount"] = this.PriceToPrecision(symbol, amount)
+		createRequest["amount"] = this.PriceToPrecision(&symbol, amount)
 	}
 	var request map[string]any = map[string]any{
 		"mode": "ALLOW_FAILURE",
