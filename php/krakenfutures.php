@@ -1933,31 +1933,30 @@ class krakenfutures extends Exchange {
     }
 
     public function verify_order_action_success(?string $status, string $method, array $omit = array()) {
-        $errors = array(
-            'invalidOrderType' => '\\ccxt\\InvalidOrder',
-            'invalidSide' => '\\ccxt\\InvalidOrder',
-            'invalidSize' => '\\ccxt\\InvalidOrder',
-            'invalidPrice' => '\\ccxt\\InvalidOrder',
-            'insufficientAvailableFunds' => '\\ccxt\\InsufficientFunds',
-            'selfFill' => '\\ccxt\\ExchangeError',
-            'tooManySmallOrders' => '\\ccxt\\ExchangeError',
-            'maxPositionViolation' => '\\ccxt\\BadRequest',
-            'marketSuspended' => '\\ccxt\\ExchangeNotAvailable',
-            'marketInactive' => '\\ccxt\\ExchangeNotAvailable',
-            'clientOrderIdAlreadyExist' => '\\ccxt\\DuplicateOrderId',
-            'clientOrderIdTooLong' => '\\ccxt\\BadRequest',
-            'outsidePriceCollar' => '\\ccxt\\InvalidOrder',
-            'postWouldExecute' => '\\ccxt\\OrderImmediatelyFillable',  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
-            'iocWouldNotExecute' => '\\ccxt\\OrderNotFillable', // -||-
-            'wouldNotReducePosition' => '\\ccxt\\ExchangeError',
-            'orderForEditNotFound' => '\\ccxt\\OrderNotFound',
-            'orderForEditNotAStop' => '\\ccxt\\InvalidOrder',
-            'filled' => '\\ccxt\\OrderNotFound',
-            'notFound' => '\\ccxt\\OrderNotFound',
-        );
         if ($status !== null) {
-            if ((is_array($errors) && array_key_exists($status ?? '', $errors)) && !$this->in_array($status, $omit)) {
-                throw new $errors[$status]($this->id . ' => ' . $method . ' failed due to ' . $status);
+            if (!$this->in_array($status, $omit)) {
+                $this->throw_exactly_matched_exception(array(
+                    'invalidOrderType' => '\\ccxt\\InvalidOrder',
+                    'invalidSide' => '\\ccxt\\InvalidOrder',
+                    'invalidSize' => '\\ccxt\\InvalidOrder',
+                    'invalidPrice' => '\\ccxt\\InvalidOrder',
+                    'insufficientAvailableFunds' => '\\ccxt\\InsufficientFunds',
+                    'selfFill' => '\\ccxt\\ExchangeError',
+                    'tooManySmallOrders' => '\\ccxt\\ExchangeError',
+                    'maxPositionViolation' => '\\ccxt\\BadRequest',
+                    'marketSuspended' => '\\ccxt\\ExchangeNotAvailable',
+                    'marketInactive' => '\\ccxt\\ExchangeNotAvailable',
+                    'clientOrderIdAlreadyExist' => '\\ccxt\\DuplicateOrderId',
+                    'clientOrderIdTooLong' => '\\ccxt\\BadRequest',
+                    'outsidePriceCollar' => '\\ccxt\\InvalidOrder',
+                    'postWouldExecute' => '\\ccxt\\OrderImmediatelyFillable',  // the unplaced order could actually be parsed (with status = "rejected"), but there is this specific error for this
+                    'iocWouldNotExecute' => '\\ccxt\\OrderNotFillable', // -||-
+                    'wouldNotReducePosition' => '\\ccxt\\ExchangeError',
+                    'orderForEditNotFound' => '\\ccxt\\OrderNotFound',
+                    'orderForEditNotAStop' => '\\ccxt\\InvalidOrder',
+                    'filled' => '\\ccxt\\OrderNotFound',
+                    'notFound' => '\\ccxt\\OrderNotFound',
+                ), $status, $this->id . ' => ' . $method . ' failed due to ' . $status);
             }
         }
     }

@@ -1254,7 +1254,7 @@ class paradex extends Exchange {
                     $result[] = $summary;
                 } else {
                     $market = $this->safe_market($marketId);
-                    if ($market['type'] === $marketType) {
+                    if ($this->safe_string($market, 'type') === $marketType) {
                         $result[] = $summary;
                     }
                 }

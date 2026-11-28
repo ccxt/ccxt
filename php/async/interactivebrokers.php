@@ -1642,8 +1642,15 @@ class interactivebrokers extends Exchange {
         $cmeSymbols = is_array($cryptoCmeFutureSymbols) ? array_keys($cryptoCmeFutureSymbols) : array();
         $cfeSymbols = is_array($cryptoCboeFutureSymbols) ? array_keys($cryptoCboeFutureSymbols) : array();
         $targetSymbols = $this->arrays_concat(array( $coinbaseDerivSymbols, $cmeSymbols, $cfeSymbols ));
-        $symbols = $this->unique($targetSymbols);
-        $joined = implode(',', ($symbols)); // c# fix, todo investigate
+        $symbols = array();
+        $targetSymbolsLength = count($targetSymbols);
+        for ($i = 0; $i < $targetSymbolsLength; $i++) {
+            $targetSymbol = $this->safe_string($targetSymbols, $i, '');
+            if (!$this->in_array($targetSymbol, $symbols)) {
+                $symbols[] = $targetSymbol;
+            }
+        }
+        $joined = implode(',', $symbols);
         $request = array(
             'symbols' => $joined,
         );

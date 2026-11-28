@@ -959,9 +959,8 @@ class bitopro extends Exchange {
         $candleLength = count($candles);
         $resultLength = 0;
         while (($resultLength < $limit) && ($i < $candleLength)) {
-            $candle = $this->safe_list($candles, $i, array());
-            if ($candle[0] === $timestamp) {
-                $result[] = $candle;
+            if ($this->safe_integer($this->safe_list($candles, $i, array()), 0) === $timestamp) {
+                $result[] = $this->safe_list($candles, $i, array());
                 $i = $i + 1;
             } else {
                 // set open, high, low to close

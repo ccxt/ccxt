@@ -457,7 +457,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         Async\await($this->ibkr_unsubscribe($client, $subHashes, null, $subscription));
         for ($i = 0; $i < count($marketSymbols); $i++) {
             $market = $this->market($marketSymbols[$i]);
-            Async\await($this->ibkr_unsubscribe_market_data($client, $market['id']));
+            Async\await($this->ibkr_unsubscribe_market_data($client, $this->safe_string($market, 'id')));
         }
         return true;
     }
@@ -611,7 +611,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             'symbolsAndTimeframes' => array( array( $unifiedSymbol, $timeframe ) ),
         );
         Async\await($this->ibkr_unsubscribe($client, $subHashes, null, $subscription));
-        Async\await($this->ibkr_unsubscribe_market_data($client, $market['id']));
+        Async\await($this->ibkr_unsubscribe_market_data($client, $historyMarketId));
         return true;
     }
 

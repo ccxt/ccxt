@@ -3350,7 +3350,7 @@ class lbank extends Exchange {
                 '10701' => 'invalid asset code',
                 '10702' => 'not allowed deposit',
             ), $errorCode, $this->json($response));
-            $ErrorClass = $this->safe_value(array(
+            $this->throw_exactly_matched_exception(array(
                 '10001' => '\\ccxt\\BadRequest',
                 '10002' => '\\ccxt\\AuthenticationError',
                 '10003' => '\\ccxt\\BadRequest',
@@ -3400,8 +3400,8 @@ class lbank extends Exchange {
                 '10601' => '\\ccxt\\ExchangeError', // 'Interface closed unavailable',
                 '10701' => '\\ccxt\\BadSymbol', // 'invalid asset code',
                 '10702' => '\\ccxt\\PermissionDenied', // 'not allowed deposit',
-            ), $errorCode, '\\ccxt\\ExchangeError');
-            throw new $ErrorClass($message);
+            ), $errorCode, $message);
+            throw new ExchangeError($message);
         }
         return null;
     }

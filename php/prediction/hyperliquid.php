@@ -505,7 +505,7 @@ class hyperliquid extends Exchange {
         $szDecimals = 4;  // outcomes use 4 decimal places
         $active = true;
         $outcomePrecision = array(
-            'amount' => (string) $this->parse_number($this->parse_precision($szDecimals)),
+            'amount' => $this->parse_number($this->parse_precision($this->number_to_string($szDecimals))),
             'price' => 0.0001,
         );
         $outcomes = array(

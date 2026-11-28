@@ -1430,8 +1430,9 @@ class mudrex extends Exchange {
         $rows = array();
         for ($i = 0; $i < count($transactions); $i++) {
             $rebate = null;
+            $transactionKey = $this->safe_string($transactionKeys, $i);
             for ($j = 0; $j < count($rebateKeys); $j++) {
-                if ($rebateKeys[$j] === $transactionKeys[$i]) {
+                if ($this->safe_string($rebateKeys, $j) === $transactionKey) {
                     $rebate = $this->safe_string($rebateAmounts, $j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
                     $rebateKeys[$j] = '';

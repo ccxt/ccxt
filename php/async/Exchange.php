@@ -1285,7 +1285,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_limit($result, $limit, $key, $shouldFilterFromStart);
     }
 
-    public function filter_by_value_since_limit(mixed $array, int|string $field, mixed $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_value_since_limit(mixed $array, int|string $field, ?string $value = null, ?int $since = null, ?int $limit = null, $key = 'timestamp', $tail = false) {
         $valueIsDefined = $this->value_is_defined($value);
         $sinceIsDefined = $since !== null && $since !== null;
         $parsedArray = $this->to_array($array);
@@ -1295,9 +1295,9 @@ class BaseExchange extends \ccxt\BaseExchange {
             $result = array();
             for ($i = 0; $i < count($parsedArray); $i++) {
                 $entry = $parsedArray[$i];
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                $entryFiledEqualValue = $this->safe_value($entry, $field) === $value;
+                $entryFiledEqualValue = $this->safe_string($entry, $field) === $value;
                 $firstCondition = !$valueIsDefined || $entryFiledEqualValue;
                 $entryKeyValue = $this->safe_integer($entry, $key);
                 $entryKeyGESince = ($entryKeyValue !== null) && ($entryKeyValue !== 0) && ($since !== null) && ($entryKeyValue >= $since);
@@ -1741,8 +1741,8 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function is_round_number(float $value) {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        $res = $this->parse_to_numeric((fmod($value, 1)));
-        return $res === 0;
+        $remainder = $this->number_to_string(fmod($value, 1));
+        return ($remainder === '0') || ($remainder === '-0');
     }
 
     public function is_empty_string(mixed $value) {
@@ -3062,8 +3062,9 @@ class BaseExchange extends \ccxt\BaseExchange {
         //     ]
         //
         $reduced = array();
-        for ($i = 0; $i < count($fees); $i++) {
-            $fee = $fees[$i];
+        $feesList = $this->to_array($fees);
+        for ($i = 0; $i < count($feesList); $i++) {
+            $fee = $feesList[$i];
             $code = $this->safe_string($fee, 'currency');
             $feeCurrencyCode = ($code !== null) ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
@@ -3078,7 +3079,8 @@ class BaseExchange extends \ccxt\BaseExchange {
                 }
                 $rateKey = ($rate === null) ? '' : $rate;
                 if (is_array($reduced[$feeCurrencyCode]) && array_key_exists($rateKey ?? '', $reduced[$feeCurrencyCode])) {
-                    $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
+                    $previousCost = $this->safe_string($reduced[$feeCurrencyCode][$rateKey], 'cost');
+                    $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($previousCost, $cost);
                 } else {
                     $newRateFee = array(
                         'currency' => $code,
@@ -3447,16 +3449,16 @@ class BaseExchange extends \ccxt\BaseExchange {
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market($symbols[$i]);
             if ($sameTypeOnly && ($marketType !== null)) {
-                if ($market['type'] !== $marketType) {
+                if ($this->safe_string($market, 'type') !== $marketType) {
                     throw new BadRequest($this->id . ' symbols must be of the same type, either ' . $marketType . ' or ' . $market['type'] . '.');
                 }
             }
             if ($sameSubTypeOnly && ($isLinearSubType !== null)) {
-                if ($market['linear'] !== $isLinearSubType) {
+                if ($this->safe_bool($market, 'linear') !== $isLinearSubType) {
                     throw new BadRequest($this->id . ' symbols must be of the same subType, either linear or inverse.');
                 }
             }
-            if ($type !== null && $market['type'] !== $type) {
+            if ($type !== null && $this->safe_string($market, 'type') !== $type) {
                 throw new BadRequest($this->id . ' symbols must be of the same type ' . $type . '. If the type is incorrect you can change it in options or the params of the request');
             }
             $marketType = $this->safe_string($market, 'type');
@@ -3592,7 +3594,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $aliasKeys = is_array($aliases) ? array_keys($aliases) : array();
         for ($i = 0; $i < count($aliasKeys); $i++) {
             $alias = $aliasKeys[$i];
-            if (($aliases[$alias] === $unifiedCode) && (is_array($networkIdsByCodes) && array_key_exists($alias ?? '', $networkIdsByCodes))) {
+            if (($this->safe_string($aliases, $alias) === $unifiedCode) && (is_array($networkIdsByCodes) && array_key_exists($alias ?? '', $networkIdsByCodes))) {
                 return $networkIdsByCodes[$alias];
             }
         }
@@ -4353,7 +4355,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function filter_by_array(mixed $objects, int|string $key, mixed $values = null, $indexed = true) {
         $objectsValue = $this->to_array($objects);
         // return all of them if no values were passed
-        if (($values === null) || ($values === null) || ($values === false) || ($values === 0) || ($values === '')) {
+        if (($values === null) || ($values === null) || ($values === false) || ($values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if ($indexed) {
                 return $this->index_by($objectsValue, $key);
@@ -4377,7 +4379,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function filter_out_by_array(mixed $objects, int|string $key, mixed $values = null, $indexed = true) {
         $objectsValue = $this->to_array($objects);
         // return all of them if no values were passed
-        if (($values === null) || ($values === null) || ($values === false) || ($values === 0) || ($values === '')) {
+        if (($values === null) || ($values === null) || ($values === false) || ($values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if ($indexed) {
                 return $this->index_by($objectsValue, $key);
@@ -6605,7 +6607,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 }
                 $response = null;
                 if ($method === 'fetchAccounts') {
-                    $response = Async\await($this->$method($paramsOmitted));
+                    $response = Async\await($this->fetch_accounts($paramsOmitted));
                 } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                     $response = Async\await($this->$method($symbol, $paramsOmitted));
                 } elseif ($method === 'fetchOpenInterestHistory') {

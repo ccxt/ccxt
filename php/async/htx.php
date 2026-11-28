@@ -6193,6 +6193,7 @@ class htx extends Exchange {
             }
             $clientOrderIds = $this->safe_value_2($query, 'client_order_id', 'clientOrderId');
             $clientOrderIds = $this->safe_value_2($query, 'client_order_ids', 'clientOrderIds', $clientOrderIds);
+            $clientOrderIdsString = $this->safe_string_n($query, array( 'client_order_ids', 'clientOrderIds', 'client_order_id', 'clientOrderId' ));
             $query = $this->omit($query, array( 'client_order_id', 'client_order_ids', 'clientOrderId', 'clientOrderIds' ));
             if (!$this->safe_bool($market, 'linear', false)) {
                 if ($clientOrderIds === null) {
@@ -6210,8 +6211,8 @@ class htx extends Exchange {
                 if ($clientOrderIds === null) {
                     $request['order_id'] = $ids;
                 } else {
-                    if (gettype($clientOrderIds) === 'string') {
-                        $request['client_order_id'] = explode(',', $clientOrderIds);
+                    if ($clientOrderIdsString !== null) {
+                        $request['client_order_id'] = explode(',', $clientOrderIdsString);
                     } else {
                         $request['client_order_id'] = $clientOrderIds;
                     }

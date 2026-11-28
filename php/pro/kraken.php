@@ -1195,7 +1195,7 @@ class kraken extends \ccxt\async\kraken {
                     $currentAskLength = count($currentAsk);
                     $formattedAsk = '';
                     if ($currentAskLength > 1) {
-                        $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
+                        $formattedAsk = $this->format_number($this->safe_string($currentAsk, 0, '')) . $this->format_number($this->safe_string($currentAsk, 1, ''));
                     }
                     $payloadArray[] = $formattedAsk;
                 }
@@ -1204,7 +1204,7 @@ class kraken extends \ccxt\async\kraken {
                     $currentBidLength = count($currentBid);
                     $formattedBid = '';
                     if ($currentBidLength > 1) {
-                        $formattedBid = $this->format_number($currentBid[0]) . $this->format_number($currentBid[1]);
+                        $formattedBid = $this->format_number($this->safe_string($currentBid, 0, '')) . $this->format_number($this->safe_string($currentBid, 1, ''));
                     }
                     $payloadArray[] = $formattedBid;
                 }

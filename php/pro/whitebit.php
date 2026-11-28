@@ -1170,7 +1170,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $id = $this->safe_integer($message, 'id');
         if ($id !== null) {
-            $this->handle_subscription_status($client, $message, $id);
+            $this->handle_subscription_status($client, $message);
             return;
         }
         $methods = array(
@@ -1191,7 +1191,8 @@ class whitebit extends \ccxt\async\whitebit {
         }
     }
 
-    public function handle_subscription_status(Client $client, array $message, ?int $id) {
+    public function handle_subscription_status(Client $client, array $message) {
+        $id = $this->safe_integer($message, 'id');
         // not every method stores its subscription
         // as an object so we can't do indeById here
         $subs = $client->subscriptions;

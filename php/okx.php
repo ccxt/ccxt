@@ -7377,7 +7377,10 @@ class okx extends Exchange {
         if ($length > 1) {
             $accountId = $this->safe_string($params, 'accountId');
             if ($accountId === null) {
-                $accountIds = $this->get_list_from_object_values($accounts, 'id');
+                $accountIds = array();
+                for ($i = 0; $i < $length; $i++) {
+                    $accountIds[] = $this->safe_string($this->safe_dict($accounts, $i), 'id', '');
+                }
                 throw new ExchangeError($this->id . ' fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params["accountId"] to desired id from => ' . implode(', ', $accountIds));
             } else {
                 $accountsById = $this->index_by($accounts, 'id');

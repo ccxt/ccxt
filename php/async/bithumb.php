@@ -1027,7 +1027,7 @@ class bithumb extends Exchange {
             if ($marketIdsLength === 0) {
                 return $result;
             }
-            $marketIdsChunks = array();
+            $singleMarketIds = array();
             $promises = array();
             // the exchange rejects more than 200 market ids per request
             $maxMarketIdsOption = $this->safe_integer($this->options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200);
@@ -1041,7 +1041,11 @@ class bithumb extends Exchange {
                 $marketIdsChunkLength = count($marketIdsChunk);
                 $isLastMarketId = ($i === ($marketIdsLength - 1));
                 if (($marketIdsChunkLength >= $maxMarketIdsPerRequest) || $isLastMarketId) {
-                    $marketIdsChunks[] = $marketIdsChunk;
+                    if ($marketIdsChunkLength === 1) {
+                        $singleMarketIds[] = $marketIds[$i];
+                    } else {
+                        $singleMarketIds[] = '';
+                    }
                     $request['markets'] = implode(',', $marketIdsChunk);
                     $promises[] = $this->publicGetV1Ticker($this->extend($request, $paramsGeneration));
                     $marketIdsChunk = array();
@@ -1086,12 +1090,7 @@ class bithumb extends Exchange {
                 if ($this->is_dictionary($response) && ($this->safe_value($response, 'data') !== null)) {
                     $response = $this->safe_value($response, 'data');
                 }
-                $expectedMarketId = null;
-                $requestedMarketIds = $this->safe_list($marketIdsChunks, $i, array());
-                $firstMarketId = $this->safe_string($requestedMarketIds, 0);
-                if (($firstMarketId !== null) && ($this->safe_string($requestedMarketIds, 1) === null)) {
-                    $expectedMarketId = $firstMarketId;
-                }
+                $expectedMarketId = $this->safe_string($singleMarketIds, $i);
                 $tickers = array();
                 if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
                     $tickers = $response;

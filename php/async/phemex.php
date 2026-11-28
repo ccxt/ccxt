@@ -1973,8 +1973,10 @@ class phemex extends Exchange {
             $amountIndex = $tradeLength - 1;
             $priceString = $this->safe_string($trade, $priceIndex);
             $amountString = $this->safe_string($trade, $amountIndex);
-            $priceAmount = $trade[$priceIndex];
-            if ((is_float($priceAmount) || is_int($priceAmount))) {
+            // v1 rows (spot, inverse, USD-settled) carry scaled integers, v2 USDT/USDC rows carry plain strings
+            $tradeSettle = $this->safe_string($marketResolved, 'settle');
+            $isStableSettled = ($tradeSettle === 'USDT') || ($tradeSettle === 'USDC');
+            if (!$isStableSettled) {
                 $priceString = $this->from_ep($this->safe_string($trade, $priceIndex), $marketResolved);
                 $amountString = $this->from_ev($this->safe_string($trade, $amountIndex), $marketResolved);
             }

@@ -3463,15 +3463,15 @@ class gate extends Exchange {
         );
         $isolated = $marginMode === 'margin' && $type === 'spot';
         $data = $response;
-        if (is_array($data) && array_key_exists('balances' ?? '', $data)) { // True for cross_margin and unified
+        $balances = $this->safe_dict($data, 'balances');
+        if ($balances !== null) { // True for cross_margin and unified
             $flatBalances = array();
-            $balances = $this->safe_dict($data, 'balances', array());
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             $keys = is_array($balances) ? array_keys($balances) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $currencyId = $keys[$i];
-                $content = $this->extend(array(), $balances[$currencyId]);
+                $content = $this->extend(array(), $this->safe_dict($balances, $currencyId, array()));
                 $content['currency'] = $currencyId;
                 $flatBalances[] = $content;
             }

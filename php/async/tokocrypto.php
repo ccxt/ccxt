@@ -2765,7 +2765,7 @@ class tokocrypto extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
-        $restUrls = $this->extend(array(), $this->urls['api']['rest']);
+        $restUrls = $this->extend(array(), $this->safe_dict($this->urls['api'], 'rest', array()));
         if (!(is_array($restUrls) && array_key_exists($apiName ?? '', $restUrls))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $apiName . ' endpoints');
         }

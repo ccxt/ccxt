@@ -551,6 +551,9 @@ class bitvavo extends \ccxt\async\bitvavo {
             $market = $this->market($this->safe_string($symbolAndTimeframe, 0, ''));
             $timeframeString = $this->safe_string($symbolAndTimeframe, 1, '');
             $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+            if ($interval === null) {
+                continue;
+            }
             if (!(is_array($marketIdsByInterval) && array_key_exists($interval ?? '', $marketIdsByInterval))) {
                 $marketIdsByInterval[$interval] = array();
             }
@@ -626,6 +629,9 @@ class bitvavo extends \ccxt\async\bitvavo {
             $market = $this->market($this->safe_string($symbolAndTimeframe, 0, ''));
             $timeframeString = $this->safe_string($symbolAndTimeframe, 1, '');
             $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+            if ($interval === null) {
+                continue;
+            }
             if (!(is_array($marketIdsByInterval) && array_key_exists($interval ?? '', $marketIdsByInterval))) {
                 $marketIdsByInterval[$interval] = array();
             }

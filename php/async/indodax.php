@@ -1563,7 +1563,7 @@ class indodax extends Exchange {
                         throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
                     }
                     if (mb_strpos($networkId, ',') !== false) {
-                        $network = array();
+                        $networkCodes = array();
                         if ($networkId === null) {
                             throw new ExchangeError($this->id . ' fetchDepositAddresses() missing networkId');
                         }
@@ -1571,9 +1571,10 @@ class indodax extends Exchange {
                         for ($j = 0; $j < count($networkIds); $j++) {
                             $_netIdTmp = $this->network_id_to_code($networkIds[$j], $code);
                             if ($_netIdTmp !== null) {
-                                $network[] = strtoupper($_netIdTmp);
+                                $networkCodes[] = strtoupper($_netIdTmp);
                             }
                         }
+                        $network = $networkCodes;
                     } else {
                         $_netIdTmp = $this->network_id_to_code($networkId, $code);
                         if ($_netIdTmp !== null) {

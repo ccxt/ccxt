@@ -3444,9 +3444,10 @@ class binance extends Exchange {
             $rawFetchMarkets = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
         }
         $loadAllOptions = $this->handle_option('fetchMarkets', 'loadAllOptions', false);
+        $appendOption = false;
         if ($loadAllOptions === true) {
             if (!$this->in_array('option', $rawFetchMarkets)) {
-                $rawFetchMarkets[] = 'option';
+                $appendOption = true;
             }
         }
         $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
@@ -3459,6 +3460,9 @@ class binance extends Exchange {
                 continue;
             }
             $fetchMarkets[] = $type;
+        }
+        if ($appendOption && (!$isDemoEnv)) {
+            $fetchMarkets[] = 'option';
         }
         $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
         for ($i = 0; $i < count($fetchMarkets); $i++) {
@@ -14969,7 +14973,7 @@ class binance extends Exchange {
             }
             if (($symbols === null) || ($this->in_array($symbol, $symbols))) {
                 if ($symbol !== null) {
-                    $tradingLimits[$symbol] = $market['limits']['amount'];
+                    $tradingLimits[$symbol] = $this->safe_dict($this->safe_dict($market, 'limits'), 'amount');
                 }
             }
         }
