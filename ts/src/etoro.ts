@@ -987,11 +987,13 @@ export default class etoro extends Exchange {
         for (let i = 0; i < requestedSymbols.length; i++) {
             const market = this.market (requestedSymbols[i]);
             const marketId = this.safeString (market, 'id', '');
-            if (!(marketId in symbolsById)) {
-                symbolsById[marketId] = [];
+            let marketSymbols = this.safeList (symbolsById, marketId);
+            if (marketSymbols === undefined) {
+                marketSymbols = [];
                 ids.push (marketId);
             }
-            symbolsById[marketId].push (market['symbol']);
+            marketSymbols.push (market['symbol']);
+            symbolsById[marketId] = marketSymbols;
         }
         // longer instrument id lists are rejected with 414 URI Too Long
         let chunkSize = undefined;
@@ -2728,8 +2730,7 @@ export default class etoro extends Exchange {
             result.push (this.parseHistoryPosition (response[i]));
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const positions: Position[] = this.filterByArrayPositions (sorted, 'symbol', marketSymbolsList);
-        return this.filterBySinceLimit (positions, since, limit) as Position[];
+        return this.filterBySinceLimit (this.filterByArrayPositions (sorted, 'symbol', marketSymbolsList), since, limit) as Position[];
     }
 
     parseHistoryPosition (position: Dict, market: Market = undefined): Position {
@@ -2783,7 +2784,7 @@ export default class etoro extends Exchange {
         // all endpoints, including the market data, require the api key and the user key
         this.checkRequiredCredentials ();
         const headers: Dict = {
-            'x-request-id': requestId,
+            'x-request-id': requestId.toString (),
             'x-api-key': this.apiKey,
             'x-user-key': this.secret,
         };
