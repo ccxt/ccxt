@@ -3267,7 +3267,7 @@ class bullish extends Exchange {
         $codeError = $this->safe_string($response, 'errorCode');
         $type = $this->safe_string($response, 'type');
         if (($codeError !== null && $codeError !== '0' && $codeError !== '1001') || ($type !== null && $type === 'HttpInvalidParameterException')) {
-            $message = '';
+            $message = null;
             $errorCodeName = $this->safe_string($response, 'errorCodeName');
             if ($errorCodeName !== null) {
                 $message = $errorCodeName;

@@ -540,7 +540,11 @@ class deepcoin extends Exchange {
         $isLinear = null;
         if ($swap) {
             $isLinear = ($quoteId !== 'USD');
-            $settleId = $isLinear ? $quoteId : $baseId;
+            if ($isLinear) {
+                $settleId = $quoteId;
+            } else {
+                $settleId = $baseId;
+            }
             $settle = $this->safe_currency_code($settleId);
             if ($settle === null) {
                 return null;

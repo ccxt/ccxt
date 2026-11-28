@@ -493,8 +493,10 @@ class bitso extends Exchange {
             $parts = explode('_', $id);
             $baseId = $this->safe_string($parts, 0, '');
             $quoteId = $this->safe_string($parts, 1, '');
-            $base = $this->safe_currency_code(strtoupper($baseId));
-            $quote = $this->safe_currency_code(strtoupper($quoteId));
+            $baseIdUpper = strtoupper($baseId);
+            $quoteIdUpper = strtoupper($quoteId);
+            $base = $this->safe_currency_code($baseIdUpper);
+            $quote = $this->safe_currency_code($quoteIdUpper);
             if (($base === null) || ($quote === null)) {
                 continue;
             }

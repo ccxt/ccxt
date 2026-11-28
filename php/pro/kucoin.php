@@ -1817,7 +1817,7 @@ class kucoin extends \ccxt\async\kucoin {
                 $subscription = null;
                 for ($i = 0; $i < count($subscriptions); $i++) {
                     $key = $subscriptions[$i];
-                    if ((mb_strpos($key, $topicSymbol) !== false) && (mb_strpos($key, $topicChannel) !== false)) {
+                    if (($topicSymbol !== null) && ($topicChannel !== null) && (mb_strpos($key, $topicSymbol) !== false) && (mb_strpos($key, $topicChannel) !== false)) {
                         $subscription = $client->subscriptions[$key];
                         break;
                     }

@@ -3264,6 +3264,7 @@ class pacifica extends Exchange {
         );
         $eventType = $this->safe_string($transaction, 'event_type');
         $amount = $this->safe_string($transaction, 'amount');
+        $currencyCode = $this->safe_currency_code('USDC', $currency);
         return array(
             'info' => $transaction,
             'id' => null,
@@ -3279,7 +3280,7 @@ class pacifica extends Exchange {
             'tagFrom' => null,
             'type' => $this->safe_string($types, $eventType),
             'amount' => $this->parse_number(Precise::string_abs($amount)),
-            'currency' => $this->safe_currency_code('USDC', $currency),
+            'currency' => $currencyCode,
             'status' => null,
             'updated' => null,
             'comment' => null,

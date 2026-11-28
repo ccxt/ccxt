@@ -662,8 +662,8 @@ class bitfinex extends Exchange {
         $quoteId = null;
         if (mb_strpos($id, ':') !== false) {
             $parts = explode(':', $id);
-            $baseId = $parts[0];
-            $quoteId = $parts[1];
+            $baseId = $this->safe_string($parts, 0);
+            $quoteId = $this->safe_string($parts, 1);
         } else {
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
@@ -885,19 +885,14 @@ class bitfinex extends Exchange {
     }
 
     public function parse_currencies_custom(array $ids, array $indexed, array $indexedNetworks): array {
-        $allowedIds = array();
+        $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $this->safe_string($ids, $i, '');
             if (str_ends_with($id, 'F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
-            $allowedIds[] = $id;
-        }
-        $result = array();
-        $arr = $this->to_array($allowedIds);
-        for ($i = 0; $i < count($arr); $i++) {
-            $parsed = $this->parse_currency_custom($arr[$i], $indexed, $indexedNetworks);
+            $parsed = $this->parse_currency_custom($id, $indexed, $indexedNetworks);
             $code = $this->safe_string($parsed, 'code', '');
             $result[$code] = $parsed;
         }

@@ -5450,7 +5450,7 @@ class mexc extends Exchange {
         $currencyWithNetwork = $this->safe_string($transaction, 'coin');
         if ($currencyWithNetwork !== null) {
             $currencyParts = explode('-', $currencyWithNetwork);
-            $currencyId = $currencyParts[0];
+            $currencyId = $this->safe_string($currencyParts, 0);
         }
         $code = $this->safe_currency_code($currencyId, $currency);
         $network = null;

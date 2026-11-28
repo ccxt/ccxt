@@ -1775,27 +1775,31 @@ class htx extends Exchange {
                 if ($swap) {
                     $marketType = 'swap';
                     $parts = explode('-', $contractId);
-                    $baseId = $this->safe_string_lower($market, 'symbol');
-                    $quoteId = $this->safe_string_lower($parts, 1);
+                    $swapBaseId = $this->safe_string_lower($market, 'symbol');
+                    $swapQuoteId = $this->safe_string_lower($parts, 1);
+                    $baseId = $swapBaseId;
+                    $quoteId = $swapQuoteId;
                     if ($inverse) {
-                        $settleId = $baseId;
+                        $settleId = $swapBaseId;
                     } else {
-                        $settleId = $quoteId;
+                        $settleId = $swapQuoteId;
                     }
                 } elseif ($future) {
                     $marketType = 'future';
-                    $baseId = $this->safe_string_lower($market, 'symbol');
+                    $futureBaseId = $this->safe_string_lower($market, 'symbol');
+                    $baseId = $futureBaseId;
                     if ($inverse) {
                         $quoteId = 'USD';
-                        $settleId = $baseId;
+                        $settleId = $futureBaseId;
                     } else {
                         $pair = $this->safe_string($market, 'pair');
                         if ($pair === null) {
                             throw new ExchangeError($this->id . ' method() missing pair');
                         }
                         $parts = explode('-', $pair);
-                        $quoteId = $this->safe_string_lower($parts, 1);
-                        $settleId = $quoteId;
+                        $futureQuoteId = $this->safe_string_lower($parts, 1);
+                        $quoteId = $futureQuoteId;
+                        $settleId = $futureQuoteId;
                     }
                 }
             } else {

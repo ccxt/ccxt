@@ -3819,7 +3819,8 @@ class kucoin extends Exchange {
         }
         $code = null;
         if ($currency !== null) {
-            $code = $this->safe_currency_code($currency['id']);
+            $currencyId = $this->safe_string($currency, 'id');
+            $code = $this->safe_currency_code($currencyId);
             if ($code !== 'NIM') {
                 // contains spaces
                 $this->check_address($address);

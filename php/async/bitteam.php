@@ -2265,7 +2265,8 @@ class bitteam extends Exchange {
             $free = $this->safe_string($currencyBalance, 'free');
             $used = $this->safe_string($currencyBalance, 'used');
             $total = $this->safe_string($currencyBalance, 'total');
-            $currencyCode = $this->safe_currency_code(strtolower($rawCurrencyId));
+            $rawCurrencyIdLower = strtolower($rawCurrencyId);
+            $currencyCode = $this->safe_currency_code($rawCurrencyIdLower);
             if ($currencyCode !== null) {
                 $balance[$currencyCode] = array(
                     'free' => $free,
