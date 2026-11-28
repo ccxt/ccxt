@@ -10252,7 +10252,7 @@ class NewTranspiler {
                 // PredictionExchange.intToRlpHex (value: Int): callers pass SafeInteger's *int64
                 "unifiedNullableInt64Params": { "intToRlpHex": [ 0 ] },
                 // PredictionExchange Str params and BaseExchange.cleanUnsubscription/market/symbol/*ToPrecision: callers pass *string or addressable string
-                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ], "market": [ 0 ], "symbol": [ 0 ], "costToPrecision": [ 0 ], "priceToPrecision": [ 0 ], "amountToPrecision": [ 0 ], "feeToPrecision": [ 0 ], "findBroadlyMatchedKey": [ 1 ], "throwBroadlyMatchedException": [ 1 ], "safeCurrencyCode": [ 0 ], "okx.subscribe": [ 3 ] },
+                "unifiedNullableStringParams": { "shortenSlug": [ 0 ], "slugToMarketSymbol": [ 0, 1 ], "slugToOutcomeSymbol": [ 0, 1, 2 ], "loadOutcome": [ 0 ], "cleanUnsubscription": [ 1 ], "market": [ 0 ], "symbol": [ 0 ], "costToPrecision": [ 0 ], "priceToPrecision": [ 0 ], "amountToPrecision": [ 0 ], "feeToPrecision": [ 0 ], "findBroadlyMatchedKey": [ 1 ], "throwBroadlyMatchedException": [ 1 ], "safeCurrencyCode": [ 0 ], "okx.subscribe": [ 3 ], "parsePrecision": [ 0 ] },
                 // Prediction-tier only required string/float64 params (separate from BaseExchange)
                 "predictionUnifiedStringParams": { "watchTrades": [ 0 ] },
                 "predictionUnifiedFloat64Params": { "createOrder": [ 3 ] },
@@ -15730,8 +15730,56 @@ function goNativeParseFloatRewriteFunc (fn: string, pkgs: Set<string>): string {
     return out.join ('\n');
 }
 
+// ParseInt of a once-declared `string` / `*string` / `*float64` local: strconv.ParseInt (base 10) or the float truncation,
+// math.MinInt64 on nil or a failed parse, in the declaration, plain assignment and return statement shapes
+function goNativeParseIntRewriteFunc (fn: string, pkgs: Set<string>): string {
+    if (!/(?<![\w.])(?:ccxt\.)?ParseInt\(/.test (fn)) { return fn; }
+    const masked = goMaskGoCode (fn);
+    if (/\b(?:strconv|math)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strconv|math)\.\w/g, ''))) { return fn; }
+    const nl = fn.indexOf ('\n');
+    const returnsInt = /\) (?:any|int64) \{$/.test ((nl < 0) ? fn : fn.slice (0, nl));
+    const body = (nl < 0) ? '' : masked.slice (nl + 1);
+    const localType = (name: string): string | undefined => {
+        const kind = goParseFloatLocalKind (fn, name);
+        if (kind !== undefined) { return kind; }
+        const decls = body.match (new RegExp ('\\bvar ' + name + ' ([\\w*.\\[\\]]+)(?= =|\\n)', 'g')) || [];
+        const only = (decls.length === 1) ? decls[0].replace (/^var \w+ /, '') : undefined;
+        const rebound = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
+        return (!rebound && ((only === '*float64') || (only === 'any') || (only === 'int64'))) ? only : undefined;
+    };
+    const stmtRe = /^(\t+)(?:(return )|var (\w+) int64 = |(\w+) = )(?:ccxt\.)?ParseInt\((\w+)\)$/;
+    const out: string[] = [];
+    for (const line of fn.split ('\n')) {
+        const m = stmtRe.exec (line);
+        const kind = (m === null) ? undefined : localType (m[5]);
+        const target = (m === null) ? undefined : (m[3] ?? m[4]);
+        if ((m === null) || ((kind !== 'string') && (kind !== '*string') && (kind !== '*float64')) || ((target === undefined) && !returnsInt)
+            || [ m[5], target ].some ((n) => (n === 'parsedInt') || (n === 'parseErr'))
+            || ((m[4] !== undefined) && (localType (m[4]) !== 'any') && (localType (m[4]) !== 'int64'))) {
+            out.push (line);
+            continue;
+        }
+        const ind = m[1];
+        const s = m[5];
+        const store = (value: string): string => ((target === undefined) ? ('return ' + value) : (target + ' = ' + value));
+        pkgs.add ('math');
+        if (m[3] !== undefined) { out.push (ind + 'var ' + m[3] + ' int64 = math.MinInt64'); } else if (m[4] !== undefined) { out.push (ind + m[4] + ' = int64(math.MinInt64)'); }
+        if (kind === '*float64') {
+            out.push (ind + 'if ' + s + ' != nil {', ind + '\t' + store ('int64(*' + s + ')'), ind + '}');
+        } else {
+            pkgs.add ('strconv');
+            const deep = (kind === '*string') ? (ind + '\t') : ind;
+            if (kind === '*string') { out.push (ind + 'if ' + s + ' != nil {'); }
+            out.push (deep + 'if parsedInt, parseErr := strconv.ParseInt(' + ((kind === '*string') ? '*' : '') + s + ', 10, 64); parseErr == nil {', deep + '\t' + store ('parsedInt'), deep + '}');
+            if (kind === '*string') { out.push (ind + '}'); }
+        }
+        if (target === undefined) { out.push (ind + 'return int64(math.MinInt64)'); }
+    }
+    return out.join ('\n');
+}
+
 function goNativeParseFloat (filePath: string, content: string): string {
-    return goStringHelperFilePass (filePath, content, /\bParseFloat\(/, (part) => part, (part, pkgs) => goNativeParseFloatRewriteFunc (part, pkgs));
+    return goStringHelperFilePass (filePath, content, /\bParse(?:Float|Int)\(/, (part) => part, (part, pkgs) => goNativeParseIntRewriteFunc (goNativeParseFloatRewriteFunc (part, pkgs), pkgs));
 }
 
 function goNativeParseFloatSelfTest (ok: SelfTestOk): void {
@@ -15745,6 +15793,15 @@ function goNativeParseFloatSelfTest (ok: SelfTestOk): void {
     const mapOut = run ('\tvar m map[string]any = map[string]any{}\n\tvar s *string = this.SafeString(p, "a")\n\tif s != nil {\n\t\tm["k"] = ccxt.ParseFloat(s)\n\t}\n\treturn m\n');
     ok (mapOut.includes ('m["k"] = parsedFloat') && !mapOut.includes ('ParseFloat(s)'), 'guarded map write *string ParseFloat');
     ok (run ('\tvar a any = p\n\treturn ParseFloat(a)\n').includes ('ParseFloat(a)'), 'any operand keeps ParseFloat');
+    ok (varOut.includes ('\tif v != nil {\n\t\treturn int64(*v)\n\t}\n\treturn int64(math.MinInt64)\n') && !varOut.includes ('ParseInt(v)') && varOut.includes ('import "math"'), '*float64 return ParseInt: ' + varOut);
+    const intOut = run ('\tvar s *string = this.SafeString(p, "a")\n\tvar d int64 = ParseInt(s)\n\tvar e any = 0\n\te = ParseInt(s)\n\t_ = d\n\t_ = e\n\treturn ParseInt(s)\n');
+    ok (intOut.includes ('\tvar d int64 = math.MinInt64\n\tif s != nil {\n\t\tif parsedInt, parseErr := strconv.ParseInt(*s, 10, 64); parseErr == nil {\n\t\t\td = parsedInt\n\t\t}\n\t}\n'), '*string declaration ParseInt: ' + intOut);
+    ok (intOut.includes ('\te = int64(math.MinInt64)\n\tif s != nil {') && intOut.includes ('\t\t\te = parsedInt\n') && intOut.includes ('\t\t\treturn parsedInt\n') && !/(?<![\w.])ParseInt\(/.test (intOut), '*string assignment and return ParseInt: ' + intOut);
+    const strOut = run ('\tvar s string = "5"\n\treturn ParseInt(s)\n');
+    ok (strOut.includes ('\tif parsedInt, parseErr := strconv.ParseInt(s, 10, 64); parseErr == nil {\n\t\treturn parsedInt\n\t}\n\treturn int64(math.MinInt64)\n'), 'string return ParseInt: ' + strOut);
+    ok (run ('\tvar a any = p\n\treturn ParseInt(a)\n').includes ('return ParseInt(a)'), 'any operand keeps ParseInt');
+    ok (run ('\tvar s *string = nil\n\tvar d string = ""\n\td = ParseInt(s)\n\treturn d\n').includes ('d = ParseInt(s)'), 'non-integer target keeps ParseInt');
+    ok (run ('\tvar s *string = nil\n\tmath := 1\n\t_ = math\n\treturn ParseInt(s)\n').includes ('return ParseInt(s)'), 'shadowed math keeps ParseInt');
 }
 
 // ===== ErrorParents map for hierarchy-aware IsInstance =====

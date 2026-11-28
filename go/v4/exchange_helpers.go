@@ -33,7 +33,7 @@ func Add(a any, b any) any {
 		res := aFloat + bFloat
 
 		if IsInteger(res) {
-			return ParseInt(res)
+			return int64(res)
 		}
 		return res
 	case int64:
@@ -46,7 +46,7 @@ func Add(a any, b any) any {
 		res := aFloat + bFloat
 
 		if IsInteger(res) {
-			return ParseInt(res)
+			return int64(res)
 		}
 		return res
 
@@ -57,7 +57,7 @@ func Add(a any, b any) any {
 		}
 		res := aType + bType
 		if IsInteger(res) {
-			return ParseInt(res)
+			return int64(res)
 		}
 		return res
 	case string:

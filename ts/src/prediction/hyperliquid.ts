@@ -518,7 +518,7 @@ export default class hyperliquid extends Exchange {
         const szDecimals = 4;  // outcomes use 4 decimal places
         const active = true;
         const outcomePrecision = {
-            'amount': this.parseNumber (this.parsePrecision (szDecimals.toString ())),
+            'amount': this.parseNumber (this.parsePrecision (this.numberToString (szDecimals))),
             'price': 0.0001,
         };
         const outcomes = [

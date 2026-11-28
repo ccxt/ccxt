@@ -312,7 +312,7 @@ type ICoreExchange interface {
 	Milliseconds() int64
 	GetCcxtVersion() string
 	ParseNumber(v any, a ...any) *float64
-	ParsePrecision(precision any) *string
+	ParsePrecision(precision *string) *string
 	PrecisionFromString(str2 any) int
 	OmitZero(v any) *string
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
