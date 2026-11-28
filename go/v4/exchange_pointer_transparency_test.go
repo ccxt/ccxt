@@ -146,7 +146,6 @@ func unaryShims() []unaryShim {
 		{"GetArrayLength", func(v any) any { return GetArrayLength(v) }},
 		{"ToFloat64", func(v any) any { return ToFloat64(v) }},
 		{"IsString", func(v any) any { return IsString(v) }},
-		{"IsNumber", func(v any) any { return IsNumber(v) }},
 		{"IsArray", func(v any) any { return IsArray(v) }},
 		{"ToString", func(v any) any { return ToString(v) }},
 		{"ParseInt", func(v any) any { return ParseInt(v) }},

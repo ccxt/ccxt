@@ -44,11 +44,8 @@ func (this *BaseExchange) ImplodeParams(path any, parameter any) string {
 		if valueInterface == nil {
 			continue
 		}
-		if IsNumber(valueInterface) {
-			valueStr = NumberToString(valueInterface)
-		} else {
-			valueStr = fmt.Sprintf("%v", valueInterface)
-		}
+		// NumberToString is the identity on strings and prints every other kind with %v
+		valueStr = NumberToString(valueInterface)
 		if reflect.ValueOf(valueInterface).Kind() != reflect.Slice {
 			placeholder := "{" + key.String() + "}"
 			pathStr = strings.ReplaceAll(pathStr, placeholder, valueStr)

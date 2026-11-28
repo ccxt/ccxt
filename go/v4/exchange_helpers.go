@@ -761,7 +761,7 @@ func InOp(dict any, key any) bool {
 		return false
 	}
 
-	if IsNumber(key) {
+	if _, isString := key.(string); !isString {
 		return false
 	}
 
@@ -857,23 +857,6 @@ func IsString(v any) bool {
 	}
 	_, ok := v.(string)
 	return ok
-}
-
-func IsNumber(v any) bool {
-	v = derefScalar(v)
-	if v == nil {
-		return false
-	}
-	switch v.(type) {
-	case int, int8, int16, int32, int64:
-		return true
-	case uint, uint8, uint16, uint32, uint64:
-		return true
-	case float32, float64:
-		return true
-	default:
-		return false
-	}
 }
 
 // IsInt checks if the input is an integer
