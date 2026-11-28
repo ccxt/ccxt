@@ -24,12 +24,37 @@ use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
 /// The needle of `in_array`: a `Value` (as before), or a typed string / integer local lent as is, so the transpiled
-/// code passes it without boxing or copying it. Each answers exactly `is_equal(element, &boxed_needle)`.
+/// code passes it without boxing or copying it. Same kind compares the payload, otherwise both sides are read as a number.
 pub trait InArrayNeedle {
     fn needle_eq(&self, x: &Value) -> bool;
 }
 impl InArrayNeedle for Value {
-    fn needle_eq(&self, x: &Value) -> bool { crate::runtime::is_equal(x, self) }
+    fn needle_eq(&self, x: &Value) -> bool {
+        match self {
+            Value::Null => matches!(x, Value::Null),
+            Value::Bool(b) => b.needle_eq(x),
+            Value::Int(n) => n.needle_eq(x),
+            Value::Float(f) => f.needle_eq(x),
+            Value::Str(s) => (**s).needle_eq(x),
+            _ => false,
+        }
+    }
+}
+impl InArrayNeedle for bool {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Bool(y) => y == self,
+            _ => crate::runtime::value_as_f64(x) == Some(if *self { 1.0 } else { 0.0 }),
+        }
+    }
+}
+impl InArrayNeedle for f64 {
+    fn needle_eq(&self, x: &Value) -> bool {
+        match x {
+            Value::Float(y) => y == self,
+            _ => crate::runtime::value_as_f64(x) == Some(*self),
+        }
+    }
 }
 impl InArrayNeedle for str {
     fn needle_eq(&self, x: &Value) -> bool {
@@ -985,7 +1010,7 @@ impl Exchange {
         // Match TS `prop` semantics: an empty string is treated as
         // "missing" — same as null/undefined. Without this, exchanges
         // that signal end-of-pagination with `cursor: ""` loop forever
-        // because `is_equal(&Value::Str(""), &Value::Null)` is false.
+        // because an empty string never compares equal to `Value::Null`.
         let v = obj.read(&Value::Str(key_str(&scalar_key(&key)).into()));
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
@@ -2255,7 +2280,7 @@ impl Exchange {
         if let Value::Arr(a) = v {
             let mut out: Vec<Value> = vec![];
             for item in a.iter().cloned() {
-                if !out.iter().any(|x| crate::runtime::is_equal(x, &item)) {
+                if !out.iter().any(|x| item.needle_eq(x)) {
                     out.push(item);
                 }
             }
@@ -2317,7 +2342,7 @@ impl Exchange {
                 .into_iter()
                 .filter(|it| {
                     let v = crate::get_value(it, &Value::Str(k.clone().into()));
-                    crate::runtime::is_equal(&v, &value)
+                    value.needle_eq(&v)
                 })
                 .collect();
             Arc::new(out)

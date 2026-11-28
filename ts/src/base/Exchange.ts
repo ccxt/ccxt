@@ -3750,7 +3750,7 @@ export class BaseExchange {
         return this.filterByLimit (result, limit, key, shouldFilterFromStart);
     }
 
-    filterByValueSinceLimit (array: object[] | undefined, field: IndexType, value: any = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
+    filterByValueSinceLimit (array: object[] | undefined, field: IndexType, value: Str = undefined, since: Int = undefined, limit: Int = undefined, key = 'timestamp', tail = false): any[] {
         const valueIsDefined = this.valueIsDefined (value);
         const sinceIsDefined = since !== undefined && since !== null;
         const parsedArray: any[] = this.toArray (array);
@@ -3760,9 +3760,9 @@ export class BaseExchange {
             result = [ ];
             for (let i = 0; i < parsedArray.length; i++) {
                 const entry = parsedArray[i];
-                // safeValue (not entry[field]) so a missing field is a non-match, not a
+                // safeString (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                const entryFiledEqualValue = this.safeValue (entry, field) === value;
+                const entryFiledEqualValue = this.safeString (entry, field) === value;
                 const firstCondition: boolean = !valueIsDefined || entryFiledEqualValue;
                 const entryKeyValue = this.safeInteger (entry, key);
                 const entryKeyGESince = (entryKeyValue !== undefined) && (entryKeyValue !== 0) && (since !== undefined) && (entryKeyValue >= since);

@@ -1139,6 +1139,8 @@ impl ClientHandle {
 
     /// The `Value` handle the untyped generated handlers take.
     pub fn as_value(&self) -> Value { self.value.clone() }
+    /// Is this handle's url still served by a registered, open client (`this.clients[client.url] === client`)?
+    pub fn is_current(&self) -> bool { self.url.as_str().is_some_and(|u| get_client(u).is_some()) }
 
     pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_resolve(&self.value, value.into(), hash.into()) }
     pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_reject(&self.value, err.into(), hash.into()) }

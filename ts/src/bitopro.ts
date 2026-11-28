@@ -967,9 +967,8 @@ export default class bitopro extends Exchange {
         const candleLength = candles.length;
         let resultLength: Int = 0;
         while ((resultLength < limit) && (i < candleLength)) {
-            const candle = this.safeList (candles, i, []);
-            if (candle[0] === timestamp) {
-                result.push (candle);
+            if (this.safeInteger (this.safeList (candles, i, []), 0) === timestamp) {
+                result.push (this.safeList (candles, i, []));
                 i = i + 1;
             } else {
                 // set open, high, low to close
