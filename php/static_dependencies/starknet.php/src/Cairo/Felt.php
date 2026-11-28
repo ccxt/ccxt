@@ -11,7 +11,7 @@
 namespace StarkNet\Cairo;
 
 use InvalidArgumentException;
-use phpseclib\Math\BigInteger as BigNumber;
+use phpseclib3\Math\BigInteger as BigNumber;
 use StarkNet\Utils;
 use StarkNet\Constants;
 

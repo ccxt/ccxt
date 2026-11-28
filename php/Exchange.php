@@ -40,7 +40,7 @@ use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
-use phpseclib\File\ASN1;
+use phpseclib3\File\ASN1;
 use Exception;
 
 // import global functions so unqualified calls bind directly to the root
@@ -1572,7 +1572,7 @@ class BaseExchange {
             $pemKey = $match[1];
             // SEC1 ECPrivateKey ::= SEQUENCE { version INTEGER, privateKey OCTET STRING,
             //   parameters [0] EXPLICIT ECParameters OPTIONAL, publicKey [1] EXPLICIT BIT STRING OPTIONAL }
-            $decodedPemKey = (new ASN1())->decodeBER(base64_decode($pemKey))[0] ?? null;
+            $decodedPemKey = ASN1::decodeBER(base64_decode($pemKey))[0] ?? null;
             if (!is_array($decodedPemKey) || $decodedPemKey['type'] !== ASN1::TYPE_SEQUENCE || !isset($decodedPemKey['content'][1]) || $decodedPemKey['content'][1]['type'] !== ASN1::TYPE_OCTET_STRING) {
                 throw new Exception('Invalid EC private key');
             }
