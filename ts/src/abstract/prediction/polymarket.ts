@@ -433,76 +433,56 @@ abstract class Exchange extends _Exchange {
         return this.request ('orders', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
     }
 
-    dataPublicGetActivity (params = {}): Promise<List> {
-        return this.request ('activity', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Activity (params = {}): Promise<Dict> {
+        return this.request ('v2/activity', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetClosedPositions (params = {}): Promise<List> {
-        return this.request ('closed-positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2ActivityCombos (params = {}): Promise<Dict> {
+        return this.request ('v2/activity/combos', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetHolders (params = {}): Promise<List> {
-        return this.request ('holders', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2BuildersLeaderboard (params = {}): Promise<Dict> {
+        return this.request ('v2/builders/leaderboard', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetLiveVolume (params = {}): Promise<List> {
-        return this.request ('live-volume', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2BuildersVolume (params = {}): Promise<Dict> {
+        return this.request ('v2/builders/volume', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetOi (params = {}): Promise<List> {
-        return this.request ('oi', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Holders (params = {}): Promise<Dict> {
+        return this.request ('v2/holders', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetOther (params = {}): Promise<List> {
-        return this.request ('other', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Leaderboard (params = {}): Promise<Dict> {
+        return this.request ('v2/leaderboard', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetPositions (params = {}): Promise<Dict> {
-        return this.request ('positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2LiveVolume (params = {}): Promise<Dict> {
+        return this.request ('v2/live-volume', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetRevisions (params = {}): Promise<List> {
-        return this.request ('revisions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Oi (params = {}): Promise<Dict> {
+        return this.request ('v2/oi', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetTraded (params = {}): Promise<Dict> {
-        return this.request ('traded', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Positions (params = {}): Promise<Dict> {
+        return this.request ('v2/positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetTrades (params = {}): Promise<List> {
-        return this.request ('trades', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2PositionsCombos (params = {}): Promise<Dict> {
+        return this.request ('v2/positions/combos', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetV1AccountingSnapshot (params = {}): Promise<Dict> {
-        return this.request ('v1/accounting/snapshot', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Trades (params = {}): Promise<Dict> {
+        return this.request ('v2/trades', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetV1ActivityCombos (params = {}): Promise<Dict> {
-        return this.request ('v1/activity/combos', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2UserStats (params = {}): Promise<Dict> {
+        return this.request ('v2/user-stats', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    dataPublicGetV1BuildersLeaderboard (params = {}): Promise<List> {
-        return this.request ('v1/builders/leaderboard', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
-    }
-
-    dataPublicGetV1BuildersVolume (params = {}): Promise<List> {
-        return this.request ('v1/builders/volume', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
-    }
-
-    dataPublicGetV1Leaderboard (params = {}): Promise<List> {
-        return this.request ('v1/leaderboard', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
-    }
-
-    dataPublicGetV1MarketPositions (params = {}): Promise<List> {
-        return this.request ('v1/market-positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
-    }
-
-    dataPublicGetV1PositionsCombos (params = {}): Promise<Dict> {
-        return this.request ('v1/positions/combos', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
-    }
-
-    dataPublicGetValue (params = {}): Promise<List> {
-        return this.request ('value', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    dataPublicGetV2Value (params = {}): Promise<Dict> {
+        return this.request ('v2/value', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
     }
 
     combosPublicGetV1RfqComboMarkets (params = {}): Promise<Dict> {

@@ -233,24 +233,23 @@ export default class polymarket extends Exchange {
                 'data': {
                     'public': {
                         'get': {
-                            'activity': { 'cost': 1 } as Endpoint<List>,
-                            'closed-positions': { 'cost': 1 } as Endpoint<List>,
-                            'holders': { 'cost': 1 } as Endpoint<List>,
-                            'live-volume': { 'cost': 1 } as Endpoint<List>,
-                            'oi': { 'cost': 1 } as Endpoint<List>,
-                            'other': { 'cost': 1 } as Endpoint<List>,
-                            'positions': { 'cost': 1 } as Endpoint<Dict>,
-                            'revisions': { 'cost': 1 } as Endpoint<List>,
-                            'traded': { 'cost': 1 } as Endpoint<Dict>,
-                            'trades': { 'cost': 1 } as Endpoint<List>,
-                            'v1/accounting/snapshot': { 'cost': 1 } as Endpoint<Dict>,
-                            'v1/activity/combos': { 'cost': 1 } as Endpoint<Dict>,
-                            'v1/builders/leaderboard': { 'cost': 1 } as Endpoint<List>,
-                            'v1/builders/volume': { 'cost': 1 } as Endpoint<List>,
-                            'v1/leaderboard': { 'cost': 1 } as Endpoint<List>,
-                            'v1/market-positions': { 'cost': 1 } as Endpoint<List>,
-                            'v1/positions/combos': { 'cost': 1 } as Endpoint<Dict>,
-                            'value': { 'cost': 1 } as Endpoint<List>,
+                            // Data API v2. v1 was retired on 2026-11-02 and its routes answer 410:
+                            // https://docs.polymarket.com/migrate/data-api-v1-to-v2
+                            // closed-positions and v1/market-positions became v2/positions (status, condition),
+                            // traded became v2/user-stats, v1/accounting/snapshot has no v2 counterpart
+                            'v2/activity': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/activity/combos': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/builders/leaderboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/builders/volume': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/holders': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/leaderboard': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/live-volume': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/oi': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/positions': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/positions/combos': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/trades': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/user-stats': { 'cost': 1 } as Endpoint<Dict>,
+                            'v2/value': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1430,18 +1429,19 @@ export default class polymarket extends Exchange {
         if (conditionId === undefined) {
             throw new BadRequest (this.id + ' fetchOpenInterest() requires outcome.info.conditionId for ' + outcome);
         }
-        const request: Dict = { 'market': conditionId };
-        const response = await this.dataPublicGetOi (this.extend (request, params));
+        const request: Dict = { 'condition': conditionId };
+        const response = await this.dataPublicGetV2Oi (this.extend (request, params));
         //
-        //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
+        //     { "data": [ { "condition_id": "0x7976b8...92", "value": 4925662.470476 } ] }
         //
-        const first = this.safeDict (response, 0, {});
+        const rows = this.safeList (response, 'data', []);
+        const first = this.safeDict (rows, 0, {});
         return this.parsePredictionOpenInterest (first, outcomeObj as any);
     }
 
     override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
-        //     { "market": "0x7976b8...92", "value": 4925662.470476 }
+        //     { "condition_id": "0x7976b8...92", "value": 4925662.470476 }
         //
         const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeOutcomeSymbol (undefined, market),
@@ -1515,14 +1515,17 @@ export default class polymarket extends Exchange {
         // THEN filtering can return 0 rows on an active outcome (if the top `limit` market trades are
         // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
         // token filter by parsePredictionTrades
-        const request: Dict = { 'market': conditionId };
+        const request: Dict = { 'condition': conditionId };
         request['limit'] = this.safeInteger (this.options, 'tradesPageSize', 500);
-        const response = await this.dataPublicGetTrades (this.extend (request, params));
-        const rawTrades: Dict[] = Array.isArray (response) ? response : this.safeList (response, 'data', []);
+        const response = await this.dataPublicGetV2Trades (this.extend (request, params));
+        //
+        //     { "data": [ { "token_id": "1604...", "condition_id": "0x7ad4...", "side": "BUY", "size": 256, "price": 0.152, "timestamp": 1781289172, "transaction_hash": "0x3c49...", ... } ], "pagination": { "has_more": false, ... } }
+        //
+        const rawTrades = this.safeList (response, 'data', []);
         const filteredTrades: any[] = [];
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = rawTrades[i];
-            const tradeAsset = this.safeString (trade, 'asset');
+            const tradeAsset = this.safeString (trade, 'token_id');
             if (tradeAsset === tokenId) {
                 filteredTrades.push (trade);
             }
@@ -1601,9 +1604,9 @@ export default class polymarket extends Exchange {
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
-        // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
+        // public data-api v2 trades use 'token_id'/'transaction_hash'/'timestamp' (seconds);
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
-        const id = this.safeStringN (trade, [ 'transactionHash', 'transaction_hash', 'id' ]);
+        const id = this.safeString2 (trade, 'transaction_hash', 'id');
         let timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         if (timestamp === undefined) {
             timestamp = this.safeIntegerProduct (trade, 'match_time', 1000);
@@ -1615,7 +1618,7 @@ export default class polymarket extends Exchange {
         if (rawSide === 'buy' || rawSide === 'sell') {
             side = rawSide;
         }
-        const assetId = this.safeString2 (trade, 'asset', 'asset_id');
+        const assetId = this.safeString2 (trade, 'token_id', 'asset_id');
         let mkt: Market = undefined;
         if (market !== undefined) {
             mkt = market;
@@ -1645,7 +1648,7 @@ export default class polymarket extends Exchange {
             'outcomeId': assetId,
             'label': this.safeString (mkt, 'label'),
             'market': this.safeString (mkt, 'market'),
-            'order': this.safeString2 (trade, 'orderId', 'taker_order_id'),
+            'order': this.safeString (trade, 'taker_order_id'),
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -1722,11 +1725,29 @@ export default class polymarket extends Exchange {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' walletAddress is required to fetchPositions');
         }
-        const request = {
+        const request: Dict = {
             'user': this.walletAddress,
         };
-        const response = await this.dataPublicGetPositions (this.extend (request, params));
-        const positions = this.safeList (response, 'data', []);
+        // v2 pages by cursor only (an offset parameter is a 400); follow next_cursor while has_more
+        const maxPages = this.safeInteger (this.options, 'positionsMaxPages', 10);
+        let positions: Dict[] = [];
+        let cursor: Str = undefined;
+        for (let page = 0; page < maxPages; page++) {
+            const pageRequest: Dict = this.extend (request, params);
+            if (cursor !== undefined) {
+                pageRequest['cursor'] = cursor;
+            }
+            const response = await this.dataPublicGetV2Positions (pageRequest);
+            //
+            //     { "data": [ { "token_id": "1604...", "condition_id": "0x178a...", "current_size": 25.5, "avg_price": 0.12, "current_price": 0.1515, "realized_pnl": 0, "unrealized_pnl": 0.8032, "last_event_at": 1781288632, ... } ], "pagination": { "has_more": false, "limit": 100, "next_cursor": null, "offset": 0 } }
+            //
+            positions = this.arrayConcat (positions, this.safeList (response, 'data', []));
+            const pagination = this.safeDict (response, 'pagination', {});
+            cursor = this.safeString (pagination, 'next_cursor');
+            if (!this.safeBool (pagination, 'has_more', false) || (cursor === undefined)) {
+                break;
+            }
+        }
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
         if (outcomesLength === 0) {
@@ -1745,7 +1766,7 @@ export default class polymarket extends Exchange {
         for (let i = 0; i < parsed.length; i++) {
             const position = parsed[i];
             const info = this.safeDict (position, 'info', {});
-            const assetId = this.safeString (info, 'asset');
+            const assetId = this.safeString (info, 'token_id');
             if ((assetId !== undefined) && (assetId in wantedIds)) {
                 result.push (position);
             }
@@ -1777,11 +1798,19 @@ export default class polymarket extends Exchange {
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     override parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
-        const tokenId = this.safeString (position, 'asset');
+        //
+        //     {
+        //         "token_id": "1604...", "condition_id": "0x178a...", "outcome": "Yes", "status": "OPEN",
+        //         "current_size": 25.5, "avg_price": 0.12, "current_price": 0.1515, "current_value": 3.8632,
+        //         "realized_pnl": 0, "unrealized_pnl": 0.8032, "last_event_at": 1781288632, ...
+        //     }
+        //
+        const tokenId = this.safeString (position, 'token_id');
         const marketData = this.safeOutcome (tokenId, market);
-        const size = this.safeNumber (position, 'size');
-        const entryPrice = this.safeNumber (position, 'avgPrice');
-        const curPrice = this.safeNumber (position, 'currentPrice');
+        const size = this.safeNumber (position, 'current_size');
+        const entryPrice = this.safeNumber (position, 'avg_price');
+        const curPrice = this.safeNumber (position, 'current_price');
+        const timestamp = this.safeTimestamp (position, 'last_event_at');
         let notional: Num = undefined;
         if ((size !== undefined) && (curPrice !== undefined)) {
             notional = size * curPrice;
@@ -1795,15 +1824,15 @@ export default class polymarket extends Exchange {
             'market': this.safeString (marketData, 'market'),
             'label': this.safeString (marketData, 'label'),
             'event': this.safeString (marketData, 'event'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'contracts': size,
             'contractSize': 1,
             'side': 'long',
             'notional': notional,
             'leverage': 1,
-            'unrealizedPnl': undefined,
-            'realizedPnl': this.safeNumber (position, 'realizedPnl'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'realizedPnl': this.safeNumber (position, 'realized_pnl'),
             'collateral': undefined,
             'entryPrice': entryPrice,
             'markPrice': curPrice,
