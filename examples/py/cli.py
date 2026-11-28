@@ -176,7 +176,7 @@ async def main():
     if not argv.no_keys:
         # check auth keys in env var
         requiredCredentials = exchange.requiredCredentials
-        # CCXT_APIKEYS is an optional JSON object env var, e.g. {"BINANCE_APIKEY":"...","BINANCE_SECRET":"..."}
+        # CCXT_APIKEYS is an optional JSON object env var keyed by exchange id, e.g. {"binance":{"apiKey":"...","secret":"..."}}
         ccxtApiKeys = {}
         if os.environ.get('CCXT_APIKEYS'):
             try:
@@ -185,10 +185,13 @@ async def main():
                     ccxtApiKeys = parsed
             except ValueError:
                 print('CCXT_APIKEYS env var is not valid JSON, ignoring it')
+        exchangeApiKeys = ccxtApiKeys.get(argv.exchange_id)
+        if not isinstance(exchangeApiKeys, dict):
+            exchangeApiKeys = {}
         for credential, isRequired in requiredCredentials.items():
             if isRequired and credential and not getattr(exchange, credential, None):
                 credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
-                credentialValue = os.environ.get(credentialEnvName) or ccxtApiKeys.get(credentialEnvName)
+                credentialValue = os.environ.get(credentialEnvName) or exchangeApiKeys.get(credential)
                 if credentialValue:
                     credentialValue = str(credentialValue)
                     if credentialValue.startswith('-----BEGIN'):

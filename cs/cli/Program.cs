@@ -100,7 +100,7 @@ public static class Program
         // keys.json / keys.local.json are applied through the constructor (LoadSettings),
         // this only fills credentials still missing from environment variables
         var credentials = instance.requiredCredentials as dict;
-        // CCXT_APIKEYS is an optional JSON object env var, e.g. {"BINANCE_APIKEY":"...","BINANCE_SECRET":"..."}
+        // CCXT_APIKEYS is an optional JSON object env var keyed by exchange id, e.g. {"binance":{"apiKey":"...","secret":"..."}}
         var ccxtApiKeys = new Dictionary<string, string>();
         var ccxtApiKeysRaw = Environment.GetEnvironmentVariable("CCXT_APIKEYS");
         if (!string.IsNullOrEmpty(ccxtApiKeysRaw))
@@ -108,11 +108,14 @@ public static class Program
             try
             {
                 var parsed = JObject.Parse(ccxtApiKeysRaw);
-                foreach (var prop in parsed.Properties())
+                if (parsed[instance.id] is JObject exchangeKeys)
                 {
-                    if (prop.Value.Type != JTokenType.Null)
+                    foreach (var prop in exchangeKeys.Properties())
                     {
-                        ccxtApiKeys[prop.Name] = prop.Value.ToString();
+                        if (prop.Value.Type != JTokenType.Null)
+                        {
+                            ccxtApiKeys[prop.Name] = prop.Value.ToString();
+                        }
                     }
                 }
             }
@@ -142,7 +145,7 @@ public static class Program
                 var credentialValue = Environment.GetEnvironmentVariable(parsedKey);
                 if (string.IsNullOrEmpty(credentialValue))
                 {
-                    credentialValue = ccxtApiKeys.TryGetValue(parsedKey, out var fallbackValue) ? fallbackValue : null;
+                    credentialValue = ccxtApiKeys.TryGetValue(key, out var fallbackValue) ? fallbackValue : null;
                 }
                 if (credentialValue != null && credentialValue.StartsWith("-----BEGIN"))
                 {
