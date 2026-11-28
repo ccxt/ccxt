@@ -9193,9 +9193,17 @@ export function patchJavaWsListStreamLocals (transpiler) {
 }
 // `x === 0` on a declared Long/Double/Integer the printer cannot see (defaulted Long param, typed handle* binding): `==` unboxes like Helpers.isEqual; the null guard keeps its fal...
 const JAVA_EQUALITY_BOX_TYPES = new Set ([ 'Long', 'Double', 'Integer' ]);
-function javaEqualityDeclaredBox (printer, node) {
+// a read-only default-valued parameter printed `Double`, read under its declared name
+function javaEqualityDefaultedDoubleRead (printer, node) {
+    if (!printer.javaIdentifierPrintsDeclaredName (node) || !printer.javaIdentifierKeepsDeclaredName (node)) { return false; }
+    const declaration = printer.javaDeclarationOfIdentifier (node);
+    if (declaration === undefined || !ts.isParameterDeclaration (declaration) || declaration.initializer === undefined || !printer.hasDefaultedTail (declaration.parent)) { return false; }
+    return printer.javaOptionalParameterType (declaration) === 'Double' && !printer.javaParameterIsWritten (declaration);
+}
+function javaEqualityDeclaredBox (printer, node, literal) {
     if (node === undefined || !ts.isIdentifier (node)) { return undefined; }
     if (printer.javaLongParameterRead (node)) { return 'Long'; }
+    if (javaEqualityDefaultedDoubleRead (printer, node) && printer.javaEqualityLiteralKind (literal) === 'int') { return 'Double'; }
     const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
     if (declaration === undefined || !ts.isBindingElement (declaration) || declaration.name?.text !== node.text) { return undefined; }
     const type = HANDLE_TYPED_BINDINGS.get (declaration);
@@ -9217,7 +9225,7 @@ export function patchJavaDeclaredBoxLiteralEquality (transpiler) {
             if (printer.javaEqualityLiteralKind (node.right) !== undefined) {
                 box = node.left; boxText = leftText;
             } else if (printer.javaEqualityLiteralKind (node.left) !== undefined) { box = node.right; boxText = rightText; }
-            if (box === undefined || javaEqualityDeclaredBox (printer, box) === undefined) { return undefined; }
+            if (box === undefined || javaEqualityDeclaredBox (printer, box, box === node.left ? node.right : node.left) === undefined) { return undefined; }
             const compare = `${leftText} ${negated ? '!=' : '=='} ${rightText}`;
             if (printer.javaNullGuardAdmitsRead (box)) { return `(${compare})`; }
             return negated ? `(${boxText} == null || ${compare})` : `(${boxText} != null && ${compare})`;
@@ -15537,7 +15545,7 @@ export function installJavaR92j3LongDefaultParams (transpiler) {
     printer.javaComparisonOperand = function (node) { return isSlotRead (node) ? { kind: 'long', boxed: false } : upstreamOperand (node); };
 }
 // Venue methods whose (method, position) slot is annotated number/int, has no default, is never written and is handed a whole number at every call site (an int literal, a Long-dec...
-const R92J3_LONG_FIXED_PARAMS = { 'futuresTransfer': [ 2 ], 'insertMissingCandles': [ 3 ], 'unsubscribeChannelsFrom': [ 5 ], 'unsubscribeChannelAt': [ 5 ], 'padHex': [ 1 ], 'ibkrPeriod': [ 0, 1 ], 'ibkrWsPeriod': [ 0, 1 ], };
+const R92J3_LONG_FIXED_PARAMS = { 'futuresTransfer': [ 2 ], 'insertMissingCandles': [ 1, 3 ], 'unsubscribeChannelsFrom': [ 5 ], 'unsubscribeChannelAt': [ 5 ], 'padHex': [ 1 ], 'ibkrPeriod': [ 0, 1 ], 'ibkrWsPeriod': [ 0, 1 ], };
 // venue-scoped rows (`<file>#<method>`) for names other venues declare with other param types
 const R92J3_LONG_FIXED_VENUE_PARAMS = { 'weex.ts#modifyMarginHelper': [ 2 ], };
 function r92j3LongFixedSlots (node) {

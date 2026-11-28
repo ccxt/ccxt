@@ -4192,8 +4192,8 @@ export class BaseExchange {
     isRoundNumber (value: number): boolean {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        const res = this.parseToNumeric ((value % 1));
-        return res === 0;
+        const remainder = this.numberToString (value % 1);
+        return (remainder === '0') || (remainder === '-0');
     }
 
     isEmptyString (value: any): boolean {
@@ -6824,7 +6824,7 @@ export class BaseExchange {
     filterByArray (objects: Dictionary<any> | object[] | undefined, key: IndexType, values: any = undefined, indexed = true) {
         const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
-        if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
+        if ((values === undefined) || (values === null) || (values === false) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy (objectsValue, key);
@@ -6848,7 +6848,7 @@ export class BaseExchange {
     filterOutByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
         const objectsValue: any = this.toArray (objects);
         // return all of them if no values were passed
-        if ((values === undefined) || (values === null) || (values === false) || (values === 0) || (values === '')) {
+        if ((values === undefined) || (values === null) || (values === false) || (values === '')) {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (indexed) {
                 return this.indexBy (objectsValue, key);
