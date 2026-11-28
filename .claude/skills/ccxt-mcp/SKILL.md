@@ -84,7 +84,7 @@ On **Claude Desktop** the `.mcpb` install form has fields for a single exchange 
 | funds | withdraw, transfer, deposit addresses | per-account `"funds": true` or `"live"` |
 | implicitWrites | raw POST/PUT/DELETE endpoints | per-account `"implicitWrites": true` |
 
-Tiers can **only** be enabled by the user editing the config file — never from the conversation, and there is no tool that edits config. Disabled tiers do not appear in the tool list. `"trading": true` works on **sandbox/demo accounts only**; live trading requires typing `"trading": "live"` plus a `maxOrderValue`. Order-placing tools preview and require confirmation, validate against market limits and your caps, and journal every mutating call.
+Tiers can **only** be enabled by the user editing the config file — never from the conversation, and there is no tool that edits config. All tools (including `create_order`, `withdraw`, `transfer`) are listed by default so you can discover them; calling one whose account or tier isn't configured returns a clear error with a `hint` (config-file path + example) to relay to the user. Execution is always gated at the handler — listing a tool never authorizes it. A deployment can set `"settings": {"hideDisabledTools": true}` to list only the tiers some account enables (with no accounts: the read-only market/discovery/streaming tools, roughly half the tool list). `"trading": true` works on **sandbox/demo accounts only**; live trading requires typing `"trading": "live"` plus a `maxOrderValue`. Order-placing tools preview and require confirmation, validate against market limits and your caps, and journal every mutating call.
 
 ## Sandbox / testnet
 
@@ -128,6 +128,6 @@ For "where should I buy 1 BTC?" or "what's the best way to turn 5,000 USDT into 
 
 - **"Trading is not enabled for account …"** — enable the tier in the config file; it can't be enabled from the conversation.
 - **AUTH_FAILED on a sandbox account** — you need testnet keys from the exchange's testnet portal, not live keys.
-- **A private tool doesn't exist** — its tier isn't enabled; run `get_safety_status` to see what's active.
+- **A private tool doesn't exist** — the config sets `"hideDisabledTools": true` and no account enables that tier; enable it in the config file (or drop the setting) and restart the server.
 - **Slow first call** — the initial `loadMarkets()` takes a few seconds, then is cached 24h.
 - Inspect interactively: `npx @modelcontextprotocol/inspector npx -y ccxt-mcp`.
