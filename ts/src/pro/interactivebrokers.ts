@@ -428,7 +428,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         await this.ibkrUnsubscribe (client, subHashes, undefined, subscription);
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market (marketSymbols[i]);
-            await this.ibkrUnsubscribeMarketData (client, market['id']);
+            await this.ibkrUnsubscribeMarketData (client, this.safeString (market, 'id'));
         }
         return true;
     }
@@ -574,7 +574,7 @@ export default class interactivebrokers extends interactivebrokersRest {
             'symbolsAndTimeframes': [ [ unifiedSymbol, timeframe ] ],
         };
         await this.ibkrUnsubscribe (client, subHashes, undefined, subscription);
-        await this.ibkrUnsubscribeMarketData (client, market['id']);
+        await this.ibkrUnsubscribeMarketData (client, historyMarketId);
         return true;
     }
 

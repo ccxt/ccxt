@@ -1267,7 +1267,7 @@ export default class paradex extends Exchange {
                     result.push (summary);
                 } else {
                     const market = this.safeMarket (marketId);
-                    if (market['type'] === marketType) {
+                    if (this.safeString (market, 'type') === marketType) {
                         result.push (summary);
                     }
                 }

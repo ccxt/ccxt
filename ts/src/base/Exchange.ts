@@ -5908,16 +5908,16 @@ export class BaseExchange {
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             if (sameTypeOnly && (marketType !== undefined)) {
-                if (market['type'] !== marketType) {
+                if (this.safeString (market, 'type') !== marketType) {
                     throw new BadRequest (this.id + ' symbols must be of the same type, either ' + marketType + ' or ' + market['type'] + '.');
                 }
             }
             if (sameSubTypeOnly && (isLinearSubType !== undefined)) {
-                if (market['linear'] !== isLinearSubType) {
+                if (this.safeBool (market, 'linear') !== isLinearSubType) {
                     throw new BadRequest (this.id + ' symbols must be of the same subType, either linear or inverse.');
                 }
             }
-            if (type !== undefined && market['type'] !== type) {
+            if (type !== undefined && this.safeString (market, 'type') !== type) {
                 throw new BadRequest (this.id + ' symbols must be of the same type ' + type + '. If the type is incorrect you can change it in options or the params of the request');
             }
             marketType = this.safeString (market, 'type');
@@ -6055,7 +6055,7 @@ export class BaseExchange {
         const aliasKeys = Object.keys (aliases);
         for (let i = 0; i < aliasKeys.length; i++) {
             const alias = aliasKeys[i];
-            if ((aliases[alias] === unifiedCode) && (alias in networkIdsByCodes)) {
+            if ((this.safeString (aliases, alias) === unifiedCode) && (alias in networkIdsByCodes)) {
                 return networkIdsByCodes[alias];
             }
         }

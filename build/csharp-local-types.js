@@ -11522,6 +11522,10 @@ export const CSHARP_STRING_PARAMS = {
     'polymarket.signMessage': { 1: 'string?' },
     'htx.tryGetSymbolFromFutureMarkets': { 0: 'string?' },
     'prediction/predictfun.approve': { 0: 'string?' },
+    'marketSymbols': { 1: 'string?' },
+    'filterByKey': { 2: 'string?' },
+    'filterBySymbol': { 1: 'string?' },
+    'pro/interactivebrokers.ibkrUnsubscribeMarketData': { 1: 'string?' },
 };
 // the table type for a parameter of a listed generated method whose checker type is string-ish
 function csharpStringParamType (csharp, node) {

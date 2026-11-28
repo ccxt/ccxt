@@ -625,7 +625,7 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull: boolean): s
         // a `string?` local/param key: a ws cache field read tests it for null first, as the helper does
         const takeNullableKeyType = (keyMask, scoped = false) => keyType (keyMask, scoped) === 'string?';
         const takeObjectKey = (keyMask) => keyType (keyMask, true) === 'object';
-        const rewritten = csharpConstantEqualities (csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i) ?? csharpInOpScopedLocal (region, name, i), objectNull, takeObjectKey, () => `inOpKey${stringKeys++}`), line, takeType, objectNull, content);
+        const rewritten = csharpConstantEqualities (csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i) ?? csharpInOpScopedLocal (region, name, i), objectNull, takeObjectKey, () => `inOpKey${stringKeys++}`), line, (name) => takeType (name) ?? (takeIndexType (name) ? { type: 'int', kind: 'local', value: '' } : undefined), objectNull, content);
         if (rewritten === undefined) { return line; }
         changed = true;
         return rewritten;
@@ -4964,16 +4964,26 @@ function csharpConstantEqualities (rewritten: string | undefined, line: string, 
             text = csharpConstantEqualityEmission (type, constant.kind, sides[e].text, sides[c].text);
             if (text !== undefined) break;
         }
-        text = text ?? csharpTypedPairEquality (sides, takeType, content);
+        text = text ?? csharpTypedPairEquality (sides, takeType, content) ?? csharpNameIntegerLiteralEquality (sides, takeType);
         if (text !== undefined) { edits.push ({ start: match.index, end: close + 1, text }); }
     }
     return (edits.length === 0) ? rewritten : applyRegionEdits (original, edits);
 }
+// a declared name against an integer literal: a string never equals a number box (isEqual's string cast of the literal throws, answering false), and a `double(?)` equals 0 by value
+function csharpNameIntegerLiteralEquality (sides, takeType): string | undefined {
+    for (const [ e, c ] of [ [ 0, 1 ], [ 1, 0 ] ]) {
+        if (!/^[A-Za-z_]\w*$/.test (sides[e].maskedText) || !/^-?\d{1,9}$/.test (sides[c].maskedText)) continue;
+        const type = takeType (sides[e].maskedText)?.type;
+        if (CSHARP_OPERATOR_STRING_TYPES.includes (type)) return 'false';
+        if (((type === 'double?') || (type === 'double')) && (sides[c].maskedText === '0')) return `(${sides[e].text} == 0)`;
+    }
+    return undefined;
+}
 // two typed operands of one kind: string vs string (ordinal `==`, null equal only to null as in isEqual), integer vs integer (isEqual compares Convert.ToInt64; the lifted `==` for...
 function csharpTypedPairEquality (sides, takeType, content: string): string | undefined {
     const kind = (side) => {
-        const integerOffset = /^\(([A-Za-z_]\w*) [-+] \d{1,9}\)$/.exec (side.maskedText);
-        const offsetType = (integerOffset === null) ? undefined : takeType (integerOffset[1])?.type;
+        const integerOffset = /^\(([A-Za-z_]\w*) [-+] \d{1,9}L?\)$|^\(\(([A-Za-z_]\w*) [-+] \d{1,9}L?\)\)$/.exec (side.maskedText);
+        const offsetType = (integerOffset === null) ? undefined : takeType (integerOffset[1] ?? integerOffset[2])?.type;
         // `<BaseExchange name>.id`: the hand-written `public string id` (Exchange.Options.cs)
         const exchangeId = /^([A-Za-z_]\w*)\.id$/.exec (side.maskedText);
         const type = csharpOperatorOperand (side.maskedText, side.text, takeType)?.type
