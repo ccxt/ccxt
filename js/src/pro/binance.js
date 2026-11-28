@@ -5692,22 +5692,24 @@ export default class binance extends binanceRest {
                         const fee = this.safeDict(order, 'fee');
                         if ((fees !== undefined) && !this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
+                            const newFees = [];
                             for (let i = 0; i < fees.length; i++) {
-                                const orderFee = fees[i];
-                                if (this.safeString(orderFee, 'currency') === this.safeString(tradeFee, 'currency')) {
+                                const orderFee = this.extend({}, fees[i]);
+                                if (insertNewFeeCurrency && this.safeString(orderFee, 'currency') === this.safeString(tradeFee, 'currency')) {
                                     const feeCost = this.sum(tradeFee['cost'], orderFee['cost']);
                                     let feeCostString = this.currencyToPrecision(tradeFee['currency'], feeCost);
                                     if (feeCostString === undefined) {
                                         feeCostString = '0';
                                     }
-                                    order['fees'][i]['cost'] = parseFloat(feeCostString);
+                                    orderFee['cost'] = parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.push(orderFee);
                             }
                             if (insertNewFeeCurrency) {
-                                order['fees'].push(tradeFee);
+                                newFees.push(tradeFee);
                             }
+                            order['fees'] = newFees;
                         }
                         else if (fee !== undefined) {
                             if (this.safeString(fee, 'currency') === this.safeString(tradeFee, 'currency')) {
@@ -5716,8 +5718,9 @@ export default class binance extends binanceRest {
                                 if (feeCostString === undefined) {
                                     feeCostString = '0';
                                 }
-                                fee['cost'] = parseFloat(feeCostString);
-                                order['fee'] = fee;
+                                const newFee = this.extend({}, fee);
+                                newFee['cost'] = parseFloat(feeCostString);
+                                order['fee'] = newFee;
                             }
                             else if (this.safeString(fee, 'currency') === undefined) {
                                 order['fee'] = tradeFee;
