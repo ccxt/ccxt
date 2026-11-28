@@ -646,12 +646,12 @@ func (this *Dydx) ParseMarket(market any) map[string]any {
 	var baseName *string = this.SafeString(parts, 0)
 	var baseId *string = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base *string = this.SafeCurrencyCode(baseId)
-	var quote *string = this.SafeCurrencyCode(quoteId)
+	var quote *string = this.SafeCurrencyCode(&quoteId)
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
 	var settleId string = "USDC"
-	var settle *string = this.SafeCurrencyCode(settleId)
+	var settle *string = this.SafeCurrencyCode(&settleId)
 	if settle == nil {
 		return nil
 	}
@@ -3499,7 +3499,7 @@ func (this *Dydx) HandleErrors(code int64, reason string, url string, method str
 		if errorCodeNum > 0 {
 			var feedback string = this.Id + " " + this.Json(response)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 			panic(ExchangeError(feedback))
 		}
 	}

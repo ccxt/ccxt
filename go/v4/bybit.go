@@ -13914,7 +13914,7 @@ func (this *Bybit) HandleErrors(code int64, reason string, url string, method st
 		if strings.Index(body, "Withdraw address chain or destination tag are not equal") > -1 {
 			feedback = feedback + "; You might also need to ensure the address is whitelisted"
 		}
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

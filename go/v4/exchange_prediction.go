@@ -311,10 +311,10 @@ func (this *PredictionExchange) FilterEventsByTags(events []any, optionalArgs ..
 			} else {
 				tagLabel = *this.SafeString2(tag, "slug", "title", "")
 			}
-			var tagKey any = this.NormalizeTagKey(tagLabel)
+			var tagKey string = this.NormalizeTagKey(tagLabel)
 			if tagKey != "" {
 				for wi := 0; wi < len(wanted); wi++ {
-					if GetIndexOf(tagKey, wanted[wi]) >= 0 {
+					if strings.Index(tagKey, wanted[wi]) >= 0 {
 						matched = true
 						break
 					}

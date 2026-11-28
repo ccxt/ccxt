@@ -1729,7 +1729,7 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 		}
 		for i := 0; i < len(currencies); i++ {
 			var currencyId string = currencies[i]
-			var code *string = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(&currencyId)
 			var account map[string]any = this.Account()
 			account["used"] = this.SafeString(used, currencyId)
 			account["free"] = this.SafeString(free, currencyId)

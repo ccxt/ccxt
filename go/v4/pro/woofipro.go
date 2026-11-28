@@ -1712,7 +1712,7 @@ func (this *Woofipro) HandleBalance(client ccxt.ClientInterface, message map[str
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var value, _ = balances[key].(map[string]any)
-		var code *string = this.SafeCurrencyCode(key)
+		var code *string = this.SafeCurrencyCode(&key)
 		var account any = this.Account()
 		if code != nil {
 			if _, ok := this.Balance[*code]; ok {

@@ -1786,7 +1786,7 @@ func (this *Interactivebrokers) ParseBalance(response map[string]any) map[string
 		if balance == nil {
 			continue
 		}
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "cashbalance")
 		if code != nil {
@@ -1922,7 +1922,7 @@ func (this *Interactivebrokers) IbkrBalanceCode(position any) *string {
 	var parts []string = strings.Split(*description, " ")
 	if assetClass != nil && *assetClass == "CRYPTO" {
 		// "ETH CRYPTO" -> ETH
-		return this.SafeCurrencyCode(parts[0])
+		return this.SafeCurrencyCode(&parts[0])
 	}
 	retStrVal := strings.Join(parts, ".")
 	return &retStrVal // 'BRK B' -> 'BRK.B', as in parseMarket

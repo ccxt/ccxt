@@ -375,7 +375,7 @@ func (this *Mercado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var baseId *string = coin
 		var quoteId string = "BRL"
 		var base *string = this.SafeCurrencyCode(baseId)
-		var quote *string = this.SafeCurrencyCode(quoteId)
+		var quote *string = this.SafeCurrencyCode(&quoteId)
 		if (base == nil) || (quote == nil) {
 			continue
 		}
@@ -706,7 +706,7 @@ func (this *Mercado) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		if _, ok := balances[currencyId]; ok {
 			var balance, _ = balances[currencyId].(map[string]any)
 			var account map[string]any = this.Account()

@@ -795,7 +795,7 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) *string {
 	}
 	return address
 }
-func (this *BaseExchange) FindMessageHashes(client *Client, element any) []string {
+func (this *BaseExchange) FindMessageHashes(client *Client, element string) []string {
 	var result []string = []string{}
 	var messageHashes []string = make([]string, 0, len(client.Futures))
 	for objectKey := range client.Futures {
@@ -803,7 +803,7 @@ func (this *BaseExchange) FindMessageHashes(client *Client, element any) []strin
 	}
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash string = messageHashes[i]
-		if GetIndexOf(messageHash, element) >= 0 {
+		if strings.Index(messageHash, element) >= 0 {
 			result = append(result, messageHash)
 		}
 	}
@@ -5950,19 +5950,19 @@ func (this *BaseExchange) ThrowExactlyMatchedException(exact any, string any, me
 		ThrowDynamicException(GetValue(exact, string), message)
 	}
 }
-func (this *BaseExchange) ThrowBroadlyMatchedException(broad any, string any, message any) {
+func (this *BaseExchange) ThrowBroadlyMatchedException(broad any, string *string, message any) {
 	var broadKey any = this.FindBroadlyMatchedKey(broad, string)
 	if broadKey != nil {
 		ThrowDynamicException(GetValue(broad, broadKey), message)
 	}
 }
-func (this *BaseExchange) FindBroadlyMatchedKey(broad any, errorString any) any {
+func (this *BaseExchange) FindBroadlyMatchedKey(broad any, errorString *string) any {
 	// a helper for matching error strings exactly vs broadly
 	var keys []string = ObjectKeys(broad)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if !IsEqual(errorString, nil) {
-			if GetIndexOf(errorString, key) >= 0 {
+		if errorString != nil {
+			if errorString != nil && strings.Index(*errorString, key) >= 0 {
 				return key
 			}
 		}
@@ -6980,7 +6980,7 @@ func (this *BaseExchange) createSubAccountBody(ch chan AsyncResult[map[string]an
 	_ = params
 	panic(NotSupported(this.Id + " createSubAccount() is not supported yet"))
 }
-func (this *BaseExchange) SafeCurrencyCode(currencyId any, optionalArgs ...any) *string {
+func (this *BaseExchange) SafeCurrencyCode(currencyId *string, optionalArgs ...any) *string {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)

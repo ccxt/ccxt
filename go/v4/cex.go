@@ -1343,7 +1343,7 @@ func (this *Cex) ParseBalance(response map[string]any) map[string]any {
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var balance, _ = response[key].(map[string]any)
-		var code *string = this.SafeCurrencyCode(key)
+		var code *string = this.SafeCurrencyCode(&key)
 		var account map[string]any = map[string]any{
 			"used":  this.SafeString(balance, "balanceOnHold"),
 			"total": this.SafeString(balance, "balance"),

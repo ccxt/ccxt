@@ -5025,7 +5025,7 @@ func (this *Extended) HandleErrors(code int64, reason string, url string, method
 		var error map[string]any = SafeMapTyped(response, "error")
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback string = this.Id + " " + this.Json(response)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

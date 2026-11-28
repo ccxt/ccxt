@@ -3171,7 +3171,7 @@ func (this *Bittrade) HandleErrors(code int64, reason string, url string, method
 		if status != nil && *status == "error" {
 			var codeError *string = this.SafeString(response, "err-code")
 			var feedback string = this.Id + " " + body
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 			var message *string = this.SafeString(response, "err-msg")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

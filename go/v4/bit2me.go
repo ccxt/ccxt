@@ -2555,7 +2555,7 @@ func (this *Bit2me) HandleErrors(httpCode int64, reason string, url string, meth
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], payloadCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

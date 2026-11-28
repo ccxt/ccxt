@@ -1916,7 +1916,7 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 		var holdingCodes map[string]any = map[string]any{}
 		for i := 0; i < len(holdingKeys); i++ {
 			var key string = holdingKeys[i]
-			var code *string = this.SafeCurrencyCode(key)
+			var code *string = this.SafeCurrencyCode(&key)
 			var newAccount map[string]any = this.Account()
 			newAccount["total"] = this.SafeString(holding, key)
 			if code != nil {
@@ -2004,7 +2004,7 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 		for i := 0; i < len(flexFuturesKeys); i++ {
 			var key string = flexFuturesKeys[i]
 			var flexFuture, _ = flexFutureCurrencies[key].(map[string]any)
-			var code *string = this.SafeCurrencyCode(key)
+			var code *string = this.SafeCurrencyCode(&key)
 			var newAccount map[string]any = this.Account()
 			newAccount["free"] = this.SafeString(flexFuture, "available")
 			newAccount["used"] = this.SafeString(flexFuture, "collateral_value")

@@ -1536,7 +1536,7 @@ func (this *Derive) HandleBalance(client ccxt.ClientInterface, message map[strin
 			}
 			continue
 		}
-		var code *string = this.SafeCurrencyCode(name)
+		var code *string = this.SafeCurrencyCode(&name)
 		if code == nil {
 			continue
 		}

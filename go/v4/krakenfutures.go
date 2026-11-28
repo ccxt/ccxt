@@ -577,8 +577,8 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var baseIdLength int64 = int64(len(splitMarket)) - 3
 		var baseId string = splitMarket[0:min(baseIdLength+int64(len(splitMarket))*min(max(-baseIdLength, 0), 1), int64(len(splitMarket)))]
 		var quoteId string = "usd" // always USD
-		var base *string = this.SafeCurrencyCode(baseId)
-		var quote *string = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(&baseId)
+		var quote *string = this.SafeCurrencyCode(&quoteId)
 		if (base == nil) || (quote == nil) {
 			continue
 		}
@@ -3875,7 +3875,7 @@ func (this *Krakenfutures) ParseBalance(response map[string]any) map[string]any 
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
 		var balance any = balances[currencyId]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		if code == nil {
 			continue
 		}

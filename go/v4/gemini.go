@@ -1139,7 +1139,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 	//     }
 	//
 	var marketId *string = nil
-	var baseId any = nil
+	var baseId *string = nil
 	var quoteId *string = nil
 	var settleId *string = nil
 	var tickSize any = nil
@@ -1162,11 +1162,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		}
 		minSize = this.SafeNumber(response, "min_order_size")
 		status = this.ParseMarketActive(this.SafeString(response, "status"))
-		if derefPtr := this.SafeString(response, "base_currency"); derefPtr != nil {
-			baseId = *derefPtr
-		} else {
-			baseId = nil
-		}
+		baseId = this.SafeString(response, "base_currency")
 		quoteId = this.SafeString(response, "quote_currency")
 		settleId = this.SafeString(response, "contract_price_currency")
 	} else {
@@ -1188,11 +1184,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		var lowerCaseId string = strings.ToLower(marketIdWithoutPerp)
 		if _, ok := conflictingMarkets[lowerCaseId]; ok {
 			var conflictingMarket, _ = conflictingMarkets[lowerCaseId].(map[string]any)
-			if derefPtr := this.SafeString(conflictingMarket, "base"); derefPtr != nil {
-				baseId = *derefPtr
-			} else {
-				baseId = nil
-			}
+			baseId = this.SafeString(conflictingMarket, "base")
 			quoteId = this.SafeString(conflictingMarket, "quote")
 			if isPerp {
 				settleId = this.SafeString(conflictingMarket, "quote")
@@ -1203,7 +1195,8 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 				var quoteCurrency *string = this.SafeString(quoteCurrencies, i, "")
 				if strings.HasSuffix(marketIdWithoutPerp, *quoteCurrency) {
 					var quoteLength int64 = this.ParseToInt(int64(-1) * int64(len(*quoteCurrency)))
-					baseId = marketIdWithoutPerp[0:min(quoteLength+int64(len(marketIdWithoutPerp))*min(max(-quoteLength, 0), 1), int64(len(marketIdWithoutPerp)))]
+					baseIdStr := marketIdWithoutPerp[0:min(quoteLength+int64(len(marketIdWithoutPerp))*min(max(-quoteLength, 0), 1), int64(len(marketIdWithoutPerp)))]
+					baseId = &baseIdStr
 					quoteId = quoteCurrency
 					if isPerp {
 						settleId = quoteCurrency // always same
@@ -1562,8 +1555,8 @@ func (this *Gemini) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 	var symbol any = nil
 	var marketId *string = this.SafeStringLower(ticker, "pair")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var baseId any = nil
-	var quoteId any = nil
+	var baseId *string = nil
+	var quoteId *string = nil
 	var base *string = nil
 	var quote *string = nil
 	if (marketId != nil) && (marketResolved == nil) {
@@ -1574,26 +1567,30 @@ func (this *Gemini) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 				str := *marketId
 				marketIdPart = str[0:min(4, len(str))]
 			}
-			baseId = marketIdPart
+			baseIdStr := marketIdPart
+			baseId = &baseIdStr
 			var marketIdPart2 string
 			if marketId != nil {
 				str := *marketId
 				marketIdPart2 = str[4:min(7, len(str))]
 			}
-			quoteId = marketIdPart2
+			quoteIdStr := marketIdPart2
+			quoteId = &quoteIdStr
 		} else {
 			var marketIdPart3 string
 			if marketId != nil {
 				str := *marketId
 				marketIdPart3 = str[0:min(3, len(str))]
 			}
-			baseId = marketIdPart3
+			baseIdStr2 := marketIdPart3
+			baseId = &baseIdStr2
 			var marketIdPart4 string
 			if marketId != nil {
 				str := *marketId
 				marketIdPart4 = str[3:min(6, len(str))]
 			}
-			quoteId = marketIdPart4
+			quoteIdStr2 := marketIdPart4
+			quoteId = &quoteIdStr2
 		}
 		base = this.SafeCurrencyCode(baseId)
 		quote = this.SafeCurrencyCode(quoteId)
@@ -2886,7 +2883,7 @@ func (this *Gemini) HandleErrors(code int64, reason string, url string, method s
 	if response == nil {
 		if true {
 			var feedback string = this.Id + " " + body
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		}
 		return nil // fallback to default error handler
 	}

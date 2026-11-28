@@ -2756,7 +2756,7 @@ func (this *Latoken) HandleErrors(code int64, reason string, url string, method 
 	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

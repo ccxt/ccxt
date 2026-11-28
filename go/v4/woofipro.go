@@ -2027,7 +2027,8 @@ func (this *Woofipro) ParseIncome(income map[string]any, optionalArgs ...any) ma
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var amount *string = this.SafeString(income, "funding_fee")
-	var code *string = this.SafeCurrencyCode("USDC")
+	argStr := "USDC"
+	var code *string = this.SafeCurrencyCode(&argStr)
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
 	var paymentType *string = this.SafeString(income, "payment_type")
@@ -5199,7 +5200,7 @@ func (this *Woofipro) HandleErrors(code int64, reason string, url string, method
 	var errorCode *string = this.SafeString(response, "code")
 	if !(success != nil && *success) {
 		var feedback string = this.Id + " " + this.Json(response)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

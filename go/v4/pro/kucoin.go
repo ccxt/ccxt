@@ -2565,7 +2565,7 @@ func (this *Kucoin) HandleOrderBook(client ccxt.ClientInterface, message map[str
 			var subscription any = nil
 			for i := 0; i < len(subscriptions); i++ {
 				var key string = subscriptions[i]
-				if (ccxt.GetIndexOf(key, topicSymbol) >= 0) && (ccxt.GetIndexOf(key, topicChannel) >= 0) {
+				if (topicSymbol != nil) && (topicChannel != nil) && (strings.Index(key, *topicSymbol) >= 0) && (strings.Index(key, *topicChannel) >= 0) {
 					subscription = client.SubscriptionGet(key)
 					break
 				}

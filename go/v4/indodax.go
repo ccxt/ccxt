@@ -532,7 +532,7 @@ func (this *Indodax) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(free, currencyId)
 		account["used"] = this.SafeString(used, currencyId)
@@ -1986,7 +1986,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	var result []any = []any{}
 	for i := 0; i < len(addressKeys); i++ {
 		var marketId string = addressKeys[i]
-		var code *string = this.SafeCurrencyCode(marketId)
+		var code *string = this.SafeCurrencyCode(&marketId)
 		var address *string = this.SafeString(addresses, marketId)
 		if (address != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)

@@ -7825,7 +7825,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	}
 	var rawNetwork *string = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
-	var codeValue *string = this.SafeCurrencyCode(code)
+	var codeValue *string = this.SafeCurrencyCode(&code)
 	var network *string = this.NetworkIdToCode(rawNetwork, codeValue)
 
 	r1 := <-this.FetchDepositAddressesByNetworkAsync(*codeValue, paramsOmitted)

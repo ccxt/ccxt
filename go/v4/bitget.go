@@ -4378,11 +4378,13 @@ func (this *Bitget) ParseUtaMarket(market any, stock bool) map[string]any {
 	var baseId *string = this.SafeString(market, "baseCoin")
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var base *string = this.SafeCurrencyCode(baseId)
-	var settleId any = nil
+	var settleId *string = nil
 	if category != nil && *category == "USDT-FUTURES" {
-		settleId = "USDT"
+		settleIdStr := "USDT"
+		settleId = &settleIdStr
 	} else if category != nil && *category == "USDC-FUTURES" {
-		settleId = "USDC"
+		settleIdStr2 := "USDC"
+		settleId = &settleIdStr2
 	} else if category != nil && *category == "COIN-FUTURES" {
 		settleId = base
 	}

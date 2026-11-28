@@ -4723,7 +4723,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	}
 	for i := 0; i < len(responseKeys); i++ {
 		var currencyId string = responseKeys[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var feeInfo, _ = feesById[currencyId].(map[string]any)
 		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
 			var currency map[string]any = this.Currency(code)

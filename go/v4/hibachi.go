@@ -483,7 +483,8 @@ func (this *Hibachi) HardcodedCurrencies() any {
 		"withdraw": nil,
 		"info":     map[string]any{},
 	}
-	var code *string = this.SafeCurrencyCode("USDT")
+	argStr := "USDT"
+	var code *string = this.SafeCurrencyCode(&argStr)
 	if code != nil {
 		result[*code] = this.SafeCurrencyStructure(map[string]any{
 			"id":        "USDT",
@@ -516,7 +517,8 @@ func (this *Hibachi) ParseBalance(response map[string]any) map[string]any {
 		"info": response,
 	}
 	// Hibachi only supports USDT on Arbitrum at this time
-	var code *string = this.SafeCurrencyCode("USDT")
+	argStr := "USDT"
+	var code *string = this.SafeCurrencyCode(&argStr)
 	var account map[string]any = this.Account()
 	account["total"] = this.SafeString(response, "balance")
 	account["free"] = this.SafeString(response, "maximalWithdraw")
@@ -2470,7 +2472,7 @@ func (this *Hibachi) HandleErrors(code int64, reason string, url string, method 
 		if status != nil && *status == "failed" {
 			var codeError *string = this.SafeString(response, "errorCode")
 			var feedback string = this.Id + " " + body
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 			var message *string = this.SafeString(response, "message")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)

@@ -2899,7 +2899,8 @@ func (this *Foxbit) HandleErrors(code int64, reason string, url string, method s
 	if error != nil {
 		var feedback string = this.Id + " " + *message + " details: " + detailsString
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], detailsString, feedback)
+		detailsStringStr := detailsString
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &detailsStringStr, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], codeError, feedback)
 		panic(ExchangeError(feedback))
 	}

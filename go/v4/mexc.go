@@ -2877,7 +2877,7 @@ func (this *Mexc) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker
 		"change":        nil,
 		"percentage":    nil,
 		"average":       nil,
-		"baseVolume":    baseVolume,
+		"baseVolume":    nil,
 		"quoteVolume":   quoteVolume,
 		"info":          ticker,
 	}
@@ -2910,6 +2910,9 @@ func (this *Mexc) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker
 	}
 	if changePcnt != nil {
 		literal226232["percentage"] = *changePcnt
+	}
+	if baseVolume != nil {
+		literal226232["baseVolume"] = *baseVolume
 	}
 	return this.SafeTicker(literal226232, marketResolved)
 }
@@ -6800,11 +6803,11 @@ func (this *Mexc) ParseTransaction(transaction map[string]any, optionalArgs ...a
 	}
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var updated *int64 = this.SafeInteger(transaction, "updateTime")
-	var currencyId any = nil
+	var currencyId *string = nil
 	var currencyWithNetwork *string = this.SafeString(transaction, "coin")
 	if currencyWithNetwork != nil {
 		var currencyParts []string = strings.Split(*currencyWithNetwork, "-")
-		currencyId = currencyParts[0]
+		currencyId = this.SafeString(currencyParts, 0)
 	}
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var network *string = nil
@@ -8482,7 +8485,7 @@ func (this *Mexc) HandleErrors(code int64, reason string, url string, method str
 	var responseCode *string = this.SafeString(response, "code")
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") && (responseCode == nil || *responseCode != "0") {
 		var feedback string = this.Id + " " + body
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		panic(ExchangeError(feedback))
 	}

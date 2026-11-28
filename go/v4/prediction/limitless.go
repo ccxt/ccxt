@@ -4162,7 +4162,7 @@ func (this *Limitless) HandleErrors(code int64, reason string, url string, metho
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	}
-	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 	// a 400 is a client-side bad request (bad params, or a business rule like "market not
 	// resolved"), not a transport outage — throw ccxt.BadRequest with the exchange message instead
 	// of letting the base map the bare 400 to a retryable network-unavailable error

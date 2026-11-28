@@ -1211,7 +1211,7 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 	}
 	var marketId *string = this.SafeString(market, "instrument_name")
 	var symbol any = *base + "/" + *quote
-	var settleId any = nil
+	var settleId *string = nil
 	var settle *string = nil
 	var expiry *int64 = nil
 	var strike *float64 = nil
@@ -1223,7 +1223,8 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		marketType = &marketTypeStr
 	} else if typeVar != nil && *typeVar == "perp" {
 		margin = false
-		settleId = "USDC"
+		settleIdStr := "USDC"
+		settleId = &settleIdStr
 		settle = this.SafeCurrencyCode(settleId)
 		if settle != nil {
 			symbol = *base + "/" + *quote + ":" + *settle
@@ -1234,7 +1235,8 @@ func (this *Derive) ParseMarket(market any) map[string]any {
 		marketTypeStr2 := "swap"
 		marketType = &marketTypeStr2
 	} else if typeVar != nil && *typeVar == "option" {
-		settleId = "USDC"
+		settleIdStr2 := "USDC"
+		settleId = &settleIdStr2
 		settle = this.SafeCurrencyCode(settleId)
 		margin = false
 		option = true
@@ -4388,7 +4390,8 @@ func (this *Derive) ParseIncome(income map[string]any, optionalArgs ...any) map[
 	_ = market
 	var marketId *string = this.SafeString(income, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var code *string = this.SafeCurrencyCode("USDC")
+	argStr := "USDC"
+	var code *string = this.SafeCurrencyCode(&argStr)
 	var timestamp *int64 = this.SafeInteger(income, "timestamp")
 	return map[string]any{
 		"info":      income,
@@ -5614,7 +5617,7 @@ func (this *Derive) HandleErrors(code int64, reason string, url string, method s
 	if error != nil {
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback string = this.Id + " " + this.Json(response)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

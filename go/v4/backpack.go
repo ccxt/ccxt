@@ -1523,8 +1523,8 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	}
 	var quoteAmount *float64 = this.SafeNumber(quote, "quoteQuantity")
 	var baseAmount *float64 = this.ParseNumber(amountString)
-	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
-	var toCurrency *string = this.SafeCurrencyCode(toCode)
+	var fromCurrency *string = this.SafeCurrencyCode(&fromCode)
+	var toCurrency *string = this.SafeCurrencyCode(&toCode)
 
 	var literal120615 map[string]any = map[string]any{
 		"info":         quote,
@@ -2936,7 +2936,7 @@ func (this *Backpack) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = balanceKeys[i]
-		var code *string = this.SafeCurrencyCode(id)
+		var code *string = this.SafeCurrencyCode(&id)
 		var balance, _ = response[id].(map[string]any)
 		var account map[string]any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")

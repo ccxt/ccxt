@@ -1086,15 +1086,15 @@ func (this *Kraken) ParseCurrency(rawCurrency any) map[string]any {
 		"networks": map[string]any{},
 	})
 }
-func (this *Kraken) SafeCurrencyCode(currencyId any, optionalArgs ...any) *string {
+func (this *Kraken) SafeCurrencyCode(currencyId *string, optionalArgs ...any) *string {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	if IsEqual(currencyId, nil) {
+	if currencyId == nil {
 		return nil
 	}
-	if GetIndexOf(currencyId, ".") > 0 {
+	if strings.Index(*currencyId, ".") > 0 {
 		// if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-		var parts []string = Split(currencyId, ".")
+		var parts []string = strings.Split(*currencyId, ".")
 		var firstPart *string = this.SafeString(parts, 0)
 		var secondPart *string = this.SafeString(parts, 1)
 		if retPiece := this.Exchange.SafeCurrencyCode(firstPart, currency); retPiece != nil && secondPart != nil {
@@ -2099,7 +2099,7 @@ func (this *Kraken) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var balance, _ = balances[currencyId].(map[string]any)
 		var account map[string]any = this.Account()
 		account["used"] = this.SafeString(balance, "hold_trade")
@@ -2467,8 +2467,8 @@ func (this *Kraken) GetDelistedMarketById(id *string) any {
 	}
 	var baseId string = (*id)[min(baseIdStart, len(*id)):min(max(baseIdEnd, baseIdStart), len(*id))]
 	var quoteId string = (*id)[min(quoteIdStart, len(*id)):min(max(quoteIdEnd, quoteIdStart), len(*id))]
-	var base *string = this.SafeCurrencyCode(baseId)
-	var quote *string = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(&baseId)
+	var quote *string = this.SafeCurrencyCode(&quoteId)
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
@@ -3552,8 +3552,8 @@ func (this *Kraken) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 					}
 					ret_ = func(this *Kraken) any {
 						// catch block:
-						if (!IsEqual(this.GetLast_http_response(), nil)) && (this.GetLast_http_response() != "") {
-							if GetIndexOf(this.GetLast_http_response(), "EOrder:Unknown order") >= 0 {
+						if (this.GetLast_http_response() != nil) && (!IsEqual(this.GetLast_http_response(), "")) {
+							if strings.Index(*this.GetLast_http_response(), "EOrder:Unknown order") >= 0 {
 								panic(OrderNotFound(Add(this.Id+" cancelOrder() error ", this.GetLast_http_response())))
 							}
 						}

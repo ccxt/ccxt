@@ -1262,14 +1262,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 			panic(r.Err)
 		}
 	}
-	var callerMethodNameOptionPtr *string = nil
-	callerMethodNameOptionPtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", callerMethodName)
-	callerMethodNameOption := func() any {
-		if callerMethodNameOptionPtr != nil {
-			return *callerMethodNameOptionPtr
-		}
-		return nil
-	}()
+	callerMethodNameOption, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", callerMethodName)
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var market map[string]any = this.Market(&symbolsNormalized[0])
 	var messageType string = this.GetTypeByMarket(market)
@@ -1280,7 +1273,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan ccxt.AsyncResult[
 	if callerMethodNameOption == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " requires a callerMethodName argument"))
 	}
-	var isWatchTickers bool = (ccxt.GetIndexOf(callerMethodNameOption, "watchTicker") >= 0)
+	var isWatchTickers bool = (strings.Index(*callerMethodNameOption, "watchTicker") >= 0)
 	var prefix string = "bidask"
 	if isWatchTickers {
 		prefix = "ticker"
@@ -2120,7 +2113,7 @@ func (this *Gate) HandleBalance(client ccxt.ClientInterface, message map[string]
 		var rawBalance, _ = rows[i].(map[string]any)
 		var account map[string]any = this.Account()
 		var currencyId string = *this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
 		if timestamp != nil {
 			this.Balance["timestamp"] = *timestamp

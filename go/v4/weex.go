@@ -4409,8 +4409,8 @@ func (this *Weex) HandleOrderOrPositionError(errorCode *string, errorMessage *st
 	var feedback string = this.Id + " " + this.Json(order)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessageValue, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCodeValue, feedback)
-	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessageValue, feedback)
-	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCodeValue, feedback)
+	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &errorMessageValue, feedback)
+	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &errorCodeValue, feedback)
 	panic(InvalidOrder(feedback))
 }
 

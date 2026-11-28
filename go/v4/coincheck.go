@@ -1473,7 +1473,7 @@ func (this *Coincheck) HandleErrors(code int64, reason string, url string, metho
 		var error *string = this.SafeString(response, "error")
 		var feedback string = this.Id + " " + this.Json(response)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

@@ -4737,7 +4737,7 @@ func (this *Woo) HandleErrors(code int64, reason string, url string, method stri
 	var errorCode *string = this.SafeString(response, "code")
 	if !(success != nil && *success) {
 		var feedback string = this.Id + " " + this.Json(response)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	}
 	return nil
@@ -4762,7 +4762,8 @@ func (this *Woo) ParseIncome(income map[string]any, optionalArgs ...any) map[str
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var amount *string = this.SafeString(income, "fundingFee")
-	var code *string = this.SafeCurrencyCode("USD")
+	argStr := "USD"
+	var code *string = this.SafeCurrencyCode(&argStr)
 	var id *string = this.SafeString(income, "id")
 	var timestamp *int64 = this.SafeInteger(income, "updatedTime")
 	var rate *float64 = this.SafeNumber(income, "fundingRate")

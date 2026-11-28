@@ -1963,7 +1963,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface],
 	var result []any = []any{}
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = baseIds[i]
-		var base *string = this.SafeCurrencyCode(baseId)
+		var base *string = this.SafeCurrencyCode(&baseId)
 		if base == nil {
 			continue
 		}
@@ -2823,7 +2823,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	// we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
 	for i := 0; i < len(ratesIds); i++ {
 		var currencyId string = ratesIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var codeInResult bool
 		if code != nil {
 			_, codeInResult = result[*code]

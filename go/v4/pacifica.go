@@ -963,7 +963,7 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 	var isSpot bool = (instrumentType != nil && *instrumentType == "spot")
 	var isSwap bool = !isSpot
 	var quoteId string = "USDC"
-	var settleId any = nil
+	var settleId *string = nil
 	var typeVar string = "spot"
 	var linear any = nil
 	var inverse any = nil
@@ -981,7 +981,8 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 	}
 	var isolatedOnly *bool = this.SafeBool(market, "isolated_only", false)
 	if isSwap {
-		settleId = quoteId
+		settleIdStr := quoteId
+		settleId = &settleIdStr
 		typeVar = "swap"
 		linear = true
 		inverse = false
@@ -992,7 +993,8 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 		isolatedMargin = true
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
-	var quote *string = this.SafeCurrencyCode(quoteId)
+	quoteIdStr := quoteId
+	var quote *string = this.SafeCurrencyCode(&quoteIdStr)
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
@@ -4623,6 +4625,8 @@ func (this *Pacifica) ParseTransaction(transaction map[string]any, optionalArgs 
 	}
 	var eventType *string = this.SafeString(transaction, "event_type")
 	var amount *string = this.SafeString(transaction, "amount")
+	argStr := "USDC"
+	var currencyCode *string = this.SafeCurrencyCode(&argStr, currency)
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          nil,
@@ -4638,7 +4642,7 @@ func (this *Pacifica) ParseTransaction(transaction map[string]any, optionalArgs 
 		"tagFrom":     nil,
 		"type":        this.SafeString(types, eventType),
 		"amount":      this.ParseNumber(Precise.StringAbs(amount)),
-		"currency":    this.SafeCurrencyCode("USDC", currency),
+		"currency":    currencyCode,
 		"status":      nil,
 		"updated":     nil,
 		"comment":     nil,
@@ -4703,11 +4707,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333019 []any = r1.Value
-		if retRes333019 == nil {
+		var retRes333119 []any = r1.Value
+		if retRes333119 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333019)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333119)}
 		}
 		return nil
 	}
@@ -4762,7 +4766,8 @@ func (this *Pacifica) ParseIncome(income map[string]any, optionalArgs ...any) ma
 		symbol = &marketResolved.Symbol
 	}
 	var amount *string = this.SafeString(income, "payout")
-	var code *string = this.SafeCurrencyCode("USDC")
+	argStr := "USDC"
+	var code *string = this.SafeCurrencyCode(&argStr)
 	var rate *float64 = this.SafeNumber(income, "rate")
 	return map[string]any{
 		"info":      income,
@@ -5269,16 +5274,16 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
-	var literal372515 map[string]any = map[string]any{
+	var literal372615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if requestBody != nil {
-		literal372515["body"] = *requestBody
+		literal372615["body"] = *requestBody
 	}
-	return literal372515
+	return literal372615
 }
 func (this *Pacifica) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

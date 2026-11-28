@@ -587,7 +587,8 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) map[string]any {
 			for j := 0; j < len(parts); j++ {
 				nameWithoutU = nameWithoutU + parts[j]
 			}
-			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
+			nameWithoutUStr := nameWithoutU
+			var baseCode *string = this.SafeCurrencyCode(&nameWithoutUStr)
 			if code != nil {
 				var spotCurrencyMappingDict2 map[string]any
 				spotCurrencyMappingDict2, _ = this.Options["spotCurrencyMapping"].(map[string]any)

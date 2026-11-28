@@ -608,7 +608,7 @@ func (this *Coinspot) ParseBalance(response map[string]any) map[string]any {
 			for j := 0; j < len(currencyIdsList); j++ {
 				var currencyId string = currencyIdsList[j]
 				var balance, _ = currencies[currencyId].(map[string]any)
-				var code *string = this.SafeCurrencyCode(currencyId)
+				var code *string = this.SafeCurrencyCode(&currencyId)
 				var account map[string]any = this.Account()
 				account["total"] = this.SafeString(balance, "balance")
 				if code != nil {
@@ -627,7 +627,7 @@ func (this *Coinspot) ParseBalance(response map[string]any) map[string]any {
 		}
 		for i := 0; i < len(currencyIdsMap); i++ {
 			var currencyId string = currencyIdsMap[i]
-			var code *string = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(&currencyId)
 			var account map[string]any = this.Account()
 			account["total"] = this.SafeString(balances, currencyId)
 			if code != nil {
@@ -1134,7 +1134,7 @@ func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var feeCurrencyId string = "AUD"
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCost),
-			"currency": this.SafeCurrencyCode(feeCurrencyId),
+			"currency": this.SafeCurrencyCode(&feeCurrencyId),
 		}
 	}
 	return this.SafeTrade(map[string]any{

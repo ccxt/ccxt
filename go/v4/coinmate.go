@@ -607,7 +607,7 @@ func (this *Coinmate) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		var balance, _ = balances[currencyId].(map[string]any)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(balance, "available")

@@ -2427,7 +2427,7 @@ func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) ma
 	for i := 0; i < len(ids); i++ {
 		var id string = ids[i]
 		var fees map[string]any = SafeMapTyped(response, i)
-		var code *string = this.SafeCurrencyCode(id)
+		var code *string = this.SafeCurrencyCode(&id)
 		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}

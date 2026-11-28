@@ -2875,7 +2875,7 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) map[string]any {
 }
 func (this *Zebpay) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, body)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, body)
 		return nil
 	}
 	//

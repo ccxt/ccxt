@@ -610,14 +610,14 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			var entry any = response[i]
 			var marketId *string = this.SafeString(entry, "market")
 			var baseId *string = nil
-			var quoteId any = nil
+			var quoteId *string = nil
 			var base *string = nil
 			var quote *string = nil
 			if marketId != nil {
 				var parts []string = strings.Split(*marketId, "-")
 				// to match gen 1, the quoteId is the first currency derived from the market id
 				baseId = this.SafeString(parts, 1)
-				quoteId = parts[0]
+				quoteId = this.SafeString(parts, 0)
 				base = this.SafeCurrencyCode(baseId)
 				quote = this.SafeCurrencyCode(quoteId)
 			}
@@ -631,7 +631,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				"quote":          quote,
 				"settle":         nil,
 				"baseId":         nil,
-				"quoteId":        quoteId,
+				"quoteId":        nil,
 				"settleId":       nil,
 				"type":           "spot",
 				"spot":           true,
@@ -675,6 +675,9 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			}
 			if baseId != nil {
 				literal47529["baseId"] = *baseId
+			}
+			if quoteId != nil {
+				literal47529["quoteId"] = *quoteId
 			}
 			result = append(result, literal47529)
 		}
@@ -723,7 +726,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					continue
 				}
 				var market any = data[currencyId]
-				var base *string = this.SafeCurrencyCode(currencyId)
+				var base *string = this.SafeCurrencyCode(&currencyId)
 				if base == nil {
 					continue
 				}
@@ -1388,7 +1391,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			for j := 0; j < len(currencyIds); j++ {
 				var currencyId string = currencyIds[j]
 				var ticker map[string]any = this.Extend(map[string]any{}, data[currencyId])
-				var base *string = this.SafeCurrencyCode(currencyId)
+				var base *string = this.SafeCurrencyCode(&currencyId)
 				if base == nil {
 					continue
 				}

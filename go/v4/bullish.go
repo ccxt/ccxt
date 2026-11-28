@@ -4423,7 +4423,7 @@ func (this *Bullish) HandleErrors(code int64, reason string, url string, method 
 	var codeError *string = this.SafeString(response, "errorCode")
 	var typeVar *string = this.SafeString(response, "type")
 	if ((codeError != nil) && (codeError == nil || *codeError != "0") && (codeError == nil || *codeError != "1001")) || (typeVar != nil && *typeVar == "HttpInvalidParameterException") {
-		var message any = ""
+		var message *string = nil
 		var errorCodeName *string = this.SafeString(response, "errorCodeName")
 		if errorCodeName != nil {
 			message = errorCodeName

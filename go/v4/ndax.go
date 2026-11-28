@@ -3714,7 +3714,7 @@ func (this *Ndax) HandleErrors(code int64, reason string, url string, method str
 	if (message != nil) && (message == nil || *message != "") {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil

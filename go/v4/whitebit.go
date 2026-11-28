@@ -1158,7 +1158,7 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 	for i := 0; i < len(currenciesIds); i++ {
 		var currency string = currenciesIds[i]
 		var data, _ = response[currency].(map[string]any)
-		var code *string = this.SafeCurrencyCode(currency)
+		var code *string = this.SafeCurrencyCode(&currency)
 		var withdraw, _ = data["withdraw"].(map[string]any)
 		if code != nil {
 			if ptrValue := this.SafeString(withdraw, "fixed"); ptrValue != nil {
@@ -3457,7 +3457,7 @@ func (this *Whitebit) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
 		var id string = balanceKeys[i]
-		var code *string = this.SafeCurrencyCode(id)
+		var code *string = this.SafeCurrencyCode(&id)
 		var balance any = this.SafeValue(response, id)
 		if (balance != nil) && this.IsDictionary(balance) {
 			var account map[string]any = this.Account()
@@ -6184,7 +6184,7 @@ func (this *Whitebit) HandleErrors(code int64, reason string, url string, method
 				}
 			}
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 			panic(ExchangeError(feedback))
 		}
 		// {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
@@ -6207,7 +6207,7 @@ func (this *Whitebit) HandleErrors(code int64, reason string, url string, method
 			}
 			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], &body, feedback)
 			panic(ExchangeError(feedback))
 		}
 	}

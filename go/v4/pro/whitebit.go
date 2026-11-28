@@ -1134,7 +1134,7 @@ func (this *Whitebit) HandleBalance(client ccxt.ClientInterface, message map[str
 			for j := 0; j < len(keys); j++ {
 				var currencyId string = keys[j]
 				var rawBalance, _ = balanceDict[currencyId].(map[string]any)
-				var code *string = this.SafeCurrencyCode(currencyId)
+				var code *string = this.SafeCurrencyCode(&currencyId)
 				var account map[string]any = this.Account()
 				account["free"] = this.SafeString(rawBalance, "available")
 				account["used"] = this.SafeString(rawBalance, "freeze")

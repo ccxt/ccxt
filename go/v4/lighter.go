@@ -1857,7 +1857,7 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			settleId = nil
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
-		var quote *string = this.SafeCurrencyCode(quoteId)
+		var quote *string = this.SafeCurrencyCode(&quoteId)
 		if (base == nil) || (quote == nil) {
 			continue
 		}

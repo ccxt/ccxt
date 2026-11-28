@@ -413,32 +413,16 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var spot bool = !swap && !future
 		var typeVar string = "spot"
 		var settle *string = nil
-		var baseId any = nil
-		var quoteId any = nil
+		var baseId *string = nil
+		var quoteId *string = nil
 		var expiry *int64 = nil
 		if spot {
-			if derefPtr := this.SafeString(currencies, 0); derefPtr != nil {
-				baseId = *derefPtr
-			} else {
-				baseId = nil
-			}
-			if derefPtr := this.SafeString(currencies, 1); derefPtr != nil {
-				quoteId = *derefPtr
-			} else {
-				quoteId = nil
-			}
+			baseId = this.SafeString(currencies, 0)
+			quoteId = this.SafeString(currencies, 1)
 		} else if swap {
 			typeVar = "swap"
-			if derefPtr := this.SafeString(currencies, 1); derefPtr != nil {
-				baseId = *derefPtr
-			} else {
-				baseId = nil
-			}
-			if derefPtr := this.SafeString(currencies, 2); derefPtr != nil {
-				quoteId = *derefPtr
-			} else {
-				quoteId = nil
-			}
+			baseId = this.SafeString(currencies, 1)
+			quoteId = this.SafeString(currencies, 2)
 		} else if future {
 			var alias *string = this.SafeString(market, "alias")
 			if alias == nil {
@@ -450,13 +434,15 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 					str := *id
 					idPart = str[0:min(3, len(str))]
 				}
-				baseId = idPart
+				baseIdStr := idPart
+				baseId = &baseIdStr
 				var idPart2 string
 				if id != nil {
 					str := *id
 					idPart2 = str[3:min(6, len(str))]
 				}
-				quoteId = idPart2
+				quoteIdStr := idPart2
+				quoteId = &quoteIdStr
 				// last 9 chars are expiry date
 				var expiryDate string = func() string {
 					if id == nil {
@@ -474,14 +460,16 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 					str := *currencyIds
 					currencyIdsPart = str[0 : len(str)-3]
 				}
-				baseId = currencyIdsPart
-				quoteId = func() string {
+				baseIdStr2 := currencyIdsPart
+				baseId = &baseIdStr2
+				quoteIdStr2 := func() string {
 					if currencyIds == nil {
 						return ""
 					}
 					str := *currencyIds
 					return str[max(len(str)-3, 0):]
 				}()
+				quoteId = &quoteIdStr2
 				var splitId []string = strings.Split(*id, *currencyIds)
 				var expiryDate *string = this.SafeString(splitId, 1)
 				if expiryDate == nil {

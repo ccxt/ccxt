@@ -2722,7 +2722,8 @@ func (this *Bitteam) ParseBalance(response map[string]any) map[string]any {
 		var free *string = this.SafeString(currencyBalance, "free")
 		var used *string = this.SafeString(currencyBalance, "used")
 		var total *string = this.SafeString(currencyBalance, "total")
-		var currencyCode *string = this.SafeCurrencyCode(strings.ToLower(rawCurrencyId))
+		var rawCurrencyIdLower string = strings.ToLower(rawCurrencyId)
+		var currencyCode *string = this.SafeCurrencyCode(&rawCurrencyIdLower)
 		if currencyCode != nil {
 			balance[*currencyCode] = map[string]any{
 				"free":  free,

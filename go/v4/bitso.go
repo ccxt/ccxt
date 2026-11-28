@@ -627,8 +627,10 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		var parts []string = strings.Split(*id, "_")
 		var baseId *string = this.SafeString(parts, 0, "")
 		var quoteId *string = this.SafeString(parts, 1, "")
-		var base *string = this.SafeCurrencyCode(strings.ToUpper(*baseId))
-		var quote *string = this.SafeCurrencyCode(strings.ToUpper(*quoteId))
+		var baseIdUpper string = strings.ToUpper(*baseId)
+		var quoteIdUpper string = strings.ToUpper(*quoteId)
+		var base *string = this.SafeCurrencyCode(&baseIdUpper)
+		var quote *string = this.SafeCurrencyCode(&quoteIdUpper)
 		if (base == nil) || (quote == nil) {
 			continue
 		}
@@ -1253,7 +1255,7 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString(trade, "price")
 	var orderId *string = this.SafeString(trade, "oid")
 	var id *string = this.SafeString(trade, "tid")
-	var literal101031 map[string]any = map[string]any{
+	var literal101231 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1269,9 +1271,9 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if takerOrMaker != nil {
-		literal101031["takerOrMaker"] = *takerOrMaker
+		literal101231["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafeTrade(literal101031, market)
+	return this.SafeTrade(literal101231, market)
 }
 
 /**
@@ -1883,14 +1885,14 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	var numOrders int = len(payload)
 	if numOrders == 1 {
 
-		var payloadDict141136 map[string]any
+		var payloadDict141336 map[string]any
 		if len(payload) > 0 {
-			payloadDict141136, _ = payload[0].(map[string]any)
+			payloadDict141336, _ = payload[0].(map[string]any)
 		}
-		if payloadDict141136 == nil {
-			payloadDict141136 = map[string]any{}
+		if payloadDict141336 == nil {
+			payloadDict141336 = map[string]any{}
 		}
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(payloadDict141136)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(payloadDict141336)}
 		return nil
 	}
 	panic(OrderNotFound(this.Id + ": The order " + id + " not found."))
@@ -2270,7 +2272,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any],
 	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
@@ -2454,7 +2456,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 	}
 	for i := 0; i < len(withdrawalKeys); i++ {
 		var currencyId string = withdrawalKeys[i]
-		var code *string = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(&currencyId)
 		if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 			var withdrawFee *float64 = this.ParseNumber(withdrawalResponse[currencyId])
 			var resultValue map[string]any
@@ -2669,9 +2671,9 @@ func (this *Bitso) ParseTransaction(transaction map[string]any, optionalArgs ...
 	} else {
 		networkCodeUpper = nil
 	}
-	var ternaryStr194820 string = "withdrawal"
+	var ternaryStr195020 string = "withdrawal"
 	if withdrawId == nil {
-		ternaryStr194820 = "deposit"
+		ternaryStr195020 = "deposit"
 	}
 	var addressValue *string
 	if withdrawalAddress != nil {
@@ -2689,7 +2691,7 @@ func (this *Bitso) ParseTransaction(transaction map[string]any, optionalArgs ...
 		"address":     addressValue,
 		"addressTo":   withdrawalAddress,
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        ternaryStr194820,
+		"type":        ternaryStr195020,
 		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -2755,16 +2757,16 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) map[string]any {
 			"Authorization": "Bitso " + auth,
 		}
 	}
-	var literal201115 map[string]any = map[string]any{
+	var literal201315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal201115["body"] = *requestBody
+		literal201315["body"] = *requestBody
 	}
-	return literal201115
+	return literal201315
 }
 func (this *Bitso) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
