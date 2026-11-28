@@ -8030,7 +8030,12 @@ function goGuardedReadContainer (maskedLines: string[], fn: any, name: string, l
     if ((decl === undefined) || ((decl.type !== '[]any') && (decl.type !== '[]string'))) { return undefined; }
     const declareLine = (decl.index === undefined) ? -1 : (fn.open + 1 + (maskedFunc.substring (0, decl.index).split ('\n').length - 1));
     const collected = goKeysCollectionEnd (maskedLines, declareLine, name);
-    for (let k = fn.open + 1; k < fn.close; k++) { if ((k !== declareLine) && ((k <= declareLine) || (k > collected)) && goTextWritesName (maskedLines[k], name)) { return undefined; } }
+    // &xs[i] on a []string yields *string and cannot alter the slice header or len(xs)
+    const elemAddr = (decl.type === '[]string') ? new RegExp ('(?<!&)&\\s*' + goAccessEscape (name) + '\\[', 'g') : undefined;
+    for (let k = fn.open + 1; k < fn.close; k++) {
+        const line = (elemAddr !== undefined) ? maskedLines[k].replace (elemAddr, name + '[') : maskedLines[k];
+        if ((k !== declareLine) && ((k <= declareLine) || (k > collected)) && goTextWritesName (line, name)) { return undefined; }
+    }
     const init = ((lines !== undefined) && (declareLine >= 0)) ? lines[declareLine] : undefined;
     const header = ((lines !== undefined) && (declareLine > fn.open + 1)) ? lines[declareLine - 1] : undefined;
     return { 'type': decl.type, 'json': (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line), 'init': init, 'header': header, 'line': declareLine };
@@ -8381,6 +8386,8 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     ok (symbols ('false', '0').indexOf ('var m any = syms[0]') >= 0, 'MarketSymbols(allowEmpty=false) has element 0');
     ok (symbols ('true', '0').indexOf ('func() any {') >= 0, 'MarketSymbols(allowEmpty=true) may answer an empty list');
     ok (symbols ('false', '1').indexOf ('func() any {') >= 0, 'MarketSymbols does not prove element 1');
+    ok (g ('\tvar syms []string = this.MarketSymbols(symbols, nil, false)\n' + read ('0', 'syms', '') + '\tthis.Market(&syms[0])\n').indexOf ('var m any = syms[0]') >= 0, '&syms[i] on []string does not invalidate length proof');
+    ok (g ('\tvar syms []string = this.MarketSymbols(symbols, nil, false)\n' + read ('0', 'syms', '') + '\tthis.F(&syms)\n').indexOf ('func() any {') >= 0, '&syms slice address still invalidates length proof');
     const listed = (index: string) => g ('\tvar pair []any = []any{a, b}\n' + read (index, 'pair', 'DerefScalar('));
     ok (listed ('1').indexOf ('var m any = DerefScalar(pair[1])') >= 0, 'a slice literal proves its listed indexes');
     ok (listed ('2').indexOf ('func() any {') >= 0, 'a slice literal does not prove an index past its end');
