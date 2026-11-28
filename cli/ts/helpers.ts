@@ -632,7 +632,7 @@ async function loadSettingsAndCreateExchange (
             + '_'
             + credential
                     ).toUpperCase (); // example: KRAKEN_APIKEY
-                    let credentialValue = process.env[credentialEnvName];
+                    let credentialValue = process.env[credentialEnvName] || process.env.CCXT_APIKEYS?.[credentialEnvName];
                     if (credentialValue) {
                         if (credentialValue.indexOf ('---BEGIN') > -1) {
                             credentialValue = (credentialValue as any).replaceAll (
