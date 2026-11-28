@@ -5518,8 +5518,9 @@ export class BaseExchange {
         //     ]
         //
         const reduced: Dict = {};
-        for (let i = 0; i < fees.length; i++) {
-            const fee = fees[i];
+        const feesList = this.toArray (fees);
+        for (let i = 0; i < feesList.length; i++) {
+            const fee = feesList[i];
             const code = this.safeString (fee, 'currency');
             const feeCurrencyCode = (code !== undefined) ? code : i.toString ();
             if (feeCurrencyCode !== undefined) {

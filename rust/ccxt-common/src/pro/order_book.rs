@@ -197,7 +197,12 @@ impl Side {
     /// `side.storeArray(delta)`.
     pub fn store_array(&mut self, delta: Value) { self.0.store_array(delta) }
     /// `side.length`: the level count (`Int(0)` for no side).
-    pub fn length(&self) -> Value { crate::runtime::get_array_length(&self.0) }
+    pub fn length(&self) -> Value {
+        match &self.0 {
+            Value::Dict(d) if d.contains_key("__sideKind") => Value::Int(crate::value::side_entries_len(d) as i64),
+            v => Value::Int(v.len() as i64),
+        }
+    }
     /// `side[i]`: the stored level (`Null` out of range or for no side).
     pub fn level(&self, i: &Value) -> Value { crate::value::get_value(&self.0, i) }
 }
@@ -220,8 +225,9 @@ mod side_tests {
         let book = new_book(BOOK_PLAIN, Value::Map(snap), Value::Null);
         let mut side = Side::of(book.book_field("bids"));
         let sides = || [book.book_field("bids"), Value::Null, Value::Int(3), Value::Str("x".into())];
-        for (v, raw) in sides().into_iter().map(Side::of).zip(sides()) {
-            assert_eq!(v.length(), crate::runtime::get_array_length(&raw));
+        let lengths = [Value::Int(2), Value::Int(0), Value::Int(0), Value::Int(1)];
+        for ((v, raw), n) in sides().into_iter().map(Side::of).zip(sides()).zip(lengths) {
+            assert_eq!(v.length(), n);
             for i in [Value::Int(0), Value::Int(1), Value::Int(2), Value::Int(-1), Value::Str("0".into()), Value::Null] {
                 assert_eq!(v.level(&i), crate::value::get_value(&raw, &i), "level {:?}", i);
             }
@@ -246,7 +252,7 @@ mod side_tests {
         crate::runtime::append_to_array(&mut field, Value::Int(2));
         let items = book.cache_items();
         assert_eq!(items.as_ref(), &vec![Value::Int(1), Value::Int(2)]);
-        assert_eq!(crate::runtime::get_array_length(&book.book_field("cache")), Value::Int(2));
+        assert_eq!(book.book_field("cache").len(), 2);
         book.set_book_meta("cache", Value::from(Vec::<Value>::new()));
         assert_eq!(items.len(), 2);
         assert_eq!(book.cache_items().len(), 0);
