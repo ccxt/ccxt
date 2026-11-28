@@ -142,7 +142,7 @@ export default class etoro extends etoroRest {
             throw new ArgumentsRequired (this.id + ' watchTickers() requires a symbols argument');
         }
         const marketSymbols = this.marketSymbols (symbols, undefined, false);
-        const ticker = await this.watchInstruments (marketSymbols, 'ticker', params);
+        const ticker = await this.subscribeInstruments (marketSymbols, 'ticker', params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -166,7 +166,7 @@ export default class etoro extends etoroRest {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a symbols argument');
         }
         const marketSymbols = this.marketSymbols (symbols, undefined, false);
-        const ticker = await this.watchInstruments (marketSymbols, 'bidask', params);
+        const ticker = await this.subscribeInstruments (marketSymbols, 'bidask', params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -177,7 +177,7 @@ export default class etoro extends etoroRest {
 
     /**
      * @method
-     * @name etoro#watchInstruments
+     * @name etoro#subscribeInstruments
      * @description subscribes to the rates of the instruments, shared by watchTickers and watchBidsAsks
      * @ignore
      * @param {string[]} marketSymbols unified market symbols
@@ -185,7 +185,7 @@ export default class etoro extends etoroRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the first updated ticker
      */
-    async watchInstruments (marketSymbols: string[], prefix: string, params: Dict = {}) {
+    async subscribeInstruments (marketSymbols: string[], prefix: string, params: Dict = {}) {
         const url = this.getWsUrl ();
         await this.authenticate (url);
         const client = this.client (url);
@@ -256,7 +256,7 @@ export default class etoro extends etoroRest {
             throw new ArgumentsRequired (this.id + ' unWatchTickers() requires a symbols argument');
         }
         const marketSymbols = this.marketSymbols (symbols, undefined, false);
-        return await this.unWatchInstruments (marketSymbols, 'ticker', params);
+        return await this.unsubscribeInstruments (marketSymbols, 'ticker', params);
     }
 
     /**
@@ -274,12 +274,12 @@ export default class etoro extends etoroRest {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a symbols argument');
         }
         const marketSymbols = this.marketSymbols (symbols, undefined, false);
-        return await this.unWatchInstruments (marketSymbols, 'bidask', params);
+        return await this.unsubscribeInstruments (marketSymbols, 'bidask', params);
     }
 
     /**
      * @method
-     * @name etoro#unWatchInstruments
+     * @name etoro#unsubscribeInstruments
      * @description stops watching the rates of the instruments, an instrument topic is unsubscribed only when no ticker or bid/ask stream of its markets is watched anymore
      * @ignore
      * @param {string[]} marketSymbols unified market symbols
@@ -287,7 +287,7 @@ export default class etoro extends etoroRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once the subscription is removed
      */
-    async unWatchInstruments (marketSymbols: string[], prefix: string, params: Dict = {}): Promise<any> {
+    async unsubscribeInstruments (marketSymbols: string[], prefix: string, params: Dict = {}): Promise<any> {
         const url = this.getWsUrl ();
         await this.authenticate (url);
         const client = this.client (url);
@@ -326,12 +326,12 @@ export default class etoro extends etoroRest {
                 topics.push ('instrument:' + marketId);
             }
         }
-        return await this.unWatchTopics (url, topics, params);
+        return await this.unsubscribeTopics (url, topics, params);
     }
 
     /**
      * @method
-     * @name etoro#unWatchTopics
+     * @name etoro#unsubscribeTopics
      * @description sends an unsubscribe request for the topics
      * @ignore
      * @param {string} url the websocket url
@@ -339,7 +339,7 @@ export default class etoro extends etoroRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once the server confirms the unsubscription
      */
-    async unWatchTopics (url: string, topics: string[], params: Dict = {}): Promise<any> {
+    async unsubscribeTopics (url: string, topics: string[], params: Dict = {}): Promise<any> {
         const numTopics = topics.length;
         if (numTopics === 0) {
             return true;
@@ -685,7 +685,7 @@ export default class etoro extends etoroRest {
                 return true;
             }
         }
-        return await this.unWatchTopics (url, [ this.getPrivateTopic () ], params);
+        return await this.unsubscribeTopics (url, [ this.getPrivateTopic () ], params);
     }
 
     handleOrder (client: Client, item: Dict, content: Dict) {
@@ -827,7 +827,7 @@ export default class etoro extends etoroRest {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, this.safeMarket (undefined, marketResolved));
     }
 
     handlePositions (client: Client, executions: Dict[]) {
@@ -993,8 +993,9 @@ export default class etoro extends etoroRest {
         const knownSettlementTypes = [ 'real', 'cfd', 'realfutures' ];
         let normalizedAsset = asset;
         if ((market !== undefined) && !this.inArray (settlementType, knownSettlementTypes)) {
+            const resolvedMarket = this.safeMarket (undefined, market);
             normalizedAsset = this.extend (asset, {
-                'settlementType': this.getSettlementType (market),
+                'settlementType': this.getSettlementType (resolvedMarket),
             });
         }
         // map the websocket fields onto the rest order shape
@@ -1028,7 +1029,7 @@ export default class etoro extends etoroRest {
         return undefined;
     }
 
-    buildWsError (message: Dict) {
+    rejectWsError (client: Client, message: Dict, messageHashes: string[]) {
         const errorCode = this.safeString (message, 'errorCode');
         const feedback = this.id + ' ' + this.json (message);
         const wsExceptions = this.safeDict (this.exceptions, 'ws', {});
@@ -1037,7 +1038,9 @@ export default class etoro extends etoroRest {
             this.throwExactlyMatchedException (exact, errorCode, feedback);
             throw new ExchangeError (feedback);
         } catch (e) {
-            return e;
+            for (let i = 0; i < messageHashes.length; i++) {
+                client.reject (e, messageHashes[i]);
+            }
         }
     }
 
@@ -1060,8 +1063,7 @@ export default class etoro extends etoroRest {
                     future.resolve (true);
                 }
             } else {
-                const error = this.buildWsError (message);
-                client.reject (error, messageHash);
+                this.rejectWsError (client, message, [ messageHash ]);
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
@@ -1077,7 +1079,6 @@ export default class etoro extends etoroRest {
             if (success || (errorCode === 'TopicAlreadySubscribed')) {
                 return;
             }
-            const error = this.buildWsError (message);
             const topics = this.safeList (subscription, 'topics', []);
             for (let i = 0; i < topics.length; i++) {
                 const topic = topics[i];
@@ -1092,22 +1093,19 @@ export default class etoro extends etoroRest {
                     delete client.subscriptions[marker];
                 }
             }
-            for (let i = 0; i < messageHashes.length; i++) {
-                client.reject (error, messageHashes[i]);
-            }
+            this.rejectWsError (client, message, messageHashes);
         } else if (operation === 'Unsubscribe') {
             if (success || (errorCode === 'TopicNotSubscribed')) {
                 this.handleUnsubscription (client, subscription);
                 return;
             }
-            const error = this.buildWsError (message);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }
-                client.reject (error, messageHash);
             }
+            this.rejectWsError (client, message, messageHashes);
         }
     }
 

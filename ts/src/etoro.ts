@@ -1001,12 +1001,13 @@ export default class etoro extends Exchange {
         const idsLength = ids.length;
         let start = 0;
         while (start < idsLength) {
-            const chunk = this.arraySlice (ids, start, start + chunkSize);
+            const end = Math.min (this.sum (start, chunkSize), idsLength);
+            const chunk = this.arraySlice (ids, start, end);
             const request: Dict = {
                 'instrumentIds': chunk.join (','),
             };
             promises.push (this.publicGetV1MarketDataInstrumentsRates (this.extend (request, query)));
-            start = start + chunkSize;
+            start = this.sum (start, chunkSize);
         }
         const responses = await Promise.all (promises);
         const result: Dict = {};
@@ -1121,10 +1122,11 @@ export default class etoro extends Exchange {
             let candlesCount = maxCount;
             if (since !== undefined) {
                 // enough candles to reach back to since
-                candlesCount = this.parseToInt ((now - since) / duration) + 2;
+                candlesCount = this.sum (this.parseToInt ((now - since) / duration), 2);
             } else if (until !== undefined) {
                 // enough candles to reach back past until
-                candlesCount = this.parseToInt ((now - until) / duration) + maxCount + 2;
+                const addCount = this.sum (maxCount, 2);
+                candlesCount = this.sum (this.parseToInt ((now - until) / duration), addCount);
             }
             candlesCount = Math.min (candlesCount, 1000);
             const candlesRequest: Dict = {
@@ -1217,7 +1219,7 @@ export default class etoro extends Exchange {
         return this.parseOHLCVs (results, market, timeframe, since, dataLimit);
     }
 
-    override parseOHLCV (ohlcv: Dict, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // market-data candles
         //
@@ -1350,7 +1352,7 @@ export default class etoro extends Exchange {
 
     safeEtoroMarket (instrumentId: Str, settlementType: Str = undefined, market: Market = undefined): MarketInterface {
         if ((settlementType === undefined) && (market !== undefined)) {
-            return market;
+            return this.safeMarket (undefined, market);
         }
         let marketType = 'swap';
         if (settlementType !== undefined) {
@@ -1429,8 +1431,9 @@ export default class etoro extends Exchange {
         //
         // the response only means that the order was accepted, its outcome is polled from the orders lookup
         const orderId = this.safeString (response, 'orderId');
-        const polled = await this.pollOrder (orderId, market, false, [ '1', '2' ]);
-        if (polled !== undefined) {
+        const lookup = await this.pollOrder (orderId, false, [ '1', '2' ]);
+        if (lookup !== undefined) {
+            const polled = this.parseOrder (lookup, market);
             if (polled['clientOrderId'] === undefined) {
                 polled['clientOrderId'] = this.safeString (response, 'referenceId');
             }
@@ -1451,19 +1454,18 @@ export default class etoro extends Exchange {
      * @name etoro#pollOrder
      * @description polls the order lookup until an accepted order leaves the in-flight statuses, the lookup answers 404 for a moment after the order is accepted
      * @param {string} id the order id
-     * @param {object} [market] the market of the order
      * @param {boolean} isCloseOrder true to poll a close order created by closePosition
      * @param {string[]} inFlightStatuses the status ids to keep polling on
-     * @returns {object|undefined} the last parsed [order structure](https://docs.ccxt.com/?id=order-structure), undefined when the order did not show up, options.pollOrder.attempts set to 0 disables polling
+     * @returns {object|undefined} the last order lookup response, undefined when the order did not show up, options.pollOrder.attempts set to 0 disables polling
      */
-    async pollOrder (id: Str, market: Market, isCloseOrder: boolean, inFlightStatuses: string[]): Promise<any> {
+    async pollOrder (id: Str, isCloseOrder: boolean, inFlightStatuses: string[]): Promise<any> {
+        let lookup = undefined;
         if (id === undefined) {
-            return undefined;
+            return lookup;
         }
         const pollOptions = this.safeDict (this.options, 'pollOrder', {});
         const attempts = this.safeInteger (pollOptions, 'attempts', 4);
         const delay = this.safeInteger (pollOptions, 'delay', 500);
-        let order = undefined;
         for (let i = 0; i < attempts; i++) {
             if (i > 0) {
                 await this.sleep (delay);
@@ -1498,15 +1500,15 @@ export default class etoro extends Exchange {
                 const statusId = this.safeString (statusDict, 'id', this.safeString (response, 'statusID'));
                 if (statusId === undefined) {
                     // not an order lookup body
-                    return order;
+                    return lookup;
                 }
-                order = this.parseOrder (response, market);
+                lookup = response;
                 if (!this.inArray (statusId, inFlightStatuses)) {
-                    return order;
+                    return lookup;
                 }
             }
         }
-        return order;
+        return lookup;
     }
 
     /**
@@ -1692,16 +1694,19 @@ export default class etoro extends Exchange {
             //
         }
         // the response only means that the cancelation was accepted, the resulting status is polled from the order lookup
-        const polled = await this.pollOrder (id, market, isCloseOrder, [ '1', '2', '6' ]);
-        if (polled !== undefined) {
-            return polled;
+        const lookup = await this.pollOrder (id, isCloseOrder, [ '1', '2', '6' ]);
+        if (lookup !== undefined) {
+            return this.parseOrder (lookup, market);
         }
-        const order = this.parseOrder (response, market);
+        let orderResponse = response;
+        if (isCloseOrder) {
+            // parseOrder marks the order as reduceOnly
+            orderResponse = this.extend (response, { 'action': 'close' });
+        }
+        const order = this.parseOrder (orderResponse, market);
+        order['info'] = response;
         if (order['id'] === undefined) {
             order['id'] = id;
-        }
-        if (isCloseOrder) {
-            order['reduceOnly'] = true;
         }
         order['status'] = 'canceled';
         return order;
@@ -1722,7 +1727,7 @@ export default class etoro extends Exchange {
      * @param {bool} [params.isCloseOrder] set to true to fetch a close order, created by closePosition
      * @returns {object} an [order structure](https://docs.ccxt.com/?id=order-structure)
      */
-    override async fetchOrder (id: Str, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2025,20 +2030,10 @@ export default class etoro extends Exchange {
         const marketResolved = this.safeEtoroMarket (instrumentId, settlementType, market);
         const statusDict = this.safeDict (order, 'status');
         let status: Str = undefined;
-        let rejectReason: Str = undefined;
         if (statusDict !== undefined) {
             status = this.parseOrderStatus (this.safeString (statusDict, 'id'));
-            const errorCode = this.safeString (statusDict, 'errorCode');
-            if ((errorCode !== undefined) && (errorCode !== '0')) {
-                rejectReason = errorCode + ' ' + this.safeString (statusDict, 'errorMessage', '');
-            }
         } else {
             status = this.parseOrderStatus (this.safeString2 (order, 'status', 'statusID'));
-            // close order details report the error at the top level
-            const topErrorCode = this.safeString (order, 'errorCode');
-            if ((topErrorCode !== undefined) && (topErrorCode !== '0')) {
-                rejectReason = topErrorCode + ' ' + this.safeString (order, 'errorMessage', '');
-            }
         }
         const timestamp = this.parse8601 (this.safeStringN (order, [ 'requestTime', 'openDateTime', 'requestOccurred' ]));
         const lastUpdateTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
@@ -2161,8 +2156,7 @@ export default class etoro extends Exchange {
             'trades': undefined,
             'fee': fee,
             'info': order,
-            'rejectReason': rejectReason,
-        }, marketResolved);
+        }, this.safeMarket (undefined, marketResolved));
     }
 
     /**
@@ -2229,19 +2223,23 @@ export default class etoro extends Exchange {
         const query = this.omit (params, 'positionId');
         const positions = await this.fetchPositions ([ market['symbol'] ], query);
         const numPositions = positions.length;
+        // etoro positions are hedged, the earliest one is returned when there are several, use positionId or fetchPositions to get a specific one
+        let index = 0;
         if (positionId !== undefined) {
+            index = -1;
             for (let i = 0; i < numPositions; i++) {
-                if (positions[i]['id'] === positionId) {
-                    return positions[i];
+                if ((index < 0) && (positions[i]['id'] === positionId)) {
+                    index = i;
                 }
             }
-            throw new BadRequest (this.id + ' fetchPosition() could not find an open position with id ' + positionId + ' for ' + market['symbol']);
+            if (index < 0) {
+                throw new BadRequest (this.id + ' fetchPosition() could not find an open position with id ' + positionId + ' for ' + market['symbol']);
+            }
         }
         if (numPositions === 0) {
             throw new BadRequest (this.id + ' fetchPosition() could not find an open position for ' + market['symbol']);
         }
-        // etoro positions are hedged, the earliest one is returned when there are several, use positionId or fetchPositions to get a specific one
-        return positions[0];
+        return this.safeDict (positions, index, {}) as Position;
     }
 
     override parsePosition (position: Dict, market: Market = undefined): Position {
@@ -2414,11 +2412,14 @@ export default class etoro extends Exchange {
         //
         const orderForClose = this.safeDict (response, 'orderForClose', {});
         // the close order is executed asynchronously, its outcome is polled from the close order details
-        const polled = await this.pollOrder (this.safeString (orderForClose, 'orderID'), market, true, [ '1', '2', '5', '6', '11' ]);
-        const order = (polled !== undefined) ? polled : this.parseOrder (orderForClose, market);
+        const closeOrderId = this.safeString (orderForClose, 'orderID');
+        const lookup = await this.pollOrder (closeOrderId, true, [ '1', '2', '5', '6', '11' ]);
+        const closeOrder = (lookup !== undefined) ? lookup : orderForClose;
+        // parseOrder marks the order as reduceOnly
+        const order = this.parseOrder (this.extend (closeOrder, { 'action': 'close' }), market);
+        order['info'] = closeOrder;
         order['side'] = closeSide;
         order['type'] = 'market';
-        order['reduceOnly'] = true;
         return order;
     }
 
@@ -2646,7 +2647,7 @@ export default class etoro extends Exchange {
     marketFromHistoryEntry (entry: Dict, market: Market = undefined): MarketInterface {
         const instrumentId = this.safeString (entry, 'instrumentId');
         if (market !== undefined) {
-            return market;
+            return this.safeMarket (undefined, market);
         }
         // the history does not include the settlement type, unleveraged long stocks, etfs and crypto are real assets
         const isBuy = this.safeBool (entry, 'isBuy');
@@ -2702,7 +2703,7 @@ export default class etoro extends Exchange {
             'amount': this.safeString (trade, 'units'),
             'cost': undefined,
             'fee': fee,
-        }, marketResolved);
+        }, this.safeMarket (undefined, marketResolved));
     }
 
     /**
@@ -2727,8 +2728,8 @@ export default class etoro extends Exchange {
             result.push (this.parseHistoryPosition (response[i]));
         }
         const sorted = this.sortBy (result, 'timestamp');
-        const filtered = this.filterByArrayPositions (sorted, 'symbol', marketSymbolsList);
-        return this.filterBySinceLimit (filtered, since, limit);
+        const positions: Position[] = this.filterByArrayPositions (sorted, 'symbol', marketSymbolsList);
+        return this.filterBySinceLimit (positions, since, limit) as Position[];
     }
 
     parseHistoryPosition (position: Dict, market: Market = undefined): Position {

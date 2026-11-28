@@ -102,7 +102,6 @@
                                 "currency": "USD"
                             }
                         },
-                        "rejectReason": null,
                         "fees": [],
                         "stopPrice": null
                     }
@@ -206,7 +205,6 @@
                                 "currency": "USD"
                             }
                         },
-                        "rejectReason": null,
                         "fees": [],
                         "stopPrice": 300
                     }
@@ -1597,7 +1595,6 @@
                         "openActionType": "customer",
                         "requestType": "byAmount"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -1710,7 +1707,6 @@
                         "openActionType": "customer",
                         "requestType": "byAmount"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -1835,7 +1831,6 @@
                         "openActionType": "customer",
                         "requestType": "byUnits"
                     },
-                    "rejectReason": "604 insufficient funds for the order. UserCredit: 0",
                     "fees": [],
                     "stopPrice": null
                 }
@@ -1958,7 +1953,6 @@
                         "openActionType": "customer",
                         "requestType": "byAmount"
                     },
-                    "rejectReason": "604 insufficient funds for the order. UserCredit: 0",
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2050,7 +2044,6 @@
                             }
                         ]
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2097,7 +2090,6 @@
                         "orderId": 396863262,
                         "referenceId": ""
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2142,7 +2134,6 @@
                         "orderId": 1656133143,
                         "referenceId": ""
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2188,7 +2179,6 @@
                     "info": {
                         "token": "bd906f61-7f26-4d26-b90e-f7b109805eb8"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2305,7 +2295,6 @@
                         "lastUpdate": "2026-11-27T15:53:14.303Z",
                         "openActionType": "hierarchicalOpen"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": 300
                 }
@@ -2360,7 +2349,6 @@
                         "orderId": 396863262,
                         "referenceId": "f266d6a6-bea1-4807-939d-257cac7b7e17"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2413,7 +2401,6 @@
                         "orderId": 1656135289,
                         "referenceId": "60848964-8947-4466-acc9-900ca56b3978"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2466,7 +2453,6 @@
                         "orderId": 1656133143,
                         "referenceId": "a4bd1582-0dcd-4511-a326-97992813b84b"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -2653,7 +2639,6 @@
                         "openActionType": "customer",
                         "requestType": "byAmount"
                     },
-                    "rejectReason": null,
                     "fees": [
                         {
                             "cost": 1,
@@ -2670,7 +2655,7 @@
                     "AAPL/USD",
                     "market",
                     "buy",
-                    null,
+                    0.033333,
                     null,
                     {
                         "cost": 10,
@@ -2783,7 +2768,6 @@
                         "lastUpdate": "2026-11-27T15:53:07.343Z",
                         "openActionType": "customer"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": 300
                 }
@@ -3832,7 +3816,6 @@
                         "openDateTime": "2026-11-27T10:58:34.9243113Z",
                         "lastUpdate": "2026-11-27T10:58:34.9243113Z"
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -3861,7 +3844,7 @@
                         },
                         "token": "e2e49183-2098-49e4-b595-2031d1994321"
                     },
-                    "close-orders/": {
+                    "info/": {
                         "token": "bd4f15c1-3c55-42a5-a105-fde8ac0a05f3",
                         "orderID": 397025522,
                         "CID": 11111111,
@@ -3945,7 +3928,6 @@
                             }
                         ]
                     },
-                    "rejectReason": null,
                     "fees": [],
                     "stopPrice": null
                 }
@@ -4129,7 +4111,6 @@
                         "openActionType": "customer",
                         "requestType": "byAmount"
                     },
-                    "rejectReason": null,
                     "fees": [
                         {
                             "cost": 1,
