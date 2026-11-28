@@ -212,7 +212,22 @@ public partial class BaseExchange
                 (c, message) => routeMessage(c, message),
                 (c) => ping(c),
                 (c, error) => onClose(c, error),
-                (c, error) => onError(c, error),
+                (c, error) =>
+                {
+                    // an override of onError (a venue's or a user's) may throw before
+                    // it reaches base.onError: unregister the errored client anyway,
+                    // or every later watch call reuses it and fails with its old
+                    // error instead of reconnecting. removal is by reference, so the
+                    // second pass after a base.onError that already ran is a no-op
+                    try
+                    {
+                        onError(c, error);
+                    }
+                    finally
+                    {
+                        CleanupClients(c, error);
+                    }
+                },
                 this.verbose, keepAlive, decompressBinary, this.validateServerSsl);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });

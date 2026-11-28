@@ -34,7 +34,7 @@ public partial class BaseTest
         object captured = null;
         var silent = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { }, null, null, (c, e) => { captured = e; }, false, 50);
         silent.isConnected = true;
-        silent.PingLoop();
+        _ = silent.PingLoop();
         for (var i = 0; i < 100 && captured == null; i++)
         {
             await Task.Delay(50);
@@ -47,7 +47,7 @@ public partial class BaseTest
         object err = null;
         var busy = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { }, null, null, (c, e) => { err = e; }, false, 200);
         busy.isConnected = true;
-        busy.PingLoop();
+        _ = busy.PingLoop();
         for (var i = 0; i < 12; i++)
         {
             busy.TryHandleMessage("{\"tick\":" + i + "}");
