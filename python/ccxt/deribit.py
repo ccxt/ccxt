@@ -612,7 +612,7 @@ class deribit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.endswith('-C')) or (marketId.endswith('-P')))
-        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
+        if (marketId is not None) and isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(deribit, self).safe_market(marketId, market, delimiter, marketType)

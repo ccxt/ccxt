@@ -2055,7 +2055,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         exchangeAmount = self.number_to_string(amount)
         if self.is_native_deribit_credentials() and (self.safe_bool(market, 'contract', False)):
             exchangeAmount = Precise.string_mul(exchangeAmount, self.safe_string(market, 'contractSize'))
-        return self.amount_to_precision(market['symbol'], exchangeAmount)
+        return self.amount_to_precision(self.safe_string(market, 'symbol'), exchangeAmount)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """

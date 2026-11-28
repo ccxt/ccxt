@@ -2349,10 +2349,11 @@ class hitbtc(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         isPostOnly = self.is_post_only(type == 'market', False, params)
         resolvedMarketType = self.safe_string(market, 'type')
+        marketSymbol = self.safe_string(market, 'symbol')
         request = {
             'type': type,
             'side': side,
-            'quantity': self.amount_to_precision(market['symbol'], amount),
+            'quantity': self.amount_to_precision(marketSymbol, amount),
             'symbol': self.safe_string(market, 'id'),
             # 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             # 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
@@ -2379,13 +2380,13 @@ class hitbtc(Exchange, ImplicitAPI):
         if isLimit or (type == 'stopLimit') or (type == 'takeProfitLimit'):
             if price is None:
                 raise ExchangeError(self.id + ' createOrder() requires a price argument for limit orders')
-            request['price'] = self.price_to_precision(market['symbol'], price)
+            request['price'] = self.price_to_precision(marketSymbol, price)
         if (timeInForce == 'GTD'):
             expireTime = self.safe_string(params, 'expire_time')
             if expireTime is None:
                 raise ExchangeError(self.id + ' createOrder() requires an expire_time parameter for a GTD order')
         if triggerPrice is not None:
-            request['stop_price'] = self.price_to_precision(market['symbol'], triggerPrice)
+            request['stop_price'] = self.price_to_precision(marketSymbol, triggerPrice)
             if isLimit:
                 request['type'] = 'stopLimit'
             elif type == 'market':

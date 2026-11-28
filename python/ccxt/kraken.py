@@ -1729,7 +1729,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = self.safe_number(rawOrder, 'amount')
             price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
-            parsedAmount = self.amount_to_precision(market['symbol'], amount)
+            parsedAmount = self.amount_to_precision(self.safe_string(market, 'symbol'), amount)
             req = {
                 'type': side,
                 'ordertype': type,

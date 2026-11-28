@@ -1265,15 +1265,12 @@ class latoken(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = None
-        symbolKnown = False
+        marketResolved = market
         if (base is not None) and (quote is not None):
             knownSymbol = base + '/' + quote
             if (self.markets is not None) and (knownSymbol in self.markets):
-                symbolKnown = True
+                marketResolved = self.market(knownSymbol)
             symbol = knownSymbol
-        marketResolved = market
-        if symbolKnown:
-            marketResolved = self.market(symbol)
         orderSide = self.safe_string(order, 'side')
         side = None
         if orderSide is not None:

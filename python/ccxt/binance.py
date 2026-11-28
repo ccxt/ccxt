@@ -11409,15 +11409,10 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbolsNormalized is not None:
-            symbol = None
-            if isinstance(symbolsNormalized, list):
-                symbolsLength = len(symbolsNormalized)
-                if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                if symbolsLength == 1:
-                    symbol = symbolsNormalized[0]
-            else:
-                symbol = symbolsNormalized
+            symbolsLength = len(symbolsNormalized)
+            if symbolsLength > 1:
+                raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+            symbol = self.safe_string(symbolsNormalized, 0)
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.eapiPrivateGetPosition(self.extend(request, params))

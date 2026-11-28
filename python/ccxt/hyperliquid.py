@@ -4114,10 +4114,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         for i in range(0, len(universe)):
             asset = self.safe_dict(universe, i, {})
             # the coin name resolves to the unified symbol, delisted assets have no market
-            symbol = self.coin_to_market_id(self.safe_string(asset, 'name'))
-            market = self.safe_dict(self.markets, symbol)
+            marketId = self.coin_to_market_id(self.safe_string(asset, 'name'))
+            market = self.safe_dict(self.markets, marketId)
             if market is None:
                 continue
+            symbol = self.safe_string(market, 'symbol', '')
             if (symbolsLength > 0) and not self.in_array(symbol, symbolsNormalized):
                 continue
             assetTable = self.safe_dict(tablesById, self.safe_string(asset, 'marginTableId'), {})
@@ -5930,14 +5931,19 @@ class hyperliquid(Exchange, ImplicitAPI):
         if hip3Dict is not None:
             quote = self.safe_string(hip3Dict, 'quote', 'USDC')
             code = self.safe_string(hip3Dict, 'code', coin)
-            return code + '/' + quote + ':' + quote
+            if code is not None:
+                return code + '/' + quote + ':' + quote
+            return None
         if coin.find('/') > -1 or coin.find('@') > -1:
             return coin  # spot
         # hip3
         coinId = coin
         if coin.find(':') > -1:
             coinId = coin.replace(':', '-')
-        return self.safe_currency_code(coinId) + '/USDC:USDC'
+        currencyCode = self.safe_currency_code(coinId)
+        if currencyCode is not None:
+            return currencyCode + '/USDC:USDC'
+        return None
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
         if (response is None) or (response is None):

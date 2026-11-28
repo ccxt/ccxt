@@ -3116,12 +3116,10 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {}
         market = None
         if symbolsNormalized is not None:
-            symbol = None
             symbolsLength = len(symbolsNormalized)
             if symbolsLength > 1:
                 raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-            if symbolsLength == 1:
-                symbol = symbolsNormalized[0]
+            symbol = self.safe_string(symbolsNormalized, 0)
             market = self.market(symbol)
             request['instrument_name'] = market['id']
         response = await self.v1PrivatePostPrivateGetPositions(self.extend(request, params))

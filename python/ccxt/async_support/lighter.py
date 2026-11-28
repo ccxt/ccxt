@@ -720,7 +720,7 @@ class lighter(Exchange, ImplicitAPI):
         self.options['sandboxMode'] = enable
         self.options['chainId'] = 300 if enable else 304
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[dict]:
+    def create_order_request(self, symbol: str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> list[dict]:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -878,7 +878,7 @@ class lighter(Exchange, ImplicitAPI):
         response = await self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
         return self.parse_to_int(self.safe_integer(response, 'nonce'))
 
-    async def sign_and_create_order(self, method: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
+    async def sign_and_create_order(self, method: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list[object]:
         if self.markets is None:
             await self.load_markets()
         # non-destructively get values from opts/params

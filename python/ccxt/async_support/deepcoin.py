@@ -2176,13 +2176,10 @@ class deepcoin(Exchange, ImplicitAPI):
         request = {
             'OrderSysID': id,
         }
-        market = None
-        symbolResolved = None
-        if symbol is not None:
-            market = self.market(symbol)
-            if self.safe_bool(market, 'spot', False):
-                raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
-            symbolResolved = self.safe_string(market, 'symbol')
+        market = self.market(symbol)
+        if self.safe_bool(market, 'spot', False):
+            raise NotSupported(self.id + ' editOrder() is not supported for spot markets')
+        symbolResolved = self.safe_string(market, 'symbol')
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
         isTPSL = (stopLossPrice is not None) or (takeProfitPrice is not None)
@@ -2191,9 +2188,9 @@ class deepcoin(Exchange, ImplicitAPI):
             if (price is not None) or (amount is not None):
                 raise BadRequest(self.id + ' editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.')
             if stopLossPrice is not None:
-                request['slTriggerPx'] = self.price_to_precision(symbolResolved, stopLossPrice) if (symbolResolved != '') else self.number_to_string(stopLossPrice)
+                request['slTriggerPx'] = self.price_to_precision(symbolResolved, stopLossPrice) if (symbolResolved is not None) else self.number_to_string(stopLossPrice)
             if takeProfitPrice is not None:
-                request['tpTriggerPx'] = self.price_to_precision(symbolResolved, takeProfitPrice) if (symbolResolved != '') else self.number_to_string(takeProfitPrice)
+                request['tpTriggerPx'] = self.price_to_precision(symbolResolved, takeProfitPrice) if (symbolResolved is not None) else self.number_to_string(takeProfitPrice)
             paramsOmitted = self.omit(params, ['stopLossPrice', 'takeProfitPrice'])
             response = await self.privatePostDeepcoinTradeReplaceOrderSltp(self.extend(request, paramsOmitted))
         else:

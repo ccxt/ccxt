@@ -6432,24 +6432,19 @@ classic accounts only/ spot not supported*  fetches information on an order made
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchPositions', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositions', symbols, None, None, paramsPaginate, 'nextPageCursor', 'cursor', None, 200)
+        symbolsNormalized = self.market_symbols(symbols)
         symbol = None
-        symbolsNormalized = None
-        if (symbols is not None) and isinstance(symbols, list):
-            symbolsLength = len(symbols)
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
             if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            elif symbolsLength == 1:
-                symbol = symbols[0]
-            symbolsNormalized = self.market_symbols(symbols)
-        elif symbols is not None:
-            symbol = symbols
-            symbolsNormalized = [self.symbol(symbol)]
+            symbol = self.safe_string(symbolsNormalized, 0)
         request = {}
         market = None
         if symbol is not None:
             symbolMarket = self.market(symbol)
             market = symbolMarket
-            symbol = symbolMarket['symbol']
+            symbol = self.safe_string(symbolMarket, 'symbol')
             request['symbol'] = symbolMarket['id']
         type, paramsValue = self.get_bybit_type('fetchPositions', market, paramsPaginate)
         if type == 'linear' or type == 'inverse':

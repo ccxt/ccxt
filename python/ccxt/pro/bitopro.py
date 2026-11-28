@@ -244,7 +244,8 @@ class bitopro(ccxt.async_support.bitopro):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return
-        symbol = self.symbol(base + '/' + quote)
+        marketSymbol = base + '/' + quote
+        symbol = self.symbol(marketSymbol)
         messageHash = self.safe_string(message, 'event')
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -284,7 +285,8 @@ class bitopro(ccxt.async_support.bitopro):
         quote = self.safe_currency_code(quoteId)
         symbol = None
         if (base is not None) and (quote is not None):
-            symbol = self.symbol(base + '/' + quote)
+            marketSymbol = base + '/' + quote
+            symbol = self.symbol(marketSymbol)
         marketResolved = self.safe_market(symbol, market)
         price = self.safe_string(trade, 'price')
         type = self.safe_string_lower(trade, 'orderType')

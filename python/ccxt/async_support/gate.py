@@ -1365,7 +1365,7 @@ class gate(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
-        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
+        if (marketId is not None) and isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(gate, self).safe_market(marketId, market, delimiter, marketType)
@@ -5673,11 +5673,12 @@ class gate(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument for spot markets')
         if isSpot:
             ordersRequests = []
+            marketSymbol = self.safe_string(market, 'symbol', '')
             for i in range(0, len(ids)):
                 id = self.safe_string(ids, i, '')
                 orderItem = {
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': marketSymbol,
                 }
                 ordersRequests.append(orderItem)
             return await self.cancel_orders_for_symbols(ordersRequests, paramsMarketType)

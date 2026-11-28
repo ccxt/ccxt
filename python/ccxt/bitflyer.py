@@ -782,9 +782,8 @@ class bitflyer(Exchange, ImplicitAPI):
             'count': limit,
         }
         response = self.privateGetGetchildorders(self.extend(request, params))
-        if symbol is not None:
-            return self.filter_by(self.parse_orders(response, market, since, limit), 'symbol', symbol)
-        return self.parse_orders(response, market, since, limit)
+        marketSymbol = self.safe_string(market, 'symbol')
+        return self.filter_by(self.parse_orders(response, market, since, limit), 'symbol', marketSymbol)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = 100, params: dict = {}) -> list[Order]:
         """

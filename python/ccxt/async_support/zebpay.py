@@ -1021,7 +1021,7 @@ class zebpay(Exchange, ImplicitAPI):
             marginAsset = self.safe_string(query, 'marginAsset', 'INR')
             formType = self.safe_string_upper(query, 'formType', 'ORDER_FORM')
             request['formType'] = formType
-            request['amount'] = self.parse_to_numeric(self.amount_to_precision(market['id'], amount))
+            request['amount'] = self.parse_to_numeric(self.amount_to_precision(self.safe_string(market, 'id'), amount))
             request['marginAsset'] = marginAsset
             hasTP = takeProfitPrice is not None
             hasSL = stopLossPrice is not None

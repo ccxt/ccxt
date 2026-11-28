@@ -1004,7 +1004,7 @@ class backpack(Exchange, ImplicitAPI):
         self.options['securities'] = response
         return response
 
-    async def fetch_stock_indicative_quote(self, symbol: str, side: OrderSide, amount: float, params: dict = {}) -> dict:
+    async def fetch_stock_indicative_quote(self, symbol: Str, side: OrderSide, amount: float, params: dict = {}) -> dict:
         """
  @ignore
         fetches a size-specific indicative stock quote without submitting or accepting an RFQ
@@ -1104,10 +1104,11 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchConvertQuote() requires a positive amount')
         await self.load_markets()
         market = self.rfq_conversion_market(fromCode, toCode)
+        marketSymbol = self.safe_string(market, 'symbol')
         fromIsBase = fromCode == self.safe_string(market, 'base')
         side = 'sell' if (fromIsBase) else 'buy'
         if not fromIsBase:
-            initialQuote = await self.fetch_stock_indicative_quote(market['symbol'], side, 1, {'stock': True})
+            initialQuote = await self.fetch_stock_indicative_quote(marketSymbol, side, 1, {'stock': True})
             initialPrice = self.safe_string(initialQuote, 'price')
             if not self.safe_bool(initialQuote, 'available', False) or (initialPrice is None):
                 raise InvalidOrder(self.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + self.safe_string(initialQuote, 'reason', 'priceUnavailable'))
@@ -1117,13 +1118,13 @@ class backpack(Exchange, ImplicitAPI):
             if not Precise.string_gt(priceParam, '0'):
                 raise InvalidOrder(self.id + ' fetchConvertQuote() price must be positive')
             rawQuantity = Precise.string_div(amountString, priceParam, 18)
-            preciseQuantity = self.amount_to_precision(market['symbol'], self.parse_number(rawQuantity))
+            preciseQuantity = self.amount_to_precision(marketSymbol, self.parse_number(rawQuantity))
             if preciseQuantity is None:
                 raise InvalidOrder(self.id + ' fetchConvertQuote() could not determine a stock quantity')
             amountString = preciseQuantity
             if not Precise.string_gt(amountString, '0'):
                 raise InvalidOrder(self.id + ' fetchConvertQuote() amount is too small for one stock increment')
-        quote = await self.fetch_stock_indicative_quote(market['symbol'], side, self.parse_number(amountString), {'stock': True})
+        quote = await self.fetch_stock_indicative_quote(marketSymbol, side, self.parse_number(amountString), {'stock': True})
         if not self.safe_bool(quote, 'available', False) or (self.safe_string(quote, 'price') is None):
             raise InvalidOrder(self.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + self.safe_string(quote, 'reason', 'priceUnavailable'))
         if not fromIsBase:
@@ -1135,7 +1136,7 @@ class backpack(Exchange, ImplicitAPI):
                 if (reducedQuantity is None) or not Precise.string_gt(reducedQuantity, '0'):
                     raise InvalidOrder(self.id + ' fetchConvertQuote() amount is too small for one stock increment')
                 amountString = reducedQuantity
-                quote = await self.fetch_stock_indicative_quote(market['symbol'], side, self.parse_number(amountString), {'stock': True})
+                quote = await self.fetch_stock_indicative_quote(marketSymbol, side, self.parse_number(amountString), {'stock': True})
                 if not self.safe_bool(quote, 'available', False) or (self.safe_string(quote, 'price') is None):
                     raise InvalidOrder(self.id + ' fetchConvertQuote() stock indicative quote unavailable: ' + self.safe_string(quote, 'reason', 'priceUnavailable'))
             finalQuoteQuantity = self.safe_string(quote, 'quoteQuantity')

@@ -343,7 +343,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         if self.markets is None:
             await self.load_markets()
-        market = self.market(self.single_bid_ask_symbol('watchBidsAsks', symbols))
+        bidAskSymbol = self.single_bid_ask_symbol('watchBidsAsks', symbols)
+        market = self.market(bidAskSymbol)
         symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'bidask:' + symbol
         url = self.urls['api']['ws']['public']
@@ -375,7 +376,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         """
         if self.markets is None:
             await self.load_markets()
-        market = self.market(self.single_bid_ask_symbol('unWatchBidsAsks', symbols))
+        bidAskSymbol = self.single_bid_ask_symbol('unWatchBidsAsks', symbols)
+        market = self.market(bidAskSymbol)
         symbol = self.safe_string(market, 'symbol', '')
         subMessageHash = 'bidask:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash

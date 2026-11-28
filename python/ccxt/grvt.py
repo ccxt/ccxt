@@ -2120,7 +2120,8 @@ class grvt(Exchange, ImplicitAPI):
         legs = []
         for i in range(0, len(orderLegs)):
             leg = orderLegs[i]
-            market = self.market(leg['instrument'])
+            instrument = self.safe_string(leg, 'instrument')
+            market = self.market(instrument)
             precisionValue = self.precision_from_string(self.safe_string(market['precision'], 'base'))
             sizeMultiplier = math.pow(10, precisionValue)
             size = self.safe_string(leg, 'size')

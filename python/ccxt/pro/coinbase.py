@@ -117,11 +117,13 @@ class coinbase(ccxt.async_support.coinbase):
         watchMessageHash = name
         unWatchMessageHash = 'unsubscribe:' + name
         productIds = []
+        subscriptionSymbols = []
         if symbol is not None:
             market = self.market(symbol)
             watchMessageHash = name + '::' + symbol
             unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol
             productIds = [self.safe_string(market, 'id')]
+            subscriptionSymbols.append(market['symbol'])
         url = self.urls['api']['ws']
         # '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
         message = {
@@ -134,7 +136,7 @@ class coinbase(ccxt.async_support.coinbase):
             'subMessageHashes': [watchMessageHash],
             'topic': topic,
             'unsubscribe': True,
-            'symbols': [symbol],
+            'symbols': subscriptionSymbols,
         }
         if isPrivate:
             message = self.extend(message, self.create_ws_auth(name, productIds))

@@ -1941,12 +1941,11 @@ class okx(ccxt.async_support.okx):
             accessType = 'business'
         await self.authenticate({'access': accessType})
         market = None
-        symbolResolved = None
         type = typeOption
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = self.safe_string(market, 'symbol')
             type = self.safe_string(market, 'type')
+        symbolResolved = self.safe_string(market, 'symbol')
         if type == 'future':
             type = 'futures'
         if type is None:

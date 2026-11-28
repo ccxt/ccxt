@@ -446,7 +446,7 @@ class paradex(ccxt.async_support.paradex):
         self.clean_cache(subscription)
         client.resolve(True, unsubHash)
 
-    async def watch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1182,9 +1182,9 @@ class paradex(ccxt.async_support.paradex):
         url = self.get_ws_url()
         channels = []
         messageHashes = []
-        if symbolsLength > 0:
+        if (symbolsNormalized is not None) and (symbolsLength > 0):
             for i in range(0, symbolsLength):
-                market = self.market((symbolsNormalized)[i])
+                market = self.market(symbolsNormalized[i])
                 marketId = self.safe_string(market, 'id', '')
                 channels.append('bbo.' + marketId)
                 messageHashes.append('bidask:' + market['symbol'])
@@ -1218,9 +1218,9 @@ class paradex(ccxt.async_support.paradex):
         channels = []
         subMessageHashes = []
         bidAskSymbols = []
-        if symbolsLength > 0:
+        if (symbolsNormalized is not None) and (symbolsLength > 0):
             for i in range(0, symbolsLength):
-                market = self.market((symbolsNormalized)[i])
+                market = self.market(symbolsNormalized[i])
                 marketId = self.safe_string(market, 'id', '')
                 channels.append('bbo.' + marketId)
                 subMessageHashes.append('bidask:' + market['symbol'])
