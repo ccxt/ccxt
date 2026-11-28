@@ -217,7 +217,7 @@ export default class deribit extends deribitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const interval = this.safeString (params, 'interval', '100ms');
         const paramsOmitted: Dict = this.omit (params, 'interval');
@@ -228,8 +228,8 @@ export default class deribit extends deribitRest {
             await this.authenticate ();
         }
         const channels: List = [];
-        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
-            const market = this.market ((symbolsNormalized as string[])[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             channels.push ('ticker.' + this.safeString (market, 'id', '') + '.' + interval);
         }
         const message: Dict = {
@@ -306,11 +306,11 @@ export default class deribit extends deribitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const channels: List = [];
-        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
-            const market = this.market ((symbolsNormalized as string[])[i]);
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const market = this.market (symbolsNormalized[i]);
             channels.push ('quote.' + this.safeString (market, 'id', ''));
         }
         const message: Dict = {

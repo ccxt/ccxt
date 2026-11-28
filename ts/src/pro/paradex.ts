@@ -1335,9 +1335,9 @@ export default class paradex extends paradexRest {
         const url = this.getWsUrl ();
         const channels: string[] = [];
         const messageHashes: string[] = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                const market = this.market ((symbolsNormalized as string[])[i]);
+                const market = this.market (symbolsNormalized[i]);
                 const marketId: string = this.safeString (market, 'id', '');
                 channels.push ('bbo.' + marketId);
                 messageHashes.push ('bidask:' + market['symbol']);
@@ -1377,9 +1377,9 @@ export default class paradex extends paradexRest {
         const channels: string[] = [];
         const subMessageHashes: string[] = [];
         const bidAskSymbols: string[] = [];
-        if (symbolsLength > 0) {
+        if ((symbolsNormalized !== undefined) && (symbolsLength > 0)) {
             for (let i = 0; i < symbolsLength; i++) {
-                const market = this.market ((symbolsNormalized as string[])[i]);
+                const market = this.market (symbolsNormalized[i]);
                 const marketId: string = this.safeString (market, 'id', '');
                 channels.push ('bbo.' + marketId);
                 subMessageHashes.push ('bidask:' + market['symbol']);
