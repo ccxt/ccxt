@@ -73,8 +73,13 @@ type OrderHyperliquid struct {
 type OrderMessage struct {
 	Type     string             `json:"type" msgpack:"type"`
 	Orders   []OrderHyperliquid `json:"orders" msgpack:"orders"`
-	Grouping string             `json:"grouping" msgpack:"grouping"`
+	Grouping any                `json:"grouping" msgpack:"grouping"` // "na" | "normalTpsl" | "positionTpsl", or OrderPriorityGrouping
 	Builder  *Builder           `json:"builder" msgpack:"builder,omitempty"`
+}
+
+// order priority fee, sent in place of the grouping string: {"p": rate in units of 1e-8}
+type OrderPriorityGrouping struct {
+	P int `json:"p" msgpack:"p"`
 }
 
 type Builder struct {
@@ -210,6 +215,29 @@ type TwapCancelMessage struct {
 	Type string `json:"type" msgpack:"type"`
 	A    int    `json:"a" msgpack:"a"`
 	T    int    `json:"t" msgpack:"t"`
+}
+
+// Actions that only carry their type (noop, claimRewards)
+
+type TypeOnlyMessage struct {
+	Type string `json:"type" msgpack:"type"`
+}
+
+// TrailingStop message
+
+type TrailingStopRetracement struct {
+	Pct *string `json:"pct" msgpack:"pct,omitempty"`
+	Px  *string `json:"px" msgpack:"px,omitempty"`
+}
+
+type TrailingStopMessage struct {
+	Type         string                  `json:"type" msgpack:"type"`
+	Asset        int                     `json:"asset" msgpack:"asset"`
+	IsBuy        bool                    `json:"isBuy" msgpack:"isBuy"`
+	Sz           string                  `json:"sz" msgpack:"sz"`
+	ReduceOnly   bool                    `json:"reduceOnly" msgpack:"reduceOnly"`
+	Retracement  TrailingStopRetracement `json:"retracement" msgpack:"retracement"`
+	ActivationPx *string                 `json:"activationPx" msgpack:"activationPx"` // nil is hashed as msgpack nil, not omitted
 }
 
 // ScheduleCancel message
@@ -550,6 +578,10 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		if err != nil {
 			panic(err)
 		}
+		// a JSON object decodes into a map with float64 numbers, the rate must be hashed as an integer
+		if priority, ok := orderMsg.Grouping.(map[string]any); ok {
+			orderMsg.Grouping = OrderPriorityGrouping{P: int(SafeInt(priority["p"]))}
+		}
 
 		return msgpackEncode(orderMsg)
 	case "cancel":
@@ -662,6 +694,24 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		return msgpackEncode(msg)
 	case "twapCancel":
 		var msg TwapCancelMessage
+
+		err := decodeHyperliquidMessage(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		return msgpackEncode(msg)
+	case "noop", "claimRewards":
+		var msg TypeOnlyMessage
+
+		err := decodeHyperliquidMessage(converted, &msg)
+		if err != nil {
+			panic(err)
+		}
+
+		return msgpackEncode(msg)
+	case "trailingStop":
+		var msg TrailingStopMessage
 
 		err := decodeHyperliquidMessage(converted, &msg)
 		if err != nil {

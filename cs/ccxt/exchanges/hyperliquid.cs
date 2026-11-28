@@ -44,16 +44,16 @@ public partial class hyperliquid : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "editOrders", true },
-                { "fetchAccounts", false },
+                { "fetchAccounts", true },
                 { "fetchBalance", true },
-                { "fetchBorrowInterest", false },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchCanceledAndClosedOrders", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
-                { "fetchCrossBorrowRate", false },
-                { "fetchCrossBorrowRates", false },
+                { "fetchCrossBorrowRate", true },
+                { "fetchCrossBorrowRates", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
@@ -68,11 +68,11 @@ public partial class hyperliquid : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchLedger", true },
-                { "fetchLeverage", false },
-                { "fetchLeverageTiers", false },
+                { "fetchLeverage", true },
+                { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
                 { "fetchMarginMode", null },
-                { "fetchMarketLeverageTiers", false },
+                { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMyLiquidations", true },
@@ -204,6 +204,7 @@ public partial class hyperliquid : Exchange
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                     { "Insufficient balance for withdrawal", typeof(InsufficientFunds) },
                     { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
+                    { "Insufficient delegatable balance for priority order", typeof(InsufficientFunds) },
                     { "TWAP order value too small. Min is $1200, which is $10 per minute.", typeof(InvalidOrder) },
                     { "TWAP was never placed, already canceled, or filled.", typeof(OrderNotFound) },
                     { "Too many cumulative requests sent", typeof(RateLimitExceeded) },
@@ -329,6 +330,7 @@ public partial class hyperliquid : Exchange
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
+                        { "trailing", true },
                     } },
                 } },
                 { "swap", new Dictionary<string, object>() {
@@ -1437,7 +1439,9 @@ public partial class hyperliquid : Exchange
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
      * @param {string} [params.dex] perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided
+     * @param {string} [params.method] 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, IDictionary<string, object> parameters = null)
@@ -1448,6 +1452,47 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        string? method = this.safeString(this.handleOptionAndParams(parameters, "fetchFundingRates", "method", "metaAndAssetCtxs"), 0);
+        IDictionary<string, object> paramsMethod = this.safeDict(this.handleOptionAndParams(parameters, "fetchFundingRates", "method", "metaAndAssetCtxs"), 1, new Dictionary<string, object>() {});
+        if (method == "predictedFundings")
+        {
+            object predictedResponse = await this.publicPostInfo(this.extend(new Dictionary<string, object>() {
+                { "type", "predictedFundings" },
+            }, paramsMethod));
+            //
+            //     [
+            //         [
+            //             "BTC",
+            //             [
+            //                 [ "BinPerp", { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 } ],
+            //                 [ "HlPerp", { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 } ],
+            //                 [ "BybitPerp", null ]
+            //             ]
+            //         ]
+            //     ]
+            //
+            List<object> predicted = new List<object>() {};
+            if (((predictedResponse is IList<object>) || (predictedResponse.GetType().IsGenericType && predictedResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            {
+                for (int i = 0; i < getArrayLength(predictedResponse); i++)
+                {
+                    List<object> coinEntry = this.safeList(predictedResponse, i, new List<object>() {});
+                    List<object> venues = this.safeList(coinEntry, 1, new List<object>() {});
+                    Dictionary<string, object> venuesByName = new Dictionary<string, object>() {};
+                    for (int j = 0; j < venues.Count; j++)
+                    {
+                        List<object> venue = this.safeList(venues, j, new List<object>() {});
+                        string? venueName = this.safeString(venue, 0, "");
+                        venuesByName[(string)venueName] = this.safeDict(venue, 1);
+                    }
+                    predicted.Add(new Dictionary<string, object>() {
+                        { "name", this.safeString(coinEntry, 0) },
+                        { "predictedFundings", venuesByName },
+                    });
+                }
+            }
+            return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(predicted, symbolsNormalized));
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "metaAndAssetCtxs" },
         };
@@ -1456,7 +1501,7 @@ public partial class hyperliquid : Exchange
         {
             request["dex"] = dexName;
         }
-        object response = await this.publicPostInfo(this.extend(request, parameters));
+        object response = await this.publicPostInfo(this.extend(request, paramsMethod));
         //
         //     [
         //         {
@@ -1525,6 +1570,43 @@ public partial class hyperliquid : Exchange
         string? bs = this.safeString(info, "name");
         string? marketId = this.coinToMarketId(bs);
         string? symbol = this.safeSymbol(marketId, market);
+        IDictionary<string, object> predictedFundings = this.safeDict(info, "predictedFundings");
+        if ((predictedFundings != null))
+        {
+            //
+            //     {
+            //         "name": "BTC",
+            //         "predictedFundings": {
+            //             "BinPerp": { "fundingRate": "0.00007851", "nextFundingTime": 1795708800000, "fundingIntervalHours": 8 },
+            //             "HlPerp": { "fundingRate": "-0.0000054226", "nextFundingTime": 1795690800000, "fundingIntervalHours": 1 },
+            //             "BybitPerp": null
+            //         }
+            //     }
+            //
+            IDictionary<string, object> predictedFunding = this.safeDict(predictedFundings, "HlPerp", new Dictionary<string, object>() {});
+            Int64? nextFundingTimestamp = this.safeInteger(predictedFunding, "nextFundingTime");
+            string intervalHours = this.safeString(predictedFunding, "fundingIntervalHours", "1");
+            return new Dictionary<string, object>() {
+                { "info", info },
+                { "symbol", symbol },
+                { "markPrice", null },
+                { "indexPrice", null },
+                { "interestRate", null },
+                { "estimatedSettlePrice", null },
+                { "timestamp", null },
+                { "datetime", null },
+                { "fundingRate", null },
+                { "fundingTimestamp", null },
+                { "fundingDatetime", null },
+                { "nextFundingRate", this.safeNumber(predictedFunding, "fundingRate") },
+                { "nextFundingTimestamp", nextFundingTimestamp },
+                { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
+                { "previousFundingRate", null },
+                { "previousFundingTimestamp", null },
+                { "previousFundingDatetime", null },
+                { "interval", (intervalHours + "h") },
+            };
+        }
         double? funding = this.safeNumber(info, "funding");
         double? markPx = this.safeNumber(info, "markPx");
         double? oraclePx = this.safeNumber(info, "oraclePx");
@@ -2362,6 +2444,7 @@ public partial class hyperliquid : Exchange
      * @name hyperliquid#createOrder
      * @description create a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2376,6 +2459,10 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance
+     * @param {float} [params.trailingPercent] *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingAmount] *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order
+     * @param {float} [params.trailingTriggerPrice] *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
@@ -2385,12 +2472,102 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
+        bool isTrailing = (this.safeString2(parameters, "trailingPercent", "trailingAmount") != null);
+        if (isTrailing)
+        {
+            await this.initializeClient();
+            Dictionary<string, object> trailingMarket = this.market(symbol);
+            object trailingRequest = this.createTrailingStopRequest(symbol, side, amount, parameters);
+            Dictionary<string, object> trailingResponse = await this.privatePostExchange(trailingRequest);
+            //
+            //     {
+            //         "status": "ok",
+            //         "response": {
+            //             "type": "trailingStop",
+            //             "data": {
+            //                 "oid": 77738308
+            //             }
+            //         }
+            //     }
+            //
+            IDictionary<string, object> trailingResponseObj = this.safeDict(trailingResponse, "response", new Dictionary<string, object>() {});
+            IDictionary<string, object> trailingData = this.safeDict(trailingResponseObj, "data", new Dictionary<string, object>() {});
+            return this.parseOrder(this.extend(trailingData, new Dictionary<string, object>() {                 { "status", "open" },             }), trailingMarket);
+        }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = orderglobalParamsVariable[0];
         IDictionary<string, object> globalParams = ((IDictionary<string, object>)orderglobalParamsVariable[1]);
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrders(new List<object>() {order}, globalParams));
         IDictionary<string, object> created = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(created);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#createTrailingStopRequest
+     * @description builds the signed request of a native trailing stop order, which executes as a market order once the mark price retraces from its best level, used by createOrder when trailingPercent or trailingAmount is set
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-a-trailing-stop-order
+     * @param {string} symbol unified symbol of the swap market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.trailingPercent] the percent to trail away from the best mark price
+     * @param {float} [params.trailingAmount] the quote amount to trail away from the best mark price
+     * @param {float} [params.trailingTriggerPrice] the mark price at which the order starts tracking, tracking starts immediately if omitted
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} the request to be sent to the exchange endpoint
+     */
+    public virtual object createTrailingStopRequest(object symbol, object side, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> market = this.market(symbol);
+        if (!(((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        {
+            throw new NotSupported ((this.id + " createOrder() supports trailing orders for swap markets only")) ;
+        }
+        string? trailingPercent = this.safeString(parameters, "trailingPercent");
+        string? trailingAmount = this.safeString(parameters, "trailingAmount");
+        string? trailingTriggerPrice = this.safeString(parameters, "trailingTriggerPrice");
+        Dictionary<string, object> retracement = new Dictionary<string, object>() {};
+        if ((trailingPercent != null))
+        {
+            retracement["pct"] = (trailingPercent + "%");
+        } else
+        {
+            retracement["px"] = this.priceToPrecision(symbol, trailingAmount);
+        }
+        (string?, IDictionary<string, object>) vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
+        string? vaultAddressOption = vaultAddressOptionparamsVaultVariable.Item1;
+        IDictionary<string, object> paramsVault = (vaultAddressOptionparamsVaultVariable.Item2);
+        string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        Int64? nonce = this.incrementingNonce();
+        // the action is hashed and signed, so the order of the keys must match the exchange's
+        Dictionary<string, object> action = new Dictionary<string, object>() {
+            { "type", "trailingStop" },
+            { "asset", this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null)) },
+            { "isBuy", ((((string)side).ToUpper() == "BUY")) },
+            { "sz", this.amountToPrecision(symbol, amount) },
+            { "reduceOnly", this.safeBool(paramsVault, "reduceOnly", false) },
+            { "retracement", retracement },
+            { "activationPx", null },
+        };
+        if ((trailingTriggerPrice != null))
+        {
+            action["activationPx"] = this.priceToPrecision(symbol, trailingTriggerPrice);
+        }
+        Dictionary<string, object> signature = this.signL1Action(action, nonce, vaultAddress);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        if ((vaultAddress != null))
+        {
+            request["vaultAddress"] = vaultAddress;
+        }
+        return request;
     }
 
     /**
@@ -2480,8 +2657,10 @@ public partial class hyperliquid : Exchange
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.priorityFee] the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
@@ -2560,6 +2739,10 @@ public partial class hyperliquid : Exchange
             defaultTimeInForce = "alo";
         }
         string? timeInForceLower = this.safeStringLower(parameters, "timeInForce", defaultTimeInForce);
+        if (timeInForceLower == "po")
+        {
+            timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+        }
         string timeInForce = this.capitalize(timeInForceLower);
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -2662,10 +2845,11 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
+        IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce", "priorityFee"});
         Int64? nonce = this.incrementingNonce();
         List<object> orderReq = new List<object>() {};
         string? grouping = "na";
+        Int64? priorityFee = this.safeInteger(parameters, "priorityFee");
         for (int i = 0; i < ordersLength; i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
@@ -2677,6 +2861,15 @@ public partial class hyperliquid : Exchange
             string? amount = this.safeString(rawOrder, "amount");
             string? price = this.safeString(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            Int64? orderPriorityFee = this.safeInteger(orderParams, "priorityFee");
+            if ((orderPriorityFee != null))
+            {
+                if (((priorityFee != null)) && ((priorityFee != orderPriorityFee)))
+                {
+                    throw new BadRequest ((this.id + " createOrders() all orders must use the same priorityFee, it is applied to the whole request")) ;
+                }
+                priorityFee = orderPriorityFee;
+            }
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             orderParams["slippage"] = slippage;
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");
@@ -2742,10 +2935,43 @@ public partial class hyperliquid : Exchange
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
         vaultAddress = this.formatVaultAddress(vaultAddress);
+        object groupingValue = grouping;
+        if ((priorityFee != null))
+        {
+            // the priority fee replaces the grouping, so it can't be combined with attached stopLoss/takeProfit orders
+            if (grouping != "na")
+            {
+                throw new NotSupported ((this.id + " createOrders() priorityFee can not be combined with attached stopLoss / takeProfit orders")) ;
+            }
+            bool allIoc = true;
+            bool allPostOnly = true;
+            for (int i = 0; i < (orderReq?.Count ?? 0); i++)
+            {
+                IDictionary<string, object> builtOrder = this.safeDict(orderReq, i, new Dictionary<string, object>() {});
+                IDictionary<string, object> builtOrderType = this.safeDict(builtOrder, "t", new Dictionary<string, object>() {});
+                IDictionary<string, object> builtOrderLimit = this.safeDict(builtOrderType, "limit", new Dictionary<string, object>() {});
+                string? builtOrderTif = this.safeString(builtOrderLimit, "tif");
+                if (builtOrderTif != "Ioc")
+                {
+                    allIoc = false;
+                }
+                if ((builtOrderTif != "Alo") || (this.safeBool(builtOrder, "r", false) == true))
+                {
+                    allPostOnly = false;
+                }
+            }
+            if (!allIoc && !allPostOnly)
+            {
+                throw new InvalidOrder ((this.id + " createOrders() priorityFee requires every order to be IOC (market orders included) or every order to be post-only and not reduce-only")) ;
+            }
+            groupingValue = new Dictionary<string, object>() {
+                { "p", priorityFee },
+            };
+        }
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
             { "orders", orderReq },
-            { "grouping", grouping },
+            { "grouping", groupingValue },
         };
         if ((this.safeBool(this.options, "approvedBuilderFee", false) == true))
         {
@@ -3210,6 +3436,10 @@ public partial class hyperliquid : Exchange
                 defaultTimeInForce = "alo";
             }
             string? timeInForceLower = this.safeStringLower(orderParams, "timeInForce", defaultTimeInForce);
+            if (timeInForceLower == "po")
+            {
+                timeInForceLower = "alo"; // the unified post-only time in force is called Alo on hyperliquid
+            }
             string timeInForce = this.capitalize(timeInForceLower);
             string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
@@ -3983,12 +4213,18 @@ public partial class hyperliquid : Exchange
         }
         bool? isTrigger = this.safeBool(entry, "isTrigger", false);
         double? triggerPx = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
+        string orderTypeRaw = this.safeStringLower(entry, "orderType", "");
+        // a trailing stop reports triggerPx "0.0" until it reaches its activation price and starts tracking
+        bool isTrailing = (orderTypeRaw.IndexOf("trailing", StringComparison.Ordinal) >= 0);
+        if (isTrailing && Precise.stringEq(this.safeString(entry, "triggerPx", "0"), "0"))
+        {
+            triggerPx = null;
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
-        string orderTypeRaw = this.safeStringLower(entry, "orderType", "");
         double? stopLossPrice = null;
         double? takeProfitPrice = null;
-        if ((triggerPx != null))
+        if (((triggerPx != null)) && !isTrailing)
         {
             if (orderTypeRaw.IndexOf("stop", StringComparison.Ordinal) >= 0)
             {
@@ -4058,6 +4294,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "stop limit", "limit" },
             { "stop market", "market" },
+            { "trailing stop market", "market" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -4068,12 +4305,14 @@ public partial class hyperliquid : Exchange
      * @description fetch all trades made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest trade
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
@@ -4093,7 +4332,13 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
-        if ((since != null))
+        bool? twap = this.safeBool(paramsPublicAddress, "twap", false);
+        Int64? until = this.safeInteger(paramsPublicAddress, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPublicAddress, new List<object>() {"until", "twap"});
+        if ((twap == true))
+        {
+            request["type"] = "userTwapSliceFills";
+        } else if ((since != null))
         {
             request["type"] = "userFillsByTime";
             request["startTime"] = since;
@@ -4101,9 +4346,7 @@ public partial class hyperliquid : Exchange
         {
             request["type"] = "userFills";
         }
-        Int64? until = this.safeInteger(paramsPublicAddress, "until");
-        Dictionary<string, object> paramsOmitted = this.omit(paramsPublicAddress, "until");
-        if ((until != null))
+        if (((until != null)) && twap != true)
         {
             request["endTime"] = until;
         }
@@ -4129,10 +4372,46 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        object myFills = new List<object>() {};
+        List<object> myFills = new List<object>() {};
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            myFills = response;
+            myFills = ((List<object>)response);
+        }
+        if ((twap == true))
+        {
+            //
+            //     [
+            //         {
+            //             "fill": {
+            //                 "closedPnl": "0.0",
+            //                 "coin": "AVAX",
+            //                 "crossed": true,
+            //                 "dir": "Open Long",
+            //                 "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            //                 "oid": 90542681,
+            //                 "px": "18.435",
+            //                 "side": "B",
+            //                 "startPosition": "26.86",
+            //                 "sz": "93.53",
+            //                 "time": 1681222254710,
+            //                 "fee": "0.01",
+            //                 "feeToken": "USDC",
+            //                 "tid": 118906512037719
+            //             },
+            //             "twapId": 3156
+            //         }
+            //     ]
+            //
+            List<object> twapFills = new List<object>() {};
+            for (int i = 0; i < (myFills?.Count ?? 0); i++)
+            {
+                IDictionary<string, object> twapFill = this.safeDict(myFills, i, new Dictionary<string, object>() {});
+                IDictionary<string, object> fill = this.safeDict(twapFill, "fill", new Dictionary<string, object>() {});
+                twapFills.Add(this.extend(fill, new Dictionary<string, object>() {
+                    { "twapId", this.safeString(twapFill, "twapId") },
+                }));
+            }
+            myFills = twapFills;
         }
         return this.parseTrades(myFills, market, since, limit);
     }
@@ -4613,6 +4892,203 @@ public partial class hyperliquid : Exchange
         //     }
         //
         return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+     * @param {string[]} [symbols] list of unified market symbols, all symbols must belong to the same dex for hip3 markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.dex] the hip3 dex to fetch the tiers from, inferred from the symbols when omitted
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "meta" },
+        };
+        string? dexName = this.getDexFromSymbols("fetchLeverageTiers", symbolsNormalized);
+        if ((dexName != null))
+        {
+            request["dex"] = dexName;
+        }
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "universe": [
+        //             { "szDecimals": 2, "name": "SOL", "maxLeverage": 20, "marginTableId": 54 },
+        //             { "szDecimals": 1, "name": "LTC", "maxLeverage": 10, "marginTableId": 10 }
+        //         ],
+        //         "marginTables": [
+        //             [
+        //                 54,
+        //                 {
+        //                     "description": "tiered 20x (2)",
+        //                     "marginTiers": [
+        //                         { "lowerBound": "0.0", "maxLeverage": 20 },
+        //                         { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //                     ]
+        //                 }
+        //             ]
+        //         ],
+        //         "collateralToken": 0
+        //     }
+        //
+        List<object> universe = this.safeList(response, "universe", new List<object>() {});
+        List<object> marginTables = this.safeList(response, "marginTables", new List<object>() {});
+        Dictionary<string, object> tablesById = new Dictionary<string, object>() {};
+        for (int i = 0; i < marginTables.Count; i++)
+        {
+            List<object> marginTable = this.safeList(marginTables, i, new List<object>() {});
+            string? tableId = this.safeString(marginTable, 0, "");
+            tablesById[(string)tableId] = this.safeDict(marginTable, 1, new Dictionary<string, object>() {});
+        }
+        int symbolsLength = 0;
+        if ((symbolsNormalized != null))
+        {
+            symbolsLength = (symbolsNormalized?.Count ?? 0);
+        }
+        Dictionary<string, object> tiers = new Dictionary<string, object>() {};
+        for (int i = 0; i < universe.Count; i++)
+        {
+            IDictionary<string, object> asset = this.safeDict(universe, i, new Dictionary<string, object>() {});
+            // the coin name resolves to the unified symbol, delisted assets have no market
+            string symbol = this.coinToMarketId(this.safeString(asset, "name"));
+            IDictionary<string, object> market = this.safeDict(this.markets, symbol);
+            if ((market == null))
+            {
+                continue;
+            }
+            if ((symbolsLength > 0) && !this.inArray(symbol, symbolsNormalized))
+            {
+                continue;
+            }
+            IDictionary<string, object> assetTable = this.safeDict(tablesById, this.safeString(asset, "marginTableId"), new Dictionary<string, object>() {});
+            List<object> marginTiers = this.safeList(assetTable, "marginTiers");
+            if ((marginTiers == null))
+            {
+                // margin table ids below 50 are not listed, they stand for a single tier at the max leverage of the asset
+                marginTiers = new List<object>() {new Dictionary<string, object>() {
+    { "lowerBound", "0.0" },
+    { "maxLeverage", this.safeInteger(asset, "maxLeverage") },
+}};
+            }
+            tiers[(string)symbol] = this.parseMarketLeverageTiers(this.extend(asset, new Dictionary<string, object>() {
+                { "marginTiers", marginTiers },
+            }), market);
+        }
+        return ccxt.BaseExchange.ToLeverageTiers(tiers);
+    }
+
+    public override List<object> parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
+    {
+        //
+        //     {
+        //         "szDecimals": 2,
+        //         "name": "SOL",
+        //         "maxLeverage": 20,
+        //         "marginTableId": 54,
+        //         "marginTiers": [
+        //             { "lowerBound": "0.0", "maxLeverage": 20 },
+        //             { "lowerBound": "70000000.0", "maxLeverage": 10 }
+        //         ]
+        //     }
+        //
+        List<object> marginTiers = this.safeList(info, "marginTiers", new List<object>() {});
+        List<object> tiers = new List<object>() {};
+        for (int i = 0; i < marginTiers.Count; i++)
+        {
+            IDictionary<string, object> tier = this.safeDict(marginTiers, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> nextTier = this.safeDict(marginTiers, (i + 1L), new Dictionary<string, object>() {});
+            string? maxLeverage = this.safeString(tier, "maxLeverage");
+            // the maintenance margin rate is half of the initial margin rate at the max leverage of the tier
+            string? maintenanceMarginRate = Precise.stringDiv("1", Precise.stringMul("2", maxLeverage));
+            tiers.Add(new Dictionary<string, object>() {
+                { "tier", (i + 1L) },
+                { "symbol", this.safeString(market, "symbol") },
+                { "currency", this.safeString(market, "settle") },
+                { "minNotional", this.safeNumber(tier, "lowerBound") },
+                { "maxNotional", this.safeNumber(nextTier, "lowerBound") },
+                { "maintenanceMarginRate", this.parseNumber(maintenanceMarginRate) },
+                { "maxLeverage", this.parseNumber(maxLeverage) },
+                { "info", tier },
+            });
+        }
+        return tiers;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchLeverage
+     * @description fetch the set leverage and margin mode for a swap market
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    public async override Task<ccxt.Leverage> FetchLeverage(string symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        if (!(((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+        {
+            throw new NotSupported ((this.id + " fetchLeverage() supports swap markets only")) ;
+        }
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchLeverage", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchLeverage", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "activeAssetData" },
+            { "user", userAddress },
+            { "coin", this.safeString(market, "baseName") },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     {
+        //         "user": "0xa15099a30bbf2e68942d6f4c43d70d04faeab0a0",
+        //         "coin": "SOL",
+        //         "leverage": {
+        //             "type": "cross", // or "isolated", which also carries "rawUsd"
+        //             "value": 20
+        //         },
+        //         "maxTradeSzs": [ "13.63", "13.63" ],
+        //         "availableToTrade": [ "48.103059", "48.103059" ],
+        //         "markPx": "70.58"
+        //     }
+        //
+        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
+    }
+
+    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    {
+        IDictionary<string, object> leverageInfo = this.safeDict(leverage, "leverage", new Dictionary<string, object>() {});
+        Int64? leverageValue = this.safeInteger(leverageInfo, "value");
+        string? coin = this.safeString(leverage, "coin");
+        string? marketId = null;
+        if ((coin != null))
+        {
+            marketId = this.coinToMarketId(coin);
+        }
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "marginMode", this.safeStringLower(leverageInfo, "type") },
+            { "longLeverage", leverageValue },
+            { "shortLeverage", leverageValue },
+        };
     }
 
     /**
@@ -5731,6 +6207,903 @@ public partial class hyperliquid : Exchange
         request["signature"] = signature;
         Dictionary<string, object> response = await this.privatePostExchange(this.extend(request, parameters));
         return response;
+    }
+
+    public virtual object buildApproveAgentSig(IDictionary<string, object> message)
+    {
+        Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
+            { "HyperliquidTransaction:ApproveAgent", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "agentAddress" },
+    { "type", "address" },
+}, new Dictionary<string, object>() {
+    { "name", "agentName" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}} },
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveAgent
+     * @description approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+     * @param {string} agentAddress the address of the API wallet to approve
+     * @param {string} [agentName] the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> approveAgent(string agentAddress, object agentName = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Int64? nonce = this.incrementingNonce();
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        string hyperliquidChain = isSandboxMode == true ? "Testnet" : "Mainnet";
+        // the name is always part of the signed message, it is empty for the unnamed API wallet
+        Dictionary<string, object> payload = new Dictionary<string, object>() {
+            { "hyperliquidChain", hyperliquidChain },
+            { "agentAddress", agentAddress },
+            { "agentName", ((agentName == null)) ? "" : agentName },
+            { "nonce", nonce },
+        };
+        object sig = this.buildApproveAgentSig(payload);
+        Dictionary<string, object> action = new Dictionary<string, object>() {
+            { "hyperliquidChain", hyperliquidChain },
+            { "signatureChainId", "0x66eee" },
+            { "agentAddress", agentAddress },
+            { "nonce", nonce },
+            { "type", "approveAgent" },
+        };
+        if ((agentName != null))
+        {
+            action["agentName"] = agentName;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", sig },
+        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        Dictionary<string, object> response = await this.privatePostExchange(this.extend(request, parameters));
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#noop
+     * @description sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop
+     * @param {int} [nonce] the nonce to mark as used, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> noop(object nonce = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> action = new Dictionary<string, object>() {
+            { "type", "noop" },
+        };
+        return await this.postL1Action(action, nonce, parameters);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#claimRewards
+     * @description claims the rewards earned by the account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> claimRewards(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> action = new Dictionary<string, object>() {
+            { "type", "claimRewards" },
+        };
+        return await this.postL1Action(action, null, parameters);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postL1Action
+     * @description signs an L1 action that has no market or order data and posts it to the exchange endpoint
+     * @param {object} action the action to sign and send
+     * @param {int} [nonce] the nonce to sign with, a new one is generated when omitted
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vaultAddress] the vault or sub-account address to send the action for
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> postL1Action(IDictionary<string, object> action, object nonce = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object requestNonce = ((nonce == null)) ? this.incrementingNonce() : nonce;
+        (string?, IDictionary<string, object>) vaultAddressOptionparamsVaultVariable = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress");
+        string? vaultAddressOption = vaultAddressOptionparamsVaultVariable.Item1;
+        IDictionary<string, object> paramsVault = (vaultAddressOptionparamsVaultVariable.Item2);
+        string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
+        Dictionary<string, object> signature = this.signL1Action(action, requestNonce, vaultAddress);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", requestNonce },
+            { "signature", signature },
+        };
+        if ((vaultAddress != null))
+        {
+            request["vaultAddress"] = vaultAddress;
+        }
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        Dictionary<string, object> response = await this.privatePostExchange(this.extend(request, paramsVault));
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#usdSend
+     * @description sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer
+     * @param {float} amount the amount of USDC to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> usdSend(object amount, string address, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        this.checkAddress(address);
+        Int64? nonce = this.incrementingNonce();
+        List<object> messageTypes = new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "destination" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "amount" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "time" },
+    { "type", "uint64" },
+}};
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "hyperliquidChain", this.hyperliquidChainName() },
+            { "destination", address },
+            { "amount", this.numberToString(amount) },
+            { "time", nonce },
+        };
+        return await this.postUserSignedAction("usdSend", "HyperliquidTransaction:UsdSend", messageTypes, message, nonce, parameters);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#spotSend
+     * @description sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer
+     * @param {string} code unified currency code of the asset to send
+     * @param {float} amount the amount to send
+     * @param {string} address the address to send to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> spotSend(string code, object amount, string address, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        this.checkAddress(address);
+        Dictionary<string, object> currency = this.currency(code);
+        IDictionary<string, object> currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
+        Int64? nonce = this.incrementingNonce();
+        List<object> messageTypes = new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "destination" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "token" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "amount" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "time" },
+    { "type", "uint64" },
+}};
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "hyperliquidChain", this.hyperliquidChainName() },
+            { "destination", address },
+            { "token", ((this.safeString(currencyInfo, "name", "") + ":") + this.safeString(currencyInfo, "tokenId", "")) },
+            { "amount", this.numberToString(amount) },
+            { "time", nonce },
+        };
+        return await this.postUserSignedAction("spotSend", "HyperliquidTransaction:SpotSend", messageTypes, message, nonce, parameters);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingDeposit
+     * @description moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking
+     * @param {float} amount the amount of HYPE to move into staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> stakingDeposit(object amount, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Int64? nonce = this.incrementingNonce();
+        List<object> messageTypes = new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "wei" },
+    { "type", "uint64" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}};
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "hyperliquidChain", this.hyperliquidChainName() },
+            { "wei", this.hypeToWei(amount) },
+            { "nonce", nonce },
+        };
+        return await this.postUserSignedAction("cDeposit", "HyperliquidTransaction:CDeposit", messageTypes, message, nonce, parameters);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#stakingWithdraw
+     * @description moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking
+     * @param {float} amount the amount of HYPE to move out of staking
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> stakingWithdraw(object amount, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Int64? nonce = this.incrementingNonce();
+        List<object> messageTypes = new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "wei" },
+    { "type", "uint64" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}};
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "hyperliquidChain", this.hyperliquidChainName() },
+            { "wei", this.hypeToWei(amount) },
+            { "nonce", nonce },
+        };
+        return await this.postUserSignedAction("cWithdraw", "HyperliquidTransaction:CWithdraw", messageTypes, message, nonce, parameters);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#tokenDelegate
+     * @description delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator
+     * @param {string} validator the address of the validator
+     * @param {float} amount the amount of HYPE to delegate or undelegate
+     * @param {boolean} [isUndelegate] true to undelegate, false (default) to delegate
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> tokenDelegate(string validator, object amount, object isUndelegate = null, IDictionary<string, object>? parameters = null)
+    {
+        isUndelegate ??= false;
+        parameters ??= new Dictionary<string, object>();
+        this.checkAddress(validator);
+        Int64? nonce = this.incrementingNonce();
+        List<object> messageTypes = new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "validator" },
+    { "type", "address" },
+}, new Dictionary<string, object>() {
+    { "name", "wei" },
+    { "type", "uint64" },
+}, new Dictionary<string, object>() {
+    { "name", "isUndelegate" },
+    { "type", "bool" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}};
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "hyperliquidChain", this.hyperliquidChainName() },
+            { "validator", validator },
+            { "wei", this.hypeToWei(amount) },
+            { "isUndelegate", isUndelegate },
+            { "nonce", nonce },
+        };
+        return await this.postUserSignedAction("tokenDelegate", "HyperliquidTransaction:TokenDelegate", messageTypes, message, nonce, parameters);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hyperliquidChainName
+     * @description the chain name that user-signed actions are signed for
+     * @returns {string} 'Testnet' in sandbox mode, 'Mainnet' otherwise
+     */
+    public virtual string? hyperliquidChainName()
+    {
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        return isSandboxMode == true ? "Testnet" : "Mainnet";
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#hypeToWei
+     * @description converts an amount of HYPE to wei, the unit used by the staking actions, HYPE has 8 decimals
+     * @param {float} amount the amount of HYPE
+     * @returns {int} the amount in wei
+     */
+    public virtual object hypeToWei(object amount)
+    {
+        return this.parseToInt(Precise.stringMul(this.numberToString(amount), "100000000"));
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#postUserSignedAction
+     * @description signs a user-signed action with the EIP-712 types given and posts it to the exchange endpoint
+     * @param {string} actionType the type of the action
+     * @param {string} primaryType the EIP-712 primary type of the message
+     * @param {object[]} messageTypes the EIP-712 fields of the message
+     * @param {object} message the message to sign, its fields are sent as the action
+     * @param {int} nonce the nonce of the request
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response object
+     */
+    public async virtual Task<object> postUserSignedAction(string actionType, string primaryType, object messageTypes, IDictionary<string, object> message, object nonce, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> types = new Dictionary<string, object>() {};
+        types[(string)primaryType] = messageTypes;
+        Dictionary<string, object> signature = this.signUserSignedAction(types, message);
+        Dictionary<string, object> action = this.extend(message, new Dictionary<string, object>() {
+            { "signatureChainId", "0x66eee" },
+            { "type", actionType },
+        });
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "default"
+        //         }
+        //     }
+        //
+        Dictionary<string, object> response = await this.privatePostExchange(this.extend(request, parameters));
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchApprovedBuilders
+     * @description fetch the addresses of the builders the user approved a builder fee for
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {string[]} a list of builder addresses
+     */
+    public async virtual Task<object> fetchApprovedBuilders(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchApprovedBuilders", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchApprovedBuilders", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "approvedBuilders" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     [ "0x476fa87b4d3818f437f38f1263bee508d7672d82" ]
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchVaultDetails
+     * @description fetch the details of a vault, its leader, description, portfolio history, apr and followers
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault
+     * @param {string} vaultAddress the address of the vault
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] a user address, when provided the response includes the state of that user as a follower of the vault
+     * @returns {object} the vault details as returned by the exchange
+     */
+    public async virtual Task<object> fetchVaultDetails(string vaultAddress, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "vaultDetails" },
+            { "vaultAddress", vaultAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "name": "Test",
+        //         "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+        //         "leader": "0x677d831aef5328190852e24f13c46cac05f984e7",
+        //         "description": "This community-owned vault provides liquidity to Hyperliquid",
+        //         "portfolio": [
+        //             [ "day", { "accountValueHistory": [ [ 1734397526634, "329265410.90790099" ] ], "pnlHistory": [ [ 1734397526634, "0.0" ] ], "vlm": "0.0" } ]
+        //         ],
+        //         "apr": 0.36387129259090006,
+        //         "followerState": null,
+        //         "leaderFraction": 0.0007904828725729887,
+        //         "leaderCommission": 0,
+        //         "followers": [ { "user": "0x005844b2ffb2e122cf4244be7dbcb4f84924907c", "vaultEquity": "714491.71026243", "pnl": "3203.43553709", "allTimePnl": "79843.74476046", "daysFollowing": 388, "vaultEntryTime": 1700926145201, "lockupUntil": 1734824439201 } ],
+        //         "maxDistributable": 94856870.164485,
+        //         "maxWithdrawable": 742557.680863,
+        //         "isClosed": false,
+        //         "relationship": { "type": "parent", "data": { "childAddresses": [ "0x010461c14e146ac35fe42271bdc1134ee31c703a" ] } },
+        //         "allowDeposits": true,
+        //         "alwaysCloseOnWithdraw": false
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingDelegations
+     * @description fetch the amounts of HYPE the user delegated to each validator
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of delegations as returned by the exchange
+     */
+    public async virtual Task<object> fetchStakingDelegations(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchStakingDelegations", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingDelegations", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "delegations" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //             "amount": "12060.16529862",
+        //             "lockedUntilTimestamp": 1735466781353
+        //         }
+        //     ]
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingSummary
+     * @description fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object} the staking summary as returned by the exchange
+     */
+    public async virtual Task<object> fetchStakingSummary(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchStakingSummary", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingSummary", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "delegatorSummary" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     {
+        //         "delegated": "12060.16529862",
+        //         "undelegated": "0.0",
+        //         "totalPendingWithdrawal": "0.0",
+        //         "nPendingWithdrawals": 0
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingHistory
+     * @description fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking events as returned by the exchange
+     */
+    public async virtual Task<object> fetchStakingHistory(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchStakingHistory", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingHistory", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "delegatorHistory" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1735380381353,
+        //             "hash": "0x55492465cb523f90815a041a226ba90147008d4b221a24ae8dc35a0dbede4ea4",
+        //             "delta": {
+        //                 "delegate": {
+        //                     "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+        //                     "amount": "10000.0",
+        //                     "isUndelegate": false
+        //                 }
+        //             }
+        //         }
+        //     ]
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchStakingRewards
+     * @description fetch the staking rewards earned by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of staking rewards as returned by the exchange
+     */
+    public async virtual Task<object> fetchStakingRewards(IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchStakingRewards", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchStakingRewards", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "delegatorRewards" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "time": 1736726400073,
+        //             "source": "delegation",
+        //             "totalAmount": "0.73117184"
+        //         }
+        //     ]
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchAccounts
+     * @description fetch the sub-accounts of a master account
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] the master account address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
+     */
+    public async override Task<List<ccxt.Account>> FetchAccounts(IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchAccounts", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchAccounts", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "subAccounts" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     [
+        //         {
+        //             "name": "Test",
+        //             "subAccountUser": "0x035605fc2f24d65300227189025e90a0d947f16c",
+        //             "master": "0x8c967e73e6b15087c42a10d344cff4c96d877f1d",
+        //             "clearinghouseState": {
+        //                 "marginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMarginSummary": { "accountValue": "29.78001", "totalNtlPos": "0.0", "totalRawUsd": "29.78001", "totalMarginUsed": "0.0" },
+        //                 "crossMaintenanceMarginUsed": "0.0",
+        //                 "withdrawable": "29.78001",
+        //                 "assetPositions": [],
+        //                 "time": 1733968369395
+        //             },
+        //             "spotState": {
+        //                 "balances": [ { "coin": "USDC", "token": 0, "total": "0.22", "hold": "0.0", "entryNtl": "0.0" } ]
+        //             }
+        //         }
+        //     ]
+        //
+        // the response is null when the account has no sub-accounts
+        List<object> result = new List<object>() {};
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            for (int i = 0; i < getArrayLength(response); i++)
+            {
+                result.Add(this.parseAccount(this.safeDict(response, i, new Dictionary<string, object>() {})));
+            }
+        }
+        return ccxt.BaseExchange.ToAccountList(result);
+    }
+
+    public override object parseAccount(object account)
+    {
+        return new Dictionary<string, object>() {
+            { "id", this.safeString(account, "subAccountUser") },
+            { "type", "subaccount" },
+            { "name", this.safeString(account, "name") },
+            { "code", null },
+            { "info", account },
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRates
+     * @description fetch the borrow interest rates of all currencies of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public async override Task<ccxt.CrossBorrowRates> FetchCrossBorrowRates(IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "allBorrowLendReserveStates" },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     [
+        //         [
+        //             0,
+        //             {
+        //                 "borrowYearlyRate": "0.05",
+        //                 "supplyYearlyRate": "0.0249808267",
+        //                 "balance": "284714721.5832400322",
+        //                 "utilization": "0.5551294814",
+        //                 "oraclePx": "1.0",
+        //                 "ltv": "0.0",
+        //                 "totalSupplied": "639994288.7804760933",
+        //                 "totalBorrowed": "355279697.6056296229"
+        //             }
+        //         ]
+        //     ]
+        //
+        Dictionary<string, object> rates = new Dictionary<string, object>() {};
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        {
+            for (int i = 0; i < getArrayLength(response); i++)
+            {
+                List<object> reserve = this.safeList(response, i, new List<object>() {});
+                IDictionary<string, object> reserveState = this.safeDict(reserve, 1, new Dictionary<string, object>() {});
+                Dictionary<string, object> rate = this.parseBorrowRate(this.extend(reserveState, new Dictionary<string, object>() {
+                    { "token", this.safeString(reserve, 0) },
+                }));
+                string? code = this.safeString(rate, "currency", "");
+                rates[(string)code] = rate;
+            }
+        }
+        return ccxt.BaseExchange.ToCrossBorrowRates(rates);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchCrossBorrowRate
+     * @description fetch the borrow interest rate of a currency of the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
+     */
+    public async override Task<ccxt.CrossBorrowRate> FetchCrossBorrowRate(string code, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> currency = this.currency(code);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "borrowLendReserveState" },
+            { "token", this.parseToInt((currency.ContainsKey("id") ? currency["id"] : null)) },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     {
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0008245002",
+        //         "balance": "3245939.4732256099",
+        //         "utilization": "0.018322226",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "3306509.7335290499",
+        //         "totalBorrowed": "60582.61869494"
+        //     }
+        //
+        return ccxt.BaseExchange.ToCrossBorrowRate(this.parseBorrowRate(this.extend(response, new Dictionary<string, object>() {             { "token", (currency.ContainsKey("id") ? currency["id"] : null) },         }), currency));
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name hyperliquid#tokenIndexToCurrencyCode
+     * @description resolves the index of a spot token, as used by the borrow/lend endpoints, to its unified currency code
+     * @param {string} tokenIndex the index of the token
+     * @returns {string} the unified currency code
+     */
+    public virtual string? tokenIndexToCurrencyCode(object tokenIndex)
+    {
+        IDictionary<string, object> cachedCurrencies = this.safeDict(this.options, "cachedCurrenciesById", new Dictionary<string, object>() {});
+        string? tokenName = this.safeString(cachedCurrencies, tokenIndex);
+        if ((tokenName != null))
+        {
+            return this.safeCurrencyCode(tokenName);
+        }
+        // the cache is filled by fetchCurrencies, look the index of the spot token up in the currencies when they were set from elsewhere
+        List<object> codes = new List<object>(this.currenciesDict.Keys);
+        for (int i = 0; i < codes.Count; i++)
+        {
+            string? code = ((string)codes[i]);
+            IDictionary<string, object> currencyInfo = this.safeDict((this.currenciesDict != null && code != null && this.currenciesDict.ContainsKey(code) ? this.currenciesDict[code] : null), "info", new Dictionary<string, object>() {});
+            if (isEqual(this.safeString(currencyInfo, "index"), tokenIndex))
+            {
+                return code;
+            }
+        }
+        return this.safeCurrencyCode(tokenIndex);
+    }
+
+    public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)
+    {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrowYearlyRate": "0.05",
+        //         "supplyYearlyRate": "0.0249808267",
+        //         "balance": "284714721.5832400322",
+        //         "utilization": "0.5551294814",
+        //         "oraclePx": "1.0",
+        //         "ltv": "0.0",
+        //         "totalSupplied": "639994288.7804760933",
+        //         "totalBorrowed": "355279697.6056296229"
+        //     }
+        //
+        return new Dictionary<string, object>() {
+            { "currency", this.tokenIndexToCurrencyCode(this.safeString(info, "token")) },
+            { "rate", this.safeNumber(info, "borrowYearlyRate") },
+            { "period", 31536000000 },
+            { "timestamp", null },
+            { "datetime", null },
+            { "info", info },
+        };
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchBorrowInterest
+     * @description fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state
+     * @param {string} [code] unified currency code
+     * @param {string} [symbol] not used by hyperliquid fetchBorrowInterest
+     * @param {int} [since] not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
+     */
+    public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        string? userAddress = this.safeString(this.handlePublicAddress("fetchBorrowInterest", parameters), 0);
+        IDictionary<string, object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchBorrowInterest", parameters), 1, new Dictionary<string, object>() {});
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "type", "borrowLendUserState" },
+            { "user", userAddress },
+        };
+        object response = await this.publicPostInfo(this.extend(request, paramsPublicAddress));
+        //
+        //     {
+        //         "tokenToState": [
+        //             [
+        //                 0,
+        //                 {
+        //                     "borrow": { "basis": "100.0", "value": "100.25" },
+        //                     "supply": { "basis": "0.0", "value": "0.0" }
+        //                 }
+        //             ]
+        //         ],
+        //         "health": "healthy",
+        //         "healthFactor": null
+        //     }
+        //
+        List<object> tokenToState = this.safeList(response, "tokenToState", new List<object>() {});
+        List<object> interests = new List<object>() {};
+        for (int i = 0; i < tokenToState.Count; i++)
+        {
+            List<object> tokenState = this.safeList(tokenToState, i, new List<object>() {});
+            IDictionary<string, object> state = this.safeDict(tokenState, 1, new Dictionary<string, object>() {});
+            IDictionary<string, object> borrow = this.safeDict(state, "borrow", new Dictionary<string, object>() {});
+            // tokens that are only supplied have nothing borrowed
+            if (Precise.stringGt(this.safeString(borrow, "value", "0"), "0"))
+            {
+                interests.Add(this.extend(state, new Dictionary<string, object>() {
+                    { "token", this.safeString(tokenState, 0) },
+                }));
+            }
+        }
+        List<object> parsed = this.parseBorrowInterests(interests);
+        return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(parsed,code, null, limit));
+    }
+
+    public override object parseBorrowInterest(object info, IDictionary<string, object> market = null)
+    {
+        //
+        //     {
+        //         "token": "0",
+        //         "borrow": { "basis": "100.0", "value": "100.25" },
+        //         "supply": { "basis": "0.0", "value": "0.0" }
+        //     }
+        //
+        IDictionary<string, object> borrow = this.safeDict(info, "borrow", new Dictionary<string, object>() {});
+        string? borrowed = this.safeString(borrow, "value");
+        // the basis is the amount borrowed, the value includes the interest accrued since
+        string? interest = Precise.stringSub(borrowed, this.safeString(borrow, "basis"));
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", null },
+            { "currency", this.tokenIndexToCurrencyCode(this.safeString(info, "token")) },
+            { "interest", this.parseNumber(interest) },
+            { "interestRate", null },
+            { "amountBorrowed", this.parseNumber(borrowed) },
+            { "marginMode", "cross" },
+            { "timestamp", null },
+            { "datetime", null },
+        };
     }
 
     /**

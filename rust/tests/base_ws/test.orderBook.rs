@@ -424,13 +424,13 @@ pub fn testWsOrderBook() {
     let mut desyncSides: Value = Value::from(vec![get_value(&desyncBook, &Value::Str("bids".into())), get_value(&desyncBook, &Value::Str("asks".into()))]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1606: bool = true;
-        while { if !__for_first_1606 { i += 1; } __for_first_1606 = false; i < (desyncSides.len() as i64) } {
+        let mut __for_first_1617: bool = true;
+        while { if !__for_first_1617 { i += 1; } __for_first_1617 = false; i < (desyncSides.len() as i64) } {
         let mut side: Value = desyncSides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         {
                         let mut k: i64 = 0;
-            let mut __for_first_1605: bool = true;
-            while { if !__for_first_1605 { k += 1; } __for_first_1605 = false; (k as f64) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1616: bool = true;
+            while { if !__for_first_1616 { k += 1; } __for_first_1616 = false; (k as f64) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
             let mut row: Value = get_value(&side, &Value::Int(k));
             assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&row).as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN)))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&row, &Value::Int(0)) != Value::Null))));

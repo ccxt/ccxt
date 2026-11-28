@@ -16,6 +16,490 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCrossBorrowRates": [
+            {
+                "description": "borrow rates of the borrow/lend protocol",
+                "method": "fetchCrossBorrowRates",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [],
+                "output": {
+                    "type": "allBorrowLendReserveStates"
+                }
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "borrow rate of a currency",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "USDC"
+                ],
+                "output": {
+                    "type": "borrowLendReserveState",
+                    "token": 0
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "borrow interest, tokens with nothing borrowed are skipped",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "borrowLendUserState",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "approveAgent": [
+            {
+                "description": "approve the unnamed api wallet",
+                "method": "approveAgent",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x000000000000000000000000000000000000dEaD"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "signatureChainId": "0x66eee",
+                        "agentAddress": "0x000000000000000000000000000000000000dEaD",
+                        "nonce": 1711104140105,
+                        "type": "approveAgent"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "approve a named api wallet with an expiration",
+                "method": "approveAgent",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x000000000000000000000000000000000000dEaD",
+                    "bot valid_until 1795692771591"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "signatureChainId": "0x66eee",
+                        "agentAddress": "0x000000000000000000000000000000000000dEaD",
+                        "nonce": 1711104140105,
+                        "type": "approveAgent",
+                        "agentName": "bot valid_until 1795692771591"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "fetchApprovedBuilders": [
+            {
+                "description": "builders approved by a user",
+                "method": "fetchApprovedBuilders",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "approvedBuilders",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchVaultDetails": [
+            {
+                "description": "details of a vault",
+                "method": "fetchVaultDetails",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"
+                ],
+                "output": {
+                    "type": "vaultDetails",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303"
+                }
+            },
+            {
+                "description": "details of a vault with the follower state of a user",
+                "method": "fetchVaultDetails",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "vaultDetails",
+                    "vaultAddress": "0xdfc24b077bc1425ad1dea75bcb6f8158e10df303",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingDelegations": [
+            {
+                "description": "staking delegations of a user",
+                "method": "fetchStakingDelegations",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegations",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingSummary": [
+            {
+                "description": "staking summary of a user",
+                "method": "fetchStakingSummary",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegatorSummary",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingHistory": [
+            {
+                "description": "staking history of a user",
+                "method": "fetchStakingHistory",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegatorHistory",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchStakingRewards": [
+            {
+                "description": "staking rewards of a user",
+                "method": "fetchStakingRewards",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "delegatorRewards",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "noop": [
+            {
+                "description": "invalidate a given nonce",
+                "method": "noop",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    1795692771591
+                ],
+                "output": {
+                    "action": {
+                        "type": "noop"
+                    },
+                    "nonce": 1795692771591,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "claimRewards": [
+            {
+                "description": "claim rewards",
+                "method": "claimRewards",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [],
+                "output": {
+                    "action": {
+                        "type": "claimRewards"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "usdSend": [
+            {
+                "description": "send usdc to another address",
+                "method": "usdSend",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    1.5,
+                    "0x000000000000000000000000000000000000dEaD"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "destination": "0x000000000000000000000000000000000000dEaD",
+                        "amount": "1.5",
+                        "time": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "usdSend"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "spotSend": [
+            {
+                "description": "send a spot asset to another address",
+                "method": "spotSend",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "HYPE",
+                    0.5,
+                    "0x000000000000000000000000000000000000dEaD"
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "destination": "0x000000000000000000000000000000000000dEaD",
+                        "token": "HYPE:0x0d01dc56dcaaca66ad901c959b4011ec",
+                        "amount": "0.5",
+                        "time": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "spotSend"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "stakingDeposit": [
+            {
+                "description": "move hype into staking",
+                "method": "stakingDeposit",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    1.5
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "wei": 150000000,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "cDeposit"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "stakingWithdraw": [
+            {
+                "description": "move hype out of staking",
+                "method": "stakingWithdraw",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    0.25
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "wei": 25000000,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "cWithdraw"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "tokenDelegate": [
+            {
+                "description": "delegate to a validator",
+                "method": "tokenDelegate",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x5ac99df645f3414876c816caa18b2d234024b487",
+                    2
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "wei": 200000000,
+                        "isUndelegate": false,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "tokenDelegate"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "undelegate from a validator",
+                "method": "tokenDelegate",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "0x5ac99df645f3414876c816caa18b2d234024b487",
+                    1e-08,
+                    true
+                ],
+                "output": {
+                    "action": {
+                        "hyperliquidChain": "Mainnet",
+                        "validator": "0x5ac99df645f3414876c816caa18b2d234024b487",
+                        "wei": 1,
+                        "isUndelegate": true,
+                        "nonce": 1711104140105,
+                        "signatureChainId": "0x66eee",
+                        "type": "tokenDelegate"
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch the sub-accounts of a user",
+                "method": "fetchAccounts",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "subAccounts",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                }
+            }
+        ],
+        "fetchLeverageTiers": [
+            {
+                "description": "leverage tiers of the main dex",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "SOL/USDC:USDC",
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "output": {
+                    "type": "meta"
+                }
+            },
+            {
+                "description": "hip3 leverage tiers are requested from the symbols' dex",
+                "method": "fetchLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "XYZ-XYZ100/USDC:USDC",
+                        "XYZ-AAPL/USDC:USDC"
+                    ]
+                ],
+                "output": {
+                    "type": "meta",
+                    "dex": "xyz"
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "leverage tiers of a single market",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "output": {
+                    "type": "meta"
+                }
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage of a swap market",
+                "method": "fetchLeverage",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": {
+                    "type": "activeAssetData",
+                    "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                    "coin": "SOL"
+                }
+            }
+        ],
         "fetchMyLiquidations": [
             {
                 "description": "fetchMyLiquidations skips non-liquidation fills",
@@ -510,6 +994,22 @@
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "170", "s": "0.1", "r": false, "t": { "limit": { "tif": "Alo" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711269437173, "signature": { "r": "0x7ad22203bcece7b94016458e6080be8bee0724807186bcb7a64f1a9f9a83c1b9", "s": "0x1ae3889c08d3a9ce6bf50260b9e4b2947e55a10fe8c6640e6254a0ab829febb9", "v": 28 } }
             },
             {
+                "description": "post only order with the unified timeInForce PO",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    170,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "170", "s": "0.1", "r": false, "t": { "limit": { "tif": "Alo" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711269437173, "signature": { "r": "0x7ad22203bcece7b94016458e6080be8bee0724807186bcb7a64f1a9f9a83c1b9", "s": "0x1ae3889c08d3a9ce6bf50260b9e4b2947e55a10fe8c6640e6254a0ab829febb9", "v": 28 } }
+            },
+            {
                 "description": "spot market order",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
@@ -672,6 +1172,253 @@
                     }
                 ],
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "183.75", "s": "0.1", "r": false, "t": { "limit": { "tif": "Ioc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1711104140105, "signature": { "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af", "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043", "v": 27 }, "vaultAddress": "eba57e1d6bd242ba5f41b61ff1d30b481a535b58" }
+            },
+            {
+                "description": "trailing percent order with an activation price",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.17,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "trailingTriggerPrice": 106.37
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "trailingStop",
+                        "asset": 5,
+                        "isBuy": false,
+                        "sz": "0.17",
+                        "reduceOnly": false,
+                        "retracement": {
+                            "pct": "5%"
+                        },
+                        "activationPx": "106.37"
+                    },
+                    "nonce": 1795678478875,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "trailing amount order with an activation price",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.17,
+                    null,
+                    {
+                        "trailingAmount": 3.5458,
+                        "trailingTriggerPrice": 63.825
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "trailingStop",
+                        "asset": 5,
+                        "isBuy": true,
+                        "sz": "0.17",
+                        "reduceOnly": false,
+                        "retracement": {
+                            "px": "3.5458"
+                        },
+                        "activationPx": "63.825"
+                    },
+                    "nonce": 1795678478875,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "trailing percent order without an activation price",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.17,
+                    null,
+                    {
+                        "trailingPercent": 20
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "trailingStop",
+                        "asset": 5,
+                        "isBuy": false,
+                        "sz": "0.17",
+                        "reduceOnly": false,
+                        "retracement": {
+                            "pct": "20%"
+                        },
+                        "activationPx": null
+                    },
+                    "nonce": 1795678478875,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "IOC limit order with a priority fee",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.3,
+                    35,
+                    {
+                        "timeInForce": "IOC",
+                        "priorityFee": 10000
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "35",
+                                "s": "0.3",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Ioc"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 10000
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "post-only limit order with a priority fee",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.3,
+                    35,
+                    {
+                        "postOnly": true,
+                        "priorityFee": 1
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "35",
+                                "s": "0.3",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Alo"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 1
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
+            },
+            {
+                "description": "market order with a priority fee",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    175,
+                    {
+                        "priorityFee": 5000
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "183.75",
+                                "s": "0.1",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Ioc"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 5000
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1711104140105,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
             }
         ],
         "createTwapOrder": [
@@ -724,6 +1471,82 @@
                     ]
                 ],
                 "output": { "action": { "type": "order", "orders": [ { "a": 5, "b": true, "p": "60", "s": "0.1", "r": false, "t": { "limit": { "tif": "Gtc" } } }, { "a": 5, "b": true, "p": "61", "s": "0.11", "r": false, "t": { "limit": { "tif": "Gtc" } } } ], "grouping": "na", "builder": { "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6", "f": 10 } }, "nonce": 1709643776143, "signature": { "r": "0xe94bca75465d32e21e86e86f32d443331ebe1195888eb05e5eebf5a4db2a1716", "s": "0x2c9b208ec7e339ed005b2263030f303c9d0b3a1f4bb41e9aa38b40a62b9c34a4", "v": 28 } }
+            },
+            {
+                "description": "post-only orders sharing a priority fee",
+                "method": "createOrders",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    [
+                        {
+                            "symbol": "SOL/USDC:USDC",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 60,
+                            "params": {
+                                "postOnly": true
+                            }
+                        },
+                        {
+                            "symbol": "SOL/USDC:USDC",
+                            "amount": 0.11,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 61,
+                            "params": {
+                                "postOnly": true
+                            }
+                        }
+                    ],
+                    {
+                        "priorityFee": 20000
+                    }
+                ],
+                "output": {
+                    "action": {
+                        "type": "order",
+                        "orders": [
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "60",
+                                "s": "0.1",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Alo"
+                                    }
+                                }
+                            },
+                            {
+                                "a": 5,
+                                "b": true,
+                                "p": "61",
+                                "s": "0.11",
+                                "r": false,
+                                "t": {
+                                    "limit": {
+                                        "tif": "Alo"
+                                    }
+                                }
+                            }
+                        ],
+                        "grouping": {
+                            "p": 20000
+                        },
+                        "builder": {
+                            "b": "0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6",
+                            "f": 10
+                        }
+                    },
+                    "nonce": 1709643776143,
+                    "signature": {
+                        "r": "0xf389ba0e2bd5f1384e80e4fba5e337273bd02d40b19127206dea14ffe6c7e0af",
+                        "s": "0xc4089eac6cc70d6834f595acce82d32252f11c9459e4a3868548b6fc3087043",
+                        "v": 27
+                    }
+                }
             }
         ],
         "editOrder": [
@@ -740,6 +1563,23 @@
                     100
                 ],
                 "output": { "action": { "type": "batchModify", "modifies": [ { "oid": 6530857127, "order": { "a": 5, "b": true, "p": "100", "s": "0.7", "r": false, "t": { "limit": { "tif": "Gtc" } } } } ] }, "nonce": 1709643553938, "signature": { "r": "0x5455e138164fb02c23fae78d26bcfff278ebbd7d0ad4bfdd450685221135bcbb", "s": "0x2eb7ab67b84d7614c195fe42f50ebfa83822237abd1b68c44ab547a2f8acdd1a", "v": 27 } }
+            },
+            {
+                "description": "edit order with the unified timeInForce PO",
+                "method": "editOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "6530857127",
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.7,
+                    100,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": { "action": { "type": "batchModify", "modifies": [ { "oid": 6530857127, "order": { "a": 5, "b": true, "p": "100", "s": "0.7", "r": false, "t": { "limit": { "tif": "Alo" } } } } ] }, "nonce": 1709643553938, "signature": { "r": "0x5455e138164fb02c23fae78d26bcfff278ebbd7d0ad4bfdd450685221135bcbb", "s": "0x2eb7ab67b84d7614c195fe42f50ebfa83822237abd1b68c44ab547a2f8acdd1a", "v": 27 } }
             },
             {
                 "description": "edit order on a vault",
@@ -1176,6 +2016,23 @@
                     ]
                 ],
                 "output": { "type": "metaAndAssetCtxs", "dex": "xyz" }
+            },
+            {
+                "description": "predicted funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "SOL/USDC:USDC"
+                    ],
+                    {
+                        "method": "predictedFundings"
+                    }
+                ],
+                "output": {
+                    "type": "predictedFundings"
+                }
             }
         ],
         "fetchOpenInterest": [
@@ -1378,6 +2235,21 @@
                     }
                 ],
                 "output": { "type": "userFills", "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A" }
+            },
+            {
+                "description": "fills of twap orders",
+                "method": "fetchMyTrades",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                    "SOL/USDC:USDC",
+                    null,
+                    null,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                        "twap": true
+                    }
+                ],
+                "output": "{\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"type\":\"userTwapSliceFills\"}"
             }
         ],
         "fetchPosition": [

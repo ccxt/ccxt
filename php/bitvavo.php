@@ -397,6 +397,7 @@ class bitvavo extends Exchange {
                     '412' => '\\ccxt\\InvalidAddress', // {"errorCode":412,"error":"eth_address_invalid."}
                     '413' => '\\ccxt\\InvalidAddress', // This address violates the whitelist.
                     '414' => '\\ccxt\\ExchangeError', // You cannot withdraw assets within 2 minutes of logging in.
+                    '431' => '\\ccxt\\MarketClosed', // {"errorCode":431,"error":"getBook is not available for ACE-EUR in state HALTED"}
                 ),
                 'broad' => array(
                     'start parameter is invalid' => '\\ccxt\\BadRequest', // {"errorCode":205,"error":"start parameter is invalid."}

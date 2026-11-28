@@ -49,6 +49,8 @@
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [setMarginMode](#setmarginmode)
+* [fetchLeverageTiers](#fetchleveragetiers)
+* [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
 * [addMargin](#addmargin)
 * [reduceMargin](#reducemargin)
@@ -62,6 +64,24 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reserveRequestWeight](#reserverequestweight)
+* [approveAgent](#approveagent)
+* [noop](#noop)
+* [claimRewards](#claimrewards)
+* [usdSend](#usdsend)
+* [spotSend](#spotsend)
+* [stakingDeposit](#stakingdeposit)
+* [stakingWithdraw](#stakingwithdraw)
+* [tokenDelegate](#tokendelegate)
+* [fetchApprovedBuilders](#fetchapprovedbuilders)
+* [fetchVaultDetails](#fetchvaultdetails)
+* [fetchStakingDelegations](#fetchstakingdelegations)
+* [fetchStakingSummary](#fetchstakingsummary)
+* [fetchStakingHistory](#fetchstakinghistory)
+* [fetchStakingRewards](#fetchstakingrewards)
+* [fetchAccounts](#fetchaccounts)
+* [fetchCrossBorrowRates](#fetchcrossborrowrates)
+* [fetchCrossBorrowRate](#fetchcrossborrowrate)
+* [fetchBorrowInterest](#fetchborrowinterest)
 * [createSubAccount](#createsubaccount)
 * [createOrdersWs](#createordersws)
 * [createOrderWs](#createorderws)
@@ -70,6 +90,8 @@
 * [cancelOrderWs](#cancelorderws)
 * [watchOrderBook](#watchorderbook)
 * [unWatchOrderBook](#unwatchorderbook)
+* [watchBidsAsks](#watchbidsasks)
+* [unWatchBidsAsks](#unwatchbidsasks)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -364,13 +386,18 @@ retrieves data on all swap markets for hyperliquid
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc  
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-predicted-funding-rates-for-different-venues
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.dex | <code>string</code> | No | perp dex name for hip3 markets, eg: 'xyz', inferred from the symbols if not provided |
+| params.method | <code>string</code> | No | 'metaAndAssetCtxs' (default) for the current funding rates, or 'predictedFundings' for the predicted rate and time of the next funding, only available for the main dex, the predictions for other venues are in info |
 
 
 ```javascript
@@ -528,7 +555,11 @@ create a trade order
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -546,6 +577,10 @@ create a trade order
 | params.slippage | <code>string</code> | No | the slippage for market order |
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.priorityFee | <code>int</code> | No | the order priority fee rate in units of 1e-8 (10000 = 1 bp), only for IOC orders (market orders included) or post-only orders that are not reduce-only, paid in HYPE from the undelegated staking balance |
+| params.trailingPercent | <code>float</code> | No | *swap only* the percent to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order |
+| params.trailingAmount | <code>float</code> | No | *swap only* the quote amount to trail away from the best mark price, the order is sent as a native trailing stop that executes as a market order |
+| params.trailingTriggerPrice | <code>float</code> | No | *swap only* the mark price at which a trailing order starts tracking, tracking starts immediately if omitted |
 
 
 ```javascript
@@ -588,12 +623,17 @@ create a list of trade orders
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order  
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/priority-fees
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.priorityFee | <code>int</code> | No | the order priority fee rate in units of 1e-8 (10000 = 1 bp) applied to the whole request, only when every order is IOC (market orders included) or every order is post-only and not reduce-only, paid in HYPE from the undelegated staking balance |
 
 
 ```javascript
@@ -1041,6 +1081,7 @@ fetch all trades made by the user
 
 - https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
 - https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-twap-slice-fills
 
 
 | Param | Type | Required | Description |
@@ -1051,6 +1092,7 @@ fetch all trades made by the user
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest trade |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.twap | <code>boolean</code> | No | set to true to fetch the fills of twap orders instead, the exchange returns the 2000 most recent ones and ignores since and until |
 
 
 ```javascript
@@ -1154,6 +1196,54 @@ set margin mode (symbol)
 
 ```javascript
 hyperliquid.setMarginMode (marginMode, symbol, params?)
+```
+
+
+<a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
+
+### fetchLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
+
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata-universe-and-margin-tables
+- https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-tiers
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols, all symbols must belong to the same dex for hip3 markets |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.dex | <code>string</code> | No | the hip3 dex to fetch the tiers from, inferred from the symbols when omitted |
+
+
+```javascript
+hyperliquid.fetchLeverageTiers (symbols?, params?)
+```
+
+
+<a name="fetchLeverage" id="fetchleverage"></a>
+
+### fetchLeverage{docsify-ignore}
+fetch the set leverage and margin mode for a swap market
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-active-asset-data  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1472,6 +1562,398 @@ hyperliquid.reserveRequestWeight (weight, params?)
 ```
 
 
+<a name="approveAgent" id="approveagent"></a>
+
+### approveAgent{docsify-ignore}
+approves an API wallet (agent) that can trade on behalf of the account but can not withdraw, the request must be signed with the private key of the main wallet, not with the one of an API wallet
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**
+
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#approve-an-api-wallet
+- https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets#api-wallets
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| agentAddress | <code>string</code> | Yes | the address of the API wallet to approve |
+| agentName | <code>string</code> | No | the name of the API wallet, an account has a single unnamed API wallet, which is replaced when another unnamed one is approved, and up to 3 named ones, append ' valid_until <timestamp in ms>' to the name to set an expiration of at most 180 days |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.approveAgent (agentAddress, agentName?, params?)
+```
+
+
+<a name="noop" id="noop"></a>
+
+### noop{docsify-ignore}
+sends an action that does nothing but marks the nonce as used, which invalidates a pending request sent with the same nonce, it can be a more effective way to cancel in-flight orders than a cancel
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#invalidate-pending-nonce-noop  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| nonce | <code>int</code> | No | the nonce to mark as used, a new one is generated when omitted |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.vaultAddress | <code>string</code> | No | the vault or sub-account address to send the action for |
+
+
+```javascript
+hyperliquid.noop (nonce?, params?)
+```
+
+
+<a name="claimRewards" id="claimrewards"></a>
+
+### claimRewards{docsify-ignore}
+claims the rewards earned by the account
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#claim-rewards  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.claimRewards (params?)
+```
+
+
+<a name="usdSend" id="usdsend"></a>
+
+### usdSend{docsify-ignore}
+sends USDC from the perp balance to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-usdc-transfer  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| amount | <code>float</code> | Yes | the amount of USDC to send |
+| address | <code>string</code> | Yes | the address to send to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.usdSend (amount, address, params?)
+```
+
+
+<a name="spotSend" id="spotsend"></a>
+
+### spotSend{docsify-ignore}
+sends a spot asset to another address on hyperliquid, it does not go through the EVM bridge, the request must be signed with the private key of the main wallet
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#core-spot-transfer  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code of the asset to send |
+| amount | <code>float</code> | Yes | the amount to send |
+| address | <code>string</code> | Yes | the address to send to |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.spotSend (code, amount, address, params?)
+```
+
+
+<a name="stakingDeposit" id="stakingdeposit"></a>
+
+### stakingDeposit{docsify-ignore}
+moves HYPE from the spot balance into the staking balance, where it can be delegated to validators or used to pay priority fees, the request must be signed with the private key of the main wallet
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-into-staking  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| amount | <code>float</code> | Yes | the amount of HYPE to move into staking |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.stakingDeposit (amount, params?)
+```
+
+
+<a name="stakingWithdraw" id="stakingwithdraw"></a>
+
+### stakingWithdraw{docsify-ignore}
+moves HYPE from the staking balance back to the spot balance, the amount goes through a 7 day unstaking queue, the request must be signed with the private key of the main wallet
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#withdraw-from-staking  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| amount | <code>float</code> | Yes | the amount of HYPE to move out of staking |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.stakingWithdraw (amount, params?)
+```
+
+
+<a name="tokenDelegate" id="tokendelegate"></a>
+
+### tokenDelegate{docsify-ignore}
+delegates HYPE of the staking balance to a validator, or undelegates it, a delegation is locked for 1 day, the request must be signed with the private key of the main wallet
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#delegate-or-undelegate-stake-from-validator  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| validator | <code>string</code> | Yes | the address of the validator |
+| amount | <code>float</code> | Yes | the amount of HYPE to delegate or undelegate |
+| isUndelegate | <code>boolean</code> | No | true to undelegate, false (default) to delegate |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.tokenDelegate (validator, amount, isUndelegate?, params?)
+```
+
+
+<a name="fetchApprovedBuilders" id="fetchapprovedbuilders"></a>
+
+### fetchApprovedBuilders{docsify-ignore}
+fetch the addresses of the builders the user approved a builder fee for
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;string&gt;</code> - a list of builder addresses
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-approved-builders-for-user  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchApprovedBuilders (params?)
+```
+
+
+<a name="fetchVaultDetails" id="fetchvaultdetails"></a>
+
+### fetchVaultDetails{docsify-ignore}
+fetch the details of a vault, its leader, description, portfolio history, apr and followers
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - the vault details as returned by the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-details-for-a-vault  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| vaultAddress | <code>string</code> | Yes | the address of the vault |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | a user address, when provided the response includes the state of that user as a follower of the vault |
+
+
+```javascript
+hyperliquid.fetchVaultDetails (vaultAddress, params?)
+```
+
+
+<a name="fetchStakingDelegations" id="fetchstakingdelegations"></a>
+
+### fetchStakingDelegations{docsify-ignore}
+fetch the amounts of HYPE the user delegated to each validator
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of delegations as returned by the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-delegations  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchStakingDelegations (params?)
+```
+
+
+<a name="fetchStakingSummary" id="fetchstakingsummary"></a>
+
+### fetchStakingSummary{docsify-ignore}
+fetch the staking balances of the user, the undelegated amount is the one priority fees are paid from
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - the staking summary as returned by the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchStakingSummary (params?)
+```
+
+
+<a name="fetchStakingHistory" id="fetchstakinghistory"></a>
+
+### fetchStakingHistory{docsify-ignore}
+fetch the history of the staking deposits, withdrawals, delegations and undelegations of the user
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of staking events as returned by the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-history  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchStakingHistory (params?)
+```
+
+
+<a name="fetchStakingRewards" id="fetchstakingrewards"></a>
+
+### fetchStakingRewards{docsify-ignore}
+fetch the staking rewards earned by the user
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of staking rewards as returned by the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-staking-rewards  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchStakingRewards (params?)
+```
+
+
+<a name="fetchAccounts" id="fetchaccounts"></a>
+
+### fetchAccounts{docsify-ignore}
+fetch the sub-accounts of a master account
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-subaccounts  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | the master account address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchAccounts (params?)
+```
+
+
+<a name="fetchCrossBorrowRates" id="fetchcrossborrowrates"></a>
+
+### fetchCrossBorrowRates{docsify-ignore}
+fetch the borrow interest rates of all currencies of the borrow/lend protocol
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a list of [borrow rate structures](https://docs.ccxt.com/?id=borrow-rate-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-all-borrow-lend-reserve-states  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchCrossBorrowRates (params?)
+```
+
+
+<a name="fetchCrossBorrowRate" id="fetchcrossborrowrate"></a>
+
+### fetchCrossBorrowRate{docsify-ignore}
+fetch the borrow interest rate of a currency of the borrow/lend protocol
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-reserve-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.fetchCrossBorrowRate (code, params?)
+```
+
+
+<a name="fetchBorrowInterest" id="fetchborrowinterest"></a>
+
+### fetchBorrowInterest{docsify-ignore}
+fetch the interest owed by the user for the currencies borrowed from the borrow/lend protocol
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-borrow-lend-user-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| symbol | <code>string</code> | No | not used by hyperliquid fetchBorrowInterest |
+| since | <code>int</code> | No | not used by hyperliquid fetchBorrowInterest, the exchange returns the current state only |
+| limit | <code>int</code> | No | the maximum number of structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.fetchBorrowInterest (code?, symbol?, since?, limit?, params?)
+```
+
+
 <a name="createSubAccount" id="createsubaccount"></a>
 
 ### createSubAccount{docsify-ignore}
@@ -1666,6 +2148,48 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 ```javascript
 hyperliquid.unWatchOrderBook (symbol, params?)
+```
+
+
+<a name="watchBidsAsks" id="watchbidsasks"></a>
+
+### watchBidsAsks{docsify-ignore}
+watches the best bid & ask of a market
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to watch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.watchBidsAsks (symbols, params?)
+```
+
+
+<a name="unWatchBidsAsks" id="unwatchbidsasks"></a>
+
+### unWatchBidsAsks{docsify-ignore}
+unWatches the best bid & ask of a market
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - the exchange response
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list with a single unified symbol, the stream is per market so the method must be called once for each symbol to unwatch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.unWatchBidsAsks (symbols, params?)
 ```
 
 

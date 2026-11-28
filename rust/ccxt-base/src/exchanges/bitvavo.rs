@@ -1466,6 +1466,7 @@ impl Bitvavo {
         m.insert("412".to_string(), Value::Str("InvalidAddress".into()));
         m.insert("413".to_string(), Value::Str("InvalidAddress".into()));
         m.insert("414".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("431".to_string(), Value::Str("MarketClosed".into()));
     m
 }));
         m.insert("broad".to_string(), Value::Map({

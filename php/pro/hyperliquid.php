@@ -28,6 +28,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'createOrdersWs' => true,
                 'editOrderWs' => true,
                 'watchBalance' => true,
+                'watchBidsAsks' => true,
                 'watchMyLiquidations' => true,
                 'watchMyLiquidationsForSymbols' => true,
                 'watchMyTrades' => true,
@@ -40,6 +41,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 'watchTradesForSymbols' => false,
                 'watchPosition' => false,
                 'unWatchBalance' => true,
+                'unWatchBidsAsks' => true,
                 'watchPositions' => true,
                 'unWatchPositions' => true,
                 'unWatchOrderBook' => true,
@@ -370,6 +372,142 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $orderbook->reset($snapshot);
         $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches the best bid & ask of a $market
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         *
+         * @param {string[]} $symbols a list with a single unified $symbol, the stream is per $market so the method must be called once for each $symbol to watch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($this->single_bid_ask_symbol('watchBidsAsks', $symbols));
+        $symbol = $this->safe_string($market, 'symbol', '');
+        $messageHash = 'bidask:' . $symbol;
+        $url = $this->urls['api']['ws']['public'];
+        $request = array(
+            'method' => 'subscribe',
+            'subscription' => array(
+                'type' => 'bbo',
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        Async\await($this->wait_for_pending_unsubscribe($url, $messageHash));
+        $ticker = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$symbol] = $ticker;
+            return $result;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', array( $symbol ));
+    }
+
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_un_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * unWatches the best bid & ask of a $market
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         *
+         * @param {string[]} $symbols a list with a single unified $symbol, the stream is per $market so the method must be called once for each $symbol to unwatch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the exchange response
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($this->single_bid_ask_symbol('unWatchBidsAsks', $symbols));
+        $symbol = $this->safe_string($market, 'symbol', '');
+        $subMessageHash = 'bidask:' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $url = $this->urls['api']['ws']['public'];
+        $nonce = $this->incrementing_nonce();
+        $id = $this->number_to_string($nonce);
+        $request = array(
+            'id' => $id,
+            'method' => 'unsubscribe',
+            'subscription' => array(
+                'type' => 'bbo',
+                'coin' => ($this->safe_bool($market, 'swap', false)) ? $market['baseName'] : $market['id'],
+            ),
+        );
+        $message = $this->extend($request, $params);
+        return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+    }
+
+    public function single_bid_ask_symbol(string $methodName, ?array $symbols = null): string {
+        /**
+         * @ignore
+         * the bbo stream is subscribed per market, returns the only symbol of the list or throws
+         * @param {string} $methodName the name of the calling method
+         * @param {string[]} $symbols a list with a single unified symbol
+         * @return {string} the symbol
+         */
+        $symbolsLength = 0;
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+        }
+        if ($symbolsLength !== 1) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a symbols argument with a single symbol, the stream is per market, call the method once for each symbol');
+        }
+        return $this->safe_string($symbols, 0, '');
+    }
+
+    public function handle_bid_ask(Client $client, array $message) {
+        //
+        //     {
+        //         "channel": "bbo",
+        //         "data": {
+        //             "coin": "BTC",
+        //             "time": 1795692679488,
+        //             "bbo": [
+        //                 { "px": "60612.0", "sz": "12.46853", "n": 39 },
+        //                 { "px": "60613.0", "sz": "1.43894", "n": 8 }
+        //             ]
+        //         }
+        //     }
+        //
+        $entry = $this->safe_dict($message, 'data', array());
+        $ticker = $this->parse_ws_bid_ask($entry);
+        $symbol = $this->safe_string($ticker, 'symbol', '');
+        $this->bidsasks[$symbol] = $ticker;
+        $messageHash = 'bidask:' . $symbol;
+        $client->resolve($ticker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask(array $ticker, ?array $market = null): array {
+        $coin = $this->safe_string($ticker, 'coin');
+        $marketId = $this->coinToMarketId($coin);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'time');
+        // either side is null when the book has no orders on it
+        $levels = $this->safe_list($ticker, 'bbo', array());
+        $bid = $this->safe_dict($levels, 0, array());
+        $ask = $this->safe_dict($levels, 1, array());
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_string($marketResolved, 'symbol'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'bid' => $this->safe_string($bid, 'px'),
+            'bidVolume' => $this->safe_string($bid, 'sz'),
+            'ask' => $this->safe_string($ask, 'px'),
+            'askVolume' => $this->safe_string($ask, 'sz'),
+            'info' => $ticker,
+        ), $marketResolved);
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1870,6 +2008,24 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
+    public function handle_bid_ask_unsubscription(Client $client, array $subscription) {
+        //
+        //        "subscription":{
+        //           "type":"bbo",
+        //           "coin":"BTC"
+        //        }
+        //
+        $coin = $this->safe_string($subscription, 'coin');
+        $marketId = $this->coinToMarketId($coin);
+        $symbol = $this->safe_symbol($marketId);
+        $subMessageHash = 'bidask:' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
+        if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
+            unset($this->bidsasks[$symbol]);
+        }
+    }
+
     public function handle_ticker_unsubscription(Client $client, array $subscription) {
         //
         $coin = $this->safe_string($subscription, 'coin');
@@ -2000,6 +2156,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $type = $this->safe_string($subscription, 'type');
         if ($type === 'l2Book') {
             $this->handle_order_book_unsubscription($client, $subscription);
+        } elseif ($type === 'bbo') {
+            $this->handle_bid_ask_unsubscription($client, $subscription);
         } elseif ($type === 'trades') {
             $this->handle_trades_unsubscription($client, $subscription);
         } elseif ($type === 'candle') {
@@ -2042,6 +2200,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             'pong' => array($this, 'handle_pong'),
             'trades' => array($this, 'handle_trades'),
             'l2Book' => array($this, 'handle_order_book'),
+            'bbo' => array($this, 'handle_bid_ask'),
             'candle' => array($this, 'handle_ohlcv'),
             'orderUpdates' => array($this, 'handle_order'),
             'userFills' => array($this, 'handle_my_trades'),
