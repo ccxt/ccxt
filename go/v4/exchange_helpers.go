@@ -1372,19 +1372,6 @@ func GetArgMap(args []any, index int, def map[string]any) map[string]any {
 	return def
 }
 
-// GetArgAnySlice returns the list the caller passed, or def when the argument is absent.
-func GetArgAnySlice(args []any, index int, def []any) []any {
-	val, ok := goArgValue(args, index)
-	if !ok {
-		return def
-	}
-	if res, isList := val.([]any); isList {
-		return res
-	}
-	goArgPanic("GetArgAnySlice", index, val)
-	return def
-}
-
 // GetArgStringSlice returns the []string the caller passed, or def when the argument is absent.
 func GetArgStringSlice(args []any, index int, def []string) []string {
 	val, ok := goArgValue(args, index)

@@ -220,7 +220,17 @@ public partial class BaseTest
     public static string ed25519() => "ed25519";
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
-    public static object parseFloat(object a) => Exchange.parseFloat(a);
+    public static object parseFloat(object a)
+    {
+        try
+        {
+            return Convert.ToDouble(a, System.Globalization.CultureInfo.InvariantCulture.NumberFormat);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
     public static object callDynamically(object obj, object methodName, object[] args = null) => Exchange.callDynamically(obj, methodName, args);
 
     public bool equals(object a, object b)

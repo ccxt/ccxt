@@ -1095,8 +1095,6 @@ class NewTranspiler {
     getJavaWsRegexes() {
         // Java-specific WS regexes — converts transpiled code for WS exchange classes
         return [
-            // Dynamic exception construction: new getValue(x, key)(msg) → this.newException(getValue(x, key), msg)
-            [/new\sHelpers\.GetValue\((\w+),\s*(\w+)\)\((\w+)\)/gm, 'this.newException(Helpers.GetValue($1, $2), $3)'],
             // Client type casts — transpiled code uses Object client, need to cast to Client
             [/\(Object client,/gm, '(Client client,'],
             [/\(Object client\)/gm, '(Client client)'],

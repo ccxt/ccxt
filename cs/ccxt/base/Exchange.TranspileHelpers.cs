@@ -188,23 +188,6 @@ public partial class BaseExchange
         return false;
     }
 
-    // Every return path of this helper is the Convert.ToInt64 box or null (the
-    // catch), so the signature names that single box instead of `object`. A call site that
-    // keeps the value in an object context (a dict slot, a request value, an object local)
-    public static object parseFloat(object a)
-    {
-        object parsedValue = null;
-        try
-        {
-            // parsedValue = float.Parse((string)a, CultureInfo.InvariantCulture.NumberFormat);
-            parsedValue = (Convert.ToDouble(a, CultureInfo.InvariantCulture.NumberFormat));
-        }
-        catch (Exception e)
-        {
-        }
-        return parsedValue;
-    }
-
     // generic getValue to replace elementAccesses
     public object getValue(object a, object b) => GetValue(a, b);
     // typed twin of GetValue(object, object) for a receiver the C# printer proved is a
@@ -484,12 +467,6 @@ public partial class BaseExchange
     public void throwDynamicException(object exception, object message)
     {
         throw NewException((Type)exception, (string)message);
-    }
-
-    // This function is the salient bit here
-    public object newException(object exception, object message)
-    {
-        return Activator.CreateInstance(exception as Type, message as String) as Exception;
     }
 
     public static Exception NewException(Type exception, String message)

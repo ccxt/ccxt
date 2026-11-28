@@ -758,12 +758,11 @@ export default class whitebit extends whitebitRest {
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let messageHash = 'wallet:';
-        let method: Str = undefined;
+        let method = 'balanceMargin_subscribe';
         if (type === 'spot') {
             method = 'balanceSpot_subscribe';
             messageHash += 'spot';
         } else {
-            method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
         const url = this.safeString (this.urls['api'], 'ws');
@@ -885,7 +884,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
+    async watchPublic (messageHash: string, method: string, reqParams: any[], params: Dict = {}) {
         const url = this.safeString (this.urls['api'], 'ws');
         const id = this.incrementingNonce ();
         const request: Dict = {
@@ -959,7 +958,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchPrivate (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
+    async watchPrivate (messageHash: string, method: string, reqParams: any[], params: Dict = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.safeString (this.urls['api'], 'ws');

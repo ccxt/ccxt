@@ -2225,29 +2225,6 @@ public class BaseExchange {
         return s; // check later
     }
 
-    /**
-     * Dynamically create an exception by class reference.
-     * Used by WS exchanges: new getValue(exceptions, key)(message) → newException(class, message)
-     */
-    public RuntimeException newException(Object exceptionClass, Object message) {
-        if (exceptionClass instanceof Class<?> clazz) {
-            try {
-                return (RuntimeException) clazz.getConstructor(String.class).newInstance(String.valueOf(message));
-            } catch (Exception e) {
-                // fallback
-            }
-        }
-        if (exceptionClass instanceof String className) {
-            try {
-                Class<?> clazz = Class.forName("io.github.ccxt.errors." + className);
-                return (RuntimeException) clazz.getConstructor(String.class).newInstance(String.valueOf(message));
-            } catch (Exception e) {
-                // fallback
-            }
-        }
-        return new RuntimeException(String.valueOf(message));
-    }
-
     // ─── WebSocket Bridge (matches C# Exchange.WsBridge.cs) ───
 
     /** The ws client registry. */

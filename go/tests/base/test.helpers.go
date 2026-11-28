@@ -514,7 +514,12 @@ func GetArgMap(args []any, index int, def map[string]any) map[string]any {
 }
 
 func GetArgAnySlice(args []any, index int, def []any) []any {
-	return ccxt.GetArgAnySlice(args, index, def)
+	if len(args) > index && args[index] != nil {
+		if res, ok := args[index].([]any); ok {
+			return res
+		}
+	}
+	return def
 }
 
 func GetArgStringSlice(args []any, index int, def []string) []string {

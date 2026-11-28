@@ -5148,7 +5148,7 @@ export class BaseExchange {
             entry['fee'] = tradeFee;
         }
         let timeInForce = this.safeString (orderDict, 'timeInForce');
-        let postOnly = this.safeValue (orderDict, 'postOnly');
+        let postOnly = this.safeBool (orderDict, 'postOnly');
         // timeInForceHandling
         if (timeInForce === undefined) {
             if (!isTriggerOrSLTpOrder && (this.safeString (orderDict, 'type') === 'market')) {
@@ -5271,7 +5271,7 @@ export class BaseExchange {
             key = 'base';
         }
         // for derivatives, the fee is in 'settle' currency
-        if (market['spot'] !== true) {
+        if (!this.safeBool (market, 'spot', false)) {
             key = 'settle';
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
