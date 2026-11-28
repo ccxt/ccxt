@@ -1921,15 +1921,14 @@ impl Bybit {
         let timestamp: Option<i64> = self.safe_integer2(&trade, Value::Str("t".into()), Value::Str("T".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k_opt(&trade, "S", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        let mut m: Value = self.safe_value_k(&trade, "m", &[]);
         if (side.is_none()) {
             side = Some("sell".to_string());
-            if (match &(m) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
+            if matches!(self.safe_bool_k(&trade, "m", &[Value::Bool(false)]), Value::Bool(true)) {
                 side = Some("buy".to_string());
             }
         }  else {
             // spot private
-            takerOrMaker = m;
+            takerOrMaker = self.safe_value_k(&trade, "m", &[]);
         }
         let price: Option<String> = self.safe_string_k_opt(&trade, "p", &[]);
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("q".into()), Value::Str("v".into()), &[]);

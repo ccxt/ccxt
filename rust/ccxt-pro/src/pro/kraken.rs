@@ -2416,16 +2416,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let errorMessage: Option<String> = self.safe_string2_opt(&message, Value::Str("errorMessage".into()), Value::Str("error".into()), &[]);
         if (errorMessage.is_some()) {
             let requestId: Option<String> = self.safe_string2_opt(&message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]);
-            let broad: Value = self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null);
-            let broadKey: Value = self.find_broadly_matched_key(broad.clone(), Value::from(errorMessage.as_deref()));
-            let mut exception: Value = Value::Null;
-            if (broadKey == Value::Null) {
-                exception = Value::from(crate::exchange_errors::exchange_error(Value::from(errorMessage.as_deref()))); // c# requirement to convert the errorMessage to string
-            }  else {
-                exception = Value::from(crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(errorMessage.map(Value::from).unwrap_or(Value::Null)))));
-            }
             if (requestId.is_some()) {
-                client.reject(exception, requestId.as_deref());
+                let broad: Value = self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null);
+                let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
+                    self.throw_broadly_matched_exception(broad, Value::from(errorMessage.as_deref()), Value::from(errorMessage.as_deref()));
+                    panic!("{}", crate::exchange_errors::exchange_error(errorMessage.map(Value::from).unwrap_or(Value::Null)));
+                }));
+                match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+                    client.reject(e, requestId.as_deref());
+                } }
             }
             return false;
         }

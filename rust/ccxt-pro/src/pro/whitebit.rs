@@ -77,8 +77,8 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -249,9 +249,9 @@ impl Whitebit {
         // so that can't be part of the message hash, and the user can only subscribe
         // to one timeframe per symbol
         let messageHash: String = format!("{}{}", "candles:", symbolValue);
-        let reqParams: Value = Value::from(vec![marketId.map(Value::from).unwrap_or(Value::Null), Value::from(interval)]);
+        let reqParams: crate::value::List = std::sync::Arc::new(vec![marketId.map(Value::from).unwrap_or(Value::Null), Value::from(interval)]);
         let method: String = "candles_subscribe".to_string();
-        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(params)]).await.into();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch_public(messageHash.as_str(), method.as_str(), &reqParams, &[Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit);
@@ -337,8 +337,8 @@ impl Whitebit {
         let defaultPriceInterval: String = self.safe_string(self.options.get("watchOrderBook").cloned().unwrap_or(Value::Null), Value::Str("priceInterval".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let priceInterval: Option<String> = self.safe_string_k_opt(&params, "priceInterval", &[&defaultPriceInterval]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("priceInterval".into()), &[]);
-        let reqParams: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(limitValue), priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
-        let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(paramsOmitted)]).await;
+        let reqParams: crate::value::List = std::sync::Arc::new(vec![Value::from((market).id.as_deref()), Value::from(limitValue), priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
+        let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &reqParams, &[Value::Dict(paramsOmitted)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1033,12 +1033,11 @@ impl Whitebit {
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let mut messageHash: String = "wallet:".to_string();
-        let mut method: Option<String> = None;
+        let mut method: String = "balanceMargin_subscribe".to_string();
         if (type_var.as_deref() == Some("spot")) {
-            method = Some("balanceSpot_subscribe".to_string());
+            method = "balanceSpot_subscribe".to_string();
             messageHash.push_str("spot");
         }  else {
-            method = Some("balanceMargin_subscribe".to_string());
             messageHash.push_str("margin");
         }
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
@@ -1053,7 +1052,7 @@ impl Whitebit {
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
-        return self.watch_private(messageHash.as_str(), method.as_deref().unwrap_or_default(), &[Value::from(vec![]), Value::Dict(paramsAwaitBalanceSnapshot)]).await;
+        return self.watch_private(messageHash.as_str(), method.as_str(), Value::from(vec![]), &[Value::Dict(paramsAwaitBalanceSnapshot)]).await;
         Value::Null
         }).await?))
     }
@@ -1181,9 +1180,9 @@ impl Whitebit {
         client.resolve(Value::Dict(self.balance.clone()), messageHash.as_str());
 }
 
-    pub async fn watch_public(&mut self, messageHash: &str, method: &str, optional_args: &[Value]) -> Value {
-        let reqParams = get_arg(optional_args, 0, Value::from(vec![]));
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub async fn watch_public(&mut self, messageHash: &str, method: &str, reqParams: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let reqParams: Value = reqParams.into();
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -1281,9 +1280,8 @@ impl Whitebit {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, messageHash: &str, method: &str, optional_args: &[Value]) -> Value {
-        let reqParams = get_arg(optional_args, 0, Value::from(vec![]));
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub async fn watch_private(&mut self, messageHash: &str, method: &str, mut reqParams: Value, optional_args: &[Value]) -> Value {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
